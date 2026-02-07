@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.3",
     "vite": "^6.2.2",
-    "vite-plugin-restart": "^0.4.2"
+    "vite-plugin-restart": "^0.4.2",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.4",
