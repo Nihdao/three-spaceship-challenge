@@ -73,7 +73,7 @@ FR37: Player can exit tunnel to enter next system
 FR38: Player can see main menu with Play option
 FR39: Player can see HUD displaying HP, timer, XP, and minimap
 FR40: Player can see game over screen with stats when dying
-FR41: Player can see victory screen when completing all systems
+FR41: Player can see victory screen when completing all systems (Tier 2)
 FR42: Player can restart from main menu after game over/victory
 FR43: System enforces 10-minute timer per system (game over if time expires)
 
@@ -186,7 +186,7 @@ FR37: Epic 7 - Exit tunnel to enter next system
 FR38: Epic 4 - Main menu with Play option
 FR39: Epic 4 - HUD (HP, timer, XP, minimap)
 FR40: Epic 4 - Game over screen with stats
-FR41: Epic 4 - Victory screen
+FR41: Epic 4 - Victory screen (Tier 2)
 FR42: Epic 4 - Restart from main menu
 FR43: Epic 4 - 10-minute system timer
 FR44: Epic 4 - Background music

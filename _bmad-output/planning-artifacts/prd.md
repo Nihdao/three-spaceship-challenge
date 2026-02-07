@@ -401,7 +401,7 @@ classification:
 - **FR38**: Player can see main menu with Play option
 - **FR39**: Player can see HUD displaying HP, timer, XP, and minimap
 - **FR40**: Player can see game over screen with stats when dying
-- **FR41**: Player can see victory screen when completing all systems
+- **FR41**: Player can see victory screen when completing all systems (Tier 2)
 - **FR42**: Player can restart from main menu after game over/victory
 - **FR43**: System enforces 10-minute timer per system (game over if time expires)
 
