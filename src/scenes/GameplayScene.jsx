@@ -1,4 +1,5 @@
 import PlayerShip from '../renderers/PlayerShip.jsx'
+import EnemyRenderer from '../renderers/EnemyRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
@@ -25,6 +26,9 @@ export default function GameplayScene() {
 
       {/* Player */}
       <PlayerShip />
+
+      {/* Enemies */}
+      <EnemyRenderer />
 
       {/* Space environment */}
       <EnvironmentRenderer />
