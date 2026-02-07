@@ -13,12 +13,10 @@ export default function ProjectileRenderer() {
   const geometry = useMemo(() => new THREE.BoxGeometry(1, 1, 1), [])
   const material = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
+      new THREE.MeshStandardMaterial({
         color: '#00ffff',
-        transparent: true,
-        opacity: 0.45,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
+        emissive: '#00ffff',
+        emissiveIntensity: 2,
         toneMapped: false,
       }),
     [],
@@ -44,7 +42,7 @@ export default function ProjectileRenderer() {
       if (!p.active) continue
 
       dummy.position.set(p.x, 0.5, p.z)
-      dummy.rotation.set(0, Math.atan2(p.dirX, -p.dirZ), 0)
+      dummy.rotation.set(0, Math.atan2(p.dirX, p.dirZ), 0)
       dummy.scale.set(p.meshScale[0], p.meshScale[1], p.meshScale[2])
       dummy.updateMatrix()
       mesh.setMatrixAt(count, dummy.matrix)
