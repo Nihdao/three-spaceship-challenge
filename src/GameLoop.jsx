@@ -6,6 +6,7 @@ import usePlayer from './stores/usePlayer.jsx'
 import useEnemies from './stores/useEnemies.jsx'
 import useWeapons from './stores/useWeapons.jsx'
 import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE } from './systems/collisionSystem.js'
+import { createSpawnSystem } from './systems/spawnSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 
 // Assigns collision entity properties without creating a new object
@@ -19,15 +20,27 @@ export default function GameLoop() {
     collisionSystemRef.current = createCollisionSystem(GAME_CONFIG.SPATIAL_HASH_CELL_SIZE)
   }
 
+  const spawnSystemRef = useRef(null)
+  if (!spawnSystemRef.current) {
+    spawnSystemRef.current = createSpawnSystem()
+  }
+
   // Pre-allocated entity descriptor pool — avoids per-frame object allocation
   // during collision registration (150+ entities × 60 FPS = 9000+ allocs/s avoided)
   const entityPoolRef = useRef([])
+  const prevPhaseRef = useRef(null)
 
   // NOTE: Relies on mount order for correct useFrame execution sequence.
   // GameLoop must mount before GameplayScene in Experience.jsx so its
   // useFrame runs first (state computation before rendering reads).
   useFrame((state, delta) => {
     const { phase, isPaused } = useGame.getState()
+
+    // Reset systems when entering gameplay phase
+    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay') {
+      spawnSystemRef.current.reset()
+    }
+    prevPhaseRef.current = phase
 
     // Only tick during active gameplay
     if (phase !== 'gameplay' || isPaused) return
@@ -44,7 +57,14 @@ export default function GameLoop() {
 
     // 3. Weapons fire — useWeapons.tick(clampedDelta)
     // 4. Projectile movement — projectileSystem
-    // 5. Enemy movement + spawning — useEnemies.tick(clampedDelta)
+
+    // 5. Enemy spawning + movement
+    const playerPos = usePlayer.getState().position
+    const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2])
+    if (spawnInstructions.length > 0) {
+      useEnemies.getState().spawnEnemies(spawnInstructions)
+    }
+    useEnemies.getState().tick(clampedDelta, playerPos)
 
     // 6. Collision detection
     const cs = collisionSystemRef.current

@@ -31,6 +31,15 @@ export const GAME_CONFIG = {
   PLAY_AREA_SIZE: 2000,        // half-width of square play area (updated from 200 in Story 1.3)
   BOUNDARY_WARNING_DISTANCE: 100,  // updated from 20 in Story 1.3
 
+  // Spawning (Story 2.2)
+  SPAWN_INTERVAL_BASE: 2.0,           // seconds between spawns at start
+  SPAWN_INTERVAL_MIN: 0.3,            // fastest spawn rate
+  SPAWN_RAMP_RATE: 0.02,              // interval decrease per second of game time
+  SPAWN_DISTANCE_MIN: 80,             // minimum spawn distance from player
+  SPAWN_DISTANCE_MAX: 120,            // maximum spawn distance from player
+  SPAWN_BATCH_SIZE_BASE: 1,           // enemies per spawn at start
+  SPAWN_BATCH_RAMP_INTERVAL: 30,      // seconds between batch size increases
+
   // Environment (Story 1.3)
   STAR_COUNT: 4000,
   STAR_FIELD_RADIUS: 5000,
