@@ -16,6 +16,7 @@ export const GAME_CONFIG = {
   // Collision
   SPATIAL_HASH_CELL_SIZE: 2,   // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
+  PROJECTILE_COLLISION_RADIUS: 0.3, // default for projectiles not defining their own
 
   // Progression
   XP_LEVEL_CURVE: [100, 150, 225, 340, 510, 765, 1148, 1722, 2583, 3875],
@@ -32,9 +33,9 @@ export const GAME_CONFIG = {
   BOUNDARY_WARNING_DISTANCE: 100,  // updated from 20 in Story 1.3
 
   // Spawning (Story 2.2)
-  SPAWN_INTERVAL_BASE: 2.0,           // seconds between spawns at start
-  SPAWN_INTERVAL_MIN: 0.3,            // fastest spawn rate
-  SPAWN_RAMP_RATE: 0.02,              // interval decrease per second of game time
+  SPAWN_INTERVAL_BASE: 5.0,           // seconds between spawns at start
+  SPAWN_INTERVAL_MIN: 1.5,            // fastest spawn rate
+  SPAWN_RAMP_RATE: 0.01,              // interval decrease per second of game time
   SPAWN_DISTANCE_MIN: 80,             // minimum spawn distance from player
   SPAWN_DISTANCE_MAX: 120,            // maximum spawn distance from player
   SPAWN_BATCH_SIZE_BASE: 1,           // enemies per spawn at start

@@ -1,4 +1,5 @@
 import PlayerShip from '../renderers/PlayerShip.jsx'
+import ProjectileRenderer from '../renderers/ProjectileRenderer.jsx'
 import EnemyRenderer from '../renderers/EnemyRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
@@ -26,6 +27,9 @@ export default function GameplayScene() {
 
       {/* Player */}
       <PlayerShip />
+
+      {/* Projectiles */}
+      <ProjectileRenderer />
 
       {/* Enemies */}
       <EnemyRenderer />
