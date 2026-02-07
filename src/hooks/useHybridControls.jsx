@@ -8,21 +8,9 @@ export function useHybridControls() {
   const keyboardBackward = useKeyboardControls((state) => state.moveBackward);
   const keyboardLeft = useKeyboardControls((state) => state.moveLeft);
   const keyboardRight = useKeyboardControls((state) => state.moveRight);
-  const keyboardUp = useKeyboardControls((state) => state.moveUp);
-  const keyboardDown = useKeyboardControls((state) => state.moveDown);
-  const keyboardSwimFast = useKeyboardControls((state) => state.swimFast);
+  const keyboardDash = useKeyboardControls((state) => state.dash);
 
-  // Touch controls states
-  const {
-    moveForward: touchForward,
-    moveBackward: touchBackward,
-    moveLeft: touchLeft,
-    moveRight: touchRight,
-    moveUp: touchUp,
-    moveDown: touchDown,
-    swimFast: touchSwimFast,
-    setControl,
-  } = useControlsStore();
+  const setControl = useControlsStore((s) => s.setControl);
 
   // Synchronize keyboard controls to the store
   useEffect(() => {
@@ -42,25 +30,6 @@ export function useHybridControls() {
   }, [keyboardRight, setControl]);
 
   useEffect(() => {
-    setControl("moveUp", keyboardUp);
-  }, [keyboardUp, setControl]);
-
-  useEffect(() => {
-    setControl("moveDown", keyboardDown);
-  }, [keyboardDown, setControl]);
-
-  useEffect(() => {
-    setControl("swimFast", keyboardSwimFast);
-  }, [keyboardSwimFast, setControl]);
-
-  // Return the combined state (keyboard OR touch)
-  return {
-    moveForward: keyboardForward || touchForward,
-    moveBackward: keyboardBackward || touchBackward,
-    moveLeft: keyboardLeft || touchLeft,
-    moveRight: keyboardRight || touchRight,
-    moveUp: keyboardUp || touchUp,
-    moveDown: keyboardDown || touchDown,
-    swimFast: keyboardSwimFast || touchSwimFast,
-  };
+    setControl("dash", keyboardDash);
+  }, [keyboardDash, setControl]);
 }
