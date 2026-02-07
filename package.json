@@ -17,10 +17,13 @@
     "@react-three/fiber": "^9.1.0",
     "@react-three/postprocessing": "^3.0.4",
     "@react-three/rapier": "2.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "howler": "^2.2.4",
     "leva": "^0.10.0",
     "r3f-perf": "^7.2.3",
     "react": "19.0",
     "react-dom": "19.0",
+    "tailwindcss": "^4.1.18",
     "three": "^0.174.0",
     "zustand": "5.0"
   }

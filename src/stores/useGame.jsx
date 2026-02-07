@@ -1,39 +1,25 @@
-import { create } from "zustand";
-import { subscribeWithSelector } from "zustand/middleware";
+import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
 
 export default create(
-  subscribeWithSelector((set) => {
-    return {
-      blocksCount: 10,
-      startTime: 0,
-      endTime: 0,
-      blockSeed: 0,
+  subscribeWithSelector((set, get) => ({
+    phase: 'menu',
+    isPaused: false,
+    systemTimer: 0,
+    score: 0,
 
-      phase: "ready",
-      start: () => {
-        set((state) => {
-          if (state.phase === "ready")
-            return { phase: "playing", startTime: Date.now() };
+    setPhase: (phase) => set({ phase }),
+    setPaused: (isPaused) => set({ isPaused }),
 
-          return {};
-        });
-      },
-      restart: () => {
-        set((state) => {
-          if (state.phase === "ended" || state.phase === "playing")
-            return { phase: "ready", blockSeed: Math.random() };
+    startGameplay: () => set({ phase: 'gameplay', isPaused: false, systemTimer: 0, score: 0 }),
+    triggerLevelUp: () => set({ phase: 'levelUp', isPaused: true }),
+    resumeGameplay: () => set({ phase: 'gameplay', isPaused: false }),
+    triggerGameOver: () => set({ phase: 'gameOver', isPaused: true }),
+    triggerVictory: () => set({ phase: 'victory', isPaused: true }),
+    returnToMenu: () => set({ phase: 'menu', isPaused: false }),
 
-          return {};
-        });
-      },
-      end: () => {
-        set((state) => {
-          if (state.phase === "playing")
-            return { phase: "ended", endTime: Date.now() };
-
-          return {};
-        });
-      },
-    };
-  })
-);
+    reset: () => set({
+      phase: 'menu', isPaused: false, systemTimer: 0, score: 0,
+    }),
+  }))
+)
