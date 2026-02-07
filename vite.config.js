@@ -1,9 +1,10 @@
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { transformWithEsbuild } from "vite";
 import restart from "vite-plugin-restart";
 
-export default {
+export default defineConfig({
   root: "src/",
   publicDir: "../public/",
   plugins: [
@@ -38,4 +39,7 @@ export default {
     emptyOutDir: true, // Empty the folder first
     sourcemap: true, // Add sourcemap
   },
-};
+  test: {
+    root: ".",
+  },
+});

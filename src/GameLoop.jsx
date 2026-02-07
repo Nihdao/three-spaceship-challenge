@@ -1,9 +1,28 @@
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import useGame from './stores/useGame.jsx'
 import { useControlsStore } from './stores/useControlsStore.jsx'
 import usePlayer from './stores/usePlayer.jsx'
+import useEnemies from './stores/useEnemies.jsx'
+import useWeapons from './stores/useWeapons.jsx'
+import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE } from './systems/collisionSystem.js'
+import { GAME_CONFIG } from './config/gameConfig.js'
+
+// Assigns collision entity properties without creating a new object
+function assignEntity(e, id, x, z, radius, category) {
+  e.id = id; e.x = x; e.z = z; e.radius = radius; e.category = category
+}
 
 export default function GameLoop() {
+  const collisionSystemRef = useRef(null)
+  if (!collisionSystemRef.current) {
+    collisionSystemRef.current = createCollisionSystem(GAME_CONFIG.SPATIAL_HASH_CELL_SIZE)
+  }
+
+  // Pre-allocated entity descriptor pool — avoids per-frame object allocation
+  // during collision registration (150+ entities × 60 FPS = 9000+ allocs/s avoided)
+  const entityPoolRef = useRef([])
+
   // NOTE: Relies on mount order for correct useFrame execution sequence.
   // GameLoop must mount before GameplayScene in Experience.jsx so its
   // useFrame runs first (state computation before rendering reads).
@@ -26,7 +45,43 @@ export default function GameLoop() {
     // 3. Weapons fire — useWeapons.tick(clampedDelta)
     // 4. Projectile movement — projectileSystem
     // 5. Enemy movement + spawning — useEnemies.tick(clampedDelta)
-    // 6. Collision detection — collisionSystem.resolve()
+
+    // 6. Collision detection
+    const cs = collisionSystemRef.current
+    cs.clear()
+
+    // Reuse pooled entity descriptors to avoid per-frame GC pressure
+    const pool = entityPoolRef.current
+    let idx = 0
+
+    // Register player
+    const playerState = usePlayer.getState()
+    if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+    assignEntity(pool[idx], 'player', playerState.position[0], playerState.position[2], GAME_CONFIG.PLAYER_COLLISION_RADIUS, CATEGORY_PLAYER)
+    cs.registerEntity(pool[idx++])
+
+    // Register all enemies
+    const { enemies } = useEnemies.getState()
+    for (let i = 0; i < enemies.length; i++) {
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      const e = enemies[i]
+      assignEntity(pool[idx], e.id, e.x, e.z, e.radius, CATEGORY_ENEMY)
+      cs.registerEntity(pool[idx++])
+    }
+
+    // Register all projectiles
+    const { projectiles } = useWeapons.getState()
+    for (let i = 0; i < projectiles.length; i++) {
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      const p = projectiles[i]
+      assignEntity(pool[idx], p.id, p.x, p.z, p.radius, CATEGORY_PROJECTILE)
+      cs.registerEntity(pool[idx++])
+    }
+
+    // Query collision results (available for damage step in Story 2.4)
+    // const playerEnemyHits = cs.queryCollisions(pool[0], CATEGORY_ENEMY)
+    // const projectileEnemyHits = ... (per-projectile queries in Story 2.4)
+
     // 7. Damage resolution
     // 8. XP + progression
     // 9. Cleanup dead entities
