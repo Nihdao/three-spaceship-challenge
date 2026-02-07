@@ -43,8 +43,8 @@ development_status:
   # Epic 1: Ship Flight & Space Environment
   epic-1: in-progress
   1-1-project-foundation-architecture-setup: done
-  1-2-ship-movement-rotation-banking: review
-  1-3-space-environment-boundaries: backlog
+  1-2-ship-movement-rotation-banking: done
+  1-3-space-environment-boundaries: done
   epic-1-retrospective: optional
 
   # Epic 2: Combat & Enemy Waves
