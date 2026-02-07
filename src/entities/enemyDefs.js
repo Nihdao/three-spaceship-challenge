@@ -10,8 +10,9 @@ export const ENEMIES = {
     behavior: 'chase',
     spawnWeight: 100,
     modelKey: 'drone',
+    modelPath: '/models/enemies/Robot%20Enemy%20Flying.glb',
     color: '#ff5555',
-    meshScale: [1, 1, 1],
+    meshScale: [3, 3, 3],
   },
   FODDER_FAST: {
     id: 'FODDER_FAST',
@@ -24,7 +25,8 @@ export const ENEMIES = {
     behavior: 'chase',
     spawnWeight: 60,
     modelKey: 'scout',
+    modelPath: '/models/enemies/Robot%20Enemy%20Flying%20Gun.glb',
     color: '#ff3366',
-    meshScale: [0.7, 0.7, 1.2],
+    meshScale: [2.5, 2.5, 2.5],
   },
 }

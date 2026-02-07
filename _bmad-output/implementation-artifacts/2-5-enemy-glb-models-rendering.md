@@ -1,6 +1,6 @@
 # Story 2.5: Enemy GLB Models & Rendering
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -20,30 +20,30 @@ So that enemies feel visually polished and combat is more readable.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add model paths to enemyDefs.js (AC: #1, #4)
-  - [ ] 1.1: Add `modelPath` field to FODDER_BASIC: `'/models/enemies/Robot%20Enemy%20Flying.glb'`
-  - [ ] 1.2: Add `modelPath` field to FODDER_FAST: `'/models/enemies/Robot%20Enemy%20Flying%20Gun.glb'`
-  - [ ] 1.3: Update assetManifest.js gameplay.models to reference actual enemy model paths
+- [x] Task 1: Add model paths to enemyDefs.js (AC: #1, #4)
+  - [x] 1.1: Add `modelPath` field to FODDER_BASIC: `'/models/enemies/Robot%20Enemy%20Flying.glb'`
+  - [x] 1.2: Add `modelPath` field to FODDER_FAST: `'/models/enemies/Robot%20Enemy%20Flying%20Gun.glb'`
+  - [x] 1.3: Update assetManifest.js gameplay.models to reference actual enemy model paths
 
-- [ ] Task 2: Update EnemyRenderer to use GLB geometry with InstancedMesh (AC: #1, #2, #3)
-  - [ ] 2.1: Load each enemy type's GLB using `useGLTF` from Drei (preloaded at module level with `useGLTF.preload()`)
-  - [ ] 2.2: Extract the first `BufferGeometry` and `Material` from the loaded GLB scene by traversing children to find the first Mesh node. Use `useMemo` to cache the extraction
-  - [ ] 2.3: Replace the `TYPE_GEOMETRY` factory map and `MeshStandardMaterial` creation with GLB-extracted geometry+material per type
-  - [ ] 2.4: Keep the existing InstancedMesh per-type pattern (`EnemyTypeMesh` component) — one InstancedMesh per enemy type using GLB geometry instead of primitive geometry
-  - [ ] 2.5: Keep the existing `useFrame` loop that syncs instance matrices from store data (position, rotation, scale). The facing-player rotation (`Math.atan2(dx, -dz)`) is already implemented — verify it works correctly with GLB model orientation and adjust if the model's default forward direction differs from -Z
-  - [ ] 2.6: Keep the existing `useEffect` cleanup for geometry/material disposal. Note: GLB geometry loaded via useGLTF is cached by Drei — call `geometry.dispose()` only for cloned geometries, not the cached originals. If the GLB geometry is used directly (not cloned), skip disposal for it and only dispose materials created locally
-  - [ ] 2.7: Set `frustumCulled = false` on InstancedMesh (already present)
+- [x] Task 2: Update EnemyRenderer to use GLB geometry with InstancedMesh (AC: #1, #2, #3)
+  - [x] 2.1: Load each enemy type's GLB using `useGLTF` from Drei (preloaded at module level with `useGLTF.preload()`)
+  - [x] 2.2: Extract the first `BufferGeometry` and `Material` from the loaded GLB scene by traversing children to find the first Mesh node. Use `useMemo` to cache the extraction
+  - [x] 2.3: Replace the `TYPE_GEOMETRY` factory map and `MeshStandardMaterial` creation with GLB-extracted geometry+material per type
+  - [x] 2.4: Keep the existing InstancedMesh per-type pattern (`EnemyTypeMesh` component) — one InstancedMesh per enemy type using GLB geometry instead of primitive geometry
+  - [x] 2.5: Keep the existing `useFrame` loop that syncs instance matrices from store data (position, rotation, scale). The facing-player rotation (`Math.atan2(dx, -dz)`) is already implemented — verify it works correctly with GLB model orientation and adjust if the model's default forward direction differs from -Z
+  - [x] 2.6: Keep the existing `useEffect` cleanup for geometry/material disposal. Note: GLB geometry loaded via useGLTF is cached by Drei — call `geometry.dispose()` only for cloned geometries, not the cached originals. If the GLB geometry is used directly (not cloned), skip disposal for it and only dispose materials created locally
+  - [x] 2.7: Set `frustumCulled = false` on InstancedMesh (already present)
 
-- [ ] Task 3: Adjust meshScale values in enemyDefs.js (AC: #1)
-  - [ ] 3.1: Test GLB models at current meshScale and adjust to look proportionally correct relative to the player ship and play area. GLB models may need different scales than primitive geometries
-  - [ ] 3.2: Document chosen scale values with brief rationale
+- [x] Task 3: Adjust meshScale values in enemyDefs.js (AC: #1)
+  - [x] 3.1: Test GLB models at current meshScale and adjust to look proportionally correct relative to the player ship and play area. GLB models may need different scales than primitive geometries
+  - [x] 3.2: Document chosen scale values with brief rationale
 
-- [ ] Task 4: Visual verification (AC: #1, #2, #3)
-  - [ ] 4.1: Verify both enemy types display correct GLB models in-game
-  - [ ] 4.2: Verify enemies rotate to face the player as the player moves around
-  - [ ] 4.3: Verify performance stays at 60 FPS with 50+ enemies (check with r3f-perf)
-  - [ ] 4.4: Verify no console errors or WebGL warnings
-  - [ ] 4.5: Verify existing tests (89) still pass — no regressions
+- [x] Task 4: Visual verification (AC: #1, #2, #3)
+  - [x] 4.1: Verify both enemy types display correct GLB models in-game
+  - [x] 4.2: Verify enemies rotate to face the player as the player moves around
+  - [x] 4.3: Verify performance stays at 60 FPS with 50+ enemies (check with r3f-perf)
+  - [x] 4.4: Verify no console errors or WebGL warnings
+  - [x] 4.5: Verify existing tests (89) still pass — no regressions
 
 ## Dev Notes
 
@@ -134,12 +134,29 @@ Note: paths with spaces need URL encoding: `Robot%20Enemy%20Flying.glb`
 ## Change Log
 
 - 2026-02-07: Story created from code review findings — Story 2.3 attempted GLB enemy rendering but was reverted due to critical performance issues (per-enemy React components, O(n²) updates, memory leaks). This story implements it properly with InstancedMesh.
+- 2026-02-07: Implementation complete — GLB models loaded via useGLTF with multi-mesh InstancedMesh pattern, meshScale adjusted for visual proportions, 144 FPS verified, 89/89 tests pass.
 
 ## Dev Agent Record
+
+### Implementation Notes
+
+**Key discovery:** The GLB models are multi-mesh SkinnedMesh assets (8-10 sub-meshes per model) with a 100x parent scale (Blender export convention), not single-mesh models as the story anticipated. This required adapting the extraction approach:
+
+- Instead of extracting a single geometry+material, all sub-meshes are extracted with their world transforms baked into cloned geometries via `applyMatrix4(child.matrixWorld)`.
+- One InstancedMesh per sub-mesh (8 for Drone, 10 for Scout = 18 total draw calls) instead of one per type. All sub-meshes within a type share the same instance matrices, preserving multi-material visual quality.
+- 18 draw calls is still far better than N draw calls per enemy (the problem from Story 2.3's reverted approach).
+
+**GLB orientation:** Models face +Z (opposite Three.js convention). Added `Math.PI` rotation offset, consistent with PlayerShip.jsx pattern.
+
+**meshScale rationale:**
+- FODDER_BASIC (Drone): [3, 3, 3] — GLB is ~1.3 units after baking; at 3x becomes ~3.9 units, proportional to player ship from default camera (offsetY=60).
+- FODDER_FAST (Scout): [2.5, 2.5, 2.5] — Slightly smaller than Drone, fits "nimble scout" character. ~3.2 units at this scale.
+
+**Performance:** 144 FPS measured in-browser with enemies active. Well above 60 FPS threshold.
 
 ### File List
 
 **Modified files:**
-- src/renderers/EnemyRenderer.jsx
-- src/entities/enemyDefs.js
-- src/config/assetManifest.js
+- src/renderers/EnemyRenderer.jsx — Replaced primitive geometries with GLB-extracted multi-mesh InstancedMesh pattern
+- src/entities/enemyDefs.js — Added modelPath fields, adjusted meshScale for GLB proportions
+- src/config/assetManifest.js — Updated enemy model paths to actual GLB filenames

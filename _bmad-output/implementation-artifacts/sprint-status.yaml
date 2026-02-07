@@ -52,8 +52,9 @@ development_status:
   2-1-spatial-hashing-collision-system: done
   2-2-enemy-spawning-rendering: done
   2-3-auto-fire-projectile-system: done
-  2-5-enemy-glb-models-rendering: ready-for-dev
-  2-4-combat-resolution-feedback: backlog
+  2-5-enemy-glb-models-rendering: review
+  2-6-enemy-speed-facing-tuning: ready-for-dev
+  2-4-combat-resolution-feedback: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Progression & Build Crafting
