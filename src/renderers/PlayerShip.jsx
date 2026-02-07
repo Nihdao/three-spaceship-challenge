@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import usePlayer from '../stores/usePlayer.jsx'
@@ -7,6 +7,7 @@ export default function PlayerShip() {
   const groupRef = useRef()
   const bankRef = useRef()
   const { scene } = useGLTF('/models/ships/Spaceship.glb')
+  const clonedScene = useMemo(() => scene.clone(), [scene])
 
   useFrame(() => {
     if (!groupRef.current || !bankRef.current) return
@@ -21,7 +22,7 @@ export default function PlayerShip() {
   return (
     <group ref={groupRef}>
       <group ref={bankRef}>
-        <primitive object={scene.clone()} />
+        <primitive object={clonedScene} />
       </group>
     </group>
   )

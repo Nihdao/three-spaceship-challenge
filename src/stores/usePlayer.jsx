@@ -82,7 +82,8 @@ const usePlayer = create((set, get) => ({
     // Normalize yaw delta
     while (yawDelta > Math.PI) yawDelta -= Math.PI * 2
     while (yawDelta < -Math.PI) yawDelta += Math.PI * 2
-    const targetBank = -Math.min(Math.max(yawDelta / delta * 0.5, -PLAYER_MAX_BANK_ANGLE), PLAYER_MAX_BANK_ANGLE)
+    const angularVelocity = delta > 0 ? yawDelta / delta : 0
+    const targetBank = -Math.min(Math.max(angularVelocity * 0.5, -PLAYER_MAX_BANK_ANGLE), PLAYER_MAX_BANK_ANGLE)
     const bankLerp = 1 - Math.exp(-PLAYER_BANK_SPEED * delta)
     let bank = state.bankAngle + (targetBank - state.bankAngle) * bankLerp
     // Return to 0 when not turning
