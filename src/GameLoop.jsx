@@ -1,5 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import useGame from './stores/useGame.jsx'
+import { useControlsStore } from './stores/useControlsStore.jsx'
+import usePlayer from './stores/usePlayer.jsx'
 
 export default function GameLoop() {
   useFrame((state, delta) => {
@@ -13,7 +15,11 @@ export default function GameLoop() {
 
     // === TICK ORDER (deterministic) ===
     // 1. Input — read from useControlsStore
-    // 2. Player movement — usePlayer.tick(clampedDelta, input)
+    const input = useControlsStore.getState()
+
+    // 2. Player movement
+    usePlayer.getState().tick(clampedDelta, input)
+
     // 3. Weapons fire — useWeapons.tick(clampedDelta)
     // 4. Projectile movement — projectileSystem
     // 5. Enemy movement + spawning — useEnemies.tick(clampedDelta)

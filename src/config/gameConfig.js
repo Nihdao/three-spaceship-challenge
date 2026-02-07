@@ -19,6 +19,13 @@ export const GAME_CONFIG = {
   // Progression
   XP_LEVEL_CURVE: [100, 150, 225, 340, 510, 765, 1148, 1722, 2583, 3875],
 
+  // Player movement (Story 1.2)
+  PLAYER_ACCELERATION: 750,      // units/sec² — how fast ship reaches full speed
+  PLAYER_FRICTION: 0.92,         // per-frame velocity decay when no input (0-1, lower = more drag)
+  PLAYER_ROTATION_SPEED: 10,     // radians/sec interpolation speed for yaw
+  PLAYER_MAX_BANK_ANGLE: 0.4,    // radians (~23°) — max visual tilt during turns
+  PLAYER_BANK_SPEED: 8,          // how fast bank angle responds
+
   // Play area
   PLAY_AREA_SIZE: 200,         // half-width of square play area
   BOUNDARY_WARNING_DISTANCE: 20,

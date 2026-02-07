@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
-export default create(
+const useGame = create(
   subscribeWithSelector((set, get) => ({
     phase: 'menu',
     isPaused: false,
@@ -23,3 +23,5 @@ export default create(
     }),
   }))
 )
+
+export default useGame
