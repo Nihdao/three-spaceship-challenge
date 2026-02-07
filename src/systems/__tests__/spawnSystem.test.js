@@ -41,9 +41,10 @@ describe('spawnSystem', () => {
       spawnCount += result.length
     }
 
-    // With difficulty ramp, should have spawned significantly more than 25 times
-    // (50s / 2s base = 25 spawns without ramp)
-    expect(spawnCount).toBeGreaterThan(25)
+    // With difficulty ramp, should have spawned more than baseline
+    // (50s / SPAWN_INTERVAL_BASE without ramp)
+    const baselineSpawns = Math.floor(50 / GAME_CONFIG.SPAWN_INTERVAL_BASE)
+    expect(spawnCount).toBeGreaterThan(baselineSpawns)
   })
 
   it('should never let spawn interval go below SPAWN_INTERVAL_MIN', () => {
