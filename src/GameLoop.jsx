@@ -4,6 +4,9 @@ import { useControlsStore } from './stores/useControlsStore.jsx'
 import usePlayer from './stores/usePlayer.jsx'
 
 export default function GameLoop() {
+  // NOTE: Relies on mount order for correct useFrame execution sequence.
+  // GameLoop must mount before GameplayScene in Experience.jsx so its
+  // useFrame runs first (state computation before rendering reads).
   useFrame((state, delta) => {
     const { phase, isPaused } = useGame.getState()
 

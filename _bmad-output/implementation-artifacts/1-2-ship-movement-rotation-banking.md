@@ -1,6 +1,6 @@
 # Story 1.2: Ship Movement, Rotation & Banking
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -281,7 +281,7 @@ Claude Opus 4.6
 - useHybridControls cleaned up: removed legacy fish controls (moveUp, moveDown, swimFast), added dash sync
 - usePlayerMovement.jsx archived to src/_archive/ (Rapier-based, not used)
 - PlayerShip renderer reads from store each frame via useFrame, applies yaw on Y axis and bank on Z axis via nested group
-- usePlayerCamera rewritten for top-down follow with offset [0, 30, 15], smooth lerp, and velocity-based look-ahead
+- usePlayerCamera rewritten for top-down follow with offset [0, 60, 30], frame-rate independent smooth lerp, Leva-tunable parameters, and velocity-based look-ahead
 - GameplayScene assembled with PlayerShip, camera, controls, lighting, and temporary grid
 - Movement config constants added: PLAYER_ACCELERATION=750, PLAYER_FRICTION=0.92, PLAYER_ROTATION_SPEED=10, PLAYER_MAX_BANK_ANGLE=0.4, PLAYER_BANK_SPEED=8
 - Position kept as plain array [0,0,0] per Story 1.1 review decision
@@ -298,7 +298,9 @@ Claude Opus 4.6
 - `src/scenes/GameplayScene.jsx` — Modified: mounts PlayerShip, CameraRig, Controls, lighting, and temp grid
 - `src/config/gameConfig.js` — Modified: added PLAYER_ACCELERATION, PLAYER_FRICTION, PLAYER_ROTATION_SPEED, PLAYER_MAX_BANK_ANGLE, PLAYER_BANK_SPEED
 - `src/stores/useGame.jsx` — Modified: minor refactor from anonymous default export to named const (for debug, then cleaned up)
+- `src/scenes/MenuScene.jsx` — Modified: replaced stub (return null) with temporary "Click to Start" screen using Html from Drei
 
 ## Change Log
 
 - 2026-02-07: Implemented Story 1.2 — Ship Movement, Rotation & Banking. Full movement system with acceleration/deceleration, smooth yaw rotation, banking on turns, boundary clamping, top-down camera follow, and GameplayScene assembly.
+- 2026-02-07: Code Review fixes — frame-rate independent camera lerp (H1), delta=0 guard in bank calculation (H2), memoized scene.clone (M3), added Leva camera tuning controls (M4), documented GameLoop mount-order dependency (M5), corrected File List and Completion Notes (M1, M2).
