@@ -1,6 +1,6 @@
 # Story 2.3: Auto-Fire & Projectile System
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -380,6 +380,15 @@ No new libraries needed. All dependencies already installed.
 ## Change Log
 
 - 2026-02-07: Implemented auto-fire & projectile system — all 8 tasks complete, 89 tests passing (33 new + 56 existing), zero regressions
+- 2026-02-07: **Code Review (AI)** — 10 issues found (3 CRITICAL, 3 HIGH, 2 MEDIUM, 2 LOW). Fixed 8:
+  - Reverted EnemyRenderer.jsx to InstancedMesh pattern (was rewritten to per-enemy GLB clones — perf bomb, memory leak, DO NOT MODIFY violation)
+  - Reverted enemyDefs.js to original values (undocumented speed/meshScale changes out of scope)
+  - Fixed spawnSystem.test.js hardcoded assertion to use dynamic GAME_CONFIG.SPAWN_INTERVAL_BASE
+  - Fixed weaponDefs.js projectileMeshScale from [0.8, 0.8, 1.0] to [0.15, 0.15, 0.6] per spec (elongated beam)
+  - Fixed ProjectileRenderer.jsx material from MeshBasicMaterial to MeshStandardMaterial with emissive per spec
+  - Documented intentional cooldown mutation pattern in useWeapons.jsx
+  - 89/89 tests passing after fixes
+- 2026-02-07: **Bug fix** — Projectile visual rotation was wrong on diagonals. `atan2(dirX, -dirZ)` → `atan2(dirX, dirZ)` in ProjectileRenderer.jsx. The old formula aligned the elongated mesh 90° off the travel direction for non-axis-aligned angles.
 
 ## Dev Agent Record
 

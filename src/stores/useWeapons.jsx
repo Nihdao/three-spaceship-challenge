@@ -25,6 +25,8 @@ const useWeapons = create((set, get) => ({
 
     for (let i = 0; i < activeWeapons.length; i++) {
       const weapon = activeWeapons[i]
+      // Mutate cooldown in-place (no set() call) to avoid unnecessary Zustand re-renders.
+      // Cooldown is internal bookkeeping — no subscriber needs to react to timer ticks.
       weapon.cooldownTimer -= delta
 
       if (weapon.cooldownTimer <= 0) {

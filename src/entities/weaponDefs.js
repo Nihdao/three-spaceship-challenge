@@ -10,7 +10,7 @@ export const WEAPONS = {
     projectileRadius: 0.3,          // collision radius for spatial hash
     projectileLifetime: 3.0,        // seconds before auto-despawn
     projectileColor: '#00ffff',     // cyan beam per UX neon palette
-    projectileMeshScale: [0.8, 0.8, 1.0], // squarish shape
+    projectileMeshScale: [0.15, 0.15, 0.6], // elongated beam shape
     slot: 'any',            // 'fixed' for slot 1, 'any' for slots 2-4
     upgrades: [
       // To be filled in Story 3.3
