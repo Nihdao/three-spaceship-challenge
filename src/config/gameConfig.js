@@ -27,6 +27,14 @@ export const GAME_CONFIG = {
   PLAYER_BANK_SPEED: 8,          // how fast bank angle responds
 
   // Play area
-  PLAY_AREA_SIZE: 200,         // half-width of square play area
-  BOUNDARY_WARNING_DISTANCE: 20,
+  PLAY_AREA_SIZE: 2000,        // half-width of square play area (updated from 200 in Story 1.3)
+  BOUNDARY_WARNING_DISTANCE: 100,  // updated from 20 in Story 1.3
+
+  // Environment (Story 1.3)
+  STAR_COUNT: 4000,
+  STAR_FIELD_RADIUS: 5000,
+  BOUNDARY_WALL_BASE_OPACITY: 0.08,
+  BOUNDARY_WALL_WARN_OPACITY: 0.6,
+  BOUNDARY_WALL_HEIGHT: 200,
+  BOUNDARY_WALL_COLOR: '#00ffff',
 }
