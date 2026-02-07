@@ -14,7 +14,8 @@ export const ASSET_MANIFEST = {
   // Gameplay — loaded during menu or first seconds
   gameplay: {
     models: {
-      drone: 'models/enemies/drone.glb',
+      drone: 'models/enemies/Robot%20Enemy%20Flying.glb',
+      scout: 'models/enemies/Robot%20Enemy%20Flying%20Gun.glb',
     },
     audio: {
       laserFire: 'audio/sfx/laser-fire.mp3',
