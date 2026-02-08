@@ -49,6 +49,10 @@ export const GAME_CONFIG = {
   BOUNDARY_WALL_HEIGHT: 200,
   BOUNDARY_WALL_COLOR: '#00ffff',
 
+  // Hit feedback (Story 2.7)
+  HIT_FLASH_DURATION_MS: 100,         // milliseconds of scale pulse after non-lethal hit
+  HIT_FLASH_SCALE_MULT: 1.15,         // scale multiplier during hit flash (1.0 = no change)
+
   // Combat resolution (Story 2.4)
   CONTACT_DAMAGE_COOLDOWN: 0.5,       // seconds between contact damage ticks
   PARTICLE_EXPLOSION_COUNT: 8,        // particles per enemy death explosion

@@ -16,6 +16,7 @@ function spawnTestEnemy(overrides = {}) {
     behavior: 'chase',
     color: '#ff5555',
     meshScale: 1,
+    lastHitTime: -Infinity,
     ...overrides,
   }
   useEnemies.setState((state) => ({
@@ -65,6 +66,27 @@ describe('useEnemies — damage actions', () => {
       expect(result.killed).toBe(false)
       expect(result.enemy).toBeTruthy()
       expect(result.enemy.id).toBe(enemy.id)
+    })
+
+    it('sets lastHitTime on non-lethal damage', () => {
+      const enemy = spawnTestEnemy({ hp: 20 })
+      const before = performance.now()
+      useEnemies.getState().damageEnemy(enemy.id, 5)
+      const after = performance.now()
+
+      const updated = useEnemies.getState().enemies.find((e) => e.id === enemy.id)
+      expect(updated.lastHitTime).toBeGreaterThanOrEqual(before)
+      expect(updated.lastHitTime).toBeLessThanOrEqual(after)
+    })
+
+    it('does not set lastHitTime on lethal damage', () => {
+      const enemy = spawnTestEnemy({ hp: 10 })
+      const result = useEnemies.getState().damageEnemy(enemy.id, 10)
+
+      // Enemy is removed from store
+      expect(useEnemies.getState().enemies.find((e) => e.id === enemy.id)).toBeUndefined()
+      // Dead snapshot should retain the initial sentinel, not a performance.now() value
+      expect(result.enemy.lastHitTime).toBe(-Infinity)
     })
 
     it('returns null result for invalid enemy ID', () => {
@@ -136,6 +158,26 @@ describe('useEnemies — damage actions', () => {
     it('returns empty array for empty hits', () => {
       const results = useEnemies.getState().damageEnemiesBatch([])
       expect(results).toEqual([])
+    })
+
+    it('sets lastHitTime on surviving enemies in batch', () => {
+      const e1 = spawnTestEnemy({ hp: 20 })
+      const e2 = spawnTestEnemy({ hp: 5 })
+
+      const before = performance.now()
+      useEnemies.getState().damageEnemiesBatch([
+        { enemyId: e1.id, damage: 5 },
+        { enemyId: e2.id, damage: 10 },
+      ])
+      const after = performance.now()
+
+      // e1 survived — should have lastHitTime set
+      const surviving = useEnemies.getState().enemies.find((e) => e.id === e1.id)
+      expect(surviving.lastHitTime).toBeGreaterThanOrEqual(before)
+      expect(surviving.lastHitTime).toBeLessThanOrEqual(after)
+
+      // e2 died — should be removed
+      expect(useEnemies.getState().enemies.find((e) => e.id === e2.id)).toBeUndefined()
     })
 
     it('kills enemy when cumulative batch damage exceeds HP', () => {

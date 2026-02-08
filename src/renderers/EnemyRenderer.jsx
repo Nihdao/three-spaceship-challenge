@@ -62,6 +62,7 @@ function EnemyTypeMesh({ typeId }) {
     const enemies = useEnemies.getState().enemies
     const playerPos = usePlayer.getState().position
     const dummy = dummyRef.current
+    const now = performance.now()
 
     // TODO: O(enemies × types) per frame — consider pre-bucketing enemies by
     // type in the store if more enemy types are added (currently 2, acceptable).
@@ -77,7 +78,14 @@ function EnemyTypeMesh({ typeId }) {
       const dz = playerPos[2] - e.z
       dummy.rotation.set(0, Math.atan2(dx, dz), 0)
 
-      dummy.scale.set(e.meshScale[0], e.meshScale[1], e.meshScale[2])
+      // Hit flash: scale pulse after taking non-lethal damage
+      const hitAge = now - e.lastHitTime
+      const scaleMult = hitAge < GAME_CONFIG.HIT_FLASH_DURATION_MS ? GAME_CONFIG.HIT_FLASH_SCALE_MULT : 1
+      dummy.scale.set(
+        e.meshScale[0] * scaleMult,
+        e.meshScale[1] * scaleMult,
+        e.meshScale[2] * scaleMult,
+      )
       dummy.updateMatrix()
 
       for (let j = 0; j < refs.length; j++) {

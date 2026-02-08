@@ -29,6 +29,7 @@ const useEnemies = create((set, get) => ({
       behavior: def.behavior,
       color: def.color,
       meshScale: def.meshScale,
+      lastHitTime: -Infinity,
     }
 
     set({
@@ -65,6 +66,7 @@ const useEnemies = create((set, get) => ({
         behavior: def.behavior,
         color: def.color,
         meshScale: def.meshScale,
+        lastHitTime: -Infinity,
       })
       nextId++
     }
@@ -119,6 +121,7 @@ const useEnemies = create((set, get) => ({
       set({ enemies: enemies.filter((_, i) => i !== idx) })
       return { killed: true, enemy: deadEnemy }
     }
+    enemy.lastHitTime = performance.now()
     return { killed: false, enemy }
   },
 
@@ -146,6 +149,7 @@ const useEnemies = create((set, get) => ({
         killIds.add(enemyId)
         results.push({ killed: true, enemy: { ...enemy } })
       } else {
+        enemy.lastHitTime = performance.now()
         results.push({ killed: false, enemy })
       }
     }
