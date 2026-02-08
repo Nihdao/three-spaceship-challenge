@@ -1,6 +1,7 @@
 import PlayerShip from '../renderers/PlayerShip.jsx'
 import ProjectileRenderer from '../renderers/ProjectileRenderer.jsx'
 import EnemyRenderer from '../renderers/EnemyRenderer.jsx'
+import ParticleRenderer from '../renderers/ParticleRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
@@ -33,6 +34,9 @@ export default function GameplayScene() {
 
       {/* Enemies */}
       <EnemyRenderer />
+
+      {/* Death explosion particles */}
+      <ParticleRenderer />
 
       {/* Space environment */}
       <EnvironmentRenderer />

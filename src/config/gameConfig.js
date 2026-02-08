@@ -48,4 +48,11 @@ export const GAME_CONFIG = {
   BOUNDARY_WALL_WARN_OPACITY: 0.6,
   BOUNDARY_WALL_HEIGHT: 200,
   BOUNDARY_WALL_COLOR: '#00ffff',
+
+  // Combat resolution (Story 2.4)
+  CONTACT_DAMAGE_COOLDOWN: 0.5,       // seconds between contact damage ticks
+  PARTICLE_EXPLOSION_COUNT: 8,        // particles per enemy death explosion
+  PARTICLE_EXPLOSION_SPEED: 50,       // particle outward speed (units/sec)
+  PARTICLE_EXPLOSION_LIFETIME: 0.4,   // particle lifetime in seconds
+  PARTICLE_EXPLOSION_SIZE: 0.3,       // particle size in world units
 }
