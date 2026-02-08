@@ -53,13 +53,34 @@ describe('useWeapons store', () => {
     expect(state.projectiles.length).toBe(2)
   })
 
-  it('should create projectile at player position', () => {
+  it('should create projectile at player position with forward offset', () => {
     useWeapons.getState().initializeWeapons()
     useWeapons.getState().tick(0.01, [100, 0, -50], 0)
 
     const p = useWeapons.getState().projectiles[0]
-    expect(p.x).toBe(100)
-    expect(p.z).toBe(-50)
+    const fwd = GAME_CONFIG.PROJECTILE_SPAWN_FORWARD_OFFSET
+    // rotation=0 → dirX=sin(0)=0, dirZ=-cos(0)=-1
+    expect(p.x).toBeCloseTo(100, 5)
+    expect(p.z).toBeCloseTo(-50 + (-1) * fwd, 5)
+  })
+
+  it('should create projectile with Y offset from config', () => {
+    useWeapons.getState().initializeWeapons()
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+
+    const p = useWeapons.getState().projectiles[0]
+    expect(p.y).toBe(GAME_CONFIG.PROJECTILE_SPAWN_Y_OFFSET)
+  })
+
+  it('should apply forward offset along ship facing direction (rotation PI/2)', () => {
+    useWeapons.getState().initializeWeapons()
+    useWeapons.getState().tick(0.01, [10, 0, 20], Math.PI / 2)
+
+    const p = useWeapons.getState().projectiles[0]
+    const fwd = GAME_CONFIG.PROJECTILE_SPAWN_FORWARD_OFFSET
+    // rotation=PI/2 → dirX=sin(PI/2)=1, dirZ=-cos(PI/2)≈0
+    expect(p.x).toBeCloseTo(10 + fwd, 3)
+    expect(p.z).toBeCloseTo(20, 3)
   })
 
   it('should set correct direction for rotation 0 (facing -Z)', () => {

@@ -36,13 +36,18 @@ const useWeapons = create((set, get) => ({
         // Respect MAX_PROJECTILES cap
         if (projectiles.length + newProjectiles.length >= GAME_CONFIG.MAX_PROJECTILES) continue
 
+        const dirX = Math.sin(playerRotation)
+        const dirZ = -Math.cos(playerRotation)
+        const fwd = GAME_CONFIG.PROJECTILE_SPAWN_FORWARD_OFFSET
+
         newProjectiles.push({
           id: `proj_${nextProjectileId++}`,
           weaponId: weapon.weaponId,
-          x: playerPosition[0],
-          z: playerPosition[2],
-          dirX: Math.sin(playerRotation),
-          dirZ: -Math.cos(playerRotation),
+          x: playerPosition[0] + dirX * fwd,
+          z: playerPosition[2] + dirZ * fwd,
+          y: GAME_CONFIG.PROJECTILE_SPAWN_Y_OFFSET,
+          dirX,
+          dirZ,
           speed: def.baseSpeed,
           damage: def.baseDamage,
           radius: def.projectileRadius,
