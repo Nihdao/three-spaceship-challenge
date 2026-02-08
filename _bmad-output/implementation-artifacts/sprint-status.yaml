@@ -54,7 +54,9 @@ development_status:
   2-3-auto-fire-projectile-system: done
   2-5-enemy-glb-models-rendering: done
   2-6-enemy-speed-facing-tuning: done
-  2-4-combat-resolution-feedback: ready-for-dev
+  2-4-combat-resolution-feedback: done
+  2-7-hitbox-tuning-hit-feedback: ready-for-dev
+  2-8-player-rotation-responsiveness: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Progression & Build Crafting

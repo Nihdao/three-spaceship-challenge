@@ -9,6 +9,7 @@ import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJEC
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
+import { addExplosion, resetParticles } from './systems/particleSystem.js'
 
 // Assigns collision entity properties without creating a new object
 function assignEntity(e, id, x, z, radius, category) {
@@ -47,6 +48,7 @@ export default function GameLoop() {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       useWeapons.getState().initializeWeapons()
+      resetParticles()
     }
     prevPhaseRef.current = phase
 
@@ -110,11 +112,60 @@ export default function GameLoop() {
       cs.registerEntity(pool[idx++])
     }
 
-    // Query collision results (available for damage step in Story 2.4)
-    // const playerEnemyHits = cs.queryCollisions(pool[0], CATEGORY_ENEMY)
-    // const projectileEnemyHits = ... (per-projectile queries in Story 2.4)
-
     // 7. Damage resolution
+    // 7a. Projectile-enemy collisions
+    const projectileHits = []
+    const projectileStartIdx = 1 + enemies.length
+
+    for (let i = 0; i < projectiles.length; i++) {
+      const pEntity = pool[projectileStartIdx + i]
+      if (!pEntity) continue
+      const hits = cs.queryCollisions(pEntity, CATEGORY_ENEMY)
+      if (hits.length > 0) {
+        projectiles[i].active = false
+        projectileHits.push({ enemyId: hits[0].id, damage: projectiles[i].damage })
+      }
+    }
+
+    // 7b. Apply enemy damage (batch)
+    if (projectileHits.length > 0) {
+      const deathEvents = useEnemies.getState().damageEnemiesBatch(projectileHits)
+
+      // 7c. Spawn particles for deaths
+      for (let i = 0; i < deathEvents.length; i++) {
+        const event = deathEvents[i]
+        if (event.killed) {
+          addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
+        }
+      }
+    }
+
+    // 7d. Player-enemy contact damage
+    const playerHits = cs.queryCollisions(pool[0], CATEGORY_ENEMY)
+    if (playerHits.length > 0) {
+      const pState = usePlayer.getState()
+      if (pState.contactDamageCooldown <= 0 && !pState.isInvulnerable) {
+        // Re-read enemies after projectile damage — killed enemies should not deal contact damage
+        const aliveEnemies = useEnemies.getState().enemies
+        let totalDamage = 0
+        for (let i = 0; i < playerHits.length; i++) {
+          const enemy = aliveEnemies.find((e) => e.id === playerHits[i].id)
+          if (enemy) totalDamage += enemy.damage
+        }
+        if (totalDamage > 0) {
+          usePlayer.getState().takeDamage(totalDamage)
+        }
+      }
+    }
+
+    // 7e. Death check
+    if (usePlayer.getState().currentHP <= 0) {
+      useGame.getState().triggerGameOver()
+    }
+
+    // Cleanup projectiles marked inactive during damage resolution
+    useWeapons.getState().cleanupInactive()
+
     // 8. XP + progression
     // 9. Cleanup dead entities
   })

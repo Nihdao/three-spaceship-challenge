@@ -107,6 +107,57 @@ const useEnemies = create((set, get) => ({
     }
   },
 
+  damageEnemy: (enemyId, damage) => {
+    const { enemies } = get()
+    const idx = enemies.findIndex((e) => e.id === enemyId)
+    if (idx === -1) return { killed: false, enemy: null }
+
+    const enemy = enemies[idx]
+    enemy.hp -= damage
+    if (enemy.hp <= 0) {
+      const deadEnemy = { ...enemy }
+      set({ enemies: enemies.filter((_, i) => i !== idx) })
+      return { killed: true, enemy: deadEnemy }
+    }
+    return { killed: false, enemy }
+  },
+
+  damageEnemiesBatch: (hits) => {
+    if (hits.length === 0) return []
+
+    const { enemies } = get()
+    const results = []
+
+    // Accumulate damage per enemy
+    const damageMap = new Map()
+    for (let i = 0; i < hits.length; i++) {
+      const { enemyId, damage } = hits[i]
+      damageMap.set(enemyId, (damageMap.get(enemyId) || 0) + damage)
+    }
+
+    // Apply accumulated damage
+    const killIds = new Set()
+    for (const [enemyId, totalDamage] of damageMap) {
+      const enemy = enemies.find((e) => e.id === enemyId)
+      if (!enemy) continue
+
+      enemy.hp -= totalDamage
+      if (enemy.hp <= 0) {
+        killIds.add(enemyId)
+        results.push({ killed: true, enemy: { ...enemy } })
+      } else {
+        results.push({ killed: false, enemy })
+      }
+    }
+
+    // Single set() call — remove killed enemies
+    if (killIds.size > 0) {
+      set({ enemies: enemies.filter((e) => !killIds.has(e.id)) })
+    }
+
+    return results
+  },
+
   killEnemy: (id) => {
     const { enemies } = get()
     const filtered = enemies.filter((e) => e.id !== id)

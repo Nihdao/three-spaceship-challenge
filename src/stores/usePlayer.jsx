@@ -11,6 +11,8 @@ const usePlayer = create((set, get) => ({
   currentHP: 100,
   maxHP: 100,
   isInvulnerable: false,
+  lastDamageTime: 0,
+  contactDamageCooldown: 0,
 
   // --- Tick (called by GameLoop each frame) ---
   tick: (delta, input) => {
@@ -94,16 +96,32 @@ const usePlayer = create((set, get) => ({
     // --- Speed scalar (for UI/debug) ---
     const speed = Math.sqrt(vx * vx + vz * vz)
 
+    // --- Contact damage cooldown ---
+    let contactDamageCooldown = state.contactDamageCooldown - delta
+    if (contactDamageCooldown < 0) contactDamageCooldown = 0
+
     set({
       position: [px, 0, pz],
       velocity: [vx, 0, vz],
       rotation: yaw,
       bankAngle: bank,
       speed,
+      contactDamageCooldown,
     })
   },
 
   // --- Actions ---
+  takeDamage: (amount) => {
+    const state = get()
+    if (state.isInvulnerable) return
+    if (state.contactDamageCooldown > 0) return
+    set({
+      currentHP: Math.max(0, state.currentHP - amount),
+      lastDamageTime: Date.now(),
+      contactDamageCooldown: GAME_CONFIG.CONTACT_DAMAGE_COOLDOWN,
+    })
+  },
+
   reset: () => set({
     position: [0, 0, 0],
     velocity: [0, 0, 0],
@@ -113,6 +131,8 @@ const usePlayer = create((set, get) => ({
     currentHP: 100,
     maxHP: 100,
     isInvulnerable: false,
+    lastDamageTime: 0,
+    contactDamageCooldown: 0,
   }),
 }))
 
