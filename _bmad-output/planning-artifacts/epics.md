@@ -415,6 +415,38 @@ So that combat feels impactful and I understand the results of my actions.
 **Then** usePlayer store updates currentHP
 **And** damage feedback is registered (to be displayed by HUD in Epic 4)
 
+### Story 2.7: Hitbox Tuning & Hit Visual Feedback
+
+As a player,
+I want enemy collision radii to match their visual size and see a visible reaction when my projectiles hit an enemy,
+So that combat feels responsive and I can tell my shots are connecting.
+
+**Acceptance Criteria:**
+
+**Given** enemies are rendered with GLB models scaled to [3,3,3] or [2.5,2.5,2.5]
+**When** the collision system checks for projectile-enemy overlap
+**Then** the enemy collision radius is proportional to the visible model size (not the tiny base radius of 0.5)
+**And** projectiles that visually overlap the enemy model register as hits
+
+**Given** a projectile hits an enemy but does not kill it
+**When** the damage is applied
+**Then** the enemy displays a brief visual flash or color change (hit feedback)
+**And** the feedback is immediate (< 50ms) and clearly distinguishable from idle state
+
+### Story 2.8: Player Rotation Responsiveness
+
+As a player,
+I want my ship to face my input direction quickly when using keyboard controls,
+So that my projectiles fire where I intend and the ship feels snappy to control.
+
+**Acceptance Criteria:**
+
+**Given** the player presses a direction key (8 discrete directions on keyboard)
+**When** the ship rotates toward the input direction
+**Then** the ship reaches the target yaw significantly faster than current (PLAYER_ROTATION_SPEED tuning)
+**And** the smooth visual interpolation (lerp) and banking animation are preserved
+**And** the ship's movement direction already matches input (velocity is unchanged)
+
 ## Epic 3: Progression & Build Crafting
 
 The player gains XP from kills, levels up to choose weapons and boons, equips up to 4 weapons and 3 boons, upgrades weapons through levels, and experiences the power fantasy of becoming increasingly powerful. Includes HP system and death.

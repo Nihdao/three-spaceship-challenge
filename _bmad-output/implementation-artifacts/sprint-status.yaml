@@ -55,7 +55,7 @@ development_status:
   2-5-enemy-glb-models-rendering: done
   2-6-enemy-speed-facing-tuning: done
   2-4-combat-resolution-feedback: done
-  2-7-hitbox-tuning-hit-feedback: ready-for-dev
+  2-7-hitbox-tuning-hit-feedback: done
   2-8-player-rotation-responsiveness: ready-for-dev
   epic-2-retrospective: optional
 
