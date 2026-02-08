@@ -14,8 +14,9 @@ export const ASSET_MANIFEST = {
   // Gameplay — loaded during menu or first seconds
   gameplay: {
     models: {
-      drone: 'models/enemies/Robot%20Enemy%20Flying.glb',
-      scout: 'models/enemies/Robot%20Enemy%20Flying%20Gun.glb',
+      // Note: paths must match modelPath in enemyDefs.js
+      drone: 'models/enemies/robot-enemy-flying.glb',
+      scout: 'models/enemies/robot-enemy-flying-gun.glb',
     },
     audio: {
       laserFire: 'audio/sfx/laser-fire.mp3',
@@ -27,7 +28,9 @@ export const ASSET_MANIFEST = {
   tier2: {
     models: {
       boss: 'models/enemies/boss.glb',
-      planet: 'models/environment/planet.glb',
+      planetA: 'models/environment/PlanetA.glb',
+      planetB: 'models/environment/PlanetB.glb',
+      planetC: 'models/environment/PlanetC.glb',
       wormhole: 'models/environment/wormhole.glb',
     },
     audio: {

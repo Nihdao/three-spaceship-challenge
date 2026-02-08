@@ -1,6 +1,6 @@
 # Story 2.5: Enemy GLB Models & Rendering
 
-Status: review
+Status: done
 
 ## Story
 
@@ -10,19 +10,19 @@ So that enemies feel visually polished and combat is more readable.
 
 ## Acceptance Criteria
 
-1. **Given** enemies are rendering in the gameplay scene **When** FODDER_BASIC (Drone) enemies spawn **Then** they display using the `Robot Enemy Flying.glb` model **And** FODDER_FAST (Scout) enemies display using the `Robot Enemy Flying Gun.glb` model
+1. **Given** enemies are rendering in the gameplay scene **When** FODDER_BASIC (Drone) enemies spawn **Then** they display using the `robot-enemy-flying.glb` model **And** FODDER_FAST (Scout) enemies display using the `robot-enemy-flying-gun.glb` model
 
 2. **Given** enemies are rendered with GLB models **When** the EnemyRenderer renders each frame **Then** each enemy's model faces toward the player ship's position (yaw rotation on Y axis) **And** the facing direction updates every frame as the player moves
 
-3. **Given** GLB models are used for rendering **When** up to MAX_ENEMIES_ON_SCREEN (100) enemies exist **Then** rendering uses InstancedMesh (one per enemy type) by extracting geometry and materials from the loaded GLB **And** performance remains at 60 FPS with 100 enemies on screen **And** the approach does NOT use individual React components per enemy (no per-entity mount/unmount)
+3. **Given** GLB models are used for rendering **When** up to MAX_ENEMIES_ON_SCREEN (100) enemies exist **Then** rendering uses InstancedMesh per sub-mesh per enemy type (multi-mesh GLBs require one InstancedMesh per sub-mesh, sharing instance matrices within a type) by extracting geometries and materials from the loaded GLB **And** performance remains at 60 FPS with 100 enemies on screen **And** the approach does NOT use individual React components per enemy (no per-entity mount/unmount)
 
 4. **Given** the enemyDefs.js configuration **When** a new enemy type is added later **Then** only a `modelPath` field needs to be added to the enemy definition **And** the EnemyRenderer automatically picks up the new model with no code changes
 
 ## Tasks / Subtasks
 
 - [x] Task 1: Add model paths to enemyDefs.js (AC: #1, #4)
-  - [x] 1.1: Add `modelPath` field to FODDER_BASIC: `'/models/enemies/Robot%20Enemy%20Flying.glb'`
-  - [x] 1.2: Add `modelPath` field to FODDER_FAST: `'/models/enemies/Robot%20Enemy%20Flying%20Gun.glb'`
+  - [x] 1.1: Add `modelPath` field to FODDER_BASIC: `'/models/enemies/robot-enemy-flying.glb'`
+  - [x] 1.2: Add `modelPath` field to FODDER_FAST: `'/models/enemies/robot-enemy-flying-gun.glb'`
   - [x] 1.3: Update assetManifest.js gameplay.models to reference actual enemy model paths
 
 - [x] Task 2: Update EnemyRenderer to use GLB geometry with InstancedMesh (AC: #1, #2, #3)
@@ -111,10 +111,8 @@ GLB models may contain skeletal animations. This story uses **static InstancedMe
 
 ### Available GLB Assets
 
-- `/models/enemies/Robot Enemy Flying.glb` — Robot without gun (Drone / FODDER_BASIC)
-- `/models/enemies/Robot Enemy Flying Gun.glb` — Robot with gun (Scout / FODDER_FAST)
-
-Note: paths with spaces need URL encoding: `Robot%20Enemy%20Flying.glb`
+- `/models/enemies/robot-enemy-flying.glb` — Robot without gun (Drone / FODDER_BASIC)
+- `/models/enemies/robot-enemy-flying-gun.glb` — Robot with gun (Scout / FODDER_FAST)
 
 ### Technical Stack Reference
 
@@ -135,6 +133,7 @@ Note: paths with spaces need URL encoding: `Robot%20Enemy%20Flying.glb`
 
 - 2026-02-07: Story created from code review findings — Story 2.3 attempted GLB enemy rendering but was reverted due to critical performance issues (per-enemy React components, O(n²) updates, memory leaks). This story implements it properly with InstancedMesh.
 - 2026-02-07: Implementation complete — GLB models loaded via useGLTF with multi-mesh InstancedMesh pattern, meshScale adjusted for visual proportions, 144 FPS verified, 89/89 tests pass.
+- 2026-02-08: Code review fixes — Added ErrorBoundary for GLB load failures (H1), renamed GLB files to kebab-case (M2), updated AC#3 to reflect multi-mesh approach (M1), added O(n×types) TODO comment (M3), documented shared material constraint (M4), added asset path sync comment in assetManifest (M5), removed vestigial modelKey field (L1).
 
 ## Dev Agent Record
 
@@ -157,6 +156,14 @@ Note: paths with spaces need URL encoding: `Robot%20Enemy%20Flying.glb`
 ### File List
 
 **Modified files:**
-- src/renderers/EnemyRenderer.jsx — Replaced primitive geometries with GLB-extracted multi-mesh InstancedMesh pattern
-- src/entities/enemyDefs.js — Added modelPath fields, adjusted meshScale for GLB proportions
-- src/config/assetManifest.js — Updated enemy model paths to actual GLB filenames
+- src/renderers/EnemyRenderer.jsx — Replaced primitive geometries with GLB-extracted multi-mesh InstancedMesh pattern; added EnemyMeshErrorBoundary for GLB load failures
+- src/entities/enemyDefs.js — Added modelPath fields, removed vestigial modelKey field, adjusted meshScale for GLB proportions
+- src/config/assetManifest.js — Updated enemy model paths to kebab-case GLB filenames
+
+**Renamed files (code review fixes):**
+- public/models/enemies/Robot Enemy Flying.glb → public/models/enemies/robot-enemy-flying.glb
+- public/models/enemies/Robot Enemy Flying Gun.glb → public/models/enemies/robot-enemy-flying-gun.glb
+
+**Deleted files (code review fixes):**
+- public/models/environment/Planet.glb — Replaced by PlanetA/B/C.glb variants
+- public/models/environment/Robot Enemy Flying Gun.glb — Misplaced duplicate, removed

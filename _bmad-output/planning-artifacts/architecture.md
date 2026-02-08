@@ -464,13 +464,15 @@ export const ENEMIES = {
     id: 'FODDER_BASIC',
     name: 'Drone',
     hp: 20,
-    speed: 50,
+    speed: 17,
     damage: 5,
     radius: 0.5,          // collision radius
     xpReward: 10,
     behavior: 'chase',    // chase | orbit | ranged | boss
     spawnWeight: 100,      // relative spawn probability
-    modelKey: 'drone',     // key in asset manifest
+    modelPath: '/models/enemies/robot-enemy-flying.glb',
+    color: '#ff5555',
+    meshScale: [3, 3, 3],
   },
   // ... more enemies
 }

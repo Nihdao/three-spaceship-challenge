@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect } from 'react'
+import { Component, useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -8,6 +8,20 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
 
 const MAX = GAME_CONFIG.MAX_ENEMIES_ON_SCREEN
+
+// Catches GLB load/render errors per enemy type — renders nothing on failure
+class EnemyMeshErrorBoundary extends Component {
+  state = { hasError: false }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error) {
+    console.warn(`[EnemyRenderer] Failed to load model for "${this.props.typeId}":`, error.message)
+  }
+  render() {
+    return this.state.hasError ? null : this.props.children
+  }
+}
 
 function EnemyTypeMesh({ typeId }) {
   const meshRefs = useRef([])
@@ -19,6 +33,8 @@ function EnemyTypeMesh({ typeId }) {
   // Extract all sub-meshes with world transforms baked into geometry.
   // GLB models use SkinnedMesh with 100x parent scale and multiple materials,
   // so we clone each geometry, apply its world matrix, and pair it with its material.
+  // NOTE: Materials are shared refs from Drei cache — do NOT modify at runtime
+  // (e.g., hit flash). Clone materials first if runtime changes are needed.
   const subMeshes = useMemo(() => {
     const result = []
     scene.updateWorldMatrix(true, true)
@@ -47,6 +63,8 @@ function EnemyTypeMesh({ typeId }) {
     const playerPos = usePlayer.getState().position
     const dummy = dummyRef.current
 
+    // TODO: O(enemies × types) per frame — consider pre-bucketing enemies by
+    // type in the store if more enemy types are added (currently 2, acceptable).
     let count = 0
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i]
@@ -54,10 +72,10 @@ function EnemyTypeMesh({ typeId }) {
 
       dummy.position.set(e.x, 0, e.z)
 
-      // Face toward player — add Math.PI because GLB models face +Z
+      // Face toward player
       const dx = playerPos[0] - e.x
       const dz = playerPos[2] - e.z
-      dummy.rotation.set(0, Math.atan2(dx, -dz) + Math.PI, 0)
+      dummy.rotation.set(0, Math.atan2(dx, dz), 0)
 
       dummy.scale.set(e.meshScale[0], e.meshScale[1], e.meshScale[2])
       dummy.updateMatrix()
@@ -103,7 +121,9 @@ export default function EnemyRenderer() {
   return (
     <>
       {enemyTypeIds.map((typeId) => (
-        <EnemyTypeMesh key={typeId} typeId={typeId} />
+        <EnemyMeshErrorBoundary key={typeId} typeId={typeId}>
+          <EnemyTypeMesh typeId={typeId} />
+        </EnemyMeshErrorBoundary>
       ))}
     </>
   )
