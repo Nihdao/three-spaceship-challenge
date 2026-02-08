@@ -41,7 +41,7 @@ export default function ProjectileRenderer() {
       const p = projectiles[i]
       if (!p.active) continue
 
-      dummy.position.set(p.x, 0.5, p.z)
+      dummy.position.set(p.x, p.y ?? 0.5, p.z)
       dummy.rotation.set(0, Math.atan2(p.dirX, p.dirZ), 0)
       dummy.scale.set(p.meshScale[0], p.meshScale[1], p.meshScale[2])
       dummy.updateMatrix()

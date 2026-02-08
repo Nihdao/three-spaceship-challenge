@@ -16,8 +16,6 @@ export const GAME_CONFIG = {
   // Collision
   SPATIAL_HASH_CELL_SIZE: 2,   // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
-  PROJECTILE_COLLISION_RADIUS: 0.3, // default for projectiles not defining their own
-
   // Progression
   XP_LEVEL_CURVE: [100, 150, 225, 340, 510, 765, 1148, 1722, 2583, 3875],
 
@@ -52,6 +50,10 @@ export const GAME_CONFIG = {
   // Hit feedback (Story 2.7)
   HIT_FLASH_DURATION_MS: 100,         // milliseconds of scale pulse after non-lethal hit
   HIT_FLASH_SCALE_MULT: 1.15,         // scale multiplier during hit flash (1.0 = no change)
+
+  // Projectile spawn offsets (Story 2.9)
+  PROJECTILE_SPAWN_Y_OFFSET: -0.5,       // negative Y to spawn below ship model
+  PROJECTILE_SPAWN_FORWARD_OFFSET: 2.5,  // distance forward along ship's facing direction
 
   // Combat resolution (Story 2.4)
   CONTACT_DAMAGE_COOLDOWN: 0.5,       // seconds between contact damage ticks
