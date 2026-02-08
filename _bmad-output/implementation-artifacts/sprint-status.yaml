@@ -56,7 +56,7 @@ development_status:
   2-6-enemy-speed-facing-tuning: done
   2-4-combat-resolution-feedback: done
   2-7-hitbox-tuning-hit-feedback: done
-  2-8-player-rotation-responsiveness: ready-for-dev
+  2-8-player-rotation-responsiveness: done
   epic-2-retrospective: optional
 
   # Epic 3: Progression & Build Crafting

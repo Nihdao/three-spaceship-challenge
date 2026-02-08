@@ -76,7 +76,8 @@ const usePlayer = create((set, get) => ({
       let diff = targetYaw - yaw
       while (diff > Math.PI) diff -= Math.PI * 2
       while (diff < -Math.PI) diff += Math.PI * 2
-      yaw += diff * PLAYER_ROTATION_SPEED * delta
+      const rotLerp = 1 - Math.exp(-PLAYER_ROTATION_SPEED * delta)
+      yaw += diff * rotLerp
     }
 
     // --- Banking ---

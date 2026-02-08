@@ -24,7 +24,7 @@ export const GAME_CONFIG = {
   // Player movement (Story 1.2)
   PLAYER_ACCELERATION: 750,      // units/sec² — how fast ship reaches full speed
   PLAYER_FRICTION: 0.92,         // per-frame velocity decay when no input (0-1, lower = more drag)
-  PLAYER_ROTATION_SPEED: 10,     // radians/sec interpolation speed for yaw
+  PLAYER_ROTATION_SPEED: 20,     // radians/sec interpolation speed for yaw (Story 2.8: doubled for snappy rotation, < 0.2s for 90° turn)
   PLAYER_MAX_BANK_ANGLE: 0.4,    // radians (~23°) — max visual tilt during turns
   PLAYER_BANK_SPEED: 8,          // how fast bank angle responds
 
