@@ -61,13 +61,13 @@ development_status:
   epic-2-retrospective: done
 
   # Epic 3: Progression & Build Crafting
-  epic-3: in-progress
+  epic-3: done
   3-1-xp-system-orb-collection: done
   3-2-level-up-system-choice-ui: done
   3-3-weapon-slots-upgrades: done
   3-4-boon-system: done
   3-5-hp-system-death: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   # Epic 4: Complete Game Loop & Polish
   epic-4: backlog
