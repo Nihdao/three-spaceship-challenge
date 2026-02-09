@@ -70,8 +70,8 @@ development_status:
   epic-3-retrospective: done
 
   # Epic 4: Complete Game Loop & Polish
-  epic-4: backlog
-  4-1-main-menu-game-phase-management: backlog
+  epic-4: in-progress
+  4-1-main-menu-game-phase-management: done
   4-2-gameplay-hud: backlog
   4-3-game-over-cinematic-screen: backlog
   4-4-victory-screen: backlog

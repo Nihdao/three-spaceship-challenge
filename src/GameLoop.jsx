@@ -145,7 +145,7 @@ export default function GameLoop() {
     if (projectileHits.length > 0) {
       const deathEvents = useEnemies.getState().damageEnemiesBatch(projectileHits)
 
-      // 7c. Spawn particles + XP orbs for deaths
+      // 7c. Spawn particles + XP orbs for deaths, increment kill counter
       for (let i = 0; i < deathEvents.length; i++) {
         const event = deathEvents[i]
         if (event.killed) {
@@ -154,6 +154,7 @@ export default function GameLoop() {
           if (xpReward > 0) {
             spawnOrb(event.enemy.x, event.enemy.z, xpReward)
           }
+          useGame.getState().incrementKills()
         }
       }
     }
@@ -182,6 +183,16 @@ export default function GameLoop() {
       useGame.getState().triggerGameOver()
       useWeapons.getState().cleanupInactive()
       return // Stop processing — no XP/level-up after death
+    }
+
+    // 7f. System timer — increment and check timeout
+    const gameState = useGame.getState()
+    const newTimer = gameState.systemTimer + clampedDelta
+    gameState.setSystemTimer(newTimer)
+    if (newTimer >= GAME_CONFIG.SYSTEM_TIMER) {
+      gameState.triggerGameOver()
+      useWeapons.getState().cleanupInactive()
+      return // Stop processing — timer expired
     }
 
     // Cleanup projectiles marked inactive during damage resolution
