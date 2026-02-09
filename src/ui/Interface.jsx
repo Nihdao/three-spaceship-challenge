@@ -1,4 +1,5 @@
 import useGame from '../stores/useGame.jsx'
+import MainMenu from './MainMenu.jsx'
 import LevelUpModal from './LevelUpModal.jsx'
 
 export default function Interface() {
@@ -6,6 +7,7 @@ export default function Interface() {
 
   return (
     <>
+      {phase === 'menu' && <MainMenu />}
       {phase === 'levelUp' && <LevelUpModal />}
     </>
   )

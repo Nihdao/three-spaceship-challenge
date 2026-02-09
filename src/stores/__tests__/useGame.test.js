@@ -69,3 +69,75 @@ describe('useGame — game over transition (Story 3.5)', () => {
     expect(usePlayer.getState().currentXP).toBe(50)
   })
 })
+
+describe('useGame — kill counter (Story 4.1)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('kills initialises to 0', () => {
+    expect(useGame.getState().kills).toBe(0)
+  })
+
+  it('incrementKills increments by 1', () => {
+    useGame.getState().incrementKills()
+    expect(useGame.getState().kills).toBe(1)
+
+    useGame.getState().incrementKills()
+    useGame.getState().incrementKills()
+    expect(useGame.getState().kills).toBe(3)
+  })
+
+  it('startGameplay resets kills to 0', () => {
+    useGame.getState().incrementKills()
+    useGame.getState().incrementKills()
+    expect(useGame.getState().kills).toBe(2)
+
+    useGame.getState().startGameplay()
+    expect(useGame.getState().kills).toBe(0)
+  })
+
+  it('triggerGameOver preserves kills', () => {
+    useGame.getState().startGameplay()
+    useGame.getState().incrementKills()
+    useGame.getState().incrementKills()
+    useGame.getState().incrementKills()
+
+    useGame.getState().triggerGameOver()
+    expect(useGame.getState().kills).toBe(3)
+  })
+
+  it('reset clears kills to 0', () => {
+    useGame.getState().incrementKills()
+    useGame.getState().reset()
+    expect(useGame.getState().kills).toBe(0)
+  })
+})
+
+describe('useGame — system timer (Story 4.1)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('systemTimer initialises to 0', () => {
+    expect(useGame.getState().systemTimer).toBe(0)
+  })
+
+  it('setSystemTimer updates the timer value', () => {
+    useGame.getState().setSystemTimer(42.5)
+    expect(useGame.getState().systemTimer).toBe(42.5)
+  })
+
+  it('startGameplay resets systemTimer to 0', () => {
+    useGame.getState().setSystemTimer(300)
+    useGame.getState().startGameplay()
+    expect(useGame.getState().systemTimer).toBe(0)
+  })
+
+  it('triggerGameOver preserves systemTimer', () => {
+    useGame.getState().startGameplay()
+    useGame.getState().setSystemTimer(450)
+    useGame.getState().triggerGameOver()
+    expect(useGame.getState().systemTimer).toBe(450)
+  })
+})
