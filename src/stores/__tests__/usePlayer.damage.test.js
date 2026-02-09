@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import usePlayer from '../usePlayer.jsx'
+import { GAME_CONFIG } from '../../config/gameConfig.js'
 
 describe('usePlayer — damage actions', () => {
   beforeEach(() => {
@@ -84,9 +85,103 @@ describe('usePlayer — damage actions', () => {
       usePlayer.getState().reset()
 
       const state = usePlayer.getState()
-      expect(state.currentHP).toBe(100)
+      expect(state.currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP)
       expect(state.lastDamageTime).toBe(0)
       expect(state.contactDamageCooldown).toBe(0)
+    })
+
+    it('restores HP to PLAYER_BASE_HP from gameConfig', () => {
+      usePlayer.getState().takeDamage(50)
+      usePlayer.getState().reset()
+      expect(usePlayer.getState().currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP)
+      expect(usePlayer.getState().maxHP).toBe(GAME_CONFIG.PLAYER_BASE_HP)
+    })
+
+    it('clears invulnerability state', () => {
+      usePlayer.getState().takeDamage(10)
+      expect(usePlayer.getState().isInvulnerable).toBe(true)
+
+      usePlayer.getState().reset()
+      expect(usePlayer.getState().isInvulnerable).toBe(false)
+      expect(usePlayer.getState().invulnerabilityTimer).toBe(0)
+    })
+  })
+
+  describe('HP initialization (Story 3.5)', () => {
+    it('initializes currentHP from GAME_CONFIG.PLAYER_BASE_HP', () => {
+      expect(usePlayer.getState().currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP)
+    })
+
+    it('initializes maxHP from GAME_CONFIG.PLAYER_BASE_HP', () => {
+      expect(usePlayer.getState().maxHP).toBe(GAME_CONFIG.PLAYER_BASE_HP)
+    })
+  })
+
+  describe('invulnerability timer (Story 3.5)', () => {
+    const noInput = { moveLeft: false, moveRight: false, moveForward: false, moveBackward: false }
+
+    it('takeDamage sets isInvulnerable and invulnerabilityTimer', () => {
+      usePlayer.getState().takeDamage(10)
+      const state = usePlayer.getState()
+      expect(state.isInvulnerable).toBe(true)
+      expect(state.invulnerabilityTimer).toBe(GAME_CONFIG.INVULNERABILITY_DURATION)
+    })
+
+    it('blocks damage during invulnerability window', () => {
+      usePlayer.getState().takeDamage(10)
+      expect(usePlayer.getState().currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP - 10)
+
+      // Tick a short time — not enough to expire invulnerability
+      usePlayer.getState().tick(0.1, noInput)
+      usePlayer.getState().takeDamage(10)
+      expect(usePlayer.getState().currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP - 10) // unchanged
+    })
+
+    it('invulnerability expires after INVULNERABILITY_DURATION via tick', () => {
+      usePlayer.getState().takeDamage(10)
+      expect(usePlayer.getState().isInvulnerable).toBe(true)
+
+      // Tick enough to expire both invulnerability and contact cooldown
+      usePlayer.getState().tick(GAME_CONFIG.INVULNERABILITY_DURATION + 0.1, noInput)
+      expect(usePlayer.getState().isInvulnerable).toBe(false)
+      expect(usePlayer.getState().invulnerabilityTimer).toBe(0)
+    })
+
+    it('allows damage again after invulnerability expires', () => {
+      usePlayer.getState().takeDamage(10)
+      // Expire both invulnerability and cooldown
+      usePlayer.getState().tick(1.0, noInput)
+      expect(usePlayer.getState().isInvulnerable).toBe(false)
+      expect(usePlayer.getState().contactDamageCooldown).toBe(0)
+
+      usePlayer.getState().takeDamage(10)
+      expect(usePlayer.getState().currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP - 20)
+    })
+
+    it('invulnerability timer decrements correctly per tick', () => {
+      usePlayer.getState().takeDamage(10)
+      const timerBefore = usePlayer.getState().invulnerabilityTimer
+
+      usePlayer.getState().tick(0.1, noInput)
+      expect(usePlayer.getState().invulnerabilityTimer).toBeCloseTo(timerBefore - 0.1, 5)
+    })
+
+    it('invulnerability timer does not go below 0', () => {
+      usePlayer.getState().takeDamage(10)
+      usePlayer.getState().tick(5.0, noInput)
+      expect(usePlayer.getState().invulnerabilityTimer).toBe(0)
+    })
+  })
+
+  describe('death detection (Story 3.5)', () => {
+    it('HP reaches exactly 0 when damage equals currentHP', () => {
+      usePlayer.getState().takeDamage(GAME_CONFIG.PLAYER_BASE_HP)
+      expect(usePlayer.getState().currentHP).toBe(0)
+    })
+
+    it('HP stays at 0 when damage exceeds currentHP', () => {
+      usePlayer.getState().takeDamage(GAME_CONFIG.PLAYER_BASE_HP + 50)
+      expect(usePlayer.getState().currentHP).toBe(0)
     })
   })
 })
