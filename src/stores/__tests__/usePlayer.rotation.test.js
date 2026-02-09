@@ -123,4 +123,48 @@ describe('usePlayer — rotation responsiveness (Story 2.8)', () => {
       expect(GAME_CONFIG.PLAYER_ROTATION_SPEED).toBeGreaterThanOrEqual(15)
     })
   })
+
+  // --- Story 3.4: Speed boon modifier ---
+
+  describe('speed boon modifier (Story 3.4)', () => {
+    it('tick with speedMultiplier > 1 produces faster movement than without', () => {
+      const dt = 1 / 60
+      const forwardInput = { moveLeft: false, moveRight: false, moveForward: true, moveBackward: false }
+
+      // Run without speed modifier
+      usePlayer.getState().reset()
+      for (let i = 0; i < 30; i++) {
+        usePlayer.getState().tick(dt, forwardInput)
+      }
+      const normalSpeed = usePlayer.getState().speed
+
+      // Run with speed modifier = 1.5
+      usePlayer.getState().reset()
+      for (let i = 0; i < 30; i++) {
+        usePlayer.getState().tick(dt, forwardInput, 1.5)
+      }
+      const boostedSpeed = usePlayer.getState().speed
+
+      expect(boostedSpeed).toBeGreaterThan(normalSpeed)
+    })
+
+    it('tick with speedMultiplier = 1 produces same speed as no modifier', () => {
+      const dt = 1 / 60
+      const forwardInput = { moveLeft: false, moveRight: false, moveForward: true, moveBackward: false }
+
+      usePlayer.getState().reset()
+      for (let i = 0; i < 30; i++) {
+        usePlayer.getState().tick(dt, forwardInput)
+      }
+      const normalSpeed = usePlayer.getState().speed
+
+      usePlayer.getState().reset()
+      for (let i = 0; i < 30; i++) {
+        usePlayer.getState().tick(dt, forwardInput, 1)
+      }
+      const unmodifiedSpeed = usePlayer.getState().speed
+
+      expect(unmodifiedSpeed).toBeCloseTo(normalSpeed, 5)
+    })
+  })
 })

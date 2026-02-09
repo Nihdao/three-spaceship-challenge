@@ -134,4 +134,54 @@ describe('projectileSystem', () => {
   it('should call reset without error', () => {
     expect(() => ps.reset()).not.toThrow()
   })
+
+  // --- Story 3.3: Homing missile tests ---
+
+  it('should steer homing projectile toward nearest enemy', () => {
+    // Projectile moving forward (-Z), enemy is to the right (+X)
+    const p = makeProjectile({ x: 0, z: 0, dirX: 0, dirZ: -1, speed: 120, homing: true })
+    const enemies = [{ x: 50, z: 0 }]
+
+    ps.tick([p], 0.1, enemies)
+
+    // dirX should have increased (steering toward +X enemy)
+    expect(p.dirX).toBeGreaterThan(0)
+  })
+
+  it('should not steer non-homing projectile', () => {
+    const p = makeProjectile({ x: 0, z: 0, dirX: 0, dirZ: -1, speed: 300 })
+    const enemies = [{ x: 50, z: 0 }]
+
+    ps.tick([p], 0.1, enemies)
+
+    // dirX should remain 0 (no homing)
+    expect(p.dirX).toBeCloseTo(0, 5)
+  })
+
+  it('should not steer homing projectile when no enemies', () => {
+    const p = makeProjectile({ x: 0, z: 0, dirX: 0, dirZ: -1, speed: 120, homing: true })
+
+    ps.tick([p], 0.1, [])
+
+    // Direction should remain unchanged
+    expect(p.dirX).toBeCloseTo(0, 5)
+    expect(p.dirZ).toBeCloseTo(-1, 5)
+  })
+
+  it('should maintain normalized direction after homing steering', () => {
+    const p = makeProjectile({ x: 0, z: 0, dirX: 0, dirZ: -1, speed: 120, homing: true })
+    const enemies = [{ x: 50, z: -50 }]
+
+    ps.tick([p], 0.5, enemies)
+
+    const mag = Math.sqrt(p.dirX * p.dirX + p.dirZ * p.dirZ)
+    expect(mag).toBeCloseTo(1, 2)
+  })
+
+  it('should work without enemies parameter (backward compatible)', () => {
+    const p = makeProjectile({ x: 0, z: 0, dirX: 0, dirZ: -1, speed: 300 })
+    // Call without enemies param — should not throw
+    ps.tick([p], 0.1)
+    expect(p.z).toBeCloseTo(-30, 0)
+  })
 })

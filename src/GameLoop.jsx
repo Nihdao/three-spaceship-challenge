@@ -5,11 +5,20 @@ import { useControlsStore } from './stores/useControlsStore.jsx'
 import usePlayer from './stores/usePlayer.jsx'
 import useEnemies from './stores/useEnemies.jsx'
 import useWeapons from './stores/useWeapons.jsx'
-import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE } from './systems/collisionSystem.js'
+import useBoons from './stores/useBoons.jsx'
+import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
+import { spawnOrb, updateOrbs, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
+import { ENEMIES } from './entities/enemyDefs.js'
+
+// Pre-allocated orb IDs — avoids template string allocation per frame (50 orbs × 60 FPS)
+const _orbIds = []
+for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
+  _orbIds[i] = `xporb_${i}`
+}
 
 // Assigns collision entity properties without creating a new object
 function assignEntity(e, id, x, z, radius, category) {
@@ -43,12 +52,15 @@ export default function GameLoop() {
   useFrame((state, delta) => {
     const { phase, isPaused } = useGame.getState()
 
-    // Reset systems when entering gameplay phase
-    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay') {
+    // Reset systems only when starting a new game (from menu), not when resuming from levelUp
+    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp') {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       useWeapons.getState().initializeWeapons()
+      useBoons.getState().reset()
       resetParticles()
+      resetOrbs()
+      usePlayer.getState().reset()
     }
     prevPhaseRef.current = phase
 
@@ -62,16 +74,18 @@ export default function GameLoop() {
     // 1. Input — read from useControlsStore
     const input = useControlsStore.getState()
 
-    // 2. Player movement
-    usePlayer.getState().tick(clampedDelta, input)
+    // 2. Player movement — pass speed modifier from boons
+    const boonModifiers = useBoons.getState().modifiers
+    usePlayer.getState().tick(clampedDelta, input, boonModifiers.speedMultiplier ?? 1)
 
-    // 3. Weapons fire
+    // 3. Weapons fire — pass boon modifiers for damage/cooldown/crit
     const playerState = usePlayer.getState()
     const playerPos = playerState.position
-    useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation)
+    useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, boonModifiers)
 
-    // 4. Projectile movement
-    projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta)
+    // 4. Projectile movement (pass enemies for homing missile steering)
+    const enemiesForHoming = useEnemies.getState().enemies
+    projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta, enemiesForHoming)
     useWeapons.getState().cleanupInactive()
 
     // 5. Enemy spawning + movement
@@ -131,11 +145,15 @@ export default function GameLoop() {
     if (projectileHits.length > 0) {
       const deathEvents = useEnemies.getState().damageEnemiesBatch(projectileHits)
 
-      // 7c. Spawn particles for deaths
+      // 7c. Spawn particles + XP orbs for deaths
       for (let i = 0; i < deathEvents.length; i++) {
         const event = deathEvents[i]
         if (event.killed) {
           addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
+          const xpReward = ENEMIES[event.enemy.typeId]?.xpReward ?? 0
+          if (xpReward > 0) {
+            spawnOrb(event.enemy.x, event.enemy.z, xpReward)
+          }
         }
       }
     }
@@ -167,6 +185,40 @@ export default function GameLoop() {
     useWeapons.getState().cleanupInactive()
 
     // 8. XP + progression
+    // 8a. Update orb timers
+    updateOrbs(clampedDelta)
+
+    // 8b. Register XP orbs in spatial hash
+    const orbArray = getOrbs()
+    const orbCount = getOrbCount()
+    for (let i = 0; i < orbCount; i++) {
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      assignEntity(pool[idx], _orbIds[i], orbArray[i].x, orbArray[i].z, GAME_CONFIG.XP_ORB_PICKUP_RADIUS, CATEGORY_XP_ORB)
+      cs.registerEntity(pool[idx++])
+    }
+
+    // 8c. Query player-xpOrb collisions
+    // Collect in descending index order so swap-to-end doesn't corrupt lower indices
+    const orbHits = cs.queryCollisions(pool[0], CATEGORY_XP_ORB)
+    if (orbHits.length > 0) {
+      const indices = []
+      for (let i = 0; i < orbHits.length; i++) {
+        const orbIndex = parseInt(orbHits[i].id.split('_')[1], 10)
+        if (orbIndex < getOrbCount()) indices.push(orbIndex)
+      }
+      indices.sort((a, b) => b - a)
+      for (let i = 0; i < indices.length; i++) {
+        const xpValue = collectOrb(indices[i])
+        usePlayer.getState().addXP(xpValue)
+      }
+    }
+
+    // 8e. Check pending level-up — consume flag and trigger pause + modal
+    if (usePlayer.getState().pendingLevelUp) {
+      usePlayer.getState().consumeLevelUp()
+      useGame.getState().triggerLevelUp()
+    }
+
     // 9. Cleanup dead entities
   })
 
