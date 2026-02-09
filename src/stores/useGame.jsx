@@ -16,6 +16,7 @@ const useGame = create(
     resumeGameplay: () => set({ phase: 'gameplay', isPaused: false }),
     triggerGameOver: () => set({ phase: 'gameOver', isPaused: true }),
     triggerVictory: () => set({ phase: 'victory', isPaused: true }),
+    // Store resets happen in GameLoop on gameplay transition, not here
     returnToMenu: () => set({ phase: 'menu', isPaused: false }),
 
     reset: () => set({

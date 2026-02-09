@@ -159,6 +159,7 @@ export default function GameLoop() {
     }
 
     // 7d. Player-enemy contact damage
+    // Pre-check mirrors takeDamage() guards to skip enemy iteration when player can't take damage
     const playerHits = cs.queryCollisions(pool[0], CATEGORY_ENEMY)
     if (playerHits.length > 0) {
       const pState = usePlayer.getState()
@@ -179,6 +180,8 @@ export default function GameLoop() {
     // 7e. Death check
     if (usePlayer.getState().currentHP <= 0) {
       useGame.getState().triggerGameOver()
+      useWeapons.getState().cleanupInactive()
+      return // Stop processing — no XP/level-up after death
     }
 
     // Cleanup projectiles marked inactive during damage resolution

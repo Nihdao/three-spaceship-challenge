@@ -8,9 +8,10 @@ const usePlayer = create((set, get) => ({
   rotation: 0,
   bankAngle: 0,
   speed: 0,
-  currentHP: 100,
-  maxHP: 100,
+  currentHP: GAME_CONFIG.PLAYER_BASE_HP,
+  maxHP: GAME_CONFIG.PLAYER_BASE_HP,
   isInvulnerable: false,
+  invulnerabilityTimer: 0,
   lastDamageTime: 0,
   contactDamageCooldown: 0,
 
@@ -109,6 +110,16 @@ const usePlayer = create((set, get) => ({
     let contactDamageCooldown = state.contactDamageCooldown - delta
     if (contactDamageCooldown < 0) contactDamageCooldown = 0
 
+    // --- Invulnerability timer ---
+    let isInvulnerable = state.isInvulnerable
+    let invulnerabilityTimer = state.invulnerabilityTimer
+    if (invulnerabilityTimer > 0) {
+      invulnerabilityTimer = Math.max(0, invulnerabilityTimer - delta)
+      if (invulnerabilityTimer <= 0) {
+        isInvulnerable = false
+      }
+    }
+
     set({
       position: [px, 0, pz],
       velocity: [vx, 0, vz],
@@ -116,6 +127,8 @@ const usePlayer = create((set, get) => ({
       bankAngle: bank,
       speed,
       contactDamageCooldown,
+      isInvulnerable,
+      invulnerabilityTimer,
     })
   },
 
@@ -145,12 +158,16 @@ const usePlayer = create((set, get) => ({
     return true
   },
 
+  // Double-guard: invulnerability (post-hit i-frames, Story 3.5) + contact cooldown (Story 2.4).
+  // Both currently share the same duration but serve as independent safety nets.
   takeDamage: (amount) => {
     const state = get()
     if (state.isInvulnerable) return
     if (state.contactDamageCooldown > 0) return
     set({
       currentHP: Math.max(0, state.currentHP - amount),
+      isInvulnerable: true,
+      invulnerabilityTimer: GAME_CONFIG.INVULNERABILITY_DURATION,
       lastDamageTime: Date.now(),
       contactDamageCooldown: GAME_CONFIG.CONTACT_DAMAGE_COOLDOWN,
     })
@@ -162,9 +179,10 @@ const usePlayer = create((set, get) => ({
     rotation: 0,
     bankAngle: 0,
     speed: 0,
-    currentHP: 100,
-    maxHP: 100,
+    currentHP: GAME_CONFIG.PLAYER_BASE_HP,
+    maxHP: GAME_CONFIG.PLAYER_BASE_HP,
     isInvulnerable: false,
+    invulnerabilityTimer: 0,
     lastDamageTime: 0,
     contactDamageCooldown: 0,
     currentXP: 0,

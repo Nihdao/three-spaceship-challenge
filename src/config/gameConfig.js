@@ -61,8 +61,9 @@ export const GAME_CONFIG = {
   PROJECTILE_SPAWN_Y_OFFSET: -0.5,       // negative Y to spawn below ship model
   PROJECTILE_SPAWN_FORWARD_OFFSET: 2.5,  // distance forward along ship's facing direction
 
-  // Combat resolution (Story 2.4)
+  // Combat resolution (Story 2.4 / Story 3.5)
   CONTACT_DAMAGE_COOLDOWN: 0.5,       // seconds between contact damage ticks
+  INVULNERABILITY_DURATION: 0.5,      // seconds of i-frames after taking damage
   PARTICLE_EXPLOSION_COUNT: 8,        // particles per enemy death explosion
   PARTICLE_EXPLOSION_SPEED: 50,       // particle outward speed (units/sec)
   PARTICLE_EXPLOSION_LIFETIME: 0.4,   // particle lifetime in seconds
