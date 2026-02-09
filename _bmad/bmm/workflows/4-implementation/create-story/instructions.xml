@@ -198,6 +198,16 @@
     all learnings that could impact current story implementation</action>
     </check>
 
+    <!-- Mockup/visual reference discovery -->
+    <action>Glob for visual mockup files in {{mockups_dir}} matching story prefix "{{epic_num}}-{{story_num}}-*" (e.g., 3-2-*.jpg for story 3.2)</action>
+    <check if="matching mockup files found in mockups directory">
+      <critical>Visual mockups are CRITICAL design references — read/view ALL matching image files!</critical>
+      <action>Read/view ALL matching mockup image files to extract visual design references</action>
+      <action>Document key design elements observed: layout patterns, information architecture, visual hierarchy, specific UI components, color usage, interaction patterns</action>
+      <action>Note which design elements to adopt vs. skip based on project scope and UX spec alignment</action>
+      <action>Include a "Mockup References" section in Dev Notes summarizing each mockup and design decisions</action>
+    </check>
+
     <!-- Git intelligence for previous work patterns -->
     <check
       if="previous story exists AND git repository detected">

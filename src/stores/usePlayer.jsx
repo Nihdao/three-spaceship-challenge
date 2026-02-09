@@ -14,8 +14,14 @@ const usePlayer = create((set, get) => ({
   lastDamageTime: 0,
   contactDamageCooldown: 0,
 
+  // --- XP & Level ---
+  currentXP: 0,
+  currentLevel: 1,
+  xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
+  pendingLevelUp: false,
+
   // --- Tick (called by GameLoop each frame) ---
-  tick: (delta, input) => {
+  tick: (delta, input, speedMultiplier = 1) => {
     const state = get()
     const {
       PLAYER_BASE_SPEED,
@@ -26,6 +32,8 @@ const usePlayer = create((set, get) => ({
       PLAYER_BANK_SPEED,
       PLAY_AREA_SIZE,
     } = GAME_CONFIG
+
+    const effectiveSpeed = PLAYER_BASE_SPEED * speedMultiplier
 
     // --- Direction from input ---
     let dirX = (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0)
@@ -40,9 +48,9 @@ const usePlayer = create((set, get) => ({
     let vz = state.velocity[2]
 
     if (hasInput) {
-      const targetVx = dirX * PLAYER_BASE_SPEED
-      const targetVz = dirZ * PLAYER_BASE_SPEED
-      const accelFactor = 1 - Math.exp(-PLAYER_ACCELERATION * delta / PLAYER_BASE_SPEED)
+      const targetVx = dirX * effectiveSpeed
+      const targetVz = dirZ * effectiveSpeed
+      const accelFactor = 1 - Math.exp(-PLAYER_ACCELERATION * delta / effectiveSpeed)
       vx += (targetVx - vx) * accelFactor
       vz += (targetVz - vz) * accelFactor
     } else {
@@ -112,6 +120,31 @@ const usePlayer = create((set, get) => ({
   },
 
   // --- Actions ---
+  addXP: (amount) => {
+    const state = get()
+    const curve = GAME_CONFIG.XP_LEVEL_CURVE
+    let xp = state.currentXP + amount
+    let level = state.currentLevel
+    let xpToNext = state.xpToNextLevel
+    let pending = state.pendingLevelUp
+
+    while (xp >= xpToNext && level <= curve.length) {
+      xp -= xpToNext
+      level++
+      xpToNext = curve[level - 1] ?? Infinity
+      pending = true
+    }
+
+    set({ currentXP: xp, currentLevel: level, xpToNextLevel: xpToNext, pendingLevelUp: pending })
+  },
+
+  consumeLevelUp: () => {
+    const state = get()
+    if (!state.pendingLevelUp) return false
+    set({ pendingLevelUp: false })
+    return true
+  },
+
   takeDamage: (amount) => {
     const state = get()
     if (state.isInvulnerable) return
@@ -134,6 +167,10 @@ const usePlayer = create((set, get) => ({
     isInvulnerable: false,
     lastDamageTime: 0,
     contactDamageCooldown: 0,
+    currentXP: 0,
+    currentLevel: 1,
+    xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
+    pendingLevelUp: false,
   }),
 }))
 

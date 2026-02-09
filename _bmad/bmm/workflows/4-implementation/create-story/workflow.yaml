@@ -25,6 +25,7 @@ variables:
   prd_file: "{planning_artifacts}/prd.md" # Fallback for requirements (if not in epics file)
   architecture_file: "{planning_artifacts}/architecture.md" # Fallback for constraints (if not in epics file)
   ux_file: "{planning_artifacts}/*ux*.md" # Fallback for UX requirements (if not in epics file)
+  mockups_dir: "{planning_artifacts}/mockups" # Visual references (images) matching story prefix
   story_title: "" # Will be elicited if not derivable
 
 # Project context

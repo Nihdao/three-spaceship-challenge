@@ -19,9 +19,10 @@ const useWeapons = create((set, get) => ({
     })
   },
 
-  tick: (delta, playerPosition, playerRotation) => {
+  tick: (delta, playerPosition, playerRotation, boonModifiers = {}) => {
     const { activeWeapons, projectiles } = get()
     const newProjectiles = []
+    const { damageMultiplier = 1, cooldownMultiplier = 1, critChance = 0 } = boonModifiers
 
     for (let i = 0; i < activeWeapons.length; i++) {
       const weapon = activeWeapons[i]
@@ -31,38 +32,97 @@ const useWeapons = create((set, get) => ({
 
       if (weapon.cooldownTimer <= 0) {
         const def = WEAPONS[weapon.weaponId]
-        weapon.cooldownTimer = def.baseCooldown
+        weapon.cooldownTimer = (weapon.overrides?.cooldown ?? def.baseCooldown) * cooldownMultiplier
 
         // Respect MAX_PROJECTILES cap
         if (projectiles.length + newProjectiles.length >= GAME_CONFIG.MAX_PROJECTILES) continue
 
-        const dirX = Math.sin(playerRotation)
-        const dirZ = -Math.cos(playerRotation)
         const fwd = GAME_CONFIG.PROJECTILE_SPAWN_FORWARD_OFFSET
+        let baseDamage = weapon.overrides?.damage ?? def.baseDamage
+        let projDamage = baseDamage * damageMultiplier
+        if (critChance > 0 && Math.random() < critChance) projDamage *= 2
+        const color = weapon.overrides?.upgradeVisuals?.color ?? def.projectileColor
+        const meshScale = weapon.overrides?.upgradeVisuals?.meshScale ?? def.projectileMeshScale
 
-        newProjectiles.push({
-          id: `proj_${nextProjectileId++}`,
-          weaponId: weapon.weaponId,
-          x: playerPosition[0] + dirX * fwd,
-          z: playerPosition[2] + dirZ * fwd,
-          y: GAME_CONFIG.PROJECTILE_SPAWN_Y_OFFSET,
-          dirX,
-          dirZ,
-          speed: def.baseSpeed,
-          damage: def.baseDamage,
-          radius: def.projectileRadius,
-          lifetime: def.projectileLifetime,
-          elapsedTime: 0,
-          color: def.projectileColor,
-          meshScale: def.projectileMeshScale,
-          active: true,
-        })
+        // Determine firing angles based on projectile pattern
+        let angles
+        if (def.projectilePattern === 'spread') {
+          const spreadAngle = def.spreadAngle || 0.26
+          angles = [playerRotation - spreadAngle, playerRotation, playerRotation + spreadAngle]
+        } else {
+          angles = [playerRotation]
+        }
+
+        for (let a = 0; a < angles.length; a++) {
+          if (projectiles.length + newProjectiles.length >= GAME_CONFIG.MAX_PROJECTILES) break
+          const angle = angles[a]
+          const dirX = Math.sin(angle)
+          const dirZ = -Math.cos(angle)
+
+          newProjectiles.push({
+            id: `proj_${nextProjectileId++}`,
+            weaponId: weapon.weaponId,
+            x: playerPosition[0] + Math.sin(playerRotation) * fwd,
+            z: playerPosition[2] + (-Math.cos(playerRotation)) * fwd,
+            y: GAME_CONFIG.PROJECTILE_SPAWN_Y_OFFSET,
+            dirX,
+            dirZ,
+            speed: def.baseSpeed,
+            damage: projDamage,
+            radius: def.projectileRadius,
+            lifetime: def.projectileLifetime,
+            elapsedTime: 0,
+            color,
+            meshScale,
+            homing: def.homing || false,
+            active: true,
+          })
+        }
       }
     }
 
     if (newProjectiles.length > 0) {
       set({ projectiles: projectiles.concat(newProjectiles) })
     }
+  },
+
+  addWeapon: (weaponId) => {
+    const { activeWeapons } = get()
+    if (activeWeapons.length >= 4) return // Max 4 weapon slots
+    if (activeWeapons.some(w => w.weaponId === weaponId)) return // Already equipped
+    set({ activeWeapons: [...activeWeapons, { weaponId, level: 1, cooldownTimer: 0 }] })
+  },
+
+  upgradeWeapon: (weaponId) => {
+    const { activeWeapons } = get()
+    const idx = activeWeapons.findIndex(w => w.weaponId === weaponId)
+    if (idx === -1) return
+    const weapon = activeWeapons[idx]
+    if (weapon.level >= 9) return // Max level
+    const def = WEAPONS[weaponId]
+    const upgrade = def?.upgrades?.[weapon.level - 1]
+    const updated = [...activeWeapons]
+    updated[idx] = { ...weapon, level: weapon.level + 1, cooldownTimer: weapon.cooldownTimer }
+    // Apply gameplay-relevant overrides only; carry forward upgradeVisuals from previous threshold
+    if (upgrade) {
+      const newOverrides = { damage: upgrade.damage, cooldown: upgrade.cooldown }
+      if (upgrade.upgradeVisuals) {
+        newOverrides.upgradeVisuals = upgrade.upgradeVisuals
+      } else if (weapon.overrides?.upgradeVisuals) {
+        newOverrides.upgradeVisuals = weapon.overrides.upgradeVisuals
+      }
+      updated[idx].overrides = newOverrides
+    }
+    set({ activeWeapons: updated })
+  },
+
+  getEquippedWeaponIds: () => {
+    return get().activeWeapons.map(w => w.weaponId)
+  },
+
+  getWeaponLevel: (weaponId) => {
+    const weapon = get().activeWeapons.find(w => w.weaponId === weaponId)
+    return weapon ? weapon.level : 0
   },
 
   cleanupInactive: () => {

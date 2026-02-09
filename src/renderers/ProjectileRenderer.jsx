@@ -9,13 +9,14 @@ const MAX = GAME_CONFIG.MAX_PROJECTILES
 export default function ProjectileRenderer() {
   const meshRef = useRef()
   const dummyRef = useRef(new THREE.Object3D())
+  const tempColorRef = useRef(new THREE.Color())
 
   const geometry = useMemo(() => new THREE.BoxGeometry(1, 1, 1), [])
   const material = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: '#00ffff',
-        emissive: '#00ffff',
+        color: '#ffffff',
+        emissive: '#ffffff',
         emissiveIntensity: 2,
         toneMapped: false,
       }),
@@ -35,6 +36,7 @@ export default function ProjectileRenderer() {
 
     const projectiles = useWeapons.getState().projectiles
     const dummy = dummyRef.current
+    const tempColor = tempColorRef.current
 
     let count = 0
     for (let i = 0; i < projectiles.length; i++) {
@@ -46,12 +48,17 @@ export default function ProjectileRenderer() {
       dummy.scale.set(p.meshScale[0], p.meshScale[1], p.meshScale[2])
       dummy.updateMatrix()
       mesh.setMatrixAt(count, dummy.matrix)
+
+      tempColor.set(p.color)
+      mesh.setColorAt(count, tempColor)
+
       count++
     }
 
     mesh.count = count
     if (count > 0) {
       mesh.instanceMatrix.needsUpdate = true
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
   })
 

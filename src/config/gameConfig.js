@@ -16,6 +16,12 @@ export const GAME_CONFIG = {
   // Collision
   SPATIAL_HASH_CELL_SIZE: 2,   // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
+
+  // XP Orbs (Story 3.1)
+  XP_ORB_PICKUP_RADIUS: 3.0,
+  XP_ORB_MESH_SCALE: [0.8, 0.8, 0.8],
+  XP_ORB_COLOR: '#00ffcc',
+
   // Progression
   XP_LEVEL_CURVE: [100, 150, 225, 340, 510, 765, 1148, 1722, 2583, 3875],
 
