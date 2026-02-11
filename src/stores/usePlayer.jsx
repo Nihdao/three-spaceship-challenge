@@ -6,6 +6,8 @@ import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 
 const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
 const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
+// Cache default ship baseSpeed to avoid recomputing getDefaultShipId() every tick (60 FPS)
+const DEFAULT_SHIP_BASE_SPEED = SHIPS[getDefaultShipId()].baseSpeed
 
 const usePlayer = create((set, get) => ({
   // --- Ship Selection (Story 9.1) ---
@@ -64,8 +66,8 @@ const usePlayer = create((set, get) => ({
     } = GAME_CONFIG
     const PLAY_AREA_SIZE = arenaSize
 
-    // Ship baseSpeed acts as a ratio relative to BALANCED (50 = 1.0x)
-    const shipSpeedRatio = state.shipBaseSpeed / SHIPS[getDefaultShipId()].baseSpeed
+    // Ship baseSpeed acts as a ratio relative to default ship (50 = 1.0x)
+    const shipSpeedRatio = state.shipBaseSpeed / DEFAULT_SHIP_BASE_SPEED
     const effectiveSpeed = PLAYER_BASE_SPEED * shipSpeedRatio * speedMultiplier
 
     // --- Direction from input ---
@@ -364,7 +366,13 @@ const usePlayer = create((set, get) => ({
     currentLevel: 1,
     xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
     pendingLevelUp: false,
-    // Preserves: fragments, currentHP, maxHP, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats, currentShipId, shipBaseSpeed, shipBaseDamageMultiplier
+    // INTENTIONALLY PRESERVED across system transitions (within same run):
+    // - Ship selection (Epic 9): currentShipId, shipBaseSpeed, shipBaseDamageMultiplier
+    //   → Player's ship choice persists for entire run (tunnel → system → tunnel → system)
+    // - Permanent progression (Epic 7): fragments, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats
+    //   → Meta-progression carries through all systems in a run
+    // - HP state: currentHP, maxHP
+    //   → Player's health carries forward (unless they sacrifice HP for fragments in tunnel)
   }),
 
   reset: () => {
