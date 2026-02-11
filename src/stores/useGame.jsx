@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+import { getHighScore, setHighScore as saveHighScore } from '../utils/highScoreStorage.js'
 
 const useGame = create(
   subscribeWithSelector((set, get) => ({
@@ -11,14 +12,33 @@ const useGame = create(
     kills: 0,
     rewardTier: null,
     prevCombatPhase: 'gameplay',
+    highScore: 0,
+    isNewHighScore: false,
 
     setPhase: (phase) => set({ phase }),
     setPaused: (isPaused) => set({ isPaused }),
     setSystemTimer: (systemTimer) => set({ systemTimer }),
     accumulateTime: (time) => set((s) => ({ totalElapsedTime: s.totalElapsedTime + time })),
     incrementKills: () => set((s) => ({ kills: s.kills + 1 })),
+    addScore: (points) => set((s) => ({ score: s.score + points })),
 
-    startGameplay: () => set({ phase: 'gameplay', isPaused: false, systemTimer: 0, totalElapsedTime: 0, score: 0, kills: 0, prevCombatPhase: 'gameplay' }),
+    loadHighScore: () => set({ highScore: getHighScore() }),
+
+    updateHighScore: () => {
+      const { score, highScore } = get()
+      if (score > 0 && score > highScore) {
+        saveHighScore(score)
+        set({ highScore: score, isNewHighScore: true })
+        return true
+      }
+      set({ isNewHighScore: false })
+      return false
+    },
+
+    startGameplay: () => set((s) => ({
+      phase: 'gameplay', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
+      score: 0, kills: 0, prevCombatPhase: 'gameplay', highScore: s.highScore, isNewHighScore: false,
+    })),
     triggerLevelUp: () => set((s) => ({ phase: 'levelUp', isPaused: true, prevCombatPhase: s.phase === 'levelUp' ? s.prevCombatPhase : s.phase })),
     triggerPlanetReward: (tier) => set({ phase: 'planetReward', isPaused: true, rewardTier: tier }),
     resumeGameplay: () => set((s) => ({ phase: s.prevCombatPhase, isPaused: false, rewardTier: null })),
@@ -28,7 +48,8 @@ const useGame = create(
     returnToMenu: () => set({ phase: 'menu', isPaused: false }),
 
     reset: () => set({
-      phase: 'menu', isPaused: false, systemTimer: 0, totalElapsedTime: 0, score: 0, kills: 0, rewardTier: null, prevCombatPhase: 'gameplay',
+      phase: 'menu', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
+      score: 0, kills: 0, rewardTier: null, prevCombatPhase: 'gameplay', highScore: 0, isNewHighScore: false,
     }),
   }))
 )

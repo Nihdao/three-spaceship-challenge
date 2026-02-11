@@ -27,6 +27,7 @@ const SFX_MAP = {
   'dilemma-refuse': ASSET_MANIFEST.tier2.audio.dilemmaRefuse,
   'tunnel-exit': ASSET_MANIFEST.tier2.audio.tunnelExit,
   'hp-recover': ASSET_MANIFEST.tier2.audio.hpRecover,
+  'high-score': ASSET_MANIFEST.gameplay.audio.highScore,
 }
 
 export default function useAudio() {

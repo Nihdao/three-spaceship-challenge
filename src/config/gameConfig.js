@@ -134,4 +134,7 @@ export const GAME_CONFIG = {
   // HP Sacrifice (Story 7.4)
   HP_SACRIFICE_FRAGMENT_COST: 50,
   HP_SACRIFICE_HP_RECOVERY: 25,
+
+  // Scoring (Story 8.4)
+  SCORE_PER_KILL: 100,
 };

@@ -48,6 +48,8 @@ export default function VictoryScreen() {
     statsRef.current = {
       systemTimer: useGame.getState().totalElapsedTime + useGame.getState().systemTimer,
       kills: useGame.getState().kills,
+      score: useGame.getState().score,
+      isNewHighScore: useGame.getState().isNewHighScore,
       currentLevel: usePlayer.getState().currentLevel,
       currentSystem: useLevel.getState().currentSystem,
       fragments: usePlayer.getState().fragments,
@@ -67,6 +69,9 @@ export default function VictoryScreen() {
     timers.push(setTimeout(() => setStage(1), 300))   // Show title
     timers.push(setTimeout(() => setStage(2), 600))   // Show stats
     timers.push(setTimeout(() => setStage(3), 800))   // Show actions
+    if (statsRef.current.isNewHighScore) {
+      timers.push(setTimeout(() => playSFX('high-score'), 600))
+    }
     return () => timers.forEach(clearTimeout)
   }, [])
 
@@ -133,6 +138,16 @@ export default function VictoryScreen() {
           </h1>
         )}
 
+        {/* New high score celebration */}
+        {stage >= 2 && stats.isNewHighScore && (
+          <p
+            className="mt-6 text-game-accent font-bold tracking-[0.2em] select-none animate-pulse"
+            style={{ fontSize: 'clamp(16px, 2vw, 28px)' }}
+          >
+            NEW HIGH SCORE!
+          </p>
+        )}
+
         {/* Stats section */}
         {stage >= 2 && (
           <div
@@ -140,6 +155,7 @@ export default function VictoryScreen() {
             style={{ maxWidth: 'clamp(260px, 30vw, 400px)' }}
           >
             <div className="flex flex-col gap-2">
+              <StatLine label="SCORE" value={stats.score.toLocaleString()} />
               <StatLine label="SYSTEMS CLEARED" value={stats.currentSystem} />
               <StatLine label="TIME SURVIVED" value={timeSurvived} />
               <StatLine label="ENEMIES KILLED" value={stats.kills} />
