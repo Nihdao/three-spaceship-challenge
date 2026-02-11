@@ -24,7 +24,7 @@ export default function Experience() {
 
       <GameLoop />
 
-      {phase === 'menu' && <MenuScene />}
+      {(phase === 'menu' || phase === 'shipSelect') && <MenuScene />}
       {showGameplay && <GameplayScene />}
       {showBoss && <BossScene />}
       {phase === 'tunnel' && <TunnelScene />}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import useGame from "../stores/useGame.jsx";
 import { playSFX } from "../audio/audioManager.js";
 import OptionsModal from "./modals/OptionsModal.jsx";
+import CreditsModal from "./modals/CreditsModal.jsx";
 
 const MENU_ITEMS = [
   { id: "play", label: "PLAY" },
@@ -13,23 +14,17 @@ export default function MainMenu() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
-  const [placeholderModal, setPlaceholderModal] = useState(null); // 'credits' | null
+  const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const playButtonRef = useRef(null);
+  const creditsButtonRef = useRef(null);
 
-  // Task 6: High score from localStorage (re-read when options modal closes)
-  const readHighScore = useCallback(() => {
-    try {
-      const stored = localStorage.getItem("highScore");
-      if (stored !== null) {
-        const parsed = parseInt(stored, 10);
-        return Number.isFinite(parsed) ? parsed : 0;
-      }
-    } catch {
-      // localStorage unavailable
-    }
-    return 0;
+  // High score from store (loaded from localStorage)
+  const highScore = useGame((s) => s.highScore);
+
+  // Load high score from localStorage on mount
+  useEffect(() => {
+    useGame.getState().loadHighScore();
   }, []);
-  const [highScore, setHighScore] = useState(readHighScore);
 
   // Auto-focus PLAY button on mount for immediate keyboard interaction
   useEffect(() => {
@@ -41,7 +36,7 @@ export default function MainMenu() {
     playSFX("button-click");
     setFading(true);
     setTimeout(() => {
-      useGame.getState().startGameplay();
+      useGame.getState().setPhase('shipSelect');
     }, 300);
   }, [fading]);
 
@@ -55,31 +50,19 @@ export default function MainMenu() {
         setIsOptionsOpen(true);
       } else if (item.id === "credits") {
         playSFX("button-click");
-        setPlaceholderModal("credits");
+        setIsCreditsOpen(true);
       }
     },
     [fading, handlePlay],
   );
-
-  const handleCloseModal = useCallback(() => {
-    playSFX("button-click");
-    setPlaceholderModal(null);
-  }, []);
 
   // Keyboard navigation
   useEffect(() => {
     const handler = (e) => {
       if (fading) return;
 
-      // Close placeholder modal with Escape (options modal handles its own ESC)
-      if (placeholderModal && (e.code === "Escape" || e.code === "Backspace")) {
-        e.preventDefault();
-        handleCloseModal();
-        return;
-      }
-
       // Don't navigate menu while any modal is open
-      if (placeholderModal || isOptionsOpen) return;
+      if (isCreditsOpen || isOptionsOpen) return;
 
       if (e.code === "ArrowUp") {
         e.preventDefault();
@@ -98,7 +81,7 @@ export default function MainMenu() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [fading, selectedIndex, placeholderModal, isOptionsOpen, handleMenuSelect, handleCloseModal]);
+  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, handleMenuSelect]);
 
   return (
     <>
@@ -111,9 +94,9 @@ export default function MainMenu() {
       {/* Menu overlay */}
       <div
         className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
-        inert={placeholderModal || isOptionsOpen ? "" : undefined}
+        inert={isCreditsOpen || isOptionsOpen ? "" : undefined}
       >
-        {/* Task 6: High score display */}
+        {/* High score display */}
         <div className="absolute top-8 right-8 text-right select-none">
           <p className="text-game-text-muted text-xs tracking-[0.3em]">
             BEST RUN
@@ -136,7 +119,7 @@ export default function MainMenu() {
           {MENU_ITEMS.map((item, i) => (
             <button
               key={item.id}
-              ref={i === 0 ? playButtonRef : undefined}
+              ref={item.id === "play" ? playButtonRef : item.id === "credits" ? creditsButtonRef : undefined}
               className={`
                 w-48 py-3 text-lg font-semibold tracking-widest
                 border rounded transition-all duration-150 select-none
@@ -164,38 +147,18 @@ export default function MainMenu() {
         <OptionsModal
           onClose={() => {
             setIsOptionsOpen(false);
-            setHighScore(readHighScore());
+            // Reload high score in case clear save was used
+            useGame.getState().loadHighScore();
           }}
         />
       )}
 
-      {/* Placeholder modal for CREDITS */}
-      {placeholderModal && (
-        <div
-          className="fixed inset-0 z-[55] flex items-center justify-center font-game animate-fade-in"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="bg-[#0a0a0f]/95 border border-game-border rounded-lg p-8 min-w-[300px] text-center">
-            <h2 className="text-game-text text-xl font-bold tracking-widest mb-4 select-none">
-              CREDITS
-            </h2>
-            <p className="text-game-text-muted text-sm mb-6 select-none">
-              Coming soon
-            </p>
-            <button
-              className="px-6 py-2 text-sm font-semibold tracking-wider border border-game-border rounded
-                text-game-text-muted hover:border-game-accent hover:text-game-text
-                transition-all duration-150 cursor-pointer select-none outline-none
-                focus-visible:ring-2 focus-visible:ring-game-accent"
-              onClick={handleCloseModal}
-              onMouseEnter={() => playSFX("button-hover")}
-              autoFocus
-            >
-              [ESC] BACK
-            </button>
-          </div>
-        </div>
+      {/* Credits modal */}
+      {isCreditsOpen && (
+        <CreditsModal onClose={() => {
+          setIsCreditsOpen(false);
+          setTimeout(() => creditsButtonRef.current?.focus(), 0);
+        }} />
       )}
     </>
   );

@@ -1,6 +1,6 @@
 # Story 8.3: Credits Screen
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -22,64 +22,64 @@ So that proper attribution is given to the contest and community resources.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create CreditsModal component structure (AC: #1, #4)
-  - [ ] 1.1: Create `src/ui/modals/CreditsModal.jsx` component
-  - [ ] 1.2: Render modal overlay with 60% dark background (bg-black/60)
-  - [ ] 1.3: Modal content card with "CREDITS" title (text-3xl, centered)
-  - [ ] 1.4: Scrollable content area (max-h with overflow-y-auto)
-  - [ ] 1.5: Add BACK button at bottom (returns to main menu via onClose callback)
-  - [ ] 1.6: ESC key listener to close modal (useEffect with cleanup)
-  - [ ] 1.7: Accessibility: aria-modal, role="dialog", aria-labelledby for title
+- [x] Task 1: Create CreditsModal component structure (AC: #1, #4)
+  - [x] 1.1: Create `src/ui/modals/CreditsModal.jsx` component
+  - [x] 1.2: Render modal overlay with 60% dark background (bg-black/60)
+  - [x] 1.3: Modal content card with "CREDITS" title (text-3xl, centered)
+  - [x] 1.4: Scrollable content area (max-h with overflow-y-auto)
+  - [x] 1.5: Add BACK button at bottom (returns to main menu via onClose callback)
+  - [x] 1.6: ESC key listener to close modal (useEffect with cleanup)
+  - [x] 1.7: Accessibility: aria-modal, role="dialog", aria-labelledby for title
 
-- [ ] Task 2: Integrate CreditsModal with MainMenu (AC: #1)
-  - [ ] 2.1: Import CreditsModal into MainMenu.jsx
-  - [ ] 2.2: Add isCreditsOpen state to MainMenu (if not already present from Story 8.1)
-  - [ ] 2.3: Update handleMenuSelect for 'credits' item to set isCreditsOpen=true
-  - [ ] 2.4: Render CreditsModal conditionally when isCreditsOpen
-  - [ ] 2.5: Pass onClose callback that sets isCreditsOpen=false
-  - [ ] 2.6: Apply inert attribute to MainMenu buttons when modal is open
+- [x] Task 2: Integrate CreditsModal with MainMenu (AC: #1)
+  - [x] 2.1: Import CreditsModal into MainMenu.jsx
+  - [x] 2.2: Add isCreditsOpen state to MainMenu (if not already present from Story 8.1)
+  - [x] 2.3: Update handleMenuSelect for 'credits' item to set isCreditsOpen=true
+  - [x] 2.4: Render CreditsModal conditionally when isCreditsOpen
+  - [x] 2.5: Pass onClose callback that sets isCreditsOpen=false
+  - [x] 2.6: Apply inert attribute to MainMenu buttons when modal is open
 
-- [ ] Task 3: ThreeJS Journey Challenge section (AC: #2)
-  - [ ] 3.1: Add header section with "Created for the ThreeJS Journey Challenge - Spaceship"
-  - [ ] 3.2: Render external link to https://threejs-journey.com/challenges/022-spaceship
-  - [ ] 3.3: Link styled with accent color (text-game-primary), opens in new tab (_blank), has rel="noopener noreferrer"
-  - [ ] 3.4: Add credit line: "Course by Bruno Simon - ThreeJS Journey"
-  - [ ] 3.5: Link to https://threejs-journey.com with same styling
-  - [ ] 3.6: Section visually distinct (border-bottom or margin-bottom to separate from assets)
+- [x] Task 3: ThreeJS Journey Challenge section (AC: #2)
+  - [x] 3.1: Add header section with "Created for the ThreeJS Journey Challenge - Spaceship"
+  - [x] 3.2: Render external link to https://threejs-journey.com/challenges/022-spaceship
+  - [x] 3.3: Link styled with accent color (text-game-primary), opens in new tab (_blank), has rel="noopener noreferrer"
+  - [x] 3.4: Add credit line: "Course by Bruno Simon - ThreeJS Journey"
+  - [x] 3.5: Link to https://threejs-journey.com with same styling
+  - [x] 3.6: Section visually distinct (border-bottom or margin-bottom to separate from assets)
 
-- [ ] Task 4: Assets & Resources section (AC: #3)
-  - [ ] 4.1: Add section header "Assets & Resources"
-  - [ ] 4.2: Create subsection "3D Models" with placeholder text "To be credited"
-  - [ ] 4.3: Create subsection "Sound Effects" with placeholder text "To be credited"
-  - [ ] 4.4: Create subsection "Music" with placeholder text "To be credited"
-  - [ ] 4.5: Create subsection "Textures" with placeholder text "To be credited"
-  - [ ] 4.6: Use consistent formatting: category bold, credit text regular, line spacing consistent
-  - [ ] 4.7: Format allows easy future update (replace "To be credited" with actual author names + license)
+- [x] Task 4: Assets & Resources section (AC: #3)
+  - [x] 4.1: Add section header "Assets & Resources"
+  - [x] 4.2: Create subsection "3D Models" with placeholder text "To be credited"
+  - [x] 4.3: Create subsection "Sound Effects" with placeholder text "To be credited"
+  - [x] 4.4: Create subsection "Music" with placeholder text "To be credited"
+  - [x] 4.5: Create subsection "Textures" with placeholder text "To be credited"
+  - [x] 4.6: Use consistent formatting: category bold, credit text regular, line spacing consistent
+  - [x] 4.7: Format allows easy future update (replace "To be credited" with actual author names + license)
 
-- [ ] Task 5: Keyboard navigation and accessibility (AC: #4)
-  - [ ] 5.1: Modal traps focus (Tab cycles within modal: links, BACK button)
-  - [ ] 5.2: ESC key closes modal, returns focus to CREDITS button in MainMenu
-  - [ ] 5.3: External links keyboard-activatable (Enter key)
-  - [ ] 5.4: BACK button focusable and Enter-activatable
-  - [ ] 5.5: Apply inert attribute to MainMenu when modal is open (prevent interaction)
-  - [ ] 5.6: aria-labelledby references title element for screen readers
+- [x] Task 5: Keyboard navigation and accessibility (AC: #4)
+  - [x] 5.1: Modal traps focus (Tab cycles within modal: links, BACK button)
+  - [x] 5.2: ESC key closes modal, returns focus to CREDITS button in MainMenu
+  - [x] 5.3: External links keyboard-activatable (Enter key)
+  - [x] 5.4: BACK button focusable and Enter-activatable
+  - [x] 5.5: Apply inert attribute to MainMenu when modal is open (prevent interaction)
+  - [x] 5.6: aria-labelledby references title element for screen readers
 
-- [ ] Task 6: Scrollable content handling (AC: #1, #3)
-  - [ ] 6.1: Content area has max-height constraint (e.g., max-h-[70vh])
-  - [ ] 6.2: overflow-y-auto applied to content area (not entire modal)
-  - [ ] 6.3: Custom scrollbar styling to match game theme (dark track, accent thumb)
-  - [ ] 6.4: Content bottom padding ensures BACK button always visible even when scrolled
-  - [ ] 6.5: Test scroll behavior with keyboard (Arrow keys, Page Up/Down)
+- [x] Task 6: Scrollable content handling (AC: #1, #3)
+  - [x] 6.1: Content area has max-height constraint (e.g., max-h-[70vh])
+  - [x] 6.2: overflow-y-auto applied to content area (not entire modal)
+  - [x] 6.3: Custom scrollbar styling to match game theme (dark track, accent thumb)
+  - [x] 6.4: Content bottom padding ensures BACK button always visible even when scrolled
+  - [x] 6.5: Test scroll behavior with keyboard (Arrow keys, Page Up/Down)
 
-- [ ] Task 7: Visual polish (AC: #1, #2, #3)
-  - [ ] 7.1: Modal fade-in animation (150ms ease-out)
-  - [ ] 7.2: Title uses game font (Inter), text-3xl, bold
-  - [ ] 7.3: Section headers use text-xl, bold, margin-top for spacing
-  - [ ] 7.4: Body text uses text-base, line-height relaxed for readability
-  - [ ] 7.5: External links have hover state (underline or color shift)
-  - [ ] 7.6: External links have icon indicator (↗ or similar) to show they open new tab
-  - [ ] 7.7: Spacing consistent (4px base unit, 16px between sections)
-  - [ ] 7.8: Card background (bg-game-bg), border (border-game-primary)
+- [x] Task 7: Visual polish (AC: #1, #2, #3)
+  - [x] 7.1: Modal fade-in animation (150ms ease-out)
+  - [x] 7.2: Title uses game font (Inter), text-3xl, bold
+  - [x] 7.3: Section headers use text-xl, bold, margin-top for spacing
+  - [x] 7.4: Body text uses text-base, line-height relaxed for readability
+  - [x] 7.5: External links have hover state (underline or color shift)
+  - [x] 7.6: External links have icon indicator (↗ or similar) to show they open new tab
+  - [x] 7.7: Spacing consistent (4px base unit, 16px between sections)
+  - [x] 7.8: Card background (bg-game-bg), border (border-game-primary)
 
 ## Dev Notes
 
@@ -409,10 +409,37 @@ Story 8.3 implements the CREDITS modal as an informational overlay accessible fr
 
 ### Agent Model Used
 
-Claude Sonnet 4.5
+Claude Opus 4.6
 
 ### Debug Log References
 
+None - clean implementation with no issues encountered.
+
 ### Completion Notes List
 
+- Created `src/ui/modals/CreditsModal.jsx` following OptionsModal pattern: overlay, card, ESC key, focus trap, ARIA attributes
+- Replaced placeholder modal in `src/ui/MainMenu.jsx` with full CreditsModal integration (isCreditsOpen state, inert attribute, conditional rendering)
+- Removed old placeholderModal state and handleCloseModal callback from MainMenu
+- ThreeJS Journey Challenge section with two external links (challenge page + course homepage), both with `target="_blank"` and `rel="noopener noreferrer"`
+- Assets & Resources section with 4 placeholder categories (3D Models, Sound Effects, Music, Textures) rendered from exported CREDITS_SECTIONS data array for easy future updates
+- Focus trap implemented matching OptionsModal pattern (Tab cycling through focusable elements)
+- Visual styling matches OptionsModal: bg-[#0a0a0f], border-2 border-game-primary, animate-fade-in, tracking-widest
+- Added unit test for CREDITS_SECTIONS data structure validation (3 tests)
+- All 568 existing tests pass with zero regressions
+
+### Code Review Fixes (2026-02-11)
+
+- [H1] Added focus restoration to CREDITS button when modal closes (creditsButtonRef in MainMenu + setTimeout focus in onClose)
+- [M1] Added playSFX("button-click") on BACK button click and playSFX("button-hover") on mouseEnter for audio consistency with OptionsModal
+- [M2] Added missing `import { playSFX } from "../../audio/audioManager.js"` to CreditsModal
+
+### Change Log
+
+- 2026-02-11: Implemented Credits Screen (Story 8.3) - CreditsModal component with ThreeJS Journey attribution, asset placeholders, full accessibility, and MainMenu integration
+- 2026-02-11: Code review fixes - focus restoration, SFX on BACK button, playSFX import
+
 ### File List
+
+- `src/ui/modals/CreditsModal.jsx` (new) — Credits modal component
+- `src/ui/MainMenu.jsx` (modified) — Replaced placeholder modal with CreditsModal integration
+- `src/ui/__tests__/CreditsModal.test.js` (new) — Unit tests for CREDITS_SECTIONS data

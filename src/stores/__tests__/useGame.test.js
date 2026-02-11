@@ -1,8 +1,29 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import useGame from '../useGame.jsx'
 import usePlayer from '../usePlayer.jsx'
 import useWeapons from '../useWeapons.jsx'
 import useBoons from '../useBoons.jsx'
+import { STORAGE_KEY_HIGH_SCORE } from '../../utils/highScoreStorage.js'
+
+// Mock localStorage for Node test environment
+const store = {}
+const mockLocalStorage = {
+  getItem: vi.fn((key) => store[key] ?? null),
+  setItem: vi.fn((key, value) => { store[key] = String(value) }),
+  removeItem: vi.fn((key) => { delete store[key] }),
+  clear: vi.fn(() => { Object.keys(store).forEach(k => delete store[k]) }),
+}
+
+beforeEach(() => {
+  globalThis.localStorage = mockLocalStorage
+  mockLocalStorage.getItem.mockClear()
+  mockLocalStorage.setItem.mockClear()
+  mockLocalStorage.removeItem.mockClear()
+})
+
+afterEach(() => {
+  mockLocalStorage.clear()
+})
 
 describe('useGame — game over transition (Story 3.5)', () => {
   beforeEach(() => {
@@ -177,5 +198,151 @@ describe('useGame — system timer (Story 4.1)', () => {
     useGame.getState().setSystemTimer(450)
     useGame.getState().triggerGameOver()
     expect(useGame.getState().systemTimer).toBe(450)
+  })
+})
+
+describe('useGame — score tracking (Story 8.4, Task 1.2)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('score initialises to 0', () => {
+    expect(useGame.getState().score).toBe(0)
+  })
+
+  it('addScore adds points to current score', () => {
+    useGame.getState().addScore(100)
+    expect(useGame.getState().score).toBe(100)
+
+    useGame.getState().addScore(250)
+    expect(useGame.getState().score).toBe(350)
+  })
+
+  it('startGameplay resets score to 0', () => {
+    useGame.getState().addScore(500)
+    useGame.getState().startGameplay()
+    expect(useGame.getState().score).toBe(0)
+  })
+
+  it('triggerGameOver preserves score', () => {
+    useGame.getState().addScore(1000)
+    useGame.getState().triggerGameOver()
+    expect(useGame.getState().score).toBe(1000)
+  })
+
+  it('reset clears score to 0', () => {
+    useGame.getState().addScore(500)
+    useGame.getState().reset()
+    expect(useGame.getState().score).toBe(0)
+  })
+})
+
+describe('useGame — high score persistence (Story 8.4, Task 1.3)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('highScore initialises to 0 when no localStorage data', () => {
+    expect(useGame.getState().highScore).toBe(0)
+  })
+
+  it('loadHighScore reads from localStorage', () => {
+    store[STORAGE_KEY_HIGH_SCORE] = '9999'
+    useGame.getState().loadHighScore()
+    expect(useGame.getState().highScore).toBe(9999)
+  })
+
+  it('updateHighScore saves new high score when current score is higher', () => {
+    useGame.setState({ score: 5000, highScore: 1000 })
+    useGame.getState().updateHighScore()
+    expect(useGame.getState().highScore).toBe(5000)
+    expect(mockLocalStorage.setItem).toHaveBeenCalled()
+  })
+
+  it('updateHighScore does not save when current score is lower', () => {
+    useGame.setState({ score: 500, highScore: 1000 })
+    useGame.getState().updateHighScore()
+    expect(useGame.getState().highScore).toBe(1000)
+  })
+
+  it('updateHighScore does not save when score is 0', () => {
+    useGame.setState({ score: 0, highScore: 0 })
+    useGame.getState().updateHighScore()
+    expect(mockLocalStorage.setItem).not.toHaveBeenCalled()
+  })
+
+  it('updateHighScore returns true when new high score achieved', () => {
+    useGame.setState({ score: 5000, highScore: 1000 })
+    const result = useGame.getState().updateHighScore()
+    expect(result).toBe(true)
+  })
+
+  it('updateHighScore returns false when no new high score', () => {
+    useGame.setState({ score: 500, highScore: 1000 })
+    const result = useGame.getState().updateHighScore()
+    expect(result).toBe(false)
+  })
+
+  it('highScore is included in reset()', () => {
+    useGame.setState({ highScore: 9999 })
+    useGame.getState().reset()
+    expect(useGame.getState().highScore).toBe(0)
+  })
+
+  it('startGameplay does not reset highScore', () => {
+    useGame.setState({ highScore: 9999 })
+    useGame.getState().startGameplay()
+    expect(useGame.getState().highScore).toBe(9999)
+  })
+})
+
+describe('useGame — isNewHighScore flag (Story 8.4, Task 3)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('isNewHighScore defaults to false', () => {
+    expect(useGame.getState().isNewHighScore).toBe(false)
+  })
+
+  it('updateHighScore sets isNewHighScore to true when new record', () => {
+    useGame.setState({ score: 5000, highScore: 1000 })
+    useGame.getState().updateHighScore()
+    expect(useGame.getState().isNewHighScore).toBe(true)
+  })
+
+  it('updateHighScore sets isNewHighScore to false when no new record', () => {
+    useGame.setState({ score: 500, highScore: 1000 })
+    useGame.getState().updateHighScore()
+    expect(useGame.getState().isNewHighScore).toBe(false)
+  })
+
+  it('startGameplay resets isNewHighScore', () => {
+    useGame.setState({ isNewHighScore: true })
+    useGame.getState().startGameplay()
+    expect(useGame.getState().isNewHighScore).toBe(false)
+  })
+
+  it('reset clears isNewHighScore', () => {
+    useGame.setState({ isNewHighScore: true })
+    useGame.getState().reset()
+    expect(useGame.getState().isNewHighScore).toBe(false)
+  })
+})
+
+describe('useGame — high score clear save integration (Story 8.4, Task 4)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('loadHighScore returns 0 after localStorage is cleared', () => {
+    store[STORAGE_KEY_HIGH_SCORE] = '5000'
+    useGame.getState().loadHighScore()
+    expect(useGame.getState().highScore).toBe(5000)
+
+    // Simulate clear save (OptionsModal does localStorage.clear())
+    mockLocalStorage.clear()
+    useGame.getState().loadHighScore()
+    expect(useGame.getState().highScore).toBe(0)
   })
 })

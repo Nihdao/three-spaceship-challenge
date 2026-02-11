@@ -27,6 +27,7 @@ export const ASSET_MANIFEST = {
       buttonHover: 'audio/sfx/button-hover.mp3',
       buttonClick: 'audio/sfx/button-click.mp3',
       gameOverImpact: 'audio/sfx/game-over-impact.mp3',
+      highScore: 'audio/sfx/high-score.mp3',
       dashWhoosh: 'audio/sfx/dash-whoosh.mp3',
       dashReady: 'audio/sfx/dash-ready.mp3',
       scanStart: 'audio/sfx/scan-start.mp3',

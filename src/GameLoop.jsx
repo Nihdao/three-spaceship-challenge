@@ -130,6 +130,7 @@ export default function GameLoop() {
           if (useLevel.getState().currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
             useGame.getState().setPhase('tunnel')
           } else {
+            useGame.getState().updateHighScore()
             useGame.getState().triggerVictory()
           }
         }
@@ -273,6 +274,7 @@ export default function GameLoop() {
       // 7. Death checks
       if (usePlayer.getState().currentHP <= 0) {
         playSFX('game-over-impact')
+        useGame.getState().updateHighScore()
         useGame.getState().triggerGameOver()
         return
       }
@@ -413,6 +415,7 @@ export default function GameLoop() {
             spawnOrb(event.enemy.x, event.enemy.z, xpReward)
           }
           useGame.getState().incrementKills()
+          useGame.getState().addScore(GAME_CONFIG.SCORE_PER_KILL)
         }
       }
     }
@@ -440,6 +443,7 @@ export default function GameLoop() {
     // 7e. Death check
     if (usePlayer.getState().currentHP <= 0) {
       playSFX('game-over-impact')
+      useGame.getState().updateHighScore()
       useGame.getState().triggerGameOver()
       useWeapons.getState().cleanupInactive()
       return // Stop processing — no XP/level-up after death
@@ -453,6 +457,7 @@ export default function GameLoop() {
       // Don't trigger game over if wormhole is activating/active (player found it)
       if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
         playSFX('game-over-impact')
+        gameState.updateHighScore()
         gameState.triggerGameOver()
         useWeapons.getState().cleanupInactive()
         return // Stop processing — timer expired

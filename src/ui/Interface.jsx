@@ -9,6 +9,7 @@ import BossHPBar from './BossHPBar.jsx'
 import GameOverScreen from './GameOverScreen.jsx'
 import VictoryScreen from './VictoryScreen.jsx'
 import TunnelHub from './TunnelHub.jsx'
+import ShipSelect from './ShipSelect.jsx'
 
 export default function Interface() {
   const phase = useGame((s) => s.phase)
@@ -28,6 +29,7 @@ export default function Interface() {
   return (
     <>
       {phase === 'menu' && <MainMenu />}
+      {phase === 'shipSelect' && <ShipSelect />}
       {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <HUD />}
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}

@@ -34,6 +34,7 @@ const SFX_CATEGORY_MAP = {
   'dilemma-accept': 'sfxFeedbackNegative',
   'dilemma-refuse': 'ui',
   'hp-recover': 'sfxFeedbackPositive',
+  'high-score': 'events',
 }
 
 let currentMusic = null

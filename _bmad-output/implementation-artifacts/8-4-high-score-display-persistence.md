@@ -1,6 +1,6 @@
 # Story 8.4: High Score Display & Persistence
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -34,26 +34,26 @@ So that I feel motivated to beat my previous runs.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement localStorage high score persistence (AC: 1, 2, 3, 4)
-  - [ ] Subtask 1.1: Create localStorage utility functions for high score (get, set, clear)
-  - [ ] Subtask 1.2: Update useGame store to track currentScore during gameplay
-  - [ ] Subtask 1.3: Update useGame store to load/save high score from localStorage
-  - [ ] Subtask 1.4: Integrate high score save on game over/victory transitions
+- [x] Task 1: Implement localStorage high score persistence (AC: 1, 2, 3, 4)
+  - [x] Subtask 1.1: Create localStorage utility functions for high score (get, set, clear)
+  - [x] Subtask 1.2: Update useGame store to track currentScore during gameplay
+  - [x] Subtask 1.3: Update useGame store to load/save high score from localStorage
+  - [x] Subtask 1.4: Integrate high score save on game over/victory transitions
 
-- [ ] Task 2: Add high score display to MainMenu (AC: 1, 3)
-  - [ ] Subtask 2.1: Create HighScoreDisplay component with tabular-nums styling
-  - [ ] Subtask 2.2: Position display in top-right corner of MainMenu
-  - [ ] Subtask 2.3: Show "---" or "0" when no high score exists
-  - [ ] Subtask 2.4: Subscribe to useGame highScore state for reactivity
+- [x] Task 2: Add high score display to MainMenu (AC: 1, 3)
+  - [x] Subtask 2.1: Create HighScoreDisplay component with tabular-nums styling
+  - [x] Subtask 2.2: Position display in top-right corner of MainMenu
+  - [x] Subtask 2.3: Show "---" or "0" when no high score exists
+  - [x] Subtask 2.4: Subscribe to useGame highScore state for reactivity
 
-- [ ] Task 3: Add "NEW HIGH SCORE!" feedback on game over/victory (AC: 2)
-  - [ ] Subtask 3.1: Detect new high score in GameOverScreen and VictoryScreen
-  - [ ] Subtask 3.2: Display "NEW HIGH SCORE!" message with celebration animation
-  - [ ] Subtask 3.3: Add celebratory sound effect when new high score achieved
+- [x] Task 3: Add "NEW HIGH SCORE!" feedback on game over/victory (AC: 2)
+  - [x] Subtask 3.1: Detect new high score in GameOverScreen and VictoryScreen
+  - [x] Subtask 3.2: Display "NEW HIGH SCORE!" message with celebration animation
+  - [x] Subtask 3.3: Add celebratory sound effect when new high score achieved
 
-- [ ] Task 4: Integrate high score reset with Options menu clear save (AC: 4)
-  - [ ] Subtask 4.1: Verify OptionsMenu clear save calls high score clear function
-  - [ ] Subtask 4.2: Test high score resets when local save is cleared
+- [x] Task 4: Integrate high score reset with Options menu clear save (AC: 4)
+  - [x] Subtask 4.1: Verify OptionsMenu clear save calls high score clear function
+  - [x] Subtask 4.2: Test high score resets when local save is cleared
 
 ## Dev Notes
 
@@ -142,16 +142,39 @@ So that I feel motivated to beat my previous runs.
 
 ### Agent Model Used
 
-Claude Sonnet 4.5
+Claude Opus 4.6
 
 ### Debug Log References
 
-(To be filled during implementation)
+No blocking issues encountered during implementation.
 
 ### Completion Notes List
 
-(To be filled during implementation)
+- **Task 1**: Created `src/utils/highScoreStorage.js` with get/set/clear utilities using key `SPACESHIP_HIGH_SCORE`. Added `highScore`, `isNewHighScore`, `addScore`, `loadHighScore`, `updateHighScore` to useGame store. Integrated scoring in GameLoop (100 pts/kill via `SCORE_PER_KILL` config). `updateHighScore()` called at all 4 game-end points (player death gameplay, player death boss, timer expiry, victory).
+- **Task 2**: Refactored MainMenu.jsx from direct localStorage reads to Zustand store subscription (`useGame((s) => s.highScore)`). High score loaded via `loadHighScore()` on mount and after Options modal closes. Display uses `tabular-nums` in top-right, shows "---" when 0.
+- **Task 3**: Added `isNewHighScore` flag to store, set by `updateHighScore()`. GameOverScreen and VictoryScreen capture flag on mount and display "NEW HIGH SCORE!" with `animate-pulse` animation. SFX 'high-score' triggered on stats reveal. Score stat line added to both screens.
+- **Task 4**: OptionsModal already uses `localStorage.clear()` which removes all keys including `SPACESHIP_HIGH_SCORE`. MainMenu calls `loadHighScore()` when Options modal closes, which reads the now-cleared value as 0. Tests verify this flow.
 
 ### File List
 
-(To be filled during implementation)
+**New files:**
+- `src/utils/highScoreStorage.js` — localStorage utility functions (get, set) for high score
+- `src/utils/__tests__/highScoreStorage.test.js` — 9 unit tests for high score storage utilities
+
+**Modified files:**
+- `src/stores/useGame.jsx` — Added highScore, isNewHighScore, addScore, loadHighScore, updateHighScore; updated startGameplay/reset
+- `src/stores/__tests__/useGame.test.js` — Added 16 tests for score tracking, high score persistence, isNewHighScore flag, clear save integration
+- `src/config/gameConfig.js` — Added SCORE_PER_KILL constant (100)
+- `src/config/assetManifest.js` — Added high-score SFX asset path
+- `src/audio/audioManager.js` — Added 'high-score' to SFX_CATEGORY_MAP (events category)
+- `src/hooks/useAudio.jsx` — Added 'high-score' to SFX_MAP for preloading
+- `src/GameLoop.jsx` — Added addScore on kills, updateHighScore at all 4 game-end transition points
+- `src/ui/MainMenu.jsx` — Refactored to use useGame store for high score (replaced direct localStorage reads)
+- `src/ui/GameOverScreen.jsx` — Added score/isNewHighScore capture, "NEW HIGH SCORE!" display with animation, high-score SFX, SCORE stat line
+- `src/ui/VictoryScreen.jsx` — Added score/isNewHighScore capture, "NEW HIGH SCORE!" display with animation, high-score SFX, SCORE stat line
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — Status: ready-for-dev → in-progress → review
+
+## Change Log
+
+- 2026-02-11: Implemented Story 8.4 — High Score Display & Persistence. Added localStorage-backed high score system with store integration, MainMenu display, game over/victory feedback with "NEW HIGH SCORE!" animation, celebratory SFX, scoring per kill (100 pts), and clear save integration. 49 new/updated tests, 598 total passing.
+- 2026-02-11: Code review fixes — Removed dead `clearHighScore()` export (OptionsModal uses `localStorage.clear()`), added negative value guard in `getHighScore()`, replaced hardcoded storage key strings with imported `STORAGE_KEY_HIGH_SCORE` constant in useGame tests. 597 total passing.

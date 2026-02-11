@@ -2,11 +2,17 @@ import { create } from 'zustand'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { UPGRADES } from '../entities/upgradeDefs.js'
 import { DILEMMAS } from '../entities/dilemmaDefs.js'
+import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 
 const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
 const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
 
 const usePlayer = create((set, get) => ({
+  // --- Ship Selection (Story 9.1) ---
+  currentShipId: getDefaultShipId(),
+  shipBaseSpeed: SHIPS[getDefaultShipId()].baseSpeed,
+  shipBaseDamageMultiplier: SHIPS[getDefaultShipId()].baseDamageMultiplier,
+
   // --- State ---
   position: [0, 0, 0],
   velocity: [0, 0, 0],
@@ -188,6 +194,12 @@ const usePlayer = create((set, get) => ({
     })
   },
 
+  // --- Ship Selection (Story 9.1) ---
+  setCurrentShipId: (shipId) => {
+    if (!SHIPS[shipId]) return
+    set({ currentShipId: shipId })
+  },
+
   // --- Actions ---
   sacrificeFragmentsForHP: () => {
     const { fragments, currentHP, maxHP } = get()
@@ -353,34 +365,40 @@ const usePlayer = create((set, get) => ({
     // Preserves: fragments, currentHP, maxHP, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats
   }),
 
-  reset: () => set({
-    position: [0, 0, 0],
-    velocity: [0, 0, 0],
-    rotation: 0,
-    bankAngle: 0,
-    speed: 0,
-    currentHP: GAME_CONFIG.PLAYER_BASE_HP,
-    maxHP: GAME_CONFIG.PLAYER_BASE_HP,
-    isInvulnerable: false,
-    invulnerabilityTimer: 0,
-    lastDamageTime: 0,
-    contactDamageCooldown: 0,
-    isDashing: false,
-    dashTimer: 0,
-    dashCooldownTimer: 0,
-    damageFlashTimer: 0,
-    cameraShakeTimer: 0,
-    cameraShakeIntensity: 0,
-    currentXP: 0,
-    currentLevel: 1,
-    xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
-    pendingLevelUp: false,
-    fragments: 0,
-    permanentUpgrades: {},
-    acceptedDilemmas: [],
-    upgradeStats: { ...DEFAULT_UPGRADE_STATS },
-    dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
-  }),
+  reset: () => {
+    const { currentShipId } = get()
+    const ship = SHIPS[currentShipId] || SHIPS[getDefaultShipId()]
+    set({
+      position: [0, 0, 0],
+      velocity: [0, 0, 0],
+      rotation: 0,
+      bankAngle: 0,
+      speed: 0,
+      currentHP: ship.baseHP,
+      maxHP: ship.baseHP,
+      shipBaseSpeed: ship.baseSpeed,
+      shipBaseDamageMultiplier: ship.baseDamageMultiplier,
+      isInvulnerable: false,
+      invulnerabilityTimer: 0,
+      lastDamageTime: 0,
+      contactDamageCooldown: 0,
+      isDashing: false,
+      dashTimer: 0,
+      dashCooldownTimer: 0,
+      damageFlashTimer: 0,
+      cameraShakeTimer: 0,
+      cameraShakeIntensity: 0,
+      currentXP: 0,
+      currentLevel: 1,
+      xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
+      pendingLevelUp: false,
+      fragments: 0,
+      permanentUpgrades: {},
+      acceptedDilemmas: [],
+      upgradeStats: { ...DEFAULT_UPGRADE_STATS },
+      dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
+    })
+  },
 }))
 
 export default usePlayer

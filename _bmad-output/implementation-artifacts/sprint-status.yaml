@@ -106,23 +106,23 @@ development_status:
   epic-8: in-progress
   8-1-main-menu-visual-overhaul: done
   8-2-options-menu: done
-  8-3-credits-screen: ready-for-dev
-  8-4-high-score-display-persistence: ready-for-dev
+  8-3-credits-screen: done
+  8-4-high-score-display-persistence: done
   epic-8-retrospective: optional
 
   # Epic 9: Ship Selection System
   epic-9: in-progress
-  9-1-ship-selection-ui: ready-for-dev
+  9-1-ship-selection-ui: done
   9-2-ship-variants-definition-stats-display: ready-for-dev
-  9-3-ship-selection-persistence-integration: backlog
+  9-3-ship-selection-persistence-integration: ready-for-dev
   epic-9-retrospective: optional
 
   # Epic 10: HUD Overhaul & Advanced In-Game UI
-  epic-10: backlog
-  10-1-xp-bar-redesign-full-width-top: backlog
-  10-2-top-stats-display-score-fragments-level-kills: backlog
-  10-3-enhanced-minimap-styling: backlog
-  10-4-hp-item-slots-reorganization-top-left-cluster: backlog
+  epic-10: in-progress
+  10-1-xp-bar-redesign-full-width-top: ready-for-dev
+  10-2-top-stats-display-score-fragments-level-kills: ready-for-dev
+  10-3-enhanced-minimap-styling: ready-for-dev
+  10-4-hp-item-slots-reorganization-top-left-cluster: ready-for-dev
   10-5-boon-slots-visibility-display: backlog
   10-6-pause-menu-with-detailed-inventory: backlog
   10-7-bottom-item-library-bar: backlog
