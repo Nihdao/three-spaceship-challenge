@@ -64,7 +64,9 @@ const usePlayer = create((set, get) => ({
     } = GAME_CONFIG
     const PLAY_AREA_SIZE = arenaSize
 
-    const effectiveSpeed = PLAYER_BASE_SPEED * speedMultiplier
+    // Ship baseSpeed acts as a ratio relative to BALANCED (50 = 1.0x)
+    const shipSpeedRatio = state.shipBaseSpeed / SHIPS[getDefaultShipId()].baseSpeed
+    const effectiveSpeed = PLAYER_BASE_SPEED * shipSpeedRatio * speedMultiplier
 
     // --- Direction from input ---
     let dirX = (input.moveRight ? 1 : 0) - (input.moveLeft ? 1 : 0)
@@ -362,7 +364,7 @@ const usePlayer = create((set, get) => ({
     currentLevel: 1,
     xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
     pendingLevelUp: false,
-    // Preserves: fragments, currentHP, maxHP, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats
+    // Preserves: fragments, currentHP, maxHP, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats, currentShipId, shipBaseSpeed, shipBaseDamageMultiplier
   }),
 
   reset: () => {

@@ -4,6 +4,7 @@ import usePlayer from '../stores/usePlayer.jsx'
 import { SHIPS, TRAIT_INFO, getDefaultShipId } from '../entities/shipDefs.js'
 import { playSFX } from '../audio/audioManager.js'
 import StatLine from './primitives/StatLine.jsx'
+import ShipModelPreview from './ShipModelPreview.jsx'
 
 const shipList = Object.values(SHIPS)
 
@@ -128,18 +129,21 @@ export default function ShipSelect() {
                 className={`
                   relative p-3 border rounded-lg transition-all duration-150 select-none
                   ${ship.locked
-                    ? 'opacity-40 grayscale cursor-not-allowed border-game-border/30'
-                    : 'cursor-pointer border-game-border hover:border-game-accent/50'
+                    ? 'opacity-40 grayscale cursor-not-allowed border-game-border/30 bg-white/[0.03]'
+                    : 'cursor-pointer border-game-border/70 bg-white/[0.08] hover:border-game-accent/50 hover:bg-white/[0.12]'
                   }
                   ${selectedShipId === ship.id && !ship.locked
-                    ? 'border-game-accent ring-1 ring-game-accent/40 bg-game-accent/5'
+                    ? 'border-game-accent ring-1 ring-game-accent/40 bg-game-accent/15'
                     : ''
                   }
                 `}
               >
-                {/* Ship thumbnail placeholder */}
-                <div className="aspect-square bg-game-text-muted/5 rounded mb-2 flex items-center justify-center text-3xl">
-                  {ship.locked ? '🔒' : (ship.icon || '🚀')}
+                {/* Ship thumbnail */}
+                <div className="aspect-square bg-game-text-muted/5 rounded mb-2 flex items-center justify-center text-3xl overflow-hidden">
+                  {ship.locked
+                    ? '🔒'
+                    : <ShipModelPreview modelPath={ship.modelPath} />
+                  }
                 </div>
                 <p className="text-game-text font-semibold tracking-wide text-xs">{ship.name}</p>
               </button>
@@ -149,14 +153,12 @@ export default function ShipSelect() {
 
         {/* RIGHT: Ship Detail Panel */}
         <div className="w-80 bg-game-bg/60 border border-game-border/40 rounded-lg p-6 flex flex-col backdrop-blur-sm">
-          {/* Ship Preview */}
+          {/* Ship 3D Preview */}
           <div
-            className="aspect-video rounded-lg mb-4 flex items-center justify-center"
+            className="aspect-video rounded-lg mb-4 overflow-hidden"
             style={{ backgroundColor: `${selectedShip.colorTheme}10`, borderColor: `${selectedShip.colorTheme}30`, borderWidth: 1 }}
           >
-            <span className="text-6xl select-none" style={{ filter: `drop-shadow(0 0 12px ${selectedShip.colorTheme})` }}>
-              {selectedShip.icon || '🚀'}
-            </span>
+            <ShipModelPreview modelPath={selectedShip.modelPath} rotate />
           </div>
 
           {/* Ship Name & Description */}
