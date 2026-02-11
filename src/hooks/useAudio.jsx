@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import useGame from '../stores/useGame.jsx'
-import { playMusic, crossfadeMusic, fadeOutMusic, preloadSounds } from '../audio/audioManager.js'
+import { playMusic, crossfadeMusic, fadeOutMusic, preloadSounds, loadAudioSettings } from '../audio/audioManager.js'
 import { ASSET_MANIFEST } from '../config/assetManifest.js'
 
 // SFX key → asset manifest path mapping for preloading
@@ -31,6 +31,8 @@ const SFX_MAP = {
 
 export default function useAudio() {
   useEffect(() => {
+    // Apply saved volume settings before preloading
+    loadAudioSettings()
     // Preload all SFX on mount
     preloadSounds(SFX_MAP)
 

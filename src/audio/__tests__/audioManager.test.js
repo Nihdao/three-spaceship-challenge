@@ -51,16 +51,37 @@ vi.mock('howler', () => {
       return this
     }
   }
+  const MockHowler = {
+    ctx: { state: 'running' },
+    _globalVolume: 1,
+    volume(v) {
+      if (v === undefined) return this._globalVolume
+      this._globalVolume = v
+    },
+  }
   return {
     Howl: MockHowl,
-    Howler: { ctx: { state: 'running' } },
+    Howler: MockHowler,
   }
 })
 
 let audioManager
 
+// localStorage mock for Node environment
+const localStorageMap = new Map()
+const localStorageMock = {
+  getItem: (key) => localStorageMap.get(key) ?? null,
+  setItem: (key, value) => localStorageMap.set(key, String(value)),
+  removeItem: (key) => localStorageMap.delete(key),
+  clear: () => localStorageMap.clear(),
+}
+vi.stubGlobal('localStorage', localStorageMock)
+
 beforeEach(async () => {
   mockData.instances.length = 0
+  localStorageMap.clear()
+  const { Howler } = require('howler')
+  Howler._globalVolume = 1
   vi.resetModules()
   audioManager = await import('../audioManager.js')
 })
@@ -279,6 +300,81 @@ describe('audioManager', () => {
       audioManager.stopAllSFX()
       expect(mockData.instances[0]._stopped).toBe(true)
       expect(mockData.instances[1]._stopped).toBe(true)
+    })
+  })
+
+  describe('setMasterVolume', () => {
+    it('sets master volume and exposes it via getter', () => {
+      audioManager.setMasterVolume(0.5)
+      expect(audioManager.getMasterVolume()).toBe(0.5)
+    })
+  })
+
+  describe('getMasterVolume / getMusicVolume / getSfxVolume', () => {
+    it('returns default master volume of 1', () => {
+      expect(audioManager.getMasterVolume()).toBe(1)
+    })
+
+    it('returns updated master volume after set', () => {
+      audioManager.setMasterVolume(0.7)
+      expect(audioManager.getMasterVolume()).toBe(0.7)
+    })
+
+    it('returns default music volume', () => {
+      expect(audioManager.getMusicVolume()).toBe(1.0)
+    })
+
+    it('returns updated music volume after set', () => {
+      audioManager.setMusicVolume(0.3)
+      expect(audioManager.getMusicVolume()).toBe(0.3)
+    })
+
+    it('returns default sfx volume of 1', () => {
+      expect(audioManager.getSfxVolume()).toBe(1)
+    })
+
+    it('returns updated sfx volume after set', () => {
+      audioManager.setSFXVolume(0.6)
+      expect(audioManager.getSfxVolume()).toBe(0.6)
+    })
+  })
+
+  describe('loadAudioSettings', () => {
+    it('reads audioSettings from localStorage and applies volumes', () => {
+      localStorage.setItem('audioSettings', JSON.stringify({
+        masterVolume: 50,
+        musicVolume: 75,
+        sfxVolume: 80,
+      }))
+      audioManager.loadAudioSettings()
+      expect(audioManager.getMasterVolume()).toBe(0.5)
+      expect(audioManager.getMusicVolume()).toBe(0.75)
+      expect(audioManager.getSfxVolume()).toBe(0.8)
+    })
+
+    it('uses defaults when localStorage is empty', () => {
+      localStorage.removeItem('audioSettings')
+      audioManager.loadAudioSettings()
+      expect(audioManager.getMasterVolume()).toBe(1)
+      expect(audioManager.getMusicVolume()).toBe(1.0)
+      expect(audioManager.getSfxVolume()).toBe(1)
+    })
+
+    it('handles invalid JSON gracefully', () => {
+      localStorage.setItem('audioSettings', 'not-json')
+      expect(() => audioManager.loadAudioSettings()).not.toThrow()
+    })
+
+    it('clamps out-of-range values to 0-1', () => {
+      localStorage.setItem('audioSettings', JSON.stringify({
+        masterVolume: 500,
+        musicVolume: -50,
+        sfxVolume: 200,
+      }))
+      audioManager.loadAudioSettings()
+      expect(audioManager.getMasterVolume()).toBe(1)
+      expect(audioManager.getMusicVolume()).toBe(0)
+      expect(audioManager.getSfxVolume()).toBe(1)
     })
   })
 

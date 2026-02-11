@@ -105,15 +105,15 @@ development_status:
   # Epic 8: Enhanced Main Menu & Metagame UI
   epic-8: in-progress
   8-1-main-menu-visual-overhaul: done
-  8-2-options-menu: backlog
-  8-3-credits-screen: backlog
-  8-4-high-score-display-persistence: backlog
+  8-2-options-menu: done
+  8-3-credits-screen: ready-for-dev
+  8-4-high-score-display-persistence: ready-for-dev
   epic-8-retrospective: optional
 
   # Epic 9: Ship Selection System
-  epic-9: backlog
-  9-1-ship-selection-ui: backlog
-  9-2-ship-variants-definition-stats-display: backlog
+  epic-9: in-progress
+  9-1-ship-selection-ui: ready-for-dev
+  9-2-ship-variants-definition-stats-display: ready-for-dev
   9-3-ship-selection-persistence-integration: backlog
   epic-9-retrospective: optional
 
