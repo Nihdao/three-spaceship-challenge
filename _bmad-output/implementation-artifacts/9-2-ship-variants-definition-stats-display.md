@@ -601,6 +601,7 @@ None — clean implementation, no blocking issues.
 ### Change Log
 
 - 2026-02-11: Story 9.2 implementation complete — ship variants, stats display, traits, tooltips, visual polish
+- 2026-02-11: AC #2 "3D model or preview image" — 3D GLB preview added in Story 9.3 (ShipModelPreview component replaces emoji placeholders in grid cards and detail panel)
 
 ### File List
 
@@ -609,3 +610,5 @@ None — clean implementation, no blocking issues.
 - src/ui/ShipSelect.jsx (modified: ship preview, StatLine usage, traits section, tooltips, visual polish)
 - src/ui/__tests__/StatLine.test.jsx (modified: rewrote tests for new component API)
 - src/entities/__tests__/shipDefs.test.js (modified: added tests for new fields, TRAIT_INFO, getStatDiff, balance)
+- src/ui/ShipModelPreview.jsx (new: 3D GLB ship preview with auto-rotation, added in Story 9.3)
+- src/ui/ShipSelect.jsx (modified: replaced emoji placeholders with ShipModelPreview, added in Story 9.3)

@@ -114,7 +114,7 @@ development_status:
   epic-9: in-progress
   9-1-ship-selection-ui: done
   9-2-ship-variants-definition-stats-display: done
-  9-3-ship-selection-persistence-integration: ready-for-dev
+  9-3-ship-selection-persistence-integration: review
   epic-9-retrospective: optional
 
   # Epic 10: HUD Overhaul & Advanced In-Game UI

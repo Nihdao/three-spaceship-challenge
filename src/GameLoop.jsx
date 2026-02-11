@@ -156,11 +156,11 @@ export default function GameLoop() {
       if (prevDashCooldownRef.current > 0 && currentCooldown <= 0) playSFX('dash-ready')
       prevDashCooldownRef.current = currentCooldown
 
-      // 3. Player weapons fire — compose boon + upgrade + dilemma weapon mods
+      // 3. Player weapons fire — compose boon + upgrade + dilemma + ship weapon mods
       const playerState = usePlayer.getState()
       const playerPos = playerState.position
       const bossWeaponMods = {
-        damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * bossUS.damageMult * bossDS.damageMult,
+        damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * bossUS.damageMult * bossDS.damageMult * playerState.shipBaseDamageMultiplier,
         cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * bossUS.cooldownMult * bossDS.cooldownMult,
         critChance: boonModifiers.critChance ?? 0,
       }
@@ -323,11 +323,11 @@ export default function GameLoop() {
     }
     prevDashCooldownRef.current = currentCooldown
 
-    // 3. Weapons fire — compose boon + upgrade + dilemma modifiers
+    // 3. Weapons fire — compose boon + upgrade + dilemma + ship modifiers
     const playerState = usePlayer.getState()
     const playerPos = playerState.position
     const composedWeaponMods = {
-      damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * upgradeStats.damageMult * dilemmaStats.damageMult,
+      damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * upgradeStats.damageMult * dilemmaStats.damageMult * playerState.shipBaseDamageMultiplier,
       cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * upgradeStats.cooldownMult * dilemmaStats.cooldownMult,
       critChance: boonModifiers.critChance ?? 0,
     }
