@@ -1,5 +1,6 @@
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
+import { GAME_CONFIG } from '../config/gameConfig.js'
 
 const MAX_WEAPON_SLOTS = 4
 const MAX_BOON_SLOTS = 3
@@ -27,82 +28,7 @@ function shuffle(arr) {
  * @returns {Array<{type: string, id: string, name: string, description: string, level: number|null, icon: string|null, statPreview: string|null}>}
  */
 export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = []) {
-  const pool = []
-  const equippedWeaponIds = equippedWeapons.map(w => w.weaponId)
-
-  // Weapon upgrades for equipped weapons (if level < max and upgrade tier exists)
-  for (const weapon of equippedWeapons) {
-    const def = WEAPONS[weapon.weaponId]
-    if (!def) continue
-    if (weapon.level >= MAX_WEAPON_LEVEL) continue
-    // upgrades[0] = level 2 stats, upgrades[1] = level 3, etc.
-    const upgradeIndex = weapon.level - 1
-    const nextUpgrade = def.upgrades?.[upgradeIndex]
-    if (!nextUpgrade) continue
-    pool.push({
-      type: 'weapon_upgrade',
-      id: weapon.weaponId,
-      name: def.name,
-      description: def.description,
-      level: nextUpgrade.level,
-      icon: null,
-      statPreview: nextUpgrade.statPreview || `Damage: ${weapon.level === 1 ? def.baseDamage : (def.upgrades[upgradeIndex - 1]?.damage ?? def.baseDamage)} → ${nextUpgrade.damage ?? def.baseDamage}`,
-    })
-  }
-
-  // New weapons (if < MAX_WEAPON_SLOTS equipped)
-  if (equippedWeaponIds.length < MAX_WEAPON_SLOTS) {
-    const weaponKeys = Object.keys(WEAPONS)
-    for (const weaponId of weaponKeys) {
-      if (equippedWeaponIds.includes(weaponId)) continue
-      const def = WEAPONS[weaponId]
-      pool.push({
-        type: 'new_weapon',
-        id: weaponId,
-        name: def.name,
-        description: def.description,
-        level: null,
-        icon: null,
-        statPreview: null,
-      })
-    }
-  }
-
-  // New boons (if < MAX_BOON_SLOTS equipped)
-  if (equippedBoonIds.length < MAX_BOON_SLOTS) {
-    const boonKeys = Object.keys(BOONS)
-    for (const boonId of boonKeys) {
-      if (equippedBoonIds.includes(boonId)) continue
-      const def = BOONS[boonId]
-      pool.push({
-        type: 'new_boon',
-        id: boonId,
-        name: def.name,
-        description: def.tiers?.[0]?.description ?? def.name,
-        level: null,
-        icon: null,
-        statPreview: def.tiers?.[0]?.statPreview ?? null,
-      })
-    }
-  }
-
-  // Boon upgrades for equipped boons below maxLevel
-  for (const equippedBoon of equippedBoons) {
-    const def = BOONS[equippedBoon.boonId]
-    if (!def) continue
-    if (equippedBoon.level >= (def.maxLevel || 1)) continue
-    const nextTier = def.tiers?.[equippedBoon.level]
-    if (!nextTier) continue
-    pool.push({
-      type: 'boon_upgrade',
-      id: equippedBoon.boonId,
-      name: def.name,
-      description: nextTier.description,
-      level: nextTier.level,
-      icon: null,
-      statPreview: nextTier.statPreview || null,
-    })
-  }
+  const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons)
 
   shuffle(pool)
 
@@ -154,4 +80,138 @@ export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, 
   }
 
   return choices.slice(0, Math.min(4, Math.max(3, choices.length)))
+}
+
+/**
+ * Build the full reward pool from equipped state (shared logic with generateChoices).
+ */
+function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons) {
+  const pool = []
+  const equippedWeaponIds = equippedWeapons.map(w => w.weaponId)
+
+  // Weapon upgrades
+  for (const weapon of equippedWeapons) {
+    const def = WEAPONS[weapon.weaponId]
+    if (!def) continue
+    if (weapon.level >= MAX_WEAPON_LEVEL) continue
+    const upgradeIndex = weapon.level - 1
+    const nextUpgrade = def.upgrades?.[upgradeIndex]
+    if (!nextUpgrade) continue
+    pool.push({
+      type: 'weapon_upgrade',
+      id: weapon.weaponId,
+      name: def.name,
+      description: def.description,
+      level: nextUpgrade.level,
+      icon: null,
+      statPreview: nextUpgrade.statPreview || `Damage: ${weapon.level === 1 ? def.baseDamage : (def.upgrades[upgradeIndex - 1]?.damage ?? def.baseDamage)} → ${nextUpgrade.damage ?? def.baseDamage}`,
+    })
+  }
+
+  // New weapons
+  if (equippedWeaponIds.length < MAX_WEAPON_SLOTS) {
+    for (const weaponId of Object.keys(WEAPONS)) {
+      if (equippedWeaponIds.includes(weaponId)) continue
+      const def = WEAPONS[weaponId]
+      pool.push({
+        type: 'new_weapon',
+        id: weaponId,
+        name: def.name,
+        description: def.description,
+        level: null,
+        icon: null,
+        statPreview: null,
+      })
+    }
+  }
+
+  // New boons
+  if (equippedBoonIds.length < MAX_BOON_SLOTS) {
+    for (const boonId of Object.keys(BOONS)) {
+      if (equippedBoonIds.includes(boonId)) continue
+      const def = BOONS[boonId]
+      pool.push({
+        type: 'new_boon',
+        id: boonId,
+        name: def.name,
+        description: def.tiers?.[0]?.description ?? def.name,
+        level: null,
+        icon: null,
+        statPreview: def.tiers?.[0]?.statPreview ?? null,
+      })
+    }
+  }
+
+  // Boon upgrades
+  for (const equippedBoon of equippedBoons) {
+    const def = BOONS[equippedBoon.boonId]
+    if (!def) continue
+    if (equippedBoon.level >= (def.maxLevel || 1)) continue
+    const nextTier = def.tiers?.[equippedBoon.level]
+    if (!nextTier) continue
+    pool.push({
+      type: 'boon_upgrade',
+      id: equippedBoon.boonId,
+      name: def.name,
+      description: nextTier.description,
+      level: nextTier.level,
+      icon: null,
+      statPreview: nextTier.statPreview || null,
+    })
+  }
+
+  return pool
+}
+
+/**
+ * Generate planet scan reward choices filtered by tier quality.
+ * Returns same format as generateChoices() for UI compatibility.
+ */
+export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = []) {
+  const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons)
+  const count = GAME_CONFIG.PLANET_SCAN_REWARD_CHOICES
+
+  let filtered
+  if (tier === 'silver') {
+    // Prefer upgrades for equipped weapons + common boons
+    filtered = pool.filter(c => c.type === 'weapon_upgrade' || c.type === 'new_boon' || c.type === 'boon_upgrade')
+    if (filtered.length < count) filtered = pool // fallback to full pool
+  } else if (tier === 'gold') {
+    // Balanced — allow everything
+    filtered = pool
+  } else {
+    // Platinum — prioritize new weapons + new boons
+    const newItems = pool.filter(c => c.type === 'new_weapon' || c.type === 'new_boon')
+    const rest = pool.filter(c => c.type !== 'new_weapon' && c.type !== 'new_boon')
+    filtered = [...newItems, ...rest]
+  }
+
+  shuffle(filtered)
+
+  // Platinum: guarantee at least one new_weapon or new_boon if available
+  if (tier === 'platinum') {
+    const topSlice = filtered.slice(0, count)
+    const hasNew = topSlice.some(c => c.type === 'new_weapon' || c.type === 'new_boon')
+    if (!hasNew) {
+      const newItem = filtered.find(c => c.type === 'new_weapon' || c.type === 'new_boon')
+      if (newItem) {
+        filtered = [newItem, ...filtered.filter(c => c !== newItem)]
+      }
+    }
+  }
+
+  // Pad if pool too small (edge case: all maxed)
+  while (filtered.length < count) {
+    filtered.push({
+      type: 'stat_boost',
+      id: `stat_boost_${filtered.length}`,
+      name: 'Stat Boost',
+      description: 'Minor stat improvement',
+      level: null,
+      icon: null,
+      statPreview: null,
+    })
+  }
+
+  return filtered.slice(0, count)
 }

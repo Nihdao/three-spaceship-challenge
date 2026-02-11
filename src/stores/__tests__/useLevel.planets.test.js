@@ -77,6 +77,24 @@ describe('useLevel — initializePlanets', () => {
     expect(useLevel.getState().planets).toEqual([])
   })
 
+  it('reset() clears all level state fields to initial values', () => {
+    // Dirty all fields
+    useLevel.setState({
+      systemTimer: 42,
+      difficulty: 5,
+      planets: [{ id: 'fake' }],
+      wormholeState: 'active',
+      activeScanPlanetId: 'PLANET_SILVER_0',
+    })
+    useLevel.getState().reset()
+    const state = useLevel.getState()
+    expect(state.systemTimer).toBe(0)
+    expect(state.difficulty).toBe(1)
+    expect(state.planets).toEqual([])
+    expect(state.wormholeState).toBe('hidden')
+    expect(state.activeScanPlanetId).toBeNull()
+  })
+
   it('each planet has unique id', () => {
     useLevel.getState().initializePlanets()
     const planets = useLevel.getState().planets

@@ -14,6 +14,8 @@ const SFX_MAP = {
   'game-over-impact': ASSET_MANIFEST.gameplay.audio.gameOverImpact,
   'dash-whoosh': ASSET_MANIFEST.gameplay.audio.dashWhoosh,
   'dash-ready': ASSET_MANIFEST.gameplay.audio.dashReady,
+  'scan-start': ASSET_MANIFEST.gameplay.audio.scanStart,
+  'scan-complete': ASSET_MANIFEST.gameplay.audio.scanComplete,
 }
 
 export default function useAudio() {

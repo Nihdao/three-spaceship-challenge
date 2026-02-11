@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { generateChoices } from '../progressionSystem.js'
+import { generateChoices, generatePlanetReward } from '../progressionSystem.js'
 import { WEAPONS } from '../../entities/weaponDefs.js'
 import { BOONS } from '../../entities/boonDefs.js'
 
@@ -201,6 +201,80 @@ describe('progressionSystem', () => {
       for (const choice of choices) {
         expect(['weapon_upgrade', 'new_weapon', 'new_boon', 'boon_upgrade', 'stat_boost']).toContain(choice.type)
       }
+    })
+  })
+
+  // --- Story 5.3: generatePlanetReward ---
+
+  describe('generatePlanetReward', () => {
+    it('returns exactly 3 choices', () => {
+      const choices = generatePlanetReward('silver', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      expect(choices).toHaveLength(3)
+    })
+
+    it('each choice has required properties', () => {
+      const choices = generatePlanetReward('gold', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      for (const choice of choices) {
+        expect(choice).toHaveProperty('type')
+        expect(choice).toHaveProperty('id')
+        expect(choice).toHaveProperty('name')
+        expect(choice).toHaveProperty('description')
+        expect(choice).toHaveProperty('level')
+        expect(choice).toHaveProperty('icon')
+        expect(choice).toHaveProperty('statPreview')
+        expect(['weapon_upgrade', 'new_weapon', 'new_boon', 'boon_upgrade', 'stat_boost']).toContain(choice.type)
+      }
+    })
+
+    it('silver tier: choices weighted toward upgrades/common boons', () => {
+      // Run multiple times to account for shuffle randomness
+      let upgradeOrBoonCount = 0
+      const runs = 20
+      for (let i = 0; i < runs; i++) {
+        const choices = generatePlanetReward('silver', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+        for (const c of choices) {
+          if (c.type === 'weapon_upgrade' || c.type === 'new_boon' || c.type === 'boon_upgrade') {
+            upgradeOrBoonCount++
+          }
+        }
+      }
+      // Silver should have a majority of upgrade/boon choices across many runs
+      expect(upgradeOrBoonCount).toBeGreaterThan(runs) // at least 1 per run on average
+    })
+
+    it('platinum tier: includes new weapon or new boon if available', () => {
+      // With only 1 weapon equipped and slots available, platinum should offer new weapons
+      let foundNewItem = false
+      for (let i = 0; i < 30; i++) {
+        const choices = generatePlanetReward('platinum', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+        if (choices.some(c => c.type === 'new_weapon' || c.type === 'new_boon')) {
+          foundNewItem = true
+          break
+        }
+      }
+      expect(foundNewItem).toBe(true)
+    })
+
+    it('handles edge case: all weapons maxed, all boons equipped', () => {
+      const fourMaxWeapons = [
+        { weaponId: 'LASER_FRONT', level: 9 },
+        { weaponId: 'SPREAD_SHOT', level: 9 },
+        { weaponId: 'MISSILE_HOMING', level: 9 },
+        { weaponId: 'PLASMA_BOLT', level: 9 },
+      ]
+      const allBoons = ['DAMAGE_AMP', 'SPEED_BOOST', 'COOLDOWN_REDUCTION']
+      const maxedBoons = allBoons.map(id => ({ boonId: id, level: 3 }))
+      const choices = generatePlanetReward('platinum', fourMaxWeapons, allBoons, maxedBoons)
+      expect(choices).toHaveLength(3) // Should still return 3 via fallback
+    })
+
+    it('return format matches generateChoices format', () => {
+      const planetChoices = generatePlanetReward('gold', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      const levelUpChoices = generateChoices(2, [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      // Both should have same property keys
+      const planetKeys = Object.keys(planetChoices[0]).sort()
+      const levelUpKeys = Object.keys(levelUpChoices[0]).sort()
+      expect(planetKeys).toEqual(levelUpKeys)
     })
   })
 })

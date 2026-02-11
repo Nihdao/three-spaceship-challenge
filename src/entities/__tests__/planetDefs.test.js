@@ -42,4 +42,5 @@ describe('planetDefs — planet tier definitions', () => {
     const keys = Object.values(PLANETS).map((d) => d.modelKey)
     expect(new Set(keys).size).toBe(3)
   })
+
 })

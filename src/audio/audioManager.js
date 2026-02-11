@@ -22,6 +22,8 @@ const SFX_CATEGORY_MAP = {
   'game-over-impact': 'events',
   'dash-whoosh': 'sfxAction',
   'dash-ready': 'ui',
+  'scan-start': 'ui',
+  'scan-complete': 'sfxFeedbackPositive',
 }
 
 let currentMusic = null

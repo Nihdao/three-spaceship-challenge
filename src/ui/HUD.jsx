@@ -43,6 +43,7 @@ export default function HUD() {
   const isDashing = usePlayer((s) => s.isDashing)
   const playerPosition = usePlayer((s) => s.position)
   const planets = useLevel((s) => s.planets)
+  const activeScanPlanetId = useLevel((s) => s.activeScanPlanetId)
 
   const remaining = GAME_CONFIG.SYSTEM_TIMER - systemTimer
   const timerDisplay = formatTimer(remaining)
@@ -116,10 +117,52 @@ export default function HUD() {
               top: `${50 + (p.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
               transform: 'translate(-50%, -50%)',
               opacity: p.scanned ? 0.3 : 1,
+              animation: activeScanPlanetId === p.id ? 'scanPulse 800ms ease-in-out infinite alternate' : 'none',
             }} />
           ))}
         </div>
       </div>
+
+      {/* Scan progress bar — center-bottom, above XP bar (Story 5.3) */}
+      {activeScanPlanetId && (() => {
+        const scanPlanet = planets.find(p => p.id === activeScanPlanetId)
+        if (!scanPlanet) return null
+        const planetDef = PLANETS[scanPlanet.typeId]
+        const tierColor = planetDef?.color || '#ffffff'
+        const tierName = planetDef?.name || 'Planet'
+        const progressPct = Math.round(scanPlanet.scanProgress * 100)
+        return (
+          <div
+            className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+            style={{ bottom: 'clamp(60px, 6vw, 90px)' }}
+          >
+            <span
+              className="text-game-text font-bold"
+              style={{ fontSize: 'clamp(11px, 1.1vw, 15px)', color: tierColor }}
+            >
+              {tierName} — {progressPct}%
+            </span>
+            <div
+              style={{
+                width: 'clamp(160px, 20vw, 280px)',
+                height: 'clamp(6px, 0.7vw, 10px)',
+                borderRadius: '2px',
+                overflow: 'hidden',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+              }}
+            >
+              <div
+                style={{
+                  width: `${progressPct}%`,
+                  height: '100%',
+                  backgroundColor: tierColor,
+                  transition: 'width 150ms ease-out',
+                }}
+              />
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Bottom row: XP bar left/center, Weapons right */}
       <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between px-6 pb-4">

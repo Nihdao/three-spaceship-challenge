@@ -8,10 +8,66 @@ const useLevel = create((set, get) => ({
   difficulty: 1,
   planets: [],
   wormholeState: 'hidden', // 'hidden' | 'visible' | 'active'
+  activeScanPlanetId: null,
 
   // --- Tick (called by GameLoop each frame) ---
   tick: (delta) => {
     // Frame update logic — to be implemented in future stories
+  },
+
+  // --- Planet Scanning (Story 5.3) ---
+  scanningTick: (delta, playerX, playerZ) => {
+    const { planets, activeScanPlanetId } = get()
+    let closestUnscanPlanet = null
+    let closestDist = Infinity
+
+    // Find closest unscanned planet in range
+    for (const planet of planets) {
+      if (planet.scanned) continue
+      const dx = playerX - planet.x
+      const dz = playerZ - planet.z
+      const dist = Math.sqrt(dx * dx + dz * dz)
+      const scanRadius = PLANETS[planet.typeId].scanRadius
+      if (dist <= scanRadius && dist < closestDist) {
+        closestUnscanPlanet = planet
+        closestDist = dist
+      }
+    }
+
+    if (closestUnscanPlanet) {
+      const switchedPlanet = activeScanPlanetId && activeScanPlanetId !== closestUnscanPlanet.id
+      const scanTime = PLANETS[closestUnscanPlanet.typeId].scanTime
+      const newProgress = closestUnscanPlanet.scanProgress + (delta / scanTime)
+
+      if (newProgress >= 1.0) {
+        // Scan complete
+        const updatedPlanets = planets.map(p => {
+          if (p.id === closestUnscanPlanet.id) return { ...p, scanned: true, scanProgress: 1 }
+          if (switchedPlanet && p.id === activeScanPlanetId) return { ...p, scanProgress: 0 }
+          return p
+        })
+        set({ planets: updatedPlanets, activeScanPlanetId: null })
+        return { completed: true, planetId: closestUnscanPlanet.id, tier: closestUnscanPlanet.tier }
+      }
+
+      // Scan in progress
+      const updatedPlanets = planets.map(p => {
+        if (p.id === closestUnscanPlanet.id) return { ...p, scanProgress: newProgress }
+        if (switchedPlanet && p.id === activeScanPlanetId) return { ...p, scanProgress: 0 }
+        return p
+      })
+      set({ planets: updatedPlanets, activeScanPlanetId: closestUnscanPlanet.id })
+      return { completed: false, activeScanPlanetId: closestUnscanPlanet.id, scanProgress: newProgress }
+    }
+
+    // Not in any scan zone — reset active scan
+    if (activeScanPlanetId) {
+      const updatedPlanets = planets.map(p =>
+        p.id === activeScanPlanetId ? { ...p, scanProgress: 0 } : p
+      )
+      set({ planets: updatedPlanets, activeScanPlanetId: null })
+    }
+    return { completed: false, activeScanPlanetId: null, scanProgress: 0 }
   },
 
   // --- Actions ---
@@ -72,6 +128,7 @@ const useLevel = create((set, get) => ({
     difficulty: 1,
     planets: [],
     wormholeState: 'hidden',
+    activeScanPlanetId: null,
   }),
 }))
 

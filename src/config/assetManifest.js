@@ -29,6 +29,8 @@ export const ASSET_MANIFEST = {
       gameOverImpact: 'audio/sfx/game-over-impact.mp3',
       dashWhoosh: 'audio/sfx/dash-whoosh.mp3',
       dashReady: 'audio/sfx/dash-ready.mp3',
+      scanStart: 'audio/sfx/scan-start.mp3',
+      scanComplete: 'audio/sfx/scan-complete.mp3',
     },
   },
 

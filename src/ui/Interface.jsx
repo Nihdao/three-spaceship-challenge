@@ -3,6 +3,7 @@ import useGame from '../stores/useGame.jsx'
 import useAudio from '../hooks/useAudio.jsx'
 import MainMenu from './MainMenu.jsx'
 import LevelUpModal from './LevelUpModal.jsx'
+import PlanetRewardModal from './PlanetRewardModal.jsx'
 import HUD from './HUD.jsx'
 import GameOverScreen from './GameOverScreen.jsx'
 import VictoryScreen from './VictoryScreen.jsx'
@@ -25,8 +26,9 @@ export default function Interface() {
   return (
     <>
       {phase === 'menu' && <MainMenu />}
-      {(phase === 'gameplay' || phase === 'levelUp') && <HUD />}
+      {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <HUD />}
       {phase === 'levelUp' && <LevelUpModal />}
+      {phase === 'planetReward' && <PlanetRewardModal />}
       {phase === 'gameOver' && <GameOverScreen />}
       {phase === 'victory' && <VictoryScreen />}
     </>

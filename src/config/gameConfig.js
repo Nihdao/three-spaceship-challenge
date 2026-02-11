@@ -87,4 +87,7 @@ export const GAME_CONFIG = {
   PLANET_PLACEMENT_MARGIN: 100,
   PLANET_MODEL_Y_OFFSET: -35,
   PLANET_ORBIT_SPEED: 0.1,
+
+  // Planet scanning (Story 5.3)
+  PLANET_SCAN_REWARD_CHOICES: 3,
 };
