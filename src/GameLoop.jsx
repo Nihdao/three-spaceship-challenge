@@ -28,6 +28,15 @@ function assignEntity(e, id, x, z, radius, category) {
   e.id = id; e.x = x; e.z = z; e.radius = radius; e.category = category
 }
 
+// Composes all damage multiplier sources (boons + upgrades + dilemmas + ship) into final multiplier
+// Centralizes damage composition to ensure consistency across gameplay and boss phases
+function composeDamageMultiplier(playerState, boonModifiers, upgradeStats, dilemmaStats) {
+  return (boonModifiers.damageMultiplier ?? 1)
+    * upgradeStats.damageMult
+    * dilemmaStats.damageMult
+    * playerState.shipBaseDamageMultiplier
+}
+
 export default function GameLoop() {
   const collisionSystemRef = useRef(null)
   if (!collisionSystemRef.current) {
@@ -160,7 +169,7 @@ export default function GameLoop() {
       const playerState = usePlayer.getState()
       const playerPos = playerState.position
       const bossWeaponMods = {
-        damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * bossUS.damageMult * bossDS.damageMult * playerState.shipBaseDamageMultiplier,
+        damageMultiplier: composeDamageMultiplier(playerState, boonModifiers, bossUS, bossDS),
         cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * bossUS.cooldownMult * bossDS.cooldownMult,
         critChance: boonModifiers.critChance ?? 0,
       }
@@ -327,7 +336,7 @@ export default function GameLoop() {
     const playerState = usePlayer.getState()
     const playerPos = playerState.position
     const composedWeaponMods = {
-      damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * upgradeStats.damageMult * dilemmaStats.damageMult * playerState.shipBaseDamageMultiplier,
+      damageMultiplier: composeDamageMultiplier(playerState, boonModifiers, upgradeStats, dilemmaStats),
       cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * upgradeStats.cooldownMult * dilemmaStats.cooldownMult,
       critChance: boonModifiers.critChance ?? 0,
     }
