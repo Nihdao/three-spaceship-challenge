@@ -1032,3 +1032,731 @@ So that I can trade resources for survival when running low on health.
 **Given** the player has insufficient Fragments
 **When** viewing the sacrifice option
 **Then** the option is disabled/grayed out
+
+## Epic 8: Enhanced Main Menu & Metagame UI
+
+The player has access to an enriched main menu with options, credits, high score display, and an organic animated space background.
+
+### Story 8.1: Main Menu Visual Overhaul
+
+As a player,
+I want to see an immersive and lively main menu with an organic space background featuring planets and an animated spaceship,
+So that the game feels polished and engaging from the first screen.
+
+**Acceptance Criteria:**
+
+**Given** the game loads
+**When** the main menu is displayed
+**Then** the background shows a 3D space environment with planets visible in the scene
+**And** planets are positioned dynamically with subtle orbital animations
+**And** the player's spaceship flies through the scene on a looping path (idle patrol animation)
+**And** the background feels "organic" with slow camera movement or parallax
+
+**Given** the main menu UI
+**When** menu buttons are displayed
+**Then** OPTIONS button is visible and functional
+**And** CREDITS button is visible and functional
+**And** high score display is visible (top-right or prominent location)
+**And** PLAY button remains the primary CTA (centered, largest)
+
+**Given** the background animation
+**When** it plays
+**Then** performance remains at 60 FPS
+**And** the ship animation loops seamlessly every 30-60 seconds
+**And** lighting and atmosphere create depth and visual interest
+
+### Story 8.2: Options Menu
+
+As a player,
+I want to adjust audio settings and clear my local save data from an options menu,
+So that I have control over my game experience and can reset progress if needed.
+
+**Acceptance Criteria:**
+
+**Given** the player clicks OPTIONS from the main menu
+**When** the options screen opens
+**Then** an overlay modal appears with dark background (60% opacity)
+**And** the modal displays "OPTIONS" title
+
+**Given** the options modal is open
+**When** audio controls are displayed
+**Then** a master volume slider (0-100%) is available
+**And** separate sliders for Music volume and SFX volume are available
+**And** volume changes apply immediately with audio preview
+**And** volume settings persist to localStorage
+
+**Given** the options modal is open
+**When** the clear save option is displayed
+**Then** a "CLEAR LOCAL SAVE" button is visible with warning styling (red/danger)
+**And** clicking it prompts a confirmation dialog ("Are you sure? This cannot be undone.")
+**And** confirming clears all localStorage data (progress, high score, settings)
+**And** canceling returns to options without clearing
+
+**Given** the options modal is open
+**When** the player wants to return
+**Then** a BACK or CLOSE button returns to the main menu
+**And** ESC key also closes the modal
+
+### Story 8.3: Credits Screen
+
+As a player,
+I want to see credits acknowledging the ThreeJS Journey challenge and asset creators,
+So that proper attribution is given to the contest and community resources.
+
+**Acceptance Criteria:**
+
+**Given** the player clicks CREDITS from the main menu
+**When** the credits screen opens
+**Then** an overlay modal appears with scrollable content
+
+**Given** the credits content
+**When** it is displayed
+**Then** the top section states: "Created for the ThreeJS Journey Challenge - Spaceship"
+**And** a link to https://threejs-journey.com/challenges/022-spaceship is visible
+**And** credit is given to Bruno Simon for the ThreeJS Journey course
+
+**Given** the credits content
+**When** asset attribution is shown
+**Then** a section titled "Assets & Resources" is present
+**And** placeholder entries exist for: 3D Models, Sound Effects, Music, Textures
+**And** format allows easy future updating with specific asset names and authors
+
+**Given** the credits screen
+**When** the player wants to return
+**Then** a BACK button returns to the main menu
+**And** ESC key also closes the modal
+
+### Story 8.4: High Score Display & Persistence
+
+As a player,
+I want to see my personal best score prominently displayed on the main menu,
+So that I feel motivated to beat my previous runs.
+
+**Acceptance Criteria:**
+
+**Given** the player has completed at least one run
+**When** the main menu loads
+**Then** the high score is displayed in a prominent location (top-right corner or dedicated panel)
+**And** the display shows: "BEST RUN: [score]" or "HIGH SCORE: [score]"
+**And** the score uses tabular-nums font for clean alignment
+
+**Given** the player completes a run with a new high score
+**When** the game over or victory screen is shown
+**Then** a "NEW HIGH SCORE!" message is displayed with celebration animation
+**And** the new score is saved to localStorage immediately
+**And** the main menu updates the high score display on return
+
+**Given** the player has never completed a run
+**When** the main menu loads
+**Then** the high score displays as "---" or "0" as a placeholder
+
+**Given** the player clears their local save via options
+**When** returning to the main menu
+**Then** the high score resets to the placeholder state
+
+## Epic 9: Ship Selection System
+
+The player can choose their spaceship variant with displayed base stats before starting a run.
+
+### Story 9.1: Ship Selection UI
+
+As a player,
+I want to select my spaceship from a grid of variants before starting a run,
+So that I can choose a playstyle that fits my preferences.
+
+**Acceptance Criteria:**
+
+**Given** the player clicks PLAY from the main menu
+**When** the ship selection screen appears
+**Then** the screen layout is split: left side shows a grid of ship variants, right side shows selected ship details
+
+**Given** the ship grid (left side)
+**When** it renders
+**Then** ship variants are displayed as cards in a grid (2-3 columns)
+**And** each card shows: ship icon/thumbnail, ship name
+**And** locked ships are grayed out with a lock icon (for future unlockable variants)
+**And** at least 1 ship is unlocked by default
+
+**Given** the player hovers or selects a ship card
+**When** interaction occurs
+**Then** the card highlights with visual feedback
+**And** the right panel updates to show the selected ship's details
+
+**Given** the ship selection screen
+**When** the player confirms their choice
+**Then** a "START" button is available (bottom-right or center-bottom)
+**And** clicking START begins the gameplay with the selected ship
+**And** the selected ship persists for the run
+
+**Given** the player wants to return
+**When** a BACK button is clicked
+**Then** the player returns to the main menu
+
+### Story 9.2: Ship Variants Definition & Stats Display
+
+As a player,
+I want to see detailed stats for each ship variant,
+So that I can make an informed choice based on base stats.
+
+**Acceptance Criteria:**
+
+**Given** shipDefs.js exists
+**When** ship variants are defined
+**Then** at least 2-3 ship variants exist (e.g., BALANCED, GLASS_CANNON, TANK)
+**And** each variant has: name, description, baseHP, baseSpeed, baseDamageMultiplier, and any unique traits
+
+**Given** a ship is selected in the ship selection UI
+**When** the right panel displays stats
+**Then** the selected ship's 3D model or preview image is shown
+**And** ship name and description are displayed
+**And** base stats are shown in a clean StatLine format:
+  - HP: [value]
+  - Speed: [value]
+  - Damage: [multiplier] (e.g., "1.0x" or "+10%")
+**And** any unique traits are listed (e.g., "Starts with Shield Boon" or "Extra weapon slot")
+
+**Given** stats are displayed
+**When** the player views them
+**Then** stats use tabular-nums for alignment
+**And** tooltips or descriptions clarify what each stat affects
+
+### Story 9.3: Ship Selection Persistence & Integration
+
+As a player,
+I want my selected ship to be used throughout my run with its stats applied,
+So that my choice has meaningful impact on gameplay.
+
+**Acceptance Criteria:**
+
+**Given** the player selects a ship and starts a run
+**When** gameplay begins
+**Then** usePlayer store initializes with the selected ship's baseHP, baseSpeed, and baseDamageMultiplier
+**And** the selected ship's 3D model renders in the gameplay scene
+
+**Given** the player dies or completes a run
+**When** returning to ship selection or main menu
+**Then** the player can select a different ship for the next run
+
+**Given** multiple ship variants exist
+**When** balancing is implemented
+**Then** each ship offers a distinct playstyle (tank, speed, damage-focused)
+**And** no single ship is objectively superior in all situations
+
+## Epic 10: HUD Overhaul & Advanced In-Game UI
+
+The player sees a modern, comprehensive HUD inspired by Vampire Survivors with full-width XP bar, visible boon slots, stats display, enhanced minimap, and a pause menu with detailed inventory.
+
+### Story 10.1: XP Bar Redesign (Full-Width Top)
+
+As a player,
+I want to see a highly visible XP bar spanning the full width of the screen at the very top,
+So that I can instantly track my progress toward the next level.
+
+**Acceptance Criteria:**
+
+**Given** the player is in gameplay
+**When** the HUD renders
+**Then** the XP bar is positioned at the absolute top of the screen (y: 0)
+**And** the bar spans the full width of the viewport (100vw)
+**And** the bar height is prominent but not obstructive (e.g., 8-12px)
+
+**Given** the XP bar is displayed
+**When** XP increases
+**Then** the bar fills from left to right proportional to progress toward next level (e.g., 250/500 XP = 50% filled)
+**And** the fill uses a vibrant color (cyan/green gradient from UX color spec)
+**And** the bar animates smoothly when XP is collected (ease-out, 200-300ms)
+
+**Given** the XP bar is nearly full (>80%)
+**When** the player is close to leveling up
+**Then** the bar subtly pulses or glows to indicate imminent level-up
+
+**Given** the player levels up
+**When** XP resets for the next level
+**Then** the bar plays a brief flash/fill animation before resetting to 0%
+**And** the animation is satisfying and clear
+
+### Story 10.2: Top Stats Display (Score, Fragments, Level, Kills)
+
+As a player,
+I want to see my current score, fragment count, kill count, and timer prominently displayed at the top of the screen,
+So that I can track my performance at a glance.
+
+**Acceptance Criteria:**
+
+**Given** the player is in gameplay
+**When** the top bar renders
+**Then** the following stats are displayed in the top-left quadrant:
+  - Kill count with icon (e.g., "💀 273" or skull icon + number)
+  - Fragment count with icon (e.g., "◆ 384" or gem icon + number)
+  - Score with icon (e.g., "⭐ 44180" or score icon + number)
+**And** each stat uses tabular-nums for alignment
+**And** stats are horizontally aligned with consistent spacing
+
+**Given** the player is in gameplay
+**When** the top-right displays the timer
+**Then** the timer shows MM:SS format counting down (e.g., "6:08")
+**And** the timer is centered at the very top or slightly offset right
+**And** when timer drops below 1 minute, it pulses red as a warning
+
+**Given** the player is in gameplay
+**When** the top-right displays level and score
+**Then** the current level is shown prominently (e.g., "LVL 102")
+**And** optionally, secondary score display is shown (if not already in top-left)
+
+**Given** stats update during gameplay
+**When** kills, fragments, or score increase
+**Then** the updated values animate briefly (scale up slightly, then back to normal)
+**And** updates are immediate (< 50ms)
+
+### Story 10.3: Enhanced Minimap Styling
+
+As a player,
+I want to see a stylized minimap positioned clearly in the top-right corner,
+So that I can navigate the play area and locate planets/objectives.
+
+**Acceptance Criteria:**
+
+**Given** the player is in gameplay
+**When** the minimap renders
+**Then** the minimap is a circular or rounded-square shape
+**And** it is positioned in the top-right corner, slightly below the timer/level display
+**And** the minimap has a border and semi-transparent background for readability
+
+**Given** the minimap displays game elements
+**When** it renders entities
+**Then** the player ship is shown as a bright cyan dot at the center or current position
+**And** planets are shown as colored dots matching their tier (silver, gold, platinum)
+**And** the wormhole (when active) is shown as a distinct icon
+**And** the play area boundaries are clearly indicated
+
+**Given** the minimap is displayed
+**When** the player moves
+**Then** the minimap updates in real-time with smooth transitions
+**And** the compass direction indicator (N, S, E, W) is visible if space allows
+
+**Given** the minimap rendering
+**When** performance is measured
+**Then** minimap updates do not cause frame drops
+
+### Story 10.4: HP & Item Slots Reorganization (Top-Left Cluster)
+
+As a player,
+I want to see my HP bar and equipped weapon slots clearly grouped in the top-left area,
+So that I can monitor my health and active loadout at a glance.
+
+**Acceptance Criteria:**
+
+**Given** the player is in gameplay
+**When** the top-left HUD section renders
+**Then** the HP bar is displayed prominently at the very top of the cluster
+**And** the HP bar uses segments or a continuous fill (red for HP, darker background for missing HP)
+**And** current/max HP values are displayed as text (e.g., "533 / 867")
+
+**Given** the HP bar is displayed
+**When** the player takes damage
+**Then** the bar animates smoothly as HP decreases
+**And** when HP drops below 25%, the bar pulses red
+
+**Given** the weapon slots are displayed
+**When** they render below the HP bar
+**Then** up to 4 weapon slots are shown as square icons in a row or 2x2 grid
+**And** each equipped weapon shows its icon with its current level (e.g., "Laser Lv3")
+**And** empty slots are grayed out or show a placeholder icon
+
+**Given** a weapon is equipped or upgraded
+**When** the slot updates
+**Then** a brief animation (glow, scale) indicates the change
+
+### Story 10.5: Boon Slots Visibility & Display
+
+As a player,
+I want to see my equipped boons as visible icons with their names or effects,
+So that I know which passive bonuses are currently active.
+
+**Acceptance Criteria:**
+
+**Given** the player is in gameplay
+**When** boon slots render in the HUD
+**Then** up to 3 boon slots are displayed in the top-left cluster, below or adjacent to weapon slots
+**And** each equipped boon shows its icon with a small indicator (level or stack count if applicable)
+
+**Given** boons are equipped
+**When** they are displayed
+**Then** boon icons are visually distinct from weapon icons (different border color or shape)
+**And** hovering or a tooltip shows the boon name and effect description (optional for quick reference)
+
+**Given** a boon slot is empty
+**When** it renders
+**Then** the empty slot shows a grayed-out placeholder
+
+**Given** a boon is equipped or upgraded during level-up
+**When** the player returns to gameplay
+**Then** the boon slot updates with a brief animation (glow, scale)
+
+### Story 10.6: Pause Menu with Detailed Inventory
+
+As a player,
+I want to pause the game and view my detailed inventory with all equipped weapons, boons, stats, and options to resume or quit,
+So that I can review my build and take a break without losing information.
+
+**Acceptance Criteria:**
+
+**Given** the player is in gameplay
+**When** the player presses ESC or P
+**Then** the game pauses (GameLoop stops ticking)
+**And** a pause menu overlay appears with dark background (60% opacity)
+
+**Given** the pause menu is open
+**When** it renders
+**Then** the top displays "PAUSED" title
+**And** the menu is divided into sections: Inventory, Stats, Actions
+
+**Given** the Inventory section
+**When** it displays
+**Then** all equipped weapons are listed with: icon, name, level, damage, cooldown
+**And** all equipped boons are listed with: icon, name, effect description
+**And** weapon and boon lists are clearly separated and labeled
+
+**Given** the Stats section
+**When** it displays
+**Then** player stats are shown: Current HP, Max HP, Speed, Damage Multiplier (from boons)
+**And** run stats are shown: Time Elapsed, Kills, Level, Score, Fragments
+**And** stats use StatLine components with tabular-nums
+
+**Given** the Actions section
+**When** it displays
+**Then** a [R] RESUME button is available and highlighted
+**And** a [Q] QUIT TO MENU button is available with a warning color
+**And** keyboard shortcuts (R, Q, ESC) are displayed alongside buttons
+
+**Given** the player clicks RESUME or presses ESC/R
+**When** the action is triggered
+**Then** the pause menu closes with fade-out animation
+**And** gameplay resumes immediately
+
+**Given** the player clicks QUIT TO MENU
+**When** the action is triggered
+**Then** a confirmation dialog appears: "Quit to menu? Progress will be lost."
+**And** confirming returns to the main menu and resets the run
+**And** canceling returns to the pause menu
+
+### Story 10.7: Bottom Item Library Bar
+
+As a player,
+I want to see a full library of all collected weapons and boons displayed at the bottom of the screen with their levels,
+So that I can track my complete build progression like in Vampire Survivors.
+
+**Acceptance Criteria:**
+
+**Given** the player is in gameplay
+**When** the bottom HUD bar renders
+**Then** a horizontal bar spans the full width at the bottom of the screen
+**And** the bar displays icons for all weapons and boons the player has collected during the run
+
+**Given** weapons and boons are displayed
+**When** they render in the bar
+**Then** each item shows: icon, level/stack indicator (e.g., "x3" or "Lv5")
+**And** items are grouped: weapons on the left, boons on the right (or separated by dividers)
+**And** items are displayed in order of acquisition or by type
+
+**Given** the player collects a new weapon or boon
+**When** it is added to the collection
+**Then** the new icon appears in the bar with a slide-in or pop animation
+
+**Given** a weapon or boon is upgraded
+**When** the level increases
+**Then** the level indicator updates with a brief glow/scale animation
+
+**Given** the bar is displayed
+**When** space is limited (many items)
+**Then** the bar scrolls horizontally or uses a compact grid layout
+**And** all items remain readable at 1080p resolution
+
+## Epic 11: Gameplay Balance & Content Completion
+
+The player benefits from balanced progression with XP magnetization, faster leveling, and a complete roster of weapons and boons.
+
+### Story 11.1: XP Magnetization System
+
+As a player,
+I want XP orbs to be attracted toward me when I'm within a certain radius,
+So that collecting XP feels less tedious and I can focus on combat.
+
+**Acceptance Criteria:**
+
+**Given** XP orbs are on the field
+**When** the player moves within the magnetization radius of an orb
+**Then** the orb begins moving toward the player's position
+**And** the magnetization radius is configurable in gameConfig.js (e.g., XP_MAGNET_RADIUS = 5.0)
+
+**Given** an orb is magnetized
+**When** it moves toward the player
+**Then** it accelerates smoothly toward the player (lerp or ease-in speed curve)
+**And** the orb is automatically collected when it reaches the player's collision radius
+
+**Given** the player is not within the magnetization radius
+**When** an orb is outside the radius
+**Then** the orb remains stationary (or drifts slowly as before) until the player approaches
+
+**Given** magnetization is active
+**When** performance is measured with 50+ orbs on screen
+**Then** the system maintains 60 FPS with no noticeable lag
+
+### Story 11.2: XP Curve Rebalancing
+
+As a player,
+I want to level up more frequently in the early and mid game,
+So that progression feels rewarding and I gain power at a satisfying pace.
+
+**Acceptance Criteria:**
+
+**Given** the XP curve is defined in gameConfig.js
+**When** XP_LEVEL_CURVE is adjusted
+**Then** the XP required for early levels (1-5) is reduced by ~20-30%
+**And** mid-game levels (6-12) are reduced by ~10-15%
+**And** late-game levels (13+) remain challenging but reachable
+
+**Given** the adjusted XP curve
+**When** playtesting a full run
+**Then** players reach level 5 within the first 2-3 minutes
+**And** players reach level 10 by approximately 5-6 minutes
+**And** leveling remains frequent enough to maintain engagement throughout a 10-minute run
+
+**Given** enemy xpReward values in enemyDefs.js
+**When** they are reviewed
+**Then** xpReward values are increased by ~15-25% across all enemy types
+**And** higher-tier enemies provide proportionally more XP
+
+### Story 11.3: Complete Weapon Roster Implementation
+
+As a developer,
+I want all planned weapon types fully implemented with distinct visuals and behaviors,
+So that players have diverse offensive options for build crafting.
+
+**Acceptance Criteria:**
+
+**Given** weaponDefs.js
+**When** weapon definitions are reviewed
+**Then** at least 8-12 unique weapon types are fully defined
+**And** each weapon has: name, description, baseDamage, baseCooldown, baseSpeed, projectileType, upgrade curve (levels 1-9)
+
+**Given** weapon variety
+**When** weapons are categorized
+**Then** weapons cover diverse archetypes:
+  - Frontal: Laser, Plasma Cannon, Railgun
+  - Spread: Shotgun, Tri-Shot
+  - Orbital: Satellites, Drones
+  - Special: Missiles (homing), Beam (continuous), Area (explosions)
+
+**Given** each weapon type
+**When** it is rendered
+**Then** projectiles have distinct visuals (color, shape, particle effects)
+**And** weapons have unique sound effects per type
+
+**Given** weapons are integrated
+**When** they appear in level-up choices
+**Then** all weapon types can be offered to the player
+**And** weapon descriptions clearly communicate their unique behavior
+
+### Story 11.4: Complete Boon Roster Implementation
+
+As a developer,
+I want all planned boon types fully implemented with clear effects,
+So that players have diverse passive options for build crafting.
+
+**Acceptance Criteria:**
+
+**Given** boonDefs.js
+**When** boon definitions are reviewed
+**Then** at least 8-12 unique boon types are fully defined
+**And** each boon has: name, description, effect values, stacking rules
+
+**Given** boon variety
+**When** boons are categorized
+**Then** boons cover diverse effects:
+  - Damage: Damage Amp, Crit Chance, Crit Multiplier
+  - Speed: Attack Speed, Movement Speed, Projectile Speed
+  - Survivability: Max HP Up, HP Regen, Damage Reduction
+  - Utility: XP Gain, Fragment Gain, Pickup Radius
+
+**Given** each boon type
+**When** it is applied
+**Then** its effect is computed and integrated into gameplay systems
+**And** boon effects stack correctly if the same boon is selected multiple times (additive or multiplicative as defined)
+
+**Given** boons are integrated
+**When** they appear in level-up choices
+**Then** all boon types can be offered to the player
+**And** boon descriptions clearly communicate their effect and magnitude
+
+## Epic 12: Visual Polish & Player Readability
+
+The player clearly sees their ship, projectiles, and interactive zones with improved lighting and visual feedback.
+
+### Story 12.1: Player Ship Lighting Improvements
+
+As a player,
+I want my spaceship to be well-lit and clearly visible at all times,
+So that I can always see my ship's position and orientation.
+
+**Acceptance Criteria:**
+
+**Given** the player ship is rendered
+**When** lighting is applied
+**Then** the ship has increased ambient or emissive lighting to make it stand out
+**And** the ship is never too dark to see clearly, even in darker environment areas
+
+**Given** the ship uses a GLB model
+**When** materials are adjusted
+**Then** material emissive values are increased or emissive maps are applied
+**And** the ship may have subtle glow or rim lighting effects
+
+**Given** lighting adjustments
+**When** performance is tested
+**Then** the lighting changes do not negatively impact frame rate
+
+### Story 12.2: Projectile Visibility Enhancements
+
+As a player,
+I want projectiles to be bright and clearly visible,
+So that I can see my attacks and understand what's happening on screen.
+
+**Acceptance Criteria:**
+
+**Given** projectiles are rendered
+**When** their materials are applied
+**Then** projectile colors are more saturated and vibrant (neon cyan, magenta, yellow per UX spec)
+**And** projectiles have emissive materials or glow effects
+
+**Given** projectiles are in motion
+**When** they travel across the screen
+**Then** they leave subtle particle trails or motion blur effects
+**And** projectiles are clearly distinguishable from enemy projectiles (player = cyan/green, enemy = red/orange)
+
+**Given** visibility enhancements
+**When** intense combat occurs (50+ projectiles on screen)
+**Then** projectiles remain visible and readable
+**And** performance remains at 60 FPS
+
+### Story 12.3: Planet Capture Zone Aura System
+
+As a player,
+I want to see a visual aura around planets indicating the capture zone,
+So that I understand where I need to position my ship to scan the planet.
+
+**Acceptance Criteria:**
+
+**Given** the player approaches a planet
+**When** the ship enters the planet's capture zone radius
+**Then** a circular aura appears around the planet indicating the zone boundary
+**And** the aura uses a glowing ring or particle effect (color matches planet tier: silver, gold, platinum)
+
+**Given** the aura is displayed
+**When** the player is inside the zone
+**Then** the aura remains visible and gently pulses or rotates
+**And** the scan progress UI is also displayed (from Epic 5)
+
+**Given** the player exits the capture zone
+**When** the ship leaves the radius
+**Then** the aura fades out with a smooth animation (300-500ms)
+**And** the scan progress resets as per existing behavior
+
+**Given** multiple planets exist
+**When** the player is near multiple planets
+**Then** only the closest planet's aura is shown (or all within range, if multiple captures are supported)
+
+**Given** a planet is fully scanned
+**When** it is marked as complete
+**Then** the aura disappears or changes to a "completed" visual state (e.g., dimmed or different color)
+
+## Epic 13: Tunnel Hub Fixes & UX Improvements
+
+The player navigates the tunnel hub without bugs, without scrolling, and sees the ship in the 3D tunnel scene.
+
+### Story 13.1: Tunnel Rendering & Interaction Bugs Resolution
+
+As a developer,
+I want to identify and fix all bugs in the tunnel hub scene and UI,
+So that players have a smooth experience between systems.
+
+**Acceptance Criteria:**
+
+**Given** the tunnel phase activates
+**When** TunnelScene.jsx and TunnelHub UI render
+**Then** no console errors are thrown
+**And** the 3D tunnel scene renders correctly without visual glitches
+
+**Given** tunnel interactions (upgrades, dilemmas)
+**When** the player clicks buttons or makes selections
+**Then** all interactions work as expected without errors
+**And** Fragment spending updates correctly
+**And** stat changes apply correctly
+
+**Given** the tunnel exit
+**When** the player clicks "ENTER SYSTEM"
+**Then** the transition to the next gameplay system occurs without errors
+**And** the game state resets correctly for the new system
+
+**Given** playtesting
+**When** multiple tunnel visits occur in a single run
+**Then** no state pollution or bugs accumulate across visits
+
+### Story 13.2: Sidebar Layout Compaction (No Scroll)
+
+As a player,
+I want all tunnel options visible without scrolling,
+So that I can see all my choices at a glance.
+
+**Acceptance Criteria:**
+
+**Given** the tunnel UI sidebar (right panel)
+**When** it renders on a 1080p screen
+**Then** all UI sections fit within the viewport without requiring vertical scroll
+**And** sections are: Fragment count (top), Upgrades list, Dilemma card, HP Sacrifice (if applicable), Enter System button (bottom)
+
+**Given** the upgrade list is long
+**When** many upgrades exist
+**Then** the list is compacted with smaller card sizes or a grid layout
+**And** font sizes and spacing are reduced to fit more items
+**And** readability is maintained (no text smaller than 12px)
+
+**Given** the dilemma card
+**When** it is displayed
+**Then** it is concise and fits within a compact card format
+**And** accept/refuse buttons are clearly visible
+
+**Given** the HP Sacrifice option
+**When** it is included
+**Then** it is compactly integrated (e.g., a single button with cost/benefit inline)
+
+**Given** the "ENTER SYSTEM" button
+**When** it is displayed
+**Then** it is always visible at the bottom of the sidebar without scrolling
+**And** the button is prominent and easy to reach
+
+### Story 13.3: Tunnel 3D Scene Ship Visibility
+
+As a player,
+I want to see my spaceship flying through the tunnel in the 3D scene on the left side,
+So that the tunnel feels immersive and connected to gameplay.
+
+**Acceptance Criteria:**
+
+**Given** the tunnel scene (left side 3D view)
+**When** TunnelScene.jsx renders
+**Then** the player's spaceship is visible in the scene, positioned as if flying through the tunnel
+**And** the ship is illuminated and clearly visible (not too dark)
+
+**Given** the tunnel animation
+**When** the scene plays
+**Then** the tunnel creates the illusion of infinite forward motion (scrolling texture or geometry)
+**And** the ship may have subtle idle animation (banking, nose dip) to add life
+
+**Given** the ship in the tunnel
+**When** lighting is applied
+**Then** appropriate lighting (directional, ambient, or point lights) ensures the ship stands out
+**And** the tunnel environment has depth and visual interest (stars, particles, etc.)
+
+**Given** performance
+**When** the tunnel scene renders
+**Then** it maintains 60 FPS with the ship and tunnel effects active

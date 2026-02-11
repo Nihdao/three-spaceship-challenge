@@ -1,4 +1,4 @@
-# generated: 2026-02-07
+# generated: 2026-02-11 (updated with Epics 8-13)
 # project: three-spaceship-challenge
 # project_key: NOKEY
 # tracking_system: file-system
@@ -33,7 +33,7 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2026-02-07
+generated: 2026-02-11 (updated with Epics 8-13)
 project: three-spaceship-challenge
 project_key: NOKEY
 tracking_system: file-system
@@ -52,9 +52,9 @@ development_status:
   2-1-spatial-hashing-collision-system: done
   2-2-enemy-spawning-rendering: done
   2-3-auto-fire-projectile-system: done
+  2-4-combat-resolution-feedback: done
   2-5-enemy-glb-models-rendering: done
   2-6-enemy-speed-facing-tuning: done
-  2-4-combat-resolution-feedback: done
   2-7-hitbox-tuning-hit-feedback: done
   2-8-player-rotation-responsiveness: done
   2-9-projectile-size-spawn-offset: done
@@ -101,3 +101,51 @@ development_status:
   7-3-tunnel-exit-system-transition: done
   7-4-hp-sacrifice: done
   epic-7-retrospective: done
+
+  # Epic 8: Enhanced Main Menu & Metagame UI
+  epic-8: in-progress
+  8-1-main-menu-visual-overhaul: done
+  8-2-options-menu: backlog
+  8-3-credits-screen: backlog
+  8-4-high-score-display-persistence: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: Ship Selection System
+  epic-9: backlog
+  9-1-ship-selection-ui: backlog
+  9-2-ship-variants-definition-stats-display: backlog
+  9-3-ship-selection-persistence-integration: backlog
+  epic-9-retrospective: optional
+
+  # Epic 10: HUD Overhaul & Advanced In-Game UI
+  epic-10: backlog
+  10-1-xp-bar-redesign-full-width-top: backlog
+  10-2-top-stats-display-score-fragments-level-kills: backlog
+  10-3-enhanced-minimap-styling: backlog
+  10-4-hp-item-slots-reorganization-top-left-cluster: backlog
+  10-5-boon-slots-visibility-display: backlog
+  10-6-pause-menu-with-detailed-inventory: backlog
+  10-7-bottom-item-library-bar: backlog
+  epic-10-retrospective: optional
+
+  # Epic 11: Gameplay Balance & Content Completion
+  epic-11: backlog
+  11-1-xp-magnetization-system: backlog
+  11-2-xp-curve-rebalancing: backlog
+  11-3-complete-weapon-roster-implementation: backlog
+  11-4-complete-boon-roster-implementation: backlog
+  epic-11-retrospective: optional
+
+  # Epic 12: Visual Polish & Player Readability
+  epic-12: backlog
+  12-1-player-ship-lighting-improvements: backlog
+  12-2-projectile-visibility-enhancements: backlog
+  12-3-planet-capture-zone-aura-system: backlog
+  epic-12-retrospective: optional
+
+  # Epic 13: Tunnel Hub Fixes & UX Improvements
+  epic-13: backlog
+  13-1-tunnel-rendering-interaction-bugs-resolution: backlog
+  13-2-sidebar-layout-compaction-no-scroll: backlog
+  13-3-tunnel-3d-scene-ship-visibility: backlog
+  epic-13-retrospective: optional
