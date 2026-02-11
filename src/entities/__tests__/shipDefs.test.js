@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SHIPS, getDefaultShipId } from '../shipDefs.js'
+import { SHIPS, TRAIT_INFO, getDefaultShipId } from '../shipDefs.js'
 
 describe('shipDefs', () => {
   it('exports a SHIPS object with at least one ship', () => {
@@ -41,6 +41,41 @@ describe('shipDefs', () => {
     }
   })
 
+  it('every ship has colorTheme, icon, and traits (Story 9.2)', () => {
+    for (const ship of Object.values(SHIPS)) {
+      expect(typeof ship.colorTheme).toBe('string')
+      expect(ship.colorTheme).toMatch(/^#/)
+      expect(typeof ship.icon).toBe('string')
+      expect(Array.isArray(ship.traits)).toBe(true)
+    }
+  })
+
+  it('has at least 3 ship variants', () => {
+    expect(Object.keys(SHIPS).length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('each ship has distinct stat profile (no two ships identical)', () => {
+    const ships = Object.values(SHIPS)
+    for (let i = 0; i < ships.length; i++) {
+      for (let j = i + 1; j < ships.length; j++) {
+        const sameHP = ships[i].baseHP === ships[j].baseHP
+        const sameSpeed = ships[i].baseSpeed === ships[j].baseSpeed
+        const sameDmg = ships[i].baseDamageMultiplier === ships[j].baseDamageMultiplier
+        expect(sameHP && sameSpeed && sameDmg).toBe(false)
+      }
+    }
+  })
+
+  it('all trait ids in ships reference existing TRAIT_INFO entries', () => {
+    for (const ship of Object.values(SHIPS)) {
+      for (const traitId of ship.traits) {
+        expect(TRAIT_INFO[traitId]).toBeDefined()
+        expect(TRAIT_INFO[traitId].label).toBeTruthy()
+        expect(TRAIT_INFO[traitId].description).toBeTruthy()
+      }
+    }
+  })
+
   describe('getDefaultShipId', () => {
     it('returns the first unlocked ship id', () => {
       const defaultId = getDefaultShipId()
@@ -49,4 +84,5 @@ describe('shipDefs', () => {
       expect(SHIPS[defaultId].locked).toBe(false)
     })
   })
+
 })
