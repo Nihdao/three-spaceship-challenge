@@ -18,10 +18,10 @@ export default function Experience() {
       <GameLoop />
 
       {phase === 'menu' && <MenuScene />}
-      {(phase === 'gameplay' || phase === 'levelUp') && <GameplayScene />}
+      {(phase === 'gameplay' || phase === 'levelUp' || phase === 'gameOver') && <GameplayScene />}
       {phase === 'boss' && <BossScene />}
       {phase === 'tunnel' && <TunnelScene />}
-      {/* gameOver and victory are UI overlays, not 3D scenes */}
+      {/* GameplayScene stays mounted during gameOver (frozen, GameLoop paused) for visual continuity behind the overlay */}
     </>
   )
 }

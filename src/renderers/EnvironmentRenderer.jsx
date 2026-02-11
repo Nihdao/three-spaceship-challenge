@@ -110,7 +110,7 @@ function GroundPlane() {
       {/* Semi-transparent dark base plane — lets stars show through */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
         <planeGeometry args={[gridSize, gridSize]} />
-        <meshBasicMaterial color="#0a0a0f" transparent opacity={0.6} depthWrite={false} />
+        <meshBasicMaterial color="#0a0a0f" transparent opacity={0.2} depthWrite={false} />
       </mesh>
       {/* Subtle grid for spatial orientation */}
       <gridHelper

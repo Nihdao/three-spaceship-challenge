@@ -70,19 +70,20 @@ development_status:
   epic-3-retrospective: done
 
   # Epic 4: Complete Game Loop & Polish
-  epic-4: in-progress
+  epic-4: done
   4-1-main-menu-game-phase-management: done
-  4-2-gameplay-hud: backlog
-  4-3-game-over-cinematic-screen: backlog
-  4-4-victory-screen: backlog
-  4-5-audio-system: backlog
-  4-6-visual-damage-feedback: backlog
-  epic-4-retrospective: optional
+  4-2-gameplay-hud: done
+  4-3-game-over-cinematic-screen: done
+  4-4-victory-screen: done
+  4-5-audio-system: done
+  4-6-visual-damage-feedback: done
+  4-7-bugfix-reset-enemies-on-retry: backlog
+  epic-4-retrospective: done
 
   # Epic 5: Dash & Planet Exploration (Tier 2)
-  epic-5: backlog
-  5-1-dash-barrel-roll: backlog
-  5-2-planet-placement-rendering: backlog
+  epic-5: in-progress
+  5-1-dash-barrel-roll: done
+  5-2-planet-placement-rendering: done
   5-3-planet-scanning-rewards: backlog
   epic-5-retrospective: optional
 

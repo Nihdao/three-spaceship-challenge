@@ -1,46 +1,48 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import useGame from '../stores/useGame.jsx'
+import { useState, useEffect, useCallback, useRef } from "react";
+import useGame from "../stores/useGame.jsx";
+import { playSFX } from "../audio/audioManager.js";
 
-const MENU_ITEMS = [
-  { id: 'play', label: 'PLAY' },
-]
+const MENU_ITEMS = [{ id: "play", label: "PLAY" }];
 
 export default function MainMenu() {
-  const [selectedIndex, setSelectedIndex] = useState(0)
-  const [fading, setFading] = useState(false)
-  const playButtonRef = useRef(null)
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [fading, setFading] = useState(false);
+  const playButtonRef = useRef(null);
 
   // Auto-focus PLAY button on mount for immediate keyboard interaction
   useEffect(() => {
-    playButtonRef.current?.focus()
-  }, [])
+    playButtonRef.current?.focus();
+  }, []);
 
   const handlePlay = useCallback(() => {
-    if (fading) return
-    setFading(true)
+    if (fading) return;
+    playSFX("button-click");
+    setFading(true);
     setTimeout(() => {
-      useGame.getState().startGameplay()
-    }, 300)
-  }, [fading])
+      useGame.getState().startGameplay();
+    }, 300);
+  }, [fading]);
 
   // Keyboard navigation
   useEffect(() => {
     const handler = (e) => {
-      if (fading) return
-      if (e.code === 'ArrowUp') {
-        e.preventDefault()
-        setSelectedIndex((i) => (i - 1 + MENU_ITEMS.length) % MENU_ITEMS.length)
-      } else if (e.code === 'ArrowDown') {
-        e.preventDefault()
-        setSelectedIndex((i) => (i + 1) % MENU_ITEMS.length)
-      } else if (e.code === 'Enter' || e.code === 'Space') {
-        e.preventDefault()
-        handlePlay()
+      if (fading) return;
+      if (e.code === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex(
+          (i) => (i - 1 + MENU_ITEMS.length) % MENU_ITEMS.length,
+        );
+      } else if (e.code === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((i) => (i + 1) % MENU_ITEMS.length);
+      } else if (e.code === "Enter" || e.code === "Space") {
+        e.preventDefault();
+        handlePlay();
       }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [fading, handlePlay])
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [fading, handlePlay]);
 
   return (
     <>
@@ -53,9 +55,11 @@ export default function MainMenu() {
       {/* Menu overlay */}
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in">
         {/* Title */}
-        <h1 className="text-5xl font-bold tracking-[0.15em] text-game-text mb-16 select-none"
-            style={{ textShadow: '0 0 40px rgba(255, 0, 255, 0.3)' }}>
-          SPACESHIP
+        <h1
+          className="text-5xl font-bold tracking-[0.15em] text-game-text mb-16 select-none"
+          style={{ textShadow: "0 0 40px rgba(255, 0, 255, 0.3)" }}
+        >
+          REDSHIFT SURVIVOR
         </h1>
 
         {/* Menu items */}
@@ -68,13 +72,17 @@ export default function MainMenu() {
                 w-48 py-3 text-lg font-semibold tracking-widest
                 border rounded transition-all duration-150 select-none
                 outline-none cursor-pointer
-                ${selectedIndex === i
-                  ? 'border-game-accent text-game-text scale-105 bg-game-accent/10'
-                  : 'border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text hover:scale-105'
+                ${
+                  selectedIndex === i
+                    ? "border-game-accent text-game-text scale-105 bg-game-accent/10"
+                    : "border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text hover:scale-105"
                 }
               `}
               onClick={handlePlay}
-              onMouseEnter={() => setSelectedIndex(i)}
+              onMouseEnter={() => {
+                setSelectedIndex(i);
+                playSFX("button-hover");
+              }}
             >
               {item.label}
             </button>
@@ -82,5 +90,5 @@ export default function MainMenu() {
         </div>
       </div>
     </>
-  )
+  );
 }

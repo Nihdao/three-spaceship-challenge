@@ -15,6 +15,16 @@ const usePlayer = create((set, get) => ({
   lastDamageTime: 0,
   contactDamageCooldown: 0,
 
+  // --- Dash (Story 5.1) ---
+  isDashing: false,
+  dashTimer: 0,
+  dashCooldownTimer: 0,
+
+  // --- Visual damage feedback (Story 4.6) ---
+  damageFlashTimer: 0,
+  cameraShakeTimer: 0,
+  cameraShakeIntensity: 0,
+
   // --- XP & Level ---
   currentXP: 0,
   currentLevel: 1,
@@ -120,6 +130,32 @@ const usePlayer = create((set, get) => ({
       }
     }
 
+    // --- Dash timer (Story 5.1) ---
+    let isDashing = state.isDashing
+    let dashTimer = state.dashTimer
+    let dashCooldownTimer = state.dashCooldownTimer
+
+    if (isDashing && dashTimer > 0) {
+      const remaining = delta - dashTimer
+      dashTimer = Math.max(0, dashTimer - delta)
+      if (dashTimer <= 0) {
+        isDashing = false
+        dashCooldownTimer = Math.max(0, GAME_CONFIG.DASH_COOLDOWN - remaining)
+        // End invulnerability ONLY if damage i-frames also expired
+        if (invulnerabilityTimer <= 0) {
+          isInvulnerable = false
+        }
+      }
+    } else if (!isDashing && dashCooldownTimer > 0) {
+      dashCooldownTimer = Math.max(0, dashCooldownTimer - delta)
+    }
+
+    // --- Visual damage feedback timers ---
+    let damageFlashTimer = Math.max(0, state.damageFlashTimer - delta)
+    let cameraShakeTimer = Math.max(0, state.cameraShakeTimer - delta)
+    let cameraShakeIntensity = state.cameraShakeIntensity
+    if (cameraShakeTimer <= 0) cameraShakeIntensity = 0
+
     set({
       position: [px, 0, pz],
       velocity: [vx, 0, vz],
@@ -129,6 +165,12 @@ const usePlayer = create((set, get) => ({
       contactDamageCooldown,
       isInvulnerable,
       invulnerabilityTimer,
+      isDashing,
+      dashTimer,
+      dashCooldownTimer,
+      damageFlashTimer,
+      cameraShakeTimer,
+      cameraShakeIntensity,
     })
   },
 
@@ -158,6 +200,18 @@ const usePlayer = create((set, get) => ({
     return true
   },
 
+  // Dash action (Story 5.1) — triggers barrel roll + invulnerability
+  startDash: () => {
+    const state = get()
+    if (state.isDashing) return
+    if (state.dashCooldownTimer > 0) return
+    set({
+      isDashing: true,
+      dashTimer: GAME_CONFIG.DASH_DURATION,
+      isInvulnerable: true,
+    })
+  },
+
   // Double-guard: invulnerability (post-hit i-frames, Story 3.5) + contact cooldown (Story 2.4).
   // Both currently share the same duration but serve as independent safety nets.
   takeDamage: (amount) => {
@@ -170,6 +224,9 @@ const usePlayer = create((set, get) => ({
       invulnerabilityTimer: GAME_CONFIG.INVULNERABILITY_DURATION,
       lastDamageTime: Date.now(),
       contactDamageCooldown: GAME_CONFIG.CONTACT_DAMAGE_COOLDOWN,
+      damageFlashTimer: GAME_CONFIG.DAMAGE_FLASH_DURATION,
+      cameraShakeTimer: GAME_CONFIG.CAMERA_SHAKE_DURATION,
+      cameraShakeIntensity: GAME_CONFIG.CAMERA_SHAKE_AMPLITUDE,
     })
   },
 
@@ -185,6 +242,12 @@ const usePlayer = create((set, get) => ({
     invulnerabilityTimer: 0,
     lastDamageTime: 0,
     contactDamageCooldown: 0,
+    isDashing: false,
+    dashTimer: 0,
+    dashCooldownTimer: 0,
+    damageFlashTimer: 0,
+    cameraShakeTimer: 0,
+    cameraShakeIntensity: 0,
     currentXP: 0,
     currentLevel: 1,
     xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],

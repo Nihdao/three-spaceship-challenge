@@ -4,6 +4,7 @@ import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import { generateChoices } from '../systems/progressionSystem.js'
+import { playSFX } from '../audio/audioManager.js'
 
 export default function LevelUpModal() {
   const [choices, setChoices] = useState([])
@@ -18,6 +19,7 @@ export default function LevelUpModal() {
   }, [])
 
   const applyChoice = useCallback((choice) => {
+    playSFX('button-click')
     if (choice.type === 'weapon_upgrade') {
       useWeapons.getState().upgradeWeapon(choice.id)
     } else if (choice.type === 'new_weapon') {

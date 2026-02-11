@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useControls, folder } from "leva";
 import usePlayer from "../stores/usePlayer.jsx";
+import { GAME_CONFIG } from "../config/gameConfig.js";
 
 const _targetPos = new THREE.Vector3();
 const _lookTarget = new THREE.Vector3();
@@ -19,7 +20,7 @@ export function usePlayerCamera() {
   const smoothedLookAt = useRef(new THREE.Vector3(0, 0, 0));
 
   useFrame((state, delta) => {
-    const { position, velocity } = usePlayer.getState();
+    const { position, velocity, cameraShakeTimer, cameraShakeIntensity } = usePlayer.getState();
 
     // Target camera position: above player with offset
     _targetPos.set(
@@ -42,6 +43,17 @@ export function usePlayerCamera() {
     smoothedLookAt.current.lerp(_lookTarget, lookLerp);
 
     state.camera.position.copy(smoothedPosition.current);
+
+    // Camera shake (Story 4.6) — applied to camera position directly,
+    // NOT to smoothedPosition ref, to avoid corrupting the smooth follow state
+    if (cameraShakeTimer > 0) {
+      const t = cameraShakeTimer / GAME_CONFIG.CAMERA_SHAKE_DURATION;
+      const amp = cameraShakeIntensity * t;
+      const elapsed = state.clock.elapsedTime;
+      state.camera.position.x += Math.sin(elapsed * 37.5) * amp;
+      state.camera.position.z += Math.cos(elapsed * 53.1) * amp;
+    }
+
     state.camera.lookAt(smoothedLookAt.current);
   });
 }

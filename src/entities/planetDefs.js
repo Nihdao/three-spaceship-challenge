@@ -1,3 +1,39 @@
 // Planet definitions — scannable planets in the play area
-// Structure: PLANET_ID: { id, name, scanTime, rewards, modelKey, ... }
-export const PLANETS = {}
+export const PLANETS = {
+  PLANET_SILVER: {
+    id: 'PLANET_SILVER',
+    name: 'Silver Planet',
+    tier: 'silver',
+    scanTime: 5,
+    color: '#c0c0c0',
+    emissiveColor: '#808080',
+    emissiveIntensity: 0.3,
+    scale: [8, 8, 8],
+    modelKey: 'planetA',
+    scanRadius: 40,
+  },
+  PLANET_GOLD: {
+    id: 'PLANET_GOLD',
+    name: 'Gold Planet',
+    tier: 'gold',
+    scanTime: 10,
+    color: '#ffd700',
+    emissiveColor: '#ffaa00',
+    emissiveIntensity: 0.5,
+    scale: [12, 12, 12],
+    modelKey: 'planetB',
+    scanRadius: 50,
+  },
+  PLANET_PLATINUM: {
+    id: 'PLANET_PLATINUM',
+    name: 'Platinum Planet',
+    tier: 'platinum',
+    scanTime: 18,
+    color: '#e5e4e2',
+    emissiveColor: '#b0e0e6',
+    emissiveIntensity: 0.7,
+    scale: [16, 16, 16],
+    modelKey: 'planetC',
+    scanRadius: 60,
+  },
+}
