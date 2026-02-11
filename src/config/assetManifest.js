@@ -7,7 +7,7 @@ export const ASSET_MANIFEST = {
       playerShip: 'models/ships/player-ship.glb',
     },
     audio: {
-      // Background music loaded at startup
+      menuMusic: 'audio/music/Michett - Snackmix.mp3',
     },
   },
 
@@ -19,8 +19,16 @@ export const ASSET_MANIFEST = {
       scout: 'models/enemies/robot-enemy-flying-gun.glb',
     },
     audio: {
+      gameplayMusic: 'audio/music/Creo - Rock Thing.mp3',
       laserFire: 'audio/sfx/laser-fire.mp3',
       explosion: 'audio/sfx/explosion.mp3',
+      levelUp: 'audio/sfx/level-up.mp3',
+      damageTaken: 'audio/sfx/damage-taken.mp3',
+      buttonHover: 'audio/sfx/button-hover.mp3',
+      buttonClick: 'audio/sfx/button-click.mp3',
+      gameOverImpact: 'audio/sfx/game-over-impact.mp3',
+      dashWhoosh: 'audio/sfx/dash-whoosh.mp3',
+      dashReady: 'audio/sfx/dash-ready.mp3',
     },
   },
 

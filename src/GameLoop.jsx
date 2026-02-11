@@ -4,6 +4,7 @@ import useGame from './stores/useGame.jsx'
 import { useControlsStore } from './stores/useControlsStore.jsx'
 import usePlayer from './stores/usePlayer.jsx'
 import useEnemies from './stores/useEnemies.jsx'
+import useLevel from './stores/useLevel.jsx'
 import useWeapons from './stores/useWeapons.jsx'
 import useBoons from './stores/useBoons.jsx'
 import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB } from './systems/collisionSystem.js'
@@ -11,6 +12,7 @@ import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
+import { playSFX } from './audio/audioManager.js'
 import { spawnOrb, updateOrbs, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 
@@ -45,6 +47,8 @@ export default function GameLoop() {
   // during collision registration (150+ entities × 60 FPS = 9000+ allocs/s avoided)
   const entityPoolRef = useRef([])
   const prevPhaseRef = useRef(null)
+  const prevDashRef = useRef(false)
+  const prevDashCooldownRef = useRef(0)
 
   // NOTE: Relies on mount order for correct useFrame execution sequence.
   // GameLoop must mount before GameplayScene in Experience.jsx so its
@@ -61,6 +65,7 @@ export default function GameLoop() {
       resetParticles()
       resetOrbs()
       usePlayer.getState().reset()
+      useLevel.getState().initializePlanets()
     }
     prevPhaseRef.current = phase
 
@@ -78,10 +83,30 @@ export default function GameLoop() {
     const boonModifiers = useBoons.getState().modifiers
     usePlayer.getState().tick(clampedDelta, input, boonModifiers.speedMultiplier ?? 1)
 
+    // 2b. Dash input (edge detection: trigger only on press, not hold)
+    const prevCooldown = prevDashCooldownRef.current
+    if (input.dash && !prevDashRef.current) {
+      usePlayer.getState().startDash()
+      if (usePlayer.getState().isDashing) {
+        playSFX('dash-whoosh')
+      }
+    }
+    prevDashRef.current = input.dash
+    // Detect cooldown-just-finished transition → play ready ding
+    const currentCooldown = usePlayer.getState().dashCooldownTimer
+    if (prevCooldown > 0 && currentCooldown <= 0) {
+      playSFX('dash-ready')
+    }
+    prevDashCooldownRef.current = currentCooldown
+
     // 3. Weapons fire — pass boon modifiers for damage/cooldown/crit
     const playerState = usePlayer.getState()
     const playerPos = playerState.position
+    const projCountBefore = useWeapons.getState().projectiles.length
     useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, boonModifiers)
+    if (useWeapons.getState().projectiles.length > projCountBefore) {
+      playSFX('laser-fire')
+    }
 
     // 4. Projectile movement (pass enemies for homing missile steering)
     const enemiesForHoming = useEnemies.getState().enemies
@@ -150,6 +175,7 @@ export default function GameLoop() {
         const event = deathEvents[i]
         if (event.killed) {
           addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
+          playSFX('explosion')
           const xpReward = ENEMIES[event.enemy.typeId]?.xpReward ?? 0
           if (xpReward > 0) {
             spawnOrb(event.enemy.x, event.enemy.z, xpReward)
@@ -174,12 +200,14 @@ export default function GameLoop() {
         }
         if (totalDamage > 0) {
           usePlayer.getState().takeDamage(totalDamage)
+          playSFX('damage-taken')
         }
       }
     }
 
     // 7e. Death check
     if (usePlayer.getState().currentHP <= 0) {
+      playSFX('game-over-impact')
       useGame.getState().triggerGameOver()
       useWeapons.getState().cleanupInactive()
       return // Stop processing — no XP/level-up after death
@@ -190,6 +218,7 @@ export default function GameLoop() {
     const newTimer = gameState.systemTimer + clampedDelta
     gameState.setSystemTimer(newTimer)
     if (newTimer >= GAME_CONFIG.SYSTEM_TIMER) {
+      playSFX('game-over-impact')
       gameState.triggerGameOver()
       useWeapons.getState().cleanupInactive()
       return // Stop processing — timer expired
@@ -229,6 +258,7 @@ export default function GameLoop() {
 
     // 8e. Check pending level-up — consume flag and trigger pause + modal
     if (usePlayer.getState().pendingLevelUp) {
+      playSFX('level-up')
       usePlayer.getState().consumeLevelUp()
       useGame.getState().triggerLevelUp()
     }
