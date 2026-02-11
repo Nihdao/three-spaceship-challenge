@@ -14,7 +14,7 @@ for (let i = 0; i < MAX_PARTICLES; i++) {
 }
 let activeCount = 0
 
-export function addExplosion(x, z, color) {
+export function addExplosion(x, z, color, scale = 1) {
   const count = GAME_CONFIG.PARTICLE_EXPLOSION_COUNT
   for (let i = 0; i < count; i++) {
     if (activeCount >= MAX_PARTICLES) break
@@ -24,12 +24,12 @@ export function addExplosion(x, z, color) {
     p.z = z
     p.dirX = Math.cos(angle)
     p.dirZ = Math.sin(angle)
-    p.speed = GAME_CONFIG.PARTICLE_EXPLOSION_SPEED * (0.7 + Math.random() * 0.6)
-    p.lifetime = GAME_CONFIG.PARTICLE_EXPLOSION_LIFETIME
+    p.speed = GAME_CONFIG.PARTICLE_EXPLOSION_SPEED * (0.7 + Math.random() * 0.6) * scale
+    p.lifetime = GAME_CONFIG.PARTICLE_EXPLOSION_LIFETIME * scale
     p.elapsedTime = 0
     p.active = true
     p.color = color
-    p.size = GAME_CONFIG.PARTICLE_EXPLOSION_SIZE
+    p.size = GAME_CONFIG.PARTICLE_EXPLOSION_SIZE * scale
     activeCount++
   }
 }

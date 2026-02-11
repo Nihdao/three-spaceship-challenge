@@ -3,6 +3,7 @@ import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
+import useLevel from '../stores/useLevel.jsx'
 import { playSFX } from '../audio/audioManager.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
@@ -45,9 +46,11 @@ export default function VictoryScreen() {
   const statsRef = useRef(null)
   if (!statsRef.current) {
     statsRef.current = {
-      systemTimer: useGame.getState().systemTimer,
+      systemTimer: useGame.getState().totalElapsedTime + useGame.getState().systemTimer,
       kills: useGame.getState().kills,
       currentLevel: usePlayer.getState().currentLevel,
+      currentSystem: useLevel.getState().currentSystem,
+      fragments: usePlayer.getState().fragments,
       activeWeapons: [...useWeapons.getState().activeWeapons],
       activeBoons: [...useBoons.getState().activeBoons],
     }
@@ -137,6 +140,7 @@ export default function VictoryScreen() {
             style={{ maxWidth: 'clamp(260px, 30vw, 400px)' }}
           >
             <div className="flex flex-col gap-2">
+              <StatLine label="SYSTEMS CLEARED" value={stats.currentSystem} />
               <StatLine label="TIME SURVIVED" value={timeSurvived} />
               <StatLine label="ENEMIES KILLED" value={stats.kills} />
               <StatLine label="LEVEL REACHED" value={stats.currentLevel} />

@@ -1,8 +1,8 @@
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
 
-// Pre-compute enemy type entries for weighted random selection
-const enemyTypes = Object.values(ENEMIES)
+// Pre-compute enemy type entries for weighted random selection (exclude boss and any entry without spawnWeight)
+const enemyTypes = Object.values(ENEMIES).filter(e => e.spawnWeight > 0)
 const totalWeight = enemyTypes.reduce((sum, e) => sum + e.spawnWeight, 0)
 
 export function createSpawnSystem() {
@@ -18,7 +18,7 @@ export function createSpawnSystem() {
     return enemyTypes[enemyTypes.length - 1].id
   }
 
-  function tick(delta, playerX, playerZ) {
+  function tick(delta, playerX, playerZ, difficultyMult = 1.0) {
     elapsedTime += delta
     spawnTimer -= delta
 
@@ -49,7 +49,7 @@ export function createSpawnSystem() {
       x = Math.max(-bound, Math.min(bound, x))
       z = Math.max(-bound, Math.min(bound, z))
 
-      instructions.push({ typeId, x, z })
+      instructions.push({ typeId, x, z, difficultyMult })
     }
 
     return instructions

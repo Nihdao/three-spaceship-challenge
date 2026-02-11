@@ -1,3 +1,5 @@
+import { GAME_CONFIG } from '../config/gameConfig.js'
+
 export const ENEMIES = {
   FODDER_BASIC: {
     id: 'FODDER_BASIC',
@@ -26,5 +28,16 @@ export const ENEMIES = {
     modelPath: '/models/enemies/robot-enemy-flying-gun.glb',
     color: '#ff3366',
     meshScale: [2.5, 2.5, 2.5],
+  },
+  BOSS_SENTINEL: {
+    id: 'BOSS_SENTINEL',
+    name: 'Void Sentinel',
+    hp: GAME_CONFIG.BOSS_HP,
+    speed: GAME_CONFIG.BOSS_MOVE_SPEED,
+    damage: GAME_CONFIG.BOSS_CONTACT_DAMAGE,
+    radius: GAME_CONFIG.BOSS_COLLISION_RADIUS,
+    behavior: 'boss',
+    color: '#cc66ff',
+    meshScale: [8, 8, 8],
   },
 }

@@ -5,8 +5,10 @@ import MainMenu from './MainMenu.jsx'
 import LevelUpModal from './LevelUpModal.jsx'
 import PlanetRewardModal from './PlanetRewardModal.jsx'
 import HUD from './HUD.jsx'
+import BossHPBar from './BossHPBar.jsx'
 import GameOverScreen from './GameOverScreen.jsx'
 import VictoryScreen from './VictoryScreen.jsx'
+import TunnelHub from './TunnelHub.jsx'
 
 export default function Interface() {
   const phase = useGame((s) => s.phase)
@@ -29,8 +31,11 @@ export default function Interface() {
       {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <HUD />}
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}
+      {phase === 'boss' && <BossHPBar />}
+      {phase === 'boss' && <HUD />}
       {phase === 'gameOver' && <GameOverScreen />}
       {phase === 'victory' && <VictoryScreen />}
+      {phase === 'tunnel' && <TunnelHub />}
     </>
   )
 }

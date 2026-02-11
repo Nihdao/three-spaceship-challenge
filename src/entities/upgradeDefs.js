@@ -1,0 +1,77 @@
+// Permanent upgrade definitions — purchased with Fragments in the tunnel hub
+// Structure: UPGRADE_ID: { id, name, description, fragmentCost, effect, prerequisite }
+// Effect types: DAMAGE_MULT, SPEED_MULT, HP_MAX_BONUS, COOLDOWN_MULT, FRAGMENT_MULT
+export const UPGRADES = {
+  ATTACK_BOOST_1: {
+    id: 'ATTACK_BOOST_1',
+    name: '+Attack I',
+    description: '+10% weapon damage',
+    fragmentCost: 50,
+    effect: { type: 'DAMAGE_MULT', value: 1.1 },
+    prerequisite: null,
+  },
+  ATTACK_BOOST_2: {
+    id: 'ATTACK_BOOST_2',
+    name: '+Attack II',
+    description: '+20% weapon damage',
+    fragmentCost: 100,
+    effect: { type: 'DAMAGE_MULT', value: 1.2 },
+    prerequisite: 'ATTACK_BOOST_1',
+  },
+  SPEED_BOOST_1: {
+    id: 'SPEED_BOOST_1',
+    name: '+Speed I',
+    description: '+15% movement speed',
+    fragmentCost: 30,
+    effect: { type: 'SPEED_MULT', value: 1.15 },
+    prerequisite: null,
+  },
+  SPEED_BOOST_2: {
+    id: 'SPEED_BOOST_2',
+    name: '+Speed II',
+    description: '+30% movement speed',
+    fragmentCost: 70,
+    effect: { type: 'SPEED_MULT', value: 1.3 },
+    prerequisite: 'SPEED_BOOST_1',
+  },
+  HP_MAX_BOOST_1: {
+    id: 'HP_MAX_BOOST_1',
+    name: '+Max HP I',
+    description: '+20 max HP',
+    fragmentCost: 40,
+    effect: { type: 'HP_MAX_BONUS', value: 20 },
+    prerequisite: null,
+  },
+  HP_MAX_BOOST_2: {
+    id: 'HP_MAX_BOOST_2',
+    name: '+Max HP II',
+    description: '+40 max HP',
+    fragmentCost: 80,
+    effect: { type: 'HP_MAX_BONUS', value: 40 },
+    prerequisite: 'HP_MAX_BOOST_1',
+  },
+  COOLDOWN_REDUCTION_1: {
+    id: 'COOLDOWN_REDUCTION_1',
+    name: 'Faster Fire I',
+    description: '-10% weapon cooldown',
+    fragmentCost: 60,
+    effect: { type: 'COOLDOWN_MULT', value: 0.9 },
+    prerequisite: null,
+  },
+  COOLDOWN_REDUCTION_2: {
+    id: 'COOLDOWN_REDUCTION_2',
+    name: 'Faster Fire II',
+    description: '-20% weapon cooldown',
+    fragmentCost: 120,
+    effect: { type: 'COOLDOWN_MULT', value: 0.8 },
+    prerequisite: 'COOLDOWN_REDUCTION_1',
+  },
+  FRAGMENT_BOOST_1: {
+    id: 'FRAGMENT_BOOST_1',
+    name: 'Fragment Magnet',
+    description: '+50% fragment rewards',
+    fragmentCost: 70,
+    effect: { type: 'FRAGMENT_MULT', value: 1.5 },
+    prerequisite: null,
+  },
+}

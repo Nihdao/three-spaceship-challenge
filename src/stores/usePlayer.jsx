@@ -1,5 +1,10 @@
 import { create } from 'zustand'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import { UPGRADES } from '../entities/upgradeDefs.js'
+import { DILEMMAS } from '../entities/dilemmaDefs.js'
+
+const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
+const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
 
 const usePlayer = create((set, get) => ({
   // --- State ---
@@ -25,6 +30,15 @@ const usePlayer = create((set, get) => ({
   cameraShakeTimer: 0,
   cameraShakeIntensity: 0,
 
+  // --- Fragments (Story 7.1) ---
+  fragments: 0,
+
+  // --- Permanent Upgrades & Dilemmas (Story 7.2) ---
+  permanentUpgrades: {},
+  acceptedDilemmas: [],
+  upgradeStats: { ...DEFAULT_UPGRADE_STATS },
+  dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
+
   // --- XP & Level ---
   currentXP: 0,
   currentLevel: 1,
@@ -32,7 +46,7 @@ const usePlayer = create((set, get) => ({
   pendingLevelUp: false,
 
   // --- Tick (called by GameLoop each frame) ---
-  tick: (delta, input, speedMultiplier = 1) => {
+  tick: (delta, input, speedMultiplier = 1, arenaSize = GAME_CONFIG.PLAY_AREA_SIZE) => {
     const state = get()
     const {
       PLAYER_BASE_SPEED,
@@ -41,8 +55,8 @@ const usePlayer = create((set, get) => ({
       PLAYER_ROTATION_SPEED,
       PLAYER_MAX_BANK_ANGLE,
       PLAYER_BANK_SPEED,
-      PLAY_AREA_SIZE,
     } = GAME_CONFIG
+    const PLAY_AREA_SIZE = arenaSize
 
     const effectiveSpeed = PLAYER_BASE_SPEED * speedMultiplier
 
@@ -175,6 +189,92 @@ const usePlayer = create((set, get) => ({
   },
 
   // --- Actions ---
+  sacrificeFragmentsForHP: () => {
+    const { fragments, currentHP, maxHP } = get()
+    if (fragments < GAME_CONFIG.HP_SACRIFICE_FRAGMENT_COST) return false
+    if (currentHP >= maxHP) return false
+    set({
+      fragments: fragments - GAME_CONFIG.HP_SACRIFICE_FRAGMENT_COST,
+      currentHP: Math.min(maxHP, currentHP + GAME_CONFIG.HP_SACRIFICE_HP_RECOVERY),
+    })
+    return true
+  },
+
+  addFragments: (amount) => set(state => ({
+    fragments: state.fragments + Math.round(amount * state.upgradeStats.fragmentMult),
+  })),
+
+  applyPermanentUpgrade: (upgradeId) => {
+    const upgrade = UPGRADES[upgradeId]
+    if (!upgrade) return false
+    const state = get()
+    if (state.fragments < upgrade.fragmentCost) return false
+    if (state.permanentUpgrades[upgradeId]) return false
+    if (upgrade.prerequisite && !state.permanentUpgrades[upgrade.prerequisite]) return false
+
+    const effect = upgrade.effect
+    const updates = {
+      fragments: state.fragments - upgrade.fragmentCost,
+      permanentUpgrades: { ...state.permanentUpgrades, [upgradeId]: true },
+    }
+
+    if (effect.type === 'DAMAGE_MULT') {
+      updates.upgradeStats = { ...state.upgradeStats, damageMult: state.upgradeStats.damageMult * effect.value }
+    } else if (effect.type === 'SPEED_MULT') {
+      updates.upgradeStats = { ...state.upgradeStats, speedMult: state.upgradeStats.speedMult * effect.value }
+    } else if (effect.type === 'HP_MAX_BONUS') {
+      updates.upgradeStats = { ...state.upgradeStats, hpMaxBonus: state.upgradeStats.hpMaxBonus + effect.value }
+      updates.maxHP = state.maxHP + effect.value
+      updates.currentHP = state.currentHP + effect.value
+    } else if (effect.type === 'COOLDOWN_MULT') {
+      updates.upgradeStats = { ...state.upgradeStats, cooldownMult: state.upgradeStats.cooldownMult * effect.value }
+    } else if (effect.type === 'FRAGMENT_MULT') {
+      updates.upgradeStats = { ...state.upgradeStats, fragmentMult: state.upgradeStats.fragmentMult * effect.value }
+    }
+
+    set(updates)
+    return true
+  },
+
+  acceptDilemma: (dilemmaId) => {
+    const dilemma = DILEMMAS[dilemmaId]
+    if (!dilemma) return false
+    const state = get()
+    if (state.acceptedDilemmas.includes(dilemmaId)) return false
+
+    const updates = {
+      acceptedDilemmas: [...state.acceptedDilemmas, dilemmaId],
+      dilemmaStats: { ...state.dilemmaStats },
+    }
+
+    const applyEffect = (effect) => {
+      if (effect.type === 'DAMAGE_MULT') {
+        updates.dilemmaStats.damageMult = (updates.dilemmaStats.damageMult ?? state.dilemmaStats.damageMult) * effect.value
+      } else if (effect.type === 'SPEED_MULT') {
+        updates.dilemmaStats.speedMult = (updates.dilemmaStats.speedMult ?? state.dilemmaStats.speedMult) * effect.value
+      } else if (effect.type === 'HP_MAX_MULT') {
+        const prevMaxHP = updates.maxHP ?? state.maxHP
+        const newMaxHP = Math.floor(prevMaxHP * effect.value)
+        updates.maxHP = newMaxHP
+        const prevCurrentHP = updates.currentHP ?? state.currentHP
+        // Increase: heal proportionally so the player benefits from the extra HP
+        // Decrease: clamp currentHP to new lower max
+        updates.currentHP = effect.value >= 1
+          ? prevCurrentHP + (newMaxHP - prevMaxHP)
+          : Math.min(prevCurrentHP, newMaxHP)
+        updates.dilemmaStats.hpMaxMult = (updates.dilemmaStats.hpMaxMult ?? state.dilemmaStats.hpMaxMult) * effect.value
+      } else if (effect.type === 'COOLDOWN_MULT') {
+        updates.dilemmaStats.cooldownMult = (updates.dilemmaStats.cooldownMult ?? state.dilemmaStats.cooldownMult) * effect.value
+      }
+    }
+
+    applyEffect(dilemma.bonus)
+    applyEffect(dilemma.malus)
+
+    set(updates)
+    return true
+  },
+
   addXP: (amount) => {
     const state = get()
     const curve = GAME_CONFIG.XP_LEVEL_CURVE
@@ -230,6 +330,29 @@ const usePlayer = create((set, get) => ({
     })
   },
 
+  resetForNewSystem: () => set({
+    position: [0, 0, 0],
+    velocity: [0, 0, 0],
+    rotation: 0,
+    bankAngle: 0,
+    speed: 0,
+    isInvulnerable: false,
+    invulnerabilityTimer: 0,
+    lastDamageTime: 0,
+    contactDamageCooldown: 0,
+    isDashing: false,
+    dashTimer: 0,
+    dashCooldownTimer: 0,
+    damageFlashTimer: 0,
+    cameraShakeTimer: 0,
+    cameraShakeIntensity: 0,
+    currentXP: 0,
+    currentLevel: 1,
+    xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
+    pendingLevelUp: false,
+    // Preserves: fragments, currentHP, maxHP, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats
+  }),
+
   reset: () => set({
     position: [0, 0, 0],
     velocity: [0, 0, 0],
@@ -252,6 +375,11 @@ const usePlayer = create((set, get) => ({
     currentLevel: 1,
     xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
     pendingLevelUp: false,
+    fragments: 0,
+    permanentUpgrades: {},
+    acceptedDilemmas: [],
+    upgradeStats: { ...DEFAULT_UPGRADE_STATS },
+    dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
   }),
 }))
 

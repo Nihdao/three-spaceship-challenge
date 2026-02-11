@@ -24,6 +24,16 @@ const SFX_CATEGORY_MAP = {
   'dash-ready': 'ui',
   'scan-start': 'ui',
   'scan-complete': 'sfxFeedbackPositive',
+  'wormhole-spawn': 'sfxFeedbackPositive',
+  'wormhole-activate': 'sfxFeedbackPositive',
+  'boss-attack': 'sfxAction',
+  'boss-hit': 'sfxFeedbackPositive',
+  'boss-phase': 'events',
+  'boss-defeat': 'events',
+  'upgrade-purchase': 'sfxFeedbackPositive',
+  'dilemma-accept': 'sfxFeedbackNegative',
+  'dilemma-refuse': 'ui',
+  'hp-recover': 'sfxFeedbackPositive',
 }
 
 let currentMusic = null

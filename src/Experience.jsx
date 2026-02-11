@@ -9,7 +9,14 @@ import TunnelScene from './scenes/TunnelScene.jsx'
 
 export default function Experience() {
   const phase = useGame((s) => s.phase)
+  const prevCombatPhase = useGame((s) => s.prevCombatPhase)
   const isDebugMode = useDebugMode()
+
+  // During levelUp, keep the scene from prevCombatPhase mounted
+  const showGameplay = phase === 'gameplay' || phase === 'planetReward' || phase === 'gameOver' ||
+    (phase === 'levelUp' && prevCombatPhase === 'gameplay')
+  const showBoss = phase === 'boss' ||
+    (phase === 'levelUp' && prevCombatPhase === 'boss')
 
   return (
     <>
@@ -18,8 +25,8 @@ export default function Experience() {
       <GameLoop />
 
       {phase === 'menu' && <MenuScene />}
-      {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward' || phase === 'gameOver') && <GameplayScene />}
-      {phase === 'boss' && <BossScene />}
+      {showGameplay && <GameplayScene />}
+      {showBoss && <BossScene />}
       {phase === 'tunnel' && <TunnelScene />}
       {/* GameplayScene stays mounted during gameOver (frozen, GameLoop paused) for visual continuity behind the overlay */}
     </>

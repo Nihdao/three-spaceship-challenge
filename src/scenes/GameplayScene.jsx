@@ -5,6 +5,7 @@ import ParticleRenderer from '../renderers/ParticleRenderer.jsx'
 import XPOrbRenderer from '../renderers/XPOrbRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import PlanetRenderer from '../renderers/PlanetRenderer.jsx'
+import WormholeRenderer from '../renderers/WormholeRenderer.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
 
@@ -48,6 +49,9 @@ export default function GameplayScene() {
 
       {/* Planets */}
       <PlanetRenderer />
+
+      {/* Wormhole */}
+      <WormholeRenderer />
     </>
   )
 }

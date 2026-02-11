@@ -4,10 +4,13 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 
 const useLevel = create((set, get) => ({
   // --- State ---
+  currentSystem: 1,
   systemTimer: 0,
   difficulty: 1,
   planets: [],
-  wormholeState: 'hidden', // 'hidden' | 'visible' | 'active'
+  wormholeState: 'hidden', // 'hidden' | 'visible' | 'activating' | 'active'
+  wormhole: null, // { x, z } when spawned
+  wormholeActivationTimer: 0,
   activeScanPlanetId: null,
 
   // --- Tick (called by GameLoop each frame) ---
@@ -123,11 +126,65 @@ const useLevel = create((set, get) => ({
     set({ planets })
   },
 
-  reset: () => set({
+  // --- Wormhole (Story 6.1) ---
+  spawnWormhole: (playerX, playerZ) => {
+    const angle = Math.random() * Math.PI * 2
+    const dist = GAME_CONFIG.WORMHOLE_SPAWN_DISTANCE_FROM_PLAYER
+    let x = playerX + Math.cos(angle) * dist
+    let z = playerZ + Math.sin(angle) * dist
+    const bound = GAME_CONFIG.PLAY_AREA_SIZE - 50
+    x = Math.max(-bound, Math.min(bound, x))
+    z = Math.max(-bound, Math.min(bound, z))
+    // Ensure clamping didn't place wormhole too close to player
+    const dx = x - playerX
+    const dz = z - playerZ
+    const actualDist = Math.sqrt(dx * dx + dz * dz)
+    const minDist = GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS * 3
+    if (actualDist < minDist && actualDist > 0) {
+      const scale = minDist / actualDist
+      x = playerX + dx * scale
+      z = playerZ + dz * scale
+      x = Math.max(-bound, Math.min(bound, x))
+      z = Math.max(-bound, Math.min(bound, z))
+    }
+    set({ wormhole: { x, z }, wormholeState: 'visible' })
+  },
+
+  activateWormhole: () => {
+    set({ wormholeState: 'activating', wormholeActivationTimer: GAME_CONFIG.WORMHOLE_TRANSITION_DELAY })
+  },
+
+  wormholeTick: (delta) => {
+    const { wormholeState, wormholeActivationTimer } = get()
+    if (wormholeState !== 'activating') return { transitionReady: false }
+    const newTimer = Math.max(0, wormholeActivationTimer - delta)
+    if (newTimer <= 0) {
+      set({ wormholeState: 'active', wormholeActivationTimer: 0 })
+      return { transitionReady: true }
+    }
+    set({ wormholeActivationTimer: newTimer })
+    return { transitionReady: false }
+  },
+
+  advanceSystem: () => set(state => ({
+    currentSystem: Math.min(state.currentSystem + 1, GAME_CONFIG.MAX_SYSTEMS),
     systemTimer: 0,
     difficulty: 1,
     planets: [],
     wormholeState: 'hidden',
+    wormhole: null,
+    wormholeActivationTimer: 0,
+    activeScanPlanetId: null,
+  })),
+
+  reset: () => set({
+    currentSystem: 1,
+    systemTimer: 0,
+    difficulty: 1,
+    planets: [],
+    wormholeState: 'hidden',
+    wormhole: null,
+    wormholeActivationTimer: 0,
     activeScanPlanetId: null,
   }),
 }))

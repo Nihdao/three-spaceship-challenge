@@ -16,6 +16,17 @@ const SFX_MAP = {
   'dash-ready': ASSET_MANIFEST.gameplay.audio.dashReady,
   'scan-start': ASSET_MANIFEST.gameplay.audio.scanStart,
   'scan-complete': ASSET_MANIFEST.gameplay.audio.scanComplete,
+  'wormhole-spawn': ASSET_MANIFEST.tier2.audio.wormholeSpawn,
+  'wormhole-activate': ASSET_MANIFEST.tier2.audio.wormholeActivate,
+  'boss-attack': ASSET_MANIFEST.tier2.audio.bossAttack,
+  'boss-hit': ASSET_MANIFEST.tier2.audio.bossHit,
+  'boss-phase': ASSET_MANIFEST.tier2.audio.bossPhase,
+  'boss-defeat': ASSET_MANIFEST.tier2.audio.bossDefeat,
+  'upgrade-purchase': ASSET_MANIFEST.tier2.audio.upgradePurchase,
+  'dilemma-accept': ASSET_MANIFEST.tier2.audio.dilemmaAccept,
+  'dilemma-refuse': ASSET_MANIFEST.tier2.audio.dilemmaRefuse,
+  'tunnel-exit': ASSET_MANIFEST.tier2.audio.tunnelExit,
+  'hp-recover': ASSET_MANIFEST.tier2.audio.hpRecover,
 }
 
 export default function useAudio() {
@@ -42,10 +53,19 @@ export default function useAudio() {
           } else if (prevPhase === 'gameOver' || prevPhase === 'victory') {
             // Retry from end screen — play gameplay music fresh
             playMusic(ASSET_MANIFEST.gameplay.audio.gameplayMusic)
+          } else if (prevPhase === 'tunnel') {
+            // Tunnel → gameplay: crossfade to gameplay music for new system
+            crossfadeMusic(ASSET_MANIFEST.gameplay.audio.gameplayMusic, 1000)
           }
           // levelUp → gameplay: music continues, no change
+        } else if (phase === 'boss') {
+          // Crossfade to boss music
+          crossfadeMusic(ASSET_MANIFEST.tier2.audio.bossMusic, 1500)
+        } else if (phase === 'tunnel') {
+          // Boss → tunnel: crossfade to tunnel ambient music
+          crossfadeMusic(ASSET_MANIFEST.tier2.audio.tunnelMusic, 1000)
         } else if (phase === 'gameOver' || phase === 'victory') {
-          // Fade out gameplay music
+          // Fade out gameplay/boss music
           fadeOutMusic(500)
         }
       }
