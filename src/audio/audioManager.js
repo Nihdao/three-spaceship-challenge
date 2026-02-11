@@ -37,6 +37,7 @@ const SFX_CATEGORY_MAP = {
 }
 
 let currentMusic = null
+let masterVolume = 1.0
 let musicVolume = VOLUME_CATEGORIES.music
 let sfxVolume = 1.0 // master SFX multiplier
 const sfxPool = {} // { key: Howl instance }
@@ -164,6 +165,44 @@ export function playSFX(key) {
 export function stopAllSFX() {
   for (const key in sfxPool) {
     sfxPool[key].stop()
+  }
+}
+
+export function setMasterVolume(vol) {
+  masterVolume = vol
+  Howler.volume(vol)
+}
+
+export function getMasterVolume() {
+  return masterVolume
+}
+
+export function getMusicVolume() {
+  return musicVolume
+}
+
+export function getSfxVolume() {
+  return sfxVolume
+}
+
+export function loadAudioSettings() {
+  try {
+    const raw = localStorage.getItem('audioSettings')
+    if (!raw) return
+    const saved = JSON.parse(raw)
+    if (typeof saved.masterVolume === 'number') {
+      masterVolume = Math.max(0, Math.min(1, saved.masterVolume / 100))
+      Howler.volume(masterVolume)
+    }
+    if (typeof saved.musicVolume === 'number') {
+      musicVolume = Math.max(0, Math.min(1, saved.musicVolume / 100))
+      if (currentMusic) currentMusic.volume(musicVolume)
+    }
+    if (typeof saved.sfxVolume === 'number') {
+      sfxVolume = Math.max(0, Math.min(1, saved.sfxVolume / 100))
+    }
+  } catch {
+    // Invalid JSON or localStorage unavailable — use defaults
   }
 }
 

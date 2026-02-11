@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import useGame from "../stores/useGame.jsx";
 import { playSFX } from "../audio/audioManager.js";
+import OptionsModal from "./modals/OptionsModal.jsx";
 
 const MENU_ITEMS = [
   { id: "play", label: "PLAY" },
@@ -11,11 +12,12 @@ const MENU_ITEMS = [
 export default function MainMenu() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fading, setFading] = useState(false);
-  const [placeholderModal, setPlaceholderModal] = useState(null); // 'options' | 'credits' | null
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+  const [placeholderModal, setPlaceholderModal] = useState(null); // 'credits' | null
   const playButtonRef = useRef(null);
 
-  // Task 6: High score from localStorage
-  const highScore = useMemo(() => {
+  // Task 6: High score from localStorage (re-read when options modal closes)
+  const readHighScore = useCallback(() => {
     try {
       const stored = localStorage.getItem("highScore");
       if (stored !== null) {
@@ -27,6 +29,7 @@ export default function MainMenu() {
     }
     return 0;
   }, []);
+  const [highScore, setHighScore] = useState(readHighScore);
 
   // Auto-focus PLAY button on mount for immediate keyboard interaction
   useEffect(() => {
@@ -49,7 +52,7 @@ export default function MainMenu() {
         handlePlay();
       } else if (item.id === "options") {
         playSFX("button-click");
-        setPlaceholderModal("options");
+        setIsOptionsOpen(true);
       } else if (item.id === "credits") {
         playSFX("button-click");
         setPlaceholderModal("credits");
@@ -68,15 +71,15 @@ export default function MainMenu() {
     const handler = (e) => {
       if (fading) return;
 
-      // Close modal with Escape
+      // Close placeholder modal with Escape (options modal handles its own ESC)
       if (placeholderModal && (e.code === "Escape" || e.code === "Backspace")) {
         e.preventDefault();
         handleCloseModal();
         return;
       }
 
-      // Don't navigate menu while modal is open
-      if (placeholderModal) return;
+      // Don't navigate menu while any modal is open
+      if (placeholderModal || isOptionsOpen) return;
 
       if (e.code === "ArrowUp") {
         e.preventDefault();
@@ -95,7 +98,7 @@ export default function MainMenu() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [fading, selectedIndex, placeholderModal, handleMenuSelect, handleCloseModal]);
+  }, [fading, selectedIndex, placeholderModal, isOptionsOpen, handleMenuSelect, handleCloseModal]);
 
   return (
     <>
@@ -108,7 +111,7 @@ export default function MainMenu() {
       {/* Menu overlay */}
       <div
         className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
-        inert={placeholderModal ? "" : undefined}
+        inert={placeholderModal || isOptionsOpen ? "" : undefined}
       >
         {/* Task 6: High score display */}
         <div className="absolute top-8 right-8 text-right select-none">
@@ -156,7 +159,17 @@ export default function MainMenu() {
         </div>
       </div>
 
-      {/* Placeholder modal for OPTIONS / CREDITS */}
+      {/* Options modal */}
+      {isOptionsOpen && (
+        <OptionsModal
+          onClose={() => {
+            setIsOptionsOpen(false);
+            setHighScore(readHighScore());
+          }}
+        />
+      )}
+
+      {/* Placeholder modal for CREDITS */}
       {placeholderModal && (
         <div
           className="fixed inset-0 z-[55] flex items-center justify-center font-game animate-fade-in"
@@ -165,7 +178,7 @@ export default function MainMenu() {
         >
           <div className="bg-[#0a0a0f]/95 border border-game-border rounded-lg p-8 min-w-[300px] text-center">
             <h2 className="text-game-text text-xl font-bold tracking-widest mb-4 select-none">
-              {placeholderModal === "options" ? "OPTIONS" : "CREDITS"}
+              CREDITS
             </h2>
             <p className="text-game-text-muted text-sm mb-6 select-none">
               Coming soon
