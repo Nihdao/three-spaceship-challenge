@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
-import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
+import { SHIPS, TRAIT_INFO, getDefaultShipId } from '../entities/shipDefs.js'
 import { playSFX } from '../audio/audioManager.js'
+import StatLine from './primitives/StatLine.jsx'
 
 const shipList = Object.values(SHIPS)
 
@@ -138,7 +139,7 @@ export default function ShipSelect() {
               >
                 {/* Ship thumbnail placeholder */}
                 <div className="aspect-square bg-game-text-muted/5 rounded mb-2 flex items-center justify-center text-3xl">
-                  {ship.locked ? '🔒' : '🚀'}
+                  {ship.locked ? '🔒' : (ship.icon || '🚀')}
                 </div>
                 <p className="text-game-text font-semibold tracking-wide text-xs">{ship.name}</p>
               </button>
@@ -147,38 +148,81 @@ export default function ShipSelect() {
         </div>
 
         {/* RIGHT: Ship Detail Panel */}
-        <div className="w-72 bg-game-bg/60 border border-game-border/40 rounded-lg p-6 flex flex-col backdrop-blur-sm">
+        <div className="w-80 bg-game-bg/60 border border-game-border/40 rounded-lg p-6 flex flex-col backdrop-blur-sm">
+          {/* Ship Preview */}
+          <div
+            className="aspect-video rounded-lg mb-4 flex items-center justify-center"
+            style={{ backgroundColor: `${selectedShip.colorTheme}10`, borderColor: `${selectedShip.colorTheme}30`, borderWidth: 1 }}
+          >
+            <span className="text-6xl select-none" style={{ filter: `drop-shadow(0 0 12px ${selectedShip.colorTheme})` }}>
+              {selectedShip.icon || '🚀'}
+            </span>
+          </div>
+
+          {/* Ship Name & Description */}
           <h3
             className="text-xl font-bold tracking-[0.1em] text-game-text mb-2"
-            style={{ textShadow: '0 0 20px rgba(255, 0, 255, 0.15)' }}
+            style={{ textShadow: `0 0 20px ${selectedShip.colorTheme}40` }}
           >
             {selectedShip.name}
           </h3>
-          <p className="text-sm text-game-text-muted mb-6 leading-relaxed">
+          <p className="text-sm text-game-text-muted mb-4 leading-relaxed">
             {selectedShip.description}
           </p>
 
+          {/* Separator */}
+          <div className="border-t border-game-border/20 mb-4" />
+
           {/* Stats */}
-          <div className="space-y-3 mb-auto">
-            <div className="flex justify-between items-center">
-              <span className="text-xs tracking-widest text-game-text-muted">HP</span>
-              <span className="text-game-text font-bold tabular-nums">{selectedShip.baseHP}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs tracking-widest text-game-text-muted">SPEED</span>
-              <span className="text-game-text font-bold tabular-nums">{selectedShip.baseSpeed}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs tracking-widest text-game-text-muted">DAMAGE</span>
-              <span className="text-game-text font-bold tabular-nums">{selectedShip.baseDamageMultiplier}x</span>
-            </div>
+          <div className="space-y-3 mb-4">
+            <StatLine
+              label="HP"
+              value={selectedShip.baseHP}
+              icon="❤️"
+              tooltip="Maximum health points. Lose all HP and it's game over."
+            />
+            <StatLine
+              label="SPEED"
+              value={selectedShip.baseSpeed}
+              icon="⚡"
+              tooltip="Movement speed. Higher speed = faster dodging and mobility."
+            />
+            <StatLine
+              label="DAMAGE"
+              value={`${selectedShip.baseDamageMultiplier.toFixed(1)}x`}
+              icon="⚔️"
+              tooltip="Damage multiplier applied to all weapons. Higher = faster kills."
+            />
           </div>
+
+          {/* Unique Traits */}
+          {selectedShip.traits && selectedShip.traits.length > 0 && (
+            <>
+              <div className="border-t border-game-border/20 mb-3" />
+              <p className="text-game-text-muted text-[10px] tracking-widest uppercase mb-2">Traits</p>
+              <div className="space-y-1.5 mb-4">
+                {selectedShip.traits.map(traitId => {
+                  const info = TRAIT_INFO[traitId]
+                  if (!info) return null
+                  return (
+                    <div key={traitId} className="flex items-center gap-1.5 text-sm text-game-text" title={info.description}>
+                      <span className="flex-shrink-0">{info.icon}</span>
+                      <span>{info.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Spacer */}
+          <div className="flex-1" />
 
           {/* START button */}
           <button
             onClick={handleStart}
             className="
-              w-full py-3 mt-6 text-lg font-bold tracking-widest
+              w-full py-3 mt-4 text-lg font-bold tracking-widest
               border border-game-accent text-game-text
               bg-game-accent/10 rounded-lg
               hover:bg-game-accent/20 hover:scale-105
