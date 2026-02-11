@@ -47,6 +47,12 @@
   to { opacity: 0.7; }
 }
 
+/* IMPORTANT: transform must include translate(-50%, -50%) to preserve centering from HUD planet dot inline styles */
+@keyframes scanPulse {
+  from { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1.6); }
+}
+
 html,
 body,
 #root {

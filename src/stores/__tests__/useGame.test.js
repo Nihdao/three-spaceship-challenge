@@ -114,6 +114,44 @@ describe('useGame — kill counter (Story 4.1)', () => {
   })
 })
 
+describe('useGame — planet reward phase (Story 5.3)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('triggerPlanetReward sets phase to planetReward and stores tier', () => {
+    useGame.getState().startGameplay()
+    useGame.getState().triggerPlanetReward('gold')
+
+    const state = useGame.getState()
+    expect(state.phase).toBe('planetReward')
+    expect(state.isPaused).toBe(true)
+    expect(state.rewardTier).toBe('gold')
+  })
+
+  it('resumeGameplay returns to gameplay from planetReward', () => {
+    useGame.getState().startGameplay()
+    useGame.getState().triggerPlanetReward('silver')
+    useGame.getState().resumeGameplay()
+
+    const state = useGame.getState()
+    expect(state.phase).toBe('gameplay')
+    expect(state.isPaused).toBe(false)
+  })
+
+  it('rewardTier included in reset()', () => {
+    useGame.getState().triggerPlanetReward('platinum')
+    expect(useGame.getState().rewardTier).toBe('platinum')
+
+    useGame.getState().reset()
+    expect(useGame.getState().rewardTier).toBeNull()
+  })
+
+  it('rewardTier defaults to null', () => {
+    expect(useGame.getState().rewardTier).toBeNull()
+  })
+})
+
 describe('useGame — system timer (Story 4.1)', () => {
   beforeEach(() => {
     useGame.getState().reset()

@@ -77,15 +77,15 @@ development_status:
   4-4-victory-screen: done
   4-5-audio-system: done
   4-6-visual-damage-feedback: done
-  4-7-bugfix-reset-enemies-on-retry: backlog
+  4-7-bugfix-reset-enemies-on-retry: done
   epic-4-retrospective: done
 
   # Epic 5: Dash & Planet Exploration (Tier 2)
-  epic-5: in-progress
+  epic-5: done
   5-1-dash-barrel-roll: done
   5-2-planet-placement-rendering: done
-  5-3-planet-scanning-rewards: backlog
-  epic-5-retrospective: optional
+  5-3-planet-scanning-rewards: done
+  epic-5-retrospective: done
 
   # Epic 6: Boss Encounters & System Completion (Tier 2)
   epic-6: backlog

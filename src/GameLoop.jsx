@@ -49,6 +49,7 @@ export default function GameLoop() {
   const prevPhaseRef = useRef(null)
   const prevDashRef = useRef(false)
   const prevDashCooldownRef = useRef(0)
+  const prevScanPlanetRef = useRef(null)
 
   // NOTE: Relies on mount order for correct useFrame execution sequence.
   // GameLoop must mount before GameplayScene in Experience.jsx so its
@@ -56,8 +57,8 @@ export default function GameLoop() {
   useFrame((state, delta) => {
     const { phase, isPaused } = useGame.getState()
 
-    // Reset systems only when starting a new game (from menu), not when resuming from levelUp
-    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp') {
+    // Reset systems only when starting a new game (from menu), not when resuming from levelUp or planetReward
+    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward') {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       useWeapons.getState().initializeWeapons()
@@ -65,6 +66,8 @@ export default function GameLoop() {
       resetParticles()
       resetOrbs()
       usePlayer.getState().reset()
+      useEnemies.getState().reset()
+      useLevel.getState().reset()
       useLevel.getState().initializePlanets()
     }
     prevPhaseRef.current = phase
@@ -226,6 +229,18 @@ export default function GameLoop() {
 
     // Cleanup projectiles marked inactive during damage resolution
     useWeapons.getState().cleanupInactive()
+
+    // 7g. Planet scanning
+    const scanResult = useLevel.getState().scanningTick(clampedDelta, playerPos[0], playerPos[2])
+    const currentScanId = scanResult.activeScanPlanetId
+    if (currentScanId && !prevScanPlanetRef.current) {
+      playSFX('scan-start')
+    }
+    prevScanPlanetRef.current = currentScanId
+    if (scanResult.completed) {
+      playSFX('scan-complete')
+      useGame.getState().triggerPlanetReward(scanResult.tier)
+    }
 
     // 8. XP + progression
     // 8a. Update orb timers
