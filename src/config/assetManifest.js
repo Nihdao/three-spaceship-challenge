@@ -46,6 +46,17 @@ export const ASSET_MANIFEST = {
     audio: {
       bossMusic: 'audio/music/boss-theme.mp3',
       tunnelMusic: 'audio/music/tunnel-theme.mp3',
+      wormholeSpawn: 'audio/sfx/wormhole-spawn.mp3',
+      wormholeActivate: 'audio/sfx/wormhole-activate.mp3',
+      bossAttack: 'audio/sfx/boss-attack.mp3',
+      bossHit: 'audio/sfx/boss-hit.mp3',
+      bossPhase: 'audio/sfx/boss-phase.mp3',
+      bossDefeat: 'audio/sfx/boss-defeat.mp3',
+      upgradePurchase: 'audio/sfx/upgrade-purchase.mp3',
+      dilemmaAccept: 'audio/sfx/dilemma-accept.mp3',
+      dilemmaRefuse: 'audio/sfx/dilemma-refuse.mp3',
+      tunnelExit: 'audio/sfx/tunnel-exit.mp3',
+      hpRecover: 'audio/sfx/hp-recover.mp3',
     },
   },
 }

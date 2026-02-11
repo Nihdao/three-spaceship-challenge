@@ -32,6 +32,7 @@ export default function HUD() {
   // Individual selectors for performance (avoid unnecessary re-renders)
   const systemTimer = useGame((s) => s.systemTimer)
   const kills = useGame((s) => s.kills)
+  const phase = useGame((s) => s.phase)
   const currentHP = usePlayer((s) => s.currentHP)
   const maxHP = usePlayer((s) => s.maxHP)
   const currentLevel = usePlayer((s) => s.currentLevel)
@@ -44,6 +45,8 @@ export default function HUD() {
   const playerPosition = usePlayer((s) => s.position)
   const planets = useLevel((s) => s.planets)
   const activeScanPlanetId = useLevel((s) => s.activeScanPlanetId)
+  const wormholeState = useLevel((s) => s.wormholeState)
+  const wormhole = useLevel((s) => s.wormhole)
 
   const remaining = GAME_CONFIG.SYSTEM_TIMER - systemTimer
   const timerDisplay = formatTimer(remaining)
@@ -72,12 +75,12 @@ export default function HUD() {
 
         {/* Timer + Kills — top-center */}
         <div className="flex flex-col items-center gap-0.5">
-          <span
+          {phase !== 'boss' && <span
             className="text-game-timer font-bold tabular-nums"
             style={{ fontSize: 'clamp(20px, 2.2vw, 32px)' }}
           >
             {timerDisplay}
-          </span>
+          </span>}
           <span
             className="text-game-text-muted tabular-nums"
             style={{ fontSize: 'clamp(11px, 1.1vw, 16px)' }}
@@ -90,6 +93,7 @@ export default function HUD() {
         <div style={{
           width: 'clamp(80px, 8vw, 120px)',
           height: 'clamp(80px, 8vw, 120px)',
+          visibility: phase === 'boss' ? 'hidden' : undefined,
           border: '1px solid rgba(255,255,255,0.2)',
           borderRadius: '4px',
           backgroundColor: 'rgba(0,0,0,0.5)',
@@ -120,6 +124,21 @@ export default function HUD() {
               animation: activeScanPlanetId === p.id ? 'scanPulse 800ms ease-in-out infinite alternate' : 'none',
             }} />
           ))}
+          {/* Wormhole dot */}
+          {wormhole && wormholeState !== 'hidden' && (
+            <div style={{
+              position: 'absolute',
+              width: wormholeState === 'visible' ? '5px' : '7px',
+              height: wormholeState === 'visible' ? '5px' : '7px',
+              borderRadius: '50%',
+              backgroundColor: '#00ccff',
+              left: `${50 + (wormhole.x / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+              top: `${50 + (wormhole.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+              transform: 'translate(-50%, -50%)',
+              boxShadow: wormholeState !== 'visible' ? '0 0 6px #00ccff' : 'none',
+              animation: 'scanPulse 800ms ease-in-out infinite alternate',
+            }} />
+          )}
         </div>
       </div>
 

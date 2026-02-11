@@ -49,19 +49,20 @@ const useEnemies = create((set, get) => ({
     const limit = Math.min(instructions.length, available)
 
     for (let i = 0; i < limit; i++) {
-      const { typeId, x, z } = instructions[i]
+      const { typeId, x, z, difficultyMult = 1.0 } = instructions[i]
       const def = ENEMIES[typeId]
       if (!def) continue
 
+      const hp = Math.round(def.hp * difficultyMult)
       batch.push({
         id: `enemy_${nextId}`,
         typeId,
         x,
         z,
-        hp: def.hp,
-        maxHp: def.hp,
-        speed: def.speed,
-        damage: def.damage,
+        hp,
+        maxHp: hp,
+        speed: def.speed * difficultyMult,
+        damage: Math.round(def.damage * difficultyMult),
         radius: def.radius,
         behavior: def.behavior,
         color: def.color,

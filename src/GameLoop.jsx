@@ -7,7 +7,8 @@ import useEnemies from './stores/useEnemies.jsx'
 import useLevel from './stores/useLevel.jsx'
 import useWeapons from './stores/useWeapons.jsx'
 import useBoons from './stores/useBoons.jsx'
-import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB } from './systems/collisionSystem.js'
+import useBoss from './stores/useBoss.jsx'
+import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
@@ -51,14 +52,36 @@ export default function GameLoop() {
   const prevDashCooldownRef = useRef(0)
   const prevScanPlanetRef = useRef(null)
 
+
   // NOTE: Relies on mount order for correct useFrame execution sequence.
   // GameLoop must mount before GameplayScene in Experience.jsx so its
   // useFrame runs first (state computation before rendering reads).
   useFrame((state, delta) => {
     const { phase, isPaused } = useGame.getState()
 
-    // Reset systems only when starting a new game (from menu), not when resuming from levelUp or planetReward
-    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward') {
+    // Clear residual entities when entering from tunnel (new system)
+    // advanceSystem + resetForNewSystem are called by TunnelHub BEFORE phase change
+    // GameLoop only clears entity pools and resets per-system systems
+    if (phase === 'gameplay' && prevPhaseRef.current === 'tunnel') {
+      useEnemies.getState().reset()
+      useWeapons.getState().initializeWeapons()
+      useBoss.getState().reset()
+      spawnSystemRef.current.reset()
+      projectileSystemRef.current.reset()
+      resetParticles()
+      resetOrbs()
+      // Accumulate elapsed time before resetting (for total run time display)
+      const prevSystemTime = useGame.getState().systemTimer
+      if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
+      // Note: useGame.systemTimer is the authoritative game timer (not useLevel.systemTimer)
+      // kills/score intentionally persist across systems (run-total for roguelite scoring)
+      useGame.getState().setSystemTimer(0)
+      // Initialize planets for the new system (advanceSystem clears them, GameLoop re-populates)
+      useLevel.getState().initializePlanets()
+    }
+
+    // Reset systems only when starting a new game (from menu), not when resuming from levelUp, planetReward, or tunnel
+    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward' && prevPhaseRef.current !== 'tunnel') {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       useWeapons.getState().initializeWeapons()
@@ -69,8 +92,202 @@ export default function GameLoop() {
       useEnemies.getState().reset()
       useLevel.getState().reset()
       useLevel.getState().initializePlanets()
+      useBoss.getState().reset()
     }
+
+    // Spawn boss when entering boss phase
+    if (phase === 'boss' && prevPhaseRef.current !== 'boss' && prevPhaseRef.current !== 'levelUp') {
+      useBoss.getState().spawnBoss(useLevel.getState().currentSystem)
+    }
+
     prevPhaseRef.current = phase
+
+    // === BOSS PHASE TICK ===
+    if (phase === 'boss' && !isPaused) {
+      const clampedDelta = Math.min(delta, 0.1)
+
+      // Check if boss is in defeat animation — player is safe, boss AI skipped
+      const bossDefeatCheck = useBoss.getState()
+      if (bossDefeatCheck.bossDefeated) {
+        // Player can still move during defeat animation
+        const input = useControlsStore.getState()
+        const boonModifiers = useBoons.getState().modifiers
+        const { upgradeStats: uS, dilemmaStats: dS } = usePlayer.getState()
+        const defeatSpeedMult = (boonModifiers.speedMultiplier ?? 1) * uS.speedMult * dS.speedMult
+        usePlayer.getState().tick(clampedDelta, input, defeatSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE)
+
+        // Run defeat animation tick
+        const defeatResult = useBoss.getState().defeatTick(clampedDelta)
+        for (let i = 0; i < defeatResult.explosions.length; i++) {
+          const exp = defeatResult.explosions[i]
+          const scale = exp.isFinal ? GAME_CONFIG.BOSS_DEATH_FINAL_EXPLOSION_SCALE : 1
+          addExplosion(exp.x, exp.z, '#cc66ff', scale)
+          playSFX('boss-hit')
+        }
+        if (defeatResult.animationComplete) {
+          playSFX('boss-defeat')
+          usePlayer.getState().addFragments(GAME_CONFIG.BOSS_FRAGMENT_REWARD)
+          if (useLevel.getState().currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
+            useGame.getState().setPhase('tunnel')
+          } else {
+            useGame.getState().triggerVictory()
+          }
+        }
+        return
+      }
+
+      // 1. Input
+      const input = useControlsStore.getState()
+
+      // 2. Player movement (with boss arena size) — compose boon + upgrade + dilemma speed
+      const boonModifiers = useBoons.getState().modifiers
+      const { upgradeStats: bossUS, dilemmaStats: bossDS } = usePlayer.getState()
+      const bossSpeedMult = (boonModifiers.speedMultiplier ?? 1) * bossUS.speedMult * bossDS.speedMult
+      usePlayer.getState().tick(clampedDelta, input, bossSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE)
+
+      // 2b. Dash input (edge detection)
+      if (input.dash && !prevDashRef.current) {
+        usePlayer.getState().startDash()
+        if (usePlayer.getState().isDashing) playSFX('dash-whoosh')
+      }
+      prevDashRef.current = input.dash
+      const currentCooldown = usePlayer.getState().dashCooldownTimer
+      if (prevDashCooldownRef.current > 0 && currentCooldown <= 0) playSFX('dash-ready')
+      prevDashCooldownRef.current = currentCooldown
+
+      // 3. Player weapons fire — compose boon + upgrade + dilemma weapon mods
+      const playerState = usePlayer.getState()
+      const playerPos = playerState.position
+      const bossWeaponMods = {
+        damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * bossUS.damageMult * bossDS.damageMult,
+        cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * bossUS.cooldownMult * bossDS.cooldownMult,
+        critChance: boonModifiers.critChance ?? 0,
+      }
+      const projCountBefore = useWeapons.getState().projectiles.length
+      useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, bossWeaponMods)
+      if (useWeapons.getState().projectiles.length > projCountBefore) playSFX('laser-fire')
+
+      // 4. Projectile movement (no enemies for homing during boss)
+      projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta, [])
+      useWeapons.getState().cleanupInactive()
+
+      // 5. Boss AI tick
+      const prevBossPhase = useBoss.getState().boss?.phase ?? 0
+      const bossProjCountBefore = useBoss.getState().bossProjectiles.length
+      useBoss.getState().tick(clampedDelta, playerPos)
+      const newBossPhase = useBoss.getState().boss?.phase ?? 0
+      if (newBossPhase > prevBossPhase) playSFX('boss-phase')
+      if (useBoss.getState().bossProjectiles.length > bossProjCountBefore) playSFX('boss-attack')
+
+      // 6. Collision detection (boss phase)
+      const cs = collisionSystemRef.current
+      cs.clear()
+      const pool = entityPoolRef.current
+      let idx = 0
+
+      // Register player
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      assignEntity(pool[idx], 'player', playerState.position[0], playerState.position[2], GAME_CONFIG.PLAYER_COLLISION_RADIUS, CATEGORY_PLAYER)
+      cs.registerEntity(pool[idx++])
+
+      // Register boss
+      const bossState = useBoss.getState()
+      const boss = bossState.boss
+      if (boss && boss.hp > 0) {
+        if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+        assignEntity(pool[idx], 'boss', boss.x, boss.z, GAME_CONFIG.BOSS_COLLISION_RADIUS, CATEGORY_BOSS)
+        cs.registerEntity(pool[idx++])
+      }
+
+      // Register player projectiles
+      const { projectiles } = useWeapons.getState()
+      const projStartIdx = idx
+      for (let i = 0; i < projectiles.length; i++) {
+        if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+        const p = projectiles[i]
+        assignEntity(pool[idx], p.id, p.x, p.z, p.radius, CATEGORY_PROJECTILE)
+        cs.registerEntity(pool[idx++])
+      }
+
+      // Register boss projectiles
+      const bossProjectiles = bossState.bossProjectiles
+      for (let i = 0; i < bossProjectiles.length; i++) {
+        if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+        const bp = bossProjectiles[i]
+        assignEntity(pool[idx], bp.id, bp.x, bp.z, bp.radius, CATEGORY_BOSS_PROJECTILE)
+        cs.registerEntity(pool[idx++])
+      }
+
+      // 6a. Player projectiles vs boss
+      if (boss && boss.hp > 0) {
+        for (let i = 0; i < projectiles.length; i++) {
+          const pEntity = pool[projStartIdx + i]
+          if (!pEntity) continue
+          const hits = cs.queryCollisions(pEntity, CATEGORY_BOSS)
+          if (hits.length > 0) {
+            projectiles[i].active = false
+            const result = useBoss.getState().damageBoss(projectiles[i].damage)
+            playSFX('boss-hit')
+            if (result.killed) {
+              addExplosion(boss.x, boss.z, '#cc66ff')
+            }
+          }
+        }
+        useWeapons.getState().cleanupInactive()
+      }
+
+      // 6b. Boss projectiles vs player
+      const playerEntity = pool[0]
+      const bpHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS_PROJECTILE)
+      if (bpHits.length > 0) {
+        const pState = usePlayer.getState()
+        if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
+          let totalDamage = 0
+          const hitIds = new Set()
+          for (let i = 0; i < bpHits.length; i++) {
+            const hitBp = bossProjectiles.find(bp => bp.id === bpHits[i].id)
+            totalDamage += hitBp ? hitBp.damage : GAME_CONFIG.BOSS_PROJECTILE_DAMAGE
+            hitIds.add(bpHits[i].id)
+          }
+          if (totalDamage > 0) {
+            usePlayer.getState().takeDamage(totalDamage)
+            playSFX('damage-taken')
+          }
+          // Remove hit projectiles immutably
+          useBoss.setState({ bossProjectiles: bossProjectiles.filter(bp => !hitIds.has(bp.id)) })
+        }
+      }
+
+      // 6c. Boss body vs player (contact damage)
+      if (boss && boss.hp > 0) {
+        const contactHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS)
+        if (contactHits.length > 0) {
+          const pState = usePlayer.getState()
+          if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
+            usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.difficultyMult || 1)))
+            playSFX('damage-taken')
+          }
+        }
+      }
+
+      // 7. Death checks
+      if (usePlayer.getState().currentHP <= 0) {
+        playSFX('game-over-impact')
+        useGame.getState().triggerGameOver()
+        return
+      }
+      // Boss defeat is now handled at top of boss tick (defeat animation flow)
+      // The killing blow in damageBoss() sets bossDefeated=true, next tick enters defeat animation branch
+
+      // 8. Level-up (skip during defeat animation — bossDefeated check at top already returned)
+      if (usePlayer.getState().pendingLevelUp) {
+        playSFX('level-up')
+        usePlayer.getState().consumeLevelUp()
+        useGame.getState().triggerLevelUp()
+      }
+
+      return
+    }
 
     // Only tick during active gameplay
     if (phase !== 'gameplay' || isPaused) return
@@ -82,9 +299,11 @@ export default function GameLoop() {
     // 1. Input — read from useControlsStore
     const input = useControlsStore.getState()
 
-    // 2. Player movement — pass speed modifier from boons
+    // 2. Player movement — compose boon + upgrade + dilemma speed modifiers
     const boonModifiers = useBoons.getState().modifiers
-    usePlayer.getState().tick(clampedDelta, input, boonModifiers.speedMultiplier ?? 1)
+    const { upgradeStats, dilemmaStats } = usePlayer.getState()
+    const composedSpeedMult = (boonModifiers.speedMultiplier ?? 1) * upgradeStats.speedMult * dilemmaStats.speedMult
+    usePlayer.getState().tick(clampedDelta, input, composedSpeedMult)
 
     // 2b. Dash input (edge detection: trigger only on press, not hold)
     const prevCooldown = prevDashCooldownRef.current
@@ -102,11 +321,16 @@ export default function GameLoop() {
     }
     prevDashCooldownRef.current = currentCooldown
 
-    // 3. Weapons fire — pass boon modifiers for damage/cooldown/crit
+    // 3. Weapons fire — compose boon + upgrade + dilemma modifiers
     const playerState = usePlayer.getState()
     const playerPos = playerState.position
+    const composedWeaponMods = {
+      damageMultiplier: (boonModifiers.damageMultiplier ?? 1) * upgradeStats.damageMult * dilemmaStats.damageMult,
+      cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * upgradeStats.cooldownMult * dilemmaStats.cooldownMult,
+      critChance: boonModifiers.critChance ?? 0,
+    }
     const projCountBefore = useWeapons.getState().projectiles.length
-    useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, boonModifiers)
+    useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, composedWeaponMods)
     if (useWeapons.getState().projectiles.length > projCountBefore) {
       playSFX('laser-fire')
     }
@@ -116,10 +340,15 @@ export default function GameLoop() {
     projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta, enemiesForHoming)
     useWeapons.getState().cleanupInactive()
 
-    // 5. Enemy spawning + movement
-    const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2])
-    if (spawnInstructions.length > 0) {
-      useEnemies.getState().spawnEnemies(spawnInstructions)
+    // 5. Enemy spawning + movement (skip during wormhole activation/active)
+    const wormholeStatePre = useLevel.getState().wormholeState
+    if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
+      const currentSystem = useLevel.getState().currentSystem
+      const difficultyMult = GAME_CONFIG.SYSTEM_DIFFICULTY_MULTIPLIERS[currentSystem] || 1.0
+      const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], difficultyMult)
+      if (spawnInstructions.length > 0) {
+        useEnemies.getState().spawnEnemies(spawnInstructions)
+      }
     }
     useEnemies.getState().tick(clampedDelta, playerPos)
 
@@ -221,15 +450,41 @@ export default function GameLoop() {
     const newTimer = gameState.systemTimer + clampedDelta
     gameState.setSystemTimer(newTimer)
     if (newTimer >= GAME_CONFIG.SYSTEM_TIMER) {
-      playSFX('game-over-impact')
-      gameState.triggerGameOver()
-      useWeapons.getState().cleanupInactive()
-      return // Stop processing — timer expired
+      // Don't trigger game over if wormhole is activating/active (player found it)
+      if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
+        playSFX('game-over-impact')
+        gameState.triggerGameOver()
+        useWeapons.getState().cleanupInactive()
+        return // Stop processing — timer expired
+      }
     }
 
     // Cleanup projectiles marked inactive during damage resolution
     useWeapons.getState().cleanupInactive()
 
+    // 7f-bis. Wormhole spawn + activation check
+    const levelState = useLevel.getState()
+    if (levelState.wormholeState === 'hidden') {
+      if (newTimer >= GAME_CONFIG.SYSTEM_TIMER * GAME_CONFIG.WORMHOLE_SPAWN_TIMER_THRESHOLD) {
+        useLevel.getState().spawnWormhole(playerPos[0], playerPos[2])
+        playSFX('wormhole-spawn')
+      }
+    } else if (levelState.wormholeState === 'visible') {
+      const wh = levelState.wormhole
+      const dx = playerPos[0] - wh.x
+      const dz = playerPos[2] - wh.z
+      const dist = Math.sqrt(dx * dx + dz * dz)
+      if (dist <= GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS) {
+        useLevel.getState().activateWormhole()
+        useEnemies.getState().reset()
+        playSFX('wormhole-activate')
+      }
+    } else if (levelState.wormholeState === 'activating') {
+      const result = useLevel.getState().wormholeTick(clampedDelta)
+      if (result.transitionReady) {
+        useGame.getState().setPhase('boss')
+      }
+    }
     // 7g. Planet scanning
     const scanResult = useLevel.getState().scanningTick(clampedDelta, playerPos[0], playerPos[2])
     const currentScanId = scanResult.activeScanPlanetId
