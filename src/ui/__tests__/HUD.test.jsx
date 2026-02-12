@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTimer, shouldPulseHP, isLowTime } from '../HUD.jsx'
+import { formatTimer, shouldPulseHP, isLowTime, detectChangedSlots, detectChangedBoons, getBoonLabel } from '../HUD.jsx'
 
 describe('HUD logic', () => {
   describe('formatTimer', () => {
@@ -77,4 +77,113 @@ describe('HUD logic', () => {
 
   // Note: shouldPulseXP tests removed in Story 10.1
   // Old XP bar replaced by XPBarFullWidth with shouldPulseXPBar() (tested in XPBarFullWidth.test.jsx)
+
+  describe('detectChangedSlots (Story 10.4)', () => {
+    const laser1 = { weaponId: 'LASER_FRONT', level: 1 }
+    const laser2 = { weaponId: 'LASER_FRONT', level: 2 }
+    const spread1 = { weaponId: 'SPREAD_SHOT', level: 1 }
+    const missile1 = { weaponId: 'MISSILE_HOMING', level: 1 }
+
+    it('returns empty array when no changes', () => {
+      expect(detectChangedSlots([laser1], [laser1])).toEqual([])
+    })
+
+    it('detects new weapon added to empty slot', () => {
+      expect(detectChangedSlots([laser1], [laser1, spread1])).toEqual([1])
+    })
+
+    it('detects weapon upgrade (level change)', () => {
+      expect(detectChangedSlots([laser1], [laser2])).toEqual([0])
+    })
+
+    it('detects weapon swap (different weaponId in same slot)', () => {
+      expect(detectChangedSlots([laser1], [spread1])).toEqual([0])
+    })
+
+    it('detects multiple simultaneous changes', () => {
+      expect(detectChangedSlots(
+        [laser1, spread1],
+        [laser2, spread1, missile1]
+      )).toEqual([0, 2])
+    })
+
+    it('handles empty prev array (all weapons are new)', () => {
+      expect(detectChangedSlots([], [laser1, spread1])).toEqual([0, 1])
+    })
+
+    it('ignores removed weapon (current slot is empty)', () => {
+      expect(detectChangedSlots([laser1, spread1], [laser1])).toEqual([])
+    })
+
+    it('handles both arrays empty', () => {
+      expect(detectChangedSlots([], [])).toEqual([])
+    })
+
+    it('handles undefined entries in prev (sparse array)', () => {
+      expect(detectChangedSlots(
+        [laser1, undefined, undefined, undefined],
+        [laser1, spread1, undefined, undefined]
+      )).toEqual([1])
+    })
+  })
+
+  describe('detectChangedBoons (Story 10.5)', () => {
+    const dmg1 = { boonId: 'DAMAGE_AMP', level: 1 }
+    const dmg2 = { boonId: 'DAMAGE_AMP', level: 2 }
+    const spd1 = { boonId: 'SPEED_BOOST', level: 1 }
+    const crit1 = { boonId: 'CRIT_CHANCE', level: 1 }
+
+    it('returns empty array when no changes', () => {
+      expect(detectChangedBoons([dmg1], [dmg1])).toEqual([])
+    })
+
+    it('detects new boon added', () => {
+      expect(detectChangedBoons([dmg1], [dmg1, spd1])).toEqual([1])
+    })
+
+    it('detects boon upgrade (level change)', () => {
+      expect(detectChangedBoons([dmg1], [dmg2])).toEqual([0])
+    })
+
+    it('detects multiple changes', () => {
+      expect(detectChangedBoons([dmg1], [dmg2, spd1])).toEqual([0, 1])
+    })
+
+    it('handles empty prev array (all boons are new)', () => {
+      expect(detectChangedBoons([], [dmg1, spd1])).toEqual([0, 1])
+    })
+
+    it('handles both arrays empty', () => {
+      expect(detectChangedBoons([], [])).toEqual([])
+    })
+
+    it('handles 3 slots with one change', () => {
+      expect(detectChangedBoons(
+        [dmg1, spd1],
+        [dmg1, spd1, crit1]
+      )).toEqual([2])
+    })
+  })
+
+  describe('getBoonLabel (Story 10.5)', () => {
+    it('returns label for DAMAGE_AMP', () => {
+      expect(getBoonLabel('DAMAGE_AMP')).toBe('Dmg')
+    })
+
+    it('returns label for SPEED_BOOST', () => {
+      expect(getBoonLabel('SPEED_BOOST')).toBe('Speed')
+    })
+
+    it('returns label for COOLDOWN_REDUCTION', () => {
+      expect(getBoonLabel('COOLDOWN_REDUCTION')).toBe('Rapid')
+    })
+
+    it('returns label for CRIT_CHANCE', () => {
+      expect(getBoonLabel('CRIT_CHANCE')).toBe('Crit')
+    })
+
+    it('returns fallback for unknown boon', () => {
+      expect(getBoonLabel('UNKNOWN_BOON')).toBe('?')
+    })
+  })
 })
