@@ -20,18 +20,20 @@ So that I can monitor my health and active loadout at a glance.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Analyze current HUD layout and identify reorganization requirements (AC: #1, #3)
-  - [ ] 1.1: Review current HUD.jsx structure (HP bar top-left at lines 62-74)
-  - [ ] 1.2: Review current weapon slots rendering (bottom-right at lines 201-236, if exists)
-  - [ ] 1.3: Identify elements to move to top-left cluster: HP bar (already there), weapon slots (to be moved)
-  - [ ] 1.4: Plan layout: Vertical stack (HP bar → weapon slots) or horizontal cluster
-  - [ ] 1.5: Determine if stats from Story 10.2 (Kills, Fragments, Score) affect positioning
+- [ ] Task 1: Identify current HP bar and weapon slot placement in HUD.jsx (AC: #1, #3)
+  - [ ] 1.1: Read HUD.jsx current HP bar (lines 102-115) — already in top-left, part of left column
+  - [ ] 1.2: Read HUD.jsx current weapon slots (lines 274-319) — currently in BOTTOM-right, after dash cooldown
+  - [ ] 1.3: Confirm HP bar already displays current/max HP text (line 108-110) ✓
+  - [ ] 1.4: Confirm ProgressBar variant="hp" with pulse={hpPulse} already used (line 113) ✓
+  - [ ] 1.5: Note weapon slots already have level display "Lv{weapon.level}" (line 314) ✓
 
-- [ ] Task 2: Enhance HP bar display with numeric values (AC: #1)
-  - [ ] 2.1: Current HP bar has numeric display (line 67-69) — verify format "currentHP / maxHP"
-  - [ ] 2.2: Adjust styling if needed for better readability (font size, color, spacing)
-  - [ ] 2.3: Ensure numeric display uses tabular-nums for alignment
-  - [ ] 2.4: Test HP display at various values (0, mid-range, max)
+- [ ] Task 2: Move weapon slots from bottom-right to top-left cluster (AC: #3)
+  - [ ] 2.1: Remove weapon slots from bottom-right section (lines 273-320)
+  - [ ] 2.2: Add weapon slots section below Stats cluster in top-left column (after line 123)
+  - [ ] 2.3: Preserve weapon slot styling: border, rounded, color-coded by weapon projectileColor
+  - [ ] 2.4: Preserve weapon name truncation and level display formatting
+  - [ ] 2.5: Preserve empty slot styling (grayed out placeholder)
+  - [ ] 2.6: Adjust positioning to fit cohesively below Stats cluster (Kills | Fragments | Score)
 
 - [ ] Task 3: HP bar smooth damage animation (AC: #2)
   - [ ] 3.1: Current HP bar uses ProgressBar component (line 72) — verify smooth transition

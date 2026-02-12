@@ -1,6 +1,6 @@
 # Story 10.2: Top Stats Display (Score, Fragments, Level, Kills)
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -87,6 +87,9 @@ So that I can track my performance at a glance.
   - [x] 11.2: Verify animations are GPU-accelerated (transform, not layout shifts)
   - [x] 11.3: Test with rapid stat updates (10+ kills/second, multiple fragments collected)
   - [x] 11.4: No visual jitter or layout thrashing
+
+- [ ] Task 13: Review Follow-ups (AI)
+  - [ ] 13.1: [AI-Review][MEDIUM] Add rendering tests for HUD stats display (kills/fragments/score values, timer CSS class changes, level "LVL X" display). Requires JSDOM/happy-dom test infrastructure. [src/ui/__tests__/HUD.test.jsx]
 
 - [x] Task 12: Edge cases and boss phase handling
   - [x] 12.1: Timer should hide during boss phase (already done in Story 6.2)
@@ -424,3 +427,4 @@ No issues encountered during implementation.
 ## Change Log
 
 - 2026-02-12: Implemented Story 10.2 — Top stats display with kills/fragments/score cluster (top-left), level display (top-right), low-timer warning pulse, stat update animations. All 652 tests pass, 0 regressions.
+- 2026-02-12: Code review fixes — AnimatedStat: only animate value increases (skip resets to 0), add toLocaleString('en-US') for large number formatting. All 652 tests pass.
