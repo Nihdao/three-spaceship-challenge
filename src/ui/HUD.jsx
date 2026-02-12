@@ -22,10 +22,8 @@ export function shouldPulseHP(currentHP, maxHP) {
   return currentHP / maxHP < 0.25
 }
 
-export function shouldPulseXP(currentXP, xpToNextLevel) {
-  if (xpToNextLevel <= 0) return false
-  return currentXP / xpToNextLevel >= 0.85
-}
+// Note: shouldPulseXP() removed in Story 10.1 (old XP bar replaced by XPBarFullWidth)
+// New XP bar uses shouldPulseXPBar() from XPBarFullWidth.jsx with >80% threshold
 
 // --- HUD Component ---
 
@@ -53,8 +51,8 @@ export default function HUD() {
 
   return (
     <div className="fixed inset-0 z-40 pointer-events-none font-game">
-      {/* Full-width XP bar at very top (Story 10.1) */}
-      <XPBarFullWidth />
+      {/* Full-width XP bar at very top (Story 10.1) — only during XP-earning phases */}
+      {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <XPBarFullWidth />}
 
       {/* Top row: HP left, Timer+Kills center */}
       <div className="absolute top-0 left-0 right-0 flex items-start justify-between px-6 pt-4">

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTimer, shouldPulseHP, shouldPulseXP } from '../HUD.jsx'
+import { formatTimer, shouldPulseHP } from '../HUD.jsx'
 
 describe('HUD logic', () => {
   describe('formatTimer', () => {
@@ -50,25 +50,6 @@ describe('HUD logic', () => {
     })
   })
 
-  describe('shouldPulseXP', () => {
-    it('returns true when XP ratio exceeds 0.85', () => {
-      expect(shouldPulseXP(90, 100)).toBe(true)
-    })
-
-    it('returns false when XP ratio is below 0.85', () => {
-      expect(shouldPulseXP(50, 100)).toBe(false)
-    })
-
-    it('returns true when XP ratio equals 0.85', () => {
-      expect(shouldPulseXP(85, 100)).toBe(true)
-    })
-
-    it('returns false when XP is 0', () => {
-      expect(shouldPulseXP(0, 100)).toBe(false)
-    })
-
-    it('returns false when xpToNextLevel is 0 (guard against division by zero)', () => {
-      expect(shouldPulseXP(50, 0)).toBe(false)
-    })
-  })
+  // Note: shouldPulseXP tests removed in Story 10.1
+  // Old XP bar replaced by XPBarFullWidth with shouldPulseXPBar() (tested in XPBarFullWidth.test.jsx)
 })
