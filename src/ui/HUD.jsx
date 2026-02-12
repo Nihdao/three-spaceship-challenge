@@ -9,6 +9,33 @@ import { PLANETS } from '../entities/planetDefs.js'
 import ProgressBar from './primitives/ProgressBar.jsx'
 import XPBarFullWidth from './XPBarFullWidth.jsx'
 
+// --- Minimap constants & helpers (Story 10.3) ---
+
+export const MINIMAP = {
+  borderRadius: '50%',
+  borderColor: 'rgba(34, 211, 238, 0.4)',
+  boxShadow: '0 0 12px rgba(34, 211, 238, 0.2)',
+  backgroundColor: 'rgba(0,0,0,0.65)',
+  playerDotColor: '#00ffcc',
+  playerDotSize: '6px',
+  playerDotGlow: '0 0 6px rgba(0, 255, 204, 0.8)',
+  planetDotSize: '6px',
+  wormholeBaseSize: '6px',
+  wormholeActiveSize: '9px',
+  wormholeColor: '#00ccff',
+  wormholeGlowActive: '0 0 10px rgba(0, 204, 255, 0.9)',
+  wormholeGlowBase: '0 0 3px rgba(0, 204, 255, 0.4)',
+  dotTransition: 'left 40ms ease-out, top 40ms ease-out',
+  boundaryInset: '5%',
+  boundaryBorder: '1px solid rgba(255,255,255,0.1)',
+}
+
+export function minimapDotPosition(worldX, worldZ, playAreaSize) {
+  const left = `${50 + (worldX / playAreaSize) * 50}%`
+  const top = `${50 + (worldZ / playAreaSize) * 50}%`
+  return { left, top }
+}
+
 // --- Exported logic helpers (testable without DOM) ---
 
 export function formatTimer(totalSeconds) {
@@ -37,13 +64,13 @@ function AnimatedStat({ value, icon, colorClass, label }) {
   const prevValue = useRef(value)
 
   useEffect(() => {
-    if (prevValue.current !== value && ref.current) {
+    if (value > prevValue.current && ref.current) {
       ref.current.classList.remove('stat-updated')
       // Force reflow to restart animation
       void ref.current.offsetWidth
       ref.current.classList.add('stat-updated')
-      prevValue.current = value
     }
+    prevValue.current = value
   }, [value])
 
   return (
@@ -56,7 +83,7 @@ function AnimatedStat({ value, icon, colorClass, label }) {
         className={`${colorClass} tabular-nums font-bold`}
         style={{ fontSize: 'clamp(11px, 1.1vw, 16px)' }}
       >
-        {value}
+        {typeof value === 'number' ? value.toLocaleString('en-US') : value}
       </span>
     </div>
   )
@@ -145,56 +172,88 @@ export default function HUD() {
             </span>
           </div>
 
-          {/* Minimap — top-right */}
+          {/* Minimap — top-right (Story 10.3: enhanced styling) */}
           <div style={{
             width: 'clamp(80px, 8vw, 120px)',
             height: 'clamp(80px, 8vw, 120px)',
             visibility: phase === 'boss' ? 'hidden' : undefined,
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '4px',
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            border: `2px solid ${MINIMAP.borderColor}`,
+            borderRadius: MINIMAP.borderRadius,
+            boxShadow: MINIMAP.boxShadow,
+            backgroundColor: MINIMAP.backgroundColor,
             overflow: 'hidden',
             position: 'relative',
           }}>
+            {/* Play area boundary indicator */}
+            <div style={{
+              position: 'absolute',
+              inset: MINIMAP.boundaryInset,
+              borderRadius: MINIMAP.borderRadius,
+              border: MINIMAP.boundaryBorder,
+              pointerEvents: 'none',
+            }} />
             {/* Player dot */}
             <div style={{
               position: 'absolute',
-              width: '4px', height: '4px',
+              width: MINIMAP.playerDotSize, height: MINIMAP.playerDotSize,
               borderRadius: '50%',
-              backgroundColor: '#ffffff',
-              left: `${50 + (playerPosition[0] / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-              top: `${50 + (playerPosition[2] / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+              backgroundColor: MINIMAP.playerDotColor,
+              boxShadow: MINIMAP.playerDotGlow,
+              ...minimapDotPosition(playerPosition[0], playerPosition[2], GAME_CONFIG.PLAY_AREA_SIZE),
               transform: 'translate(-50%, -50%)',
+              transition: MINIMAP.dotTransition,
             }} />
             {/* Planet dots */}
-            {planets.map((p) => (
-              <div key={p.id} style={{
-                position: 'absolute',
-                width: '5px', height: '5px',
-                borderRadius: '50%',
-                backgroundColor: PLANETS[p.typeId]?.color,
-                left: `${50 + (p.x / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-                top: `${50 + (p.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-                transform: 'translate(-50%, -50%)',
-                opacity: p.scanned ? 0.3 : 1,
-                animation: activeScanPlanetId === p.id ? 'scanPulse 800ms ease-in-out infinite alternate' : 'none',
-              }} />
-            ))}
+            {planets.map((p) => {
+              const planetColor = PLANETS[p.typeId]?.color || '#ffffff'
+              return (
+                <div key={p.id} style={{
+                  position: 'absolute',
+                  width: MINIMAP.planetDotSize, height: MINIMAP.planetDotSize,
+                  borderRadius: '50%',
+                  backgroundColor: planetColor,
+                  boxShadow: `0 0 4px ${planetColor}60`,
+                  ...minimapDotPosition(p.x, p.z, GAME_CONFIG.PLAY_AREA_SIZE),
+                  transform: 'translate(-50%, -50%)',
+                  opacity: p.scanned ? 0.3 : 1,
+                  animation: activeScanPlanetId === p.id ? 'scanPulse 800ms ease-in-out infinite alternate' : 'none',
+                  transition: 'opacity 200ms ease-out',
+                }} />
+              )
+            })}
             {/* Wormhole dot */}
             {wormhole && wormholeState !== 'hidden' && (
               <div style={{
                 position: 'absolute',
-                width: wormholeState === 'visible' ? '5px' : '7px',
-                height: wormholeState === 'visible' ? '5px' : '7px',
+                width: wormholeState === 'visible' ? MINIMAP.wormholeBaseSize : MINIMAP.wormholeActiveSize,
+                height: wormholeState === 'visible' ? MINIMAP.wormholeBaseSize : MINIMAP.wormholeActiveSize,
                 borderRadius: '50%',
-                backgroundColor: '#00ccff',
-                left: `${50 + (wormhole.x / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-                top: `${50 + (wormhole.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+                backgroundColor: MINIMAP.wormholeColor,
+                ...minimapDotPosition(wormhole.x, wormhole.z, GAME_CONFIG.PLAY_AREA_SIZE),
                 transform: 'translate(-50%, -50%)',
-                boxShadow: wormholeState !== 'visible' ? '0 0 6px #00ccff' : 'none',
+                boxShadow: wormholeState !== 'visible' ? MINIMAP.wormholeGlowActive : MINIMAP.wormholeGlowBase,
                 animation: 'scanPulse 800ms ease-in-out infinite alternate',
+                transition: 'width 200ms ease-out, height 200ms ease-out',
               }} />
             )}
+            {/* Compass labels (z-10 to stay above dots) */}
+            {[
+              { label: 'N', pos: { top: '2px', left: '50%', transform: 'translateX(-50%)' } },
+              { label: 'S', pos: { bottom: '2px', left: '50%', transform: 'translateX(-50%)' } },
+              { label: 'W', pos: { left: '2px', top: '50%', transform: 'translateY(-50%)' } },
+              { label: 'E', pos: { right: '2px', top: '50%', transform: 'translateY(-50%)' } },
+            ].map(({ label, pos }) => (
+              <span key={label} style={{
+                position: 'absolute',
+                ...pos,
+                fontSize: '7px',
+                color: 'rgba(255,255,255,0.6)',
+                fontWeight: 'bold',
+                pointerEvents: 'none',
+                zIndex: 10,
+                textShadow: '0 0 2px rgba(0,0,0,0.8)',
+              }}>{label}</span>
+            ))}
           </div>
         </div>
       </div>
