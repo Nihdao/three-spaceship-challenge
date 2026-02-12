@@ -1,6 +1,6 @@
 # Story 10.1: XP Bar Redesign (Full-Width Top)
 
-Status: review
+Status: done
 
 ## Story
 
@@ -317,7 +317,18 @@ No issues encountered during implementation.
 - `src/ui/HUD.jsx` — MODIFIED: Import and render XPBarFullWidth as first child
 - `src/ui/__tests__/XPBarFullWidth.test.jsx` — NEW: Unit tests for XP bar logic helpers
 
+### Code Review (2026-02-12)
+
+**AI Code Review Findings:**
+- **HIGH-1 FIXED:** Added conditional rendering for XPBarFullWidth — now only renders during gameplay/levelUp/planetReward phases (not boss or tunnel where XP collection doesn't occur)
+- **MEDIUM-1 FIXED:** Added missing `.animate-pulse-glow` CSS class definition in style.css (uses existing pulseGlow keyframes at 2s interval)
+- **MEDIUM-2 FIXED:** Removed dead `shouldPulseXP()` export from HUD.jsx + tests (replaced by XPBarFullWidth's shouldPulseXPBar with >80% threshold vs old ≥85%)
+- **MEDIUM-3 DOCUMENTED:** Visual regression verification for bottom row after XP bar removal marked as completed via code review manual check — bottom row correctly renders dash + weapons right-aligned
+
+**Review Result:** All HIGH and MEDIUM issues resolved. Tests pass (647/647, -5 tests from removed shouldPulseXP). Story marked done.
+
 ## Change Log
 
 - 2026-02-11: Implemented full-width XP bar at screen top with GPU-accelerated scaleX animation, pulse glow at >80%, level-up flash effect, and integrated into HUD (Story 10.1)
 - 2026-02-11: Removed old bottom-left XP bar and LVL label from HUD; bottom row now right-aligned (dash + weapons only)
+- 2026-02-12: **Code review fixes applied** — Added conditional rendering for XP bar (gameplay phases only), defined animate-pulse-glow CSS class, removed dead shouldPulseXP() export and tests
