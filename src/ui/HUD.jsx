@@ -6,6 +6,7 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { PLANETS } from '../entities/planetDefs.js'
 import ProgressBar from './primitives/ProgressBar.jsx'
+import XPBarFullWidth from './XPBarFullWidth.jsx'
 
 // --- Exported logic helpers (testable without DOM) ---
 
@@ -35,9 +36,6 @@ export default function HUD() {
   const phase = useGame((s) => s.phase)
   const currentHP = usePlayer((s) => s.currentHP)
   const maxHP = usePlayer((s) => s.maxHP)
-  const currentLevel = usePlayer((s) => s.currentLevel)
-  const currentXP = usePlayer((s) => s.currentXP)
-  const xpToNextLevel = usePlayer((s) => s.xpToNextLevel)
   const activeWeapons = useWeapons((s) => s.activeWeapons)
   const damageFlashTimer = usePlayer((s) => s.damageFlashTimer)
   const dashCooldownTimer = usePlayer((s) => s.dashCooldownTimer)
@@ -51,11 +49,13 @@ export default function HUD() {
   const remaining = GAME_CONFIG.SYSTEM_TIMER - systemTimer
   const timerDisplay = formatTimer(remaining)
   const hpPulse = shouldPulseHP(currentHP, maxHP)
-  const xpPulse = shouldPulseXP(currentXP, xpToNextLevel)
   const isLowHP = hpPulse
 
   return (
     <div className="fixed inset-0 z-40 pointer-events-none font-game">
+      {/* Full-width XP bar at very top (Story 10.1) */}
+      <XPBarFullWidth />
+
       {/* Top row: HP left, Timer+Kills center */}
       <div className="absolute top-0 left-0 right-0 flex items-start justify-between px-6 pt-4">
         {/* HP Bar — top-left */}
@@ -183,21 +183,8 @@ export default function HUD() {
         )
       })()}
 
-      {/* Bottom row: XP bar left/center, Weapons right */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between px-6 pb-4">
-        {/* XP Bar — bottom-left, stretches to center */}
-        <div className="flex items-center gap-2" style={{ width: 'clamp(200px, 40vw, 500px)' }}>
-          <div className="flex-1" style={{ height: 'clamp(5px, 0.6vw, 8px)' }}>
-            <ProgressBar value={currentXP} max={xpToNextLevel} variant="xp" pulse={xpPulse} />
-          </div>
-          <span
-            className="text-game-xp font-bold tabular-nums whitespace-nowrap"
-            style={{ fontSize: 'clamp(11px, 1.1vw, 15px)' }}
-          >
-            LVL {currentLevel}
-          </span>
-        </div>
-
+      {/* Bottom row: Dash cooldown + Weapons */}
+      <div className="absolute bottom-0 left-0 right-0 flex items-end justify-end px-6 pb-4">
         {/* Dash cooldown — bottom-right, before weapons */}
         <div className="flex items-end gap-3">
           <div className="flex flex-col items-center gap-0.5">
