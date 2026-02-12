@@ -122,18 +122,18 @@ development_status:
   10-1-xp-bar-redesign-full-width-top: done
   10-2-top-stats-display-score-fragments-level-kills: done
   10-3-enhanced-minimap-styling: done
-  10-4-hp-item-slots-reorganization-top-left-cluster: ready-for-dev
-  10-5-boon-slots-visibility-display: ready-for-dev
+  10-4-hp-item-slots-reorganization-top-left-cluster: review
+  10-5-boon-slots-visibility-display: review
   10-6-pause-menu-with-detailed-inventory: ready-for-dev
   10-7-bottom-item-library-bar: ready-for-dev
   epic-10-retrospective: optional
 
   # Epic 11: Gameplay Balance & Content Completion
-  epic-11: backlog
-  11-1-xp-magnetization-system: backlog
-  11-2-xp-curve-rebalancing: backlog
-  11-3-complete-weapon-roster-implementation: backlog
-  11-4-complete-boon-roster-implementation: backlog
+  epic-11: in-progress
+  11-1-xp-magnetization-system: ready-for-dev
+  11-2-xp-curve-rebalancing: ready-for-dev
+  11-3-complete-weapon-roster-implementation: ready-for-dev
+  11-4-complete-boon-roster-implementation: ready-for-dev
   epic-11-retrospective: optional
 
   # Epic 12: Visual Polish & Player Readability

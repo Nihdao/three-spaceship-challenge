@@ -1,10 +1,12 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
+import useBoons from '../stores/useBoons.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
+import { BOONS } from '../entities/boonDefs.js'
 import { PLANETS } from '../entities/planetDefs.js'
 import ProgressBar from './primitives/ProgressBar.jsx'
 import XPBarFullWidth from './XPBarFullWidth.jsx'
@@ -89,6 +91,215 @@ function AnimatedStat({ value, icon, colorClass, label }) {
   )
 }
 
+// --- Weapon Slots with update animation (Story 10.4) ---
+
+/** Detect which weapon slots changed (added or upgraded) between prev and current arrays. */
+export function detectChangedSlots(prev, current) {
+  const changed = []
+  for (let i = 0; i < 4; i++) {
+    const prevW = prev[i]
+    const currW = current[i]
+    if (currW && (!prevW || prevW.weaponId !== currW.weaponId || prevW.level !== currW.level)) {
+      changed.push(i)
+    }
+  }
+  return changed
+}
+
+function WeaponSlots({ activeWeapons }) {
+  const [animatingSlots, setAnimatingSlots] = useState(new Set())
+  const prevWeaponsRef = useRef(null)
+
+  useEffect(() => {
+    if (prevWeaponsRef.current === null) {
+      prevWeaponsRef.current = activeWeapons
+      return
+    }
+    const changed = detectChangedSlots(prevWeaponsRef.current, activeWeapons)
+    if (changed.length > 0) {
+      setAnimatingSlots(new Set(changed))
+    }
+    prevWeaponsRef.current = activeWeapons
+  }, [activeWeapons])
+
+  useEffect(() => {
+    if (animatingSlots.size === 0) return
+    const timer = setTimeout(() => setAnimatingSlots(new Set()), 300)
+    return () => clearTimeout(timer)
+  }, [animatingSlots])
+
+  return (
+    <div className="flex gap-1.5 mt-1" aria-label="weapon slots">
+      {[0, 1, 2, 3].map((i) => {
+        const weapon = activeWeapons[i]
+        const isAnimating = animatingSlots.has(i)
+        if (!weapon) {
+          return (
+            <div
+              key={`empty-${i}`}
+              className="flex items-center justify-center"
+              aria-label={`weapon slot ${i + 1} empty`}
+              style={{
+                width: 'clamp(32px, 3vw, 48px)',
+                height: 'clamp(32px, 3vw, 48px)',
+                borderRadius: '4px',
+                border: '1px dashed rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(0,0,0,0.3)',
+              }}
+            >
+              <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)' }}>—</span>
+            </div>
+          )
+        }
+        const def = WEAPONS[weapon.weaponId]
+        const color = def?.projectileColor || '#ffffff'
+        const name = def?.name?.split(' ')[0] || '?'
+        return (
+          <div
+            key={weapon.weaponId}
+            className="relative flex flex-col items-center justify-center"
+            aria-label={`weapon slot ${i + 1} ${name} level ${weapon.level}`}
+            style={{
+              width: 'clamp(32px, 3vw, 48px)',
+              height: 'clamp(32px, 3vw, 48px)',
+              borderRadius: '4px',
+              border: `2px solid ${color}4D`,
+              backgroundColor: `${color}26`,
+              transform: isAnimating ? 'scale(1.15)' : 'scale(1)',
+              boxShadow: isAnimating ? `0 0 12px ${color}99` : 'none',
+              transition: 'transform 250ms ease-out, box-shadow 250ms ease-out',
+            }}
+          >
+            <span
+              className="font-bold truncate leading-tight"
+              style={{ fontSize: 'clamp(7px, 0.7vw, 10px)', color }}
+            >
+              {name}
+            </span>
+            <span
+              className="text-white font-bold tabular-nums leading-tight"
+              style={{ fontSize: 'clamp(7px, 0.7vw, 9px)' }}
+            >
+              Lv{weapon.level}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// --- Boon Slots with update animation (Story 10.5) ---
+
+/** Get short display label for a boon (first word of name). */
+export function getBoonLabel(boonId) {
+  const BOON_LABELS = {
+    DAMAGE_AMP: 'Dmg',
+    SPEED_BOOST: 'Speed',
+    COOLDOWN_REDUCTION: 'Rapid',
+    CRIT_CHANCE: 'Crit',
+  }
+  return BOON_LABELS[boonId] || '?'
+}
+
+/** Detect which boon slots changed (added or upgraded) between prev and current arrays. */
+export function detectChangedBoons(prev, current) {
+  const changed = []
+  for (let i = 0; i < 3; i++) {
+    const prevB = prev[i]
+    const currB = current[i]
+    if (currB && (!prevB || prevB.boonId !== currB.boonId || prevB.level !== currB.level)) {
+      changed.push(i)
+    }
+  }
+  return changed
+}
+
+function BoonSlots({ activeBoons }) {
+  const [animatingSlots, setAnimatingSlots] = useState(new Set())
+  const prevBoonsRef = useRef(null)
+
+  useEffect(() => {
+    if (prevBoonsRef.current === null) {
+      prevBoonsRef.current = activeBoons
+      return
+    }
+    const changed = detectChangedBoons(prevBoonsRef.current, activeBoons)
+    if (changed.length > 0) {
+      setAnimatingSlots(new Set(changed))
+    }
+    prevBoonsRef.current = activeBoons
+  }, [activeBoons])
+
+  useEffect(() => {
+    if (animatingSlots.size === 0) return
+    const timer = setTimeout(() => setAnimatingSlots(new Set()), 300)
+    return () => clearTimeout(timer)
+  }, [animatingSlots])
+
+  return (
+    <div className="flex gap-1.5 mt-1" aria-label="boon slots">
+      {[0, 1, 2].map((i) => {
+        const boon = activeBoons[i]
+        const isAnimating = animatingSlots.has(i)
+        if (!boon) {
+          return (
+            <div
+              key={`boon-empty-${i}`}
+              className="flex items-center justify-center"
+              aria-label={`boon slot ${i + 1} empty`}
+              style={{
+                width: 'clamp(32px, 3vw, 48px)',
+                height: 'clamp(32px, 3vw, 48px)',
+                borderRadius: '8px',
+                border: '1px dashed rgba(255, 20, 147, 0.1)',
+                backgroundColor: 'rgba(0,0,0,0.3)',
+              }}
+            >
+              <span style={{ fontSize: '12px', color: 'rgba(255, 20, 147, 0.2)' }}>—</span>
+            </div>
+          )
+        }
+        const def = BOONS[boon.boonId]
+        const name = def?.name || '?'
+        const label = getBoonLabel(boon.boonId)
+        const description = def?.tiers?.[boon.level - 1]?.description || ''
+        return (
+          <div
+            key={boon.boonId}
+            className="relative flex flex-col items-center justify-center"
+            aria-label={`boon slot ${i + 1} ${name} level ${boon.level}`}
+            title={`${name}: ${description}`}
+            style={{
+              width: 'clamp(32px, 3vw, 48px)',
+              height: 'clamp(32px, 3vw, 48px)',
+              borderRadius: '8px',
+              border: '2px solid rgba(255, 20, 147, 0.3)',
+              backgroundColor: 'rgba(255, 20, 147, 0.15)',
+              transform: isAnimating ? 'scale(1.15)' : 'scale(1)',
+              boxShadow: isAnimating ? '0 0 12px rgba(255, 20, 147, 0.6)' : 'none',
+              transition: 'transform 250ms ease-out, box-shadow 250ms ease-out',
+            }}
+          >
+            <span
+              className="font-bold truncate leading-tight"
+              style={{ fontSize: 'clamp(7px, 0.7vw, 10px)', color: 'rgba(255, 182, 219, 1)' }}
+            >
+              {label}
+            </span>
+            <span
+              className="text-white font-bold tabular-nums leading-tight"
+              style={{ fontSize: 'clamp(7px, 0.7vw, 9px)' }}
+            >
+              Lv{boon.level}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // --- HUD Component ---
 
 export default function HUD() {
@@ -102,6 +313,7 @@ export default function HUD() {
   const fragments = usePlayer((s) => s.fragments)
   const currentLevel = usePlayer((s) => s.currentLevel)
   const activeWeapons = useWeapons((s) => s.activeWeapons)
+  const activeBoons = useBoons((s) => s.activeBoons)
   const damageFlashTimer = usePlayer((s) => s.damageFlashTimer)
   const dashCooldownTimer = usePlayer((s) => s.dashCooldownTimer)
   const isDashing = usePlayer((s) => s.isDashing)
@@ -147,6 +359,12 @@ export default function HUD() {
             <AnimatedStat value={fragments} icon="◆" colorClass="text-cyan-400" label="fragments" />
             <AnimatedStat value={score} icon="⭐" colorClass="text-yellow-400" label="score" />
           </div>
+
+          {/* Weapon Slots — below stats in top-left cluster (Story 10.4) */}
+          <WeaponSlots activeWeapons={activeWeapons} />
+
+          {/* Boon Slots — below weapon slots in top-left cluster (Story 10.5) */}
+          <BoonSlots activeBoons={activeBoons} />
         </div>
 
         {/* Timer — top-center */}
@@ -299,9 +517,8 @@ export default function HUD() {
         )
       })()}
 
-      {/* Bottom row: Dash cooldown + Weapons */}
+      {/* Bottom row: Dash cooldown */}
       <div className="absolute bottom-0 left-0 right-0 flex items-end justify-end px-6 pb-4">
-        {/* Dash cooldown — bottom-right, before weapons */}
         <div className="flex items-end gap-3">
           <div className="flex flex-col items-center gap-0.5">
             <div
@@ -328,54 +545,6 @@ export default function HUD() {
               SPACE
             </span>
           </div>
-
-        {/* Weapon Slots — bottom-right */}
-        <div className="flex gap-1.5">
-          {Array.from({ length: 4 }).map((_, i) => {
-            const weapon = activeWeapons[i]
-            if (!weapon) {
-              return (
-                <div
-                  key={`empty-${i}`}
-                  className="border border-game-border/40 rounded bg-white/5 flex items-center justify-center"
-                  style={{
-                    width: 'clamp(40px, 4vw, 56px)',
-                    height: 'clamp(32px, 3.2vw, 44px)',
-                  }}
-                >
-                  <span className="text-game-text-muted" style={{ fontSize: 'clamp(9px, 0.9vw, 12px)' }}>—</span>
-                </div>
-              )
-            }
-            const def = WEAPONS[weapon.weaponId]
-            const color = def?.projectileColor || '#ffffff'
-            return (
-              <div
-                key={weapon.weaponId}
-                className="border rounded flex flex-col items-center justify-center px-1"
-                style={{
-                  width: 'clamp(40px, 4vw, 56px)',
-                  height: 'clamp(32px, 3.2vw, 44px)',
-                  borderColor: color,
-                  backgroundColor: `${color}15`,
-                }}
-              >
-                <span
-                  className="font-bold truncate leading-tight"
-                  style={{ fontSize: 'clamp(8px, 0.8vw, 11px)', color }}
-                >
-                  {def?.name?.split(' ')[0] || '?'}
-                </span>
-                <span
-                  className="text-game-text-muted leading-tight tabular-nums"
-                  style={{ fontSize: 'clamp(7px, 0.7vw, 10px)' }}
-                >
-                  Lv{weapon.level}
-                </span>
-              </div>
-            )
-          })}
-        </div>
         </div>
       </div>
 
