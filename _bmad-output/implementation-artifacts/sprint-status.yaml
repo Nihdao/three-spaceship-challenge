@@ -120,10 +120,10 @@ development_status:
   # Epic 10: HUD Overhaul & Advanced In-Game UI
   epic-10: in-progress
   10-1-xp-bar-redesign-full-width-top: done
-  10-2-top-stats-display-score-fragments-level-kills: ready-for-dev
+  10-2-top-stats-display-score-fragments-level-kills: review
   10-3-enhanced-minimap-styling: ready-for-dev
   10-4-hp-item-slots-reorganization-top-left-cluster: ready-for-dev
-  10-5-boon-slots-visibility-display: backlog
+  10-5-boon-slots-visibility-display: ready-for-dev
   10-6-pause-menu-with-detailed-inventory: backlog
   10-7-bottom-item-library-bar: backlog
   epic-10-retrospective: optional

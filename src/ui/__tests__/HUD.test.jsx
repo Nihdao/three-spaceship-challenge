@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTimer, shouldPulseHP } from '../HUD.jsx'
+import { formatTimer, shouldPulseHP, isLowTime } from '../HUD.jsx'
 
 describe('HUD logic', () => {
   describe('formatTimer', () => {
@@ -47,6 +47,31 @@ describe('HUD logic', () => {
 
     it('returns true when maxHP is 0 (guard against division by zero)', () => {
       expect(shouldPulseHP(0, 0)).toBe(true)
+    })
+  })
+
+  describe('isLowTime (Story 10.2)', () => {
+    it('returns true when remaining is below 60 seconds and above 0', () => {
+      expect(isLowTime(59)).toBe(true)
+      expect(isLowTime(30)).toBe(true)
+      expect(isLowTime(1)).toBe(true)
+    })
+
+    it('returns false when remaining is exactly 60', () => {
+      expect(isLowTime(60)).toBe(false)
+    })
+
+    it('returns false when remaining is above 60', () => {
+      expect(isLowTime(300)).toBe(false)
+      expect(isLowTime(61)).toBe(false)
+    })
+
+    it('returns false when remaining is 0 (game over)', () => {
+      expect(isLowTime(0)).toBe(false)
+    })
+
+    it('returns false when remaining is negative', () => {
+      expect(isLowTime(-5)).toBe(false)
     })
   })
 
