@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
@@ -22,8 +23,44 @@ export function shouldPulseHP(currentHP, maxHP) {
   return currentHP / maxHP < 0.25
 }
 
+export function isLowTime(remaining) {
+  return remaining > 0 && remaining < 60
+}
+
 // Note: shouldPulseXP() removed in Story 10.1 (old XP bar replaced by XPBarFullWidth)
 // New XP bar uses shouldPulseXPBar() from XPBarFullWidth.jsx with >80% threshold
+
+// --- Stat with update animation ---
+
+function AnimatedStat({ value, icon, colorClass, label }) {
+  const ref = useRef(null)
+  const prevValue = useRef(value)
+
+  useEffect(() => {
+    if (prevValue.current !== value && ref.current) {
+      ref.current.classList.remove('stat-updated')
+      // Force reflow to restart animation
+      void ref.current.offsetWidth
+      ref.current.classList.add('stat-updated')
+      prevValue.current = value
+    }
+  }, [value])
+
+  return (
+    <div className="flex items-center gap-1" aria-label={label}>
+      <span className={colorClass} style={{ fontSize: 'clamp(11px, 1.1vw, 16px)' }}>
+        {icon}
+      </span>
+      <span
+        ref={ref}
+        className={`${colorClass} tabular-nums font-bold`}
+        style={{ fontSize: 'clamp(11px, 1.1vw, 16px)' }}
+      >
+        {value}
+      </span>
+    </div>
+  )
+}
 
 // --- HUD Component ---
 
@@ -31,9 +68,12 @@ export default function HUD() {
   // Individual selectors for performance (avoid unnecessary re-renders)
   const systemTimer = useGame((s) => s.systemTimer)
   const kills = useGame((s) => s.kills)
+  const score = useGame((s) => s.score)
   const phase = useGame((s) => s.phase)
   const currentHP = usePlayer((s) => s.currentHP)
   const maxHP = usePlayer((s) => s.maxHP)
+  const fragments = usePlayer((s) => s.fragments)
+  const currentLevel = usePlayer((s) => s.currentLevel)
   const activeWeapons = useWeapons((s) => s.activeWeapons)
   const damageFlashTimer = usePlayer((s) => s.damageFlashTimer)
   const dashCooldownTimer = usePlayer((s) => s.dashCooldownTimer)
@@ -48,95 +88,114 @@ export default function HUD() {
   const timerDisplay = formatTimer(remaining)
   const hpPulse = shouldPulseHP(currentHP, maxHP)
   const isLowHP = hpPulse
+  const lowTime = isLowTime(remaining)
 
   return (
     <div className="fixed inset-0 z-40 pointer-events-none font-game">
       {/* Full-width XP bar at very top (Story 10.1) — only during XP-earning phases */}
       {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <XPBarFullWidth />}
 
-      {/* Top row: HP left, Timer+Kills center */}
+      {/* Top row: HP + Stats left, Timer center, Level + Minimap right */}
       <div className="absolute top-0 left-0 right-0 flex items-start justify-between px-6 pt-4">
-        {/* HP Bar — top-left */}
-        <div className="flex flex-col gap-1" style={{ width: 'clamp(140px, 14vw, 220px)' }}>
-          <div className="flex items-center justify-between">
-            <span className="text-game-hp font-bold" style={{ fontSize: 'clamp(11px, 1.1vw, 15px)' }}>
-              HP
-            </span>
-            <span className="text-game-text tabular-nums" style={{ fontSize: 'clamp(10px, 1vw, 14px)' }}>
-              {Math.ceil(currentHP)} / {maxHP}
-            </span>
+        {/* Left column: HP bar + Stats cluster */}
+        <div className="flex flex-col gap-2">
+          {/* HP Bar — top-left */}
+          <div className="flex flex-col gap-1" style={{ width: 'clamp(140px, 14vw, 220px)' }}>
+            <div className="flex items-center justify-between">
+              <span className="text-game-hp font-bold" style={{ fontSize: 'clamp(11px, 1.1vw, 15px)' }}>
+                HP
+              </span>
+              <span className="text-game-text tabular-nums" style={{ fontSize: 'clamp(10px, 1vw, 14px)' }}>
+                {Math.ceil(currentHP)} / {maxHP}
+              </span>
+            </div>
+            <div style={{ height: 'clamp(6px, 0.7vw, 10px)' }}>
+              <ProgressBar value={currentHP} max={maxHP} variant="hp" pulse={hpPulse} />
+            </div>
           </div>
-          <div style={{ height: 'clamp(6px, 0.7vw, 10px)' }}>
-            <ProgressBar value={currentHP} max={maxHP} variant="hp" pulse={hpPulse} />
+
+          {/* Stats cluster: Kills | Fragments | Score (Story 10.2) */}
+          <div className="flex items-center gap-3">
+            <AnimatedStat value={kills} icon="💀" colorClass="text-game-danger" label="kills" />
+            <AnimatedStat value={fragments} icon="◆" colorClass="text-cyan-400" label="fragments" />
+            <AnimatedStat value={score} icon="⭐" colorClass="text-yellow-400" label="score" />
           </div>
         </div>
 
-        {/* Timer + Kills — top-center */}
+        {/* Timer — top-center */}
         <div className="flex flex-col items-center gap-0.5">
           {phase !== 'boss' && <span
-            className="text-game-timer font-bold tabular-nums"
+            className={`font-bold tabular-nums ${lowTime ? 'text-game-danger animate-pulse' : 'text-game-timer'}`}
             style={{ fontSize: 'clamp(20px, 2.2vw, 32px)' }}
+            data-testid="timer"
           >
             {timerDisplay}
           </span>}
-          <span
-            className="text-game-text-muted tabular-nums"
-            style={{ fontSize: 'clamp(11px, 1.1vw, 16px)' }}
-          >
-            x{kills}
-          </span>
         </div>
 
-        {/* Minimap — top-right */}
-        <div style={{
-          width: 'clamp(80px, 8vw, 120px)',
-          height: 'clamp(80px, 8vw, 120px)',
-          visibility: phase === 'boss' ? 'hidden' : undefined,
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: '4px',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          overflow: 'hidden',
-          position: 'relative',
-        }}>
-          {/* Player dot */}
+        {/* Right column: Level + Minimap */}
+        <div className="flex items-start gap-3">
+          {/* Level display (Story 10.2) */}
+          <div className="flex items-center" aria-label="level">
+            <span
+              className="text-game-text font-bold tabular-nums"
+              style={{ fontSize: 'clamp(14px, 1.5vw, 20px)' }}
+            >
+              LVL {currentLevel}
+            </span>
+          </div>
+
+          {/* Minimap — top-right */}
           <div style={{
-            position: 'absolute',
-            width: '4px', height: '4px',
-            borderRadius: '50%',
-            backgroundColor: '#ffffff',
-            left: `${50 + (playerPosition[0] / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-            top: `${50 + (playerPosition[2] / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-            transform: 'translate(-50%, -50%)',
-          }} />
-          {/* Planet dots */}
-          {planets.map((p) => (
-            <div key={p.id} style={{
-              position: 'absolute',
-              width: '5px', height: '5px',
-              borderRadius: '50%',
-              backgroundColor: PLANETS[p.typeId]?.color,
-              left: `${50 + (p.x / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-              top: `${50 + (p.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-              transform: 'translate(-50%, -50%)',
-              opacity: p.scanned ? 0.3 : 1,
-              animation: activeScanPlanetId === p.id ? 'scanPulse 800ms ease-in-out infinite alternate' : 'none',
-            }} />
-          ))}
-          {/* Wormhole dot */}
-          {wormhole && wormholeState !== 'hidden' && (
+            width: 'clamp(80px, 8vw, 120px)',
+            height: 'clamp(80px, 8vw, 120px)',
+            visibility: phase === 'boss' ? 'hidden' : undefined,
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '4px',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            overflow: 'hidden',
+            position: 'relative',
+          }}>
+            {/* Player dot */}
             <div style={{
               position: 'absolute',
-              width: wormholeState === 'visible' ? '5px' : '7px',
-              height: wormholeState === 'visible' ? '5px' : '7px',
+              width: '4px', height: '4px',
               borderRadius: '50%',
-              backgroundColor: '#00ccff',
-              left: `${50 + (wormhole.x / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
-              top: `${50 + (wormhole.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+              backgroundColor: '#ffffff',
+              left: `${50 + (playerPosition[0] / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+              top: `${50 + (playerPosition[2] / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
               transform: 'translate(-50%, -50%)',
-              boxShadow: wormholeState !== 'visible' ? '0 0 6px #00ccff' : 'none',
-              animation: 'scanPulse 800ms ease-in-out infinite alternate',
             }} />
-          )}
+            {/* Planet dots */}
+            {planets.map((p) => (
+              <div key={p.id} style={{
+                position: 'absolute',
+                width: '5px', height: '5px',
+                borderRadius: '50%',
+                backgroundColor: PLANETS[p.typeId]?.color,
+                left: `${50 + (p.x / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+                top: `${50 + (p.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+                transform: 'translate(-50%, -50%)',
+                opacity: p.scanned ? 0.3 : 1,
+                animation: activeScanPlanetId === p.id ? 'scanPulse 800ms ease-in-out infinite alternate' : 'none',
+              }} />
+            ))}
+            {/* Wormhole dot */}
+            {wormhole && wormholeState !== 'hidden' && (
+              <div style={{
+                position: 'absolute',
+                width: wormholeState === 'visible' ? '5px' : '7px',
+                height: wormholeState === 'visible' ? '5px' : '7px',
+                borderRadius: '50%',
+                backgroundColor: '#00ccff',
+                left: `${50 + (wormhole.x / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+                top: `${50 + (wormhole.z / GAME_CONFIG.PLAY_AREA_SIZE) * 50}%`,
+                transform: 'translate(-50%, -50%)',
+                boxShadow: wormholeState !== 'visible' ? '0 0 6px #00ccff' : 'none',
+                animation: 'scanPulse 800ms ease-in-out infinite alternate',
+              }} />
+            )}
+          </div>
         </div>
       </div>
 
