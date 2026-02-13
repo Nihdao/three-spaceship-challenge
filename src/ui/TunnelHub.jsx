@@ -8,6 +8,10 @@ import { UPGRADES } from '../entities/upgradeDefs.js'
 import { DILEMMAS } from '../entities/dilemmaDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
+export function computeCanEnterSystem(currentDilemma, dilemmaResolved) {
+  return !currentDilemma || dilemmaResolved
+}
+
 export default function TunnelHub() {
   const fragments = usePlayer((s) => s.fragments)
   const permanentUpgrades = usePlayer((s) => s.permanentUpgrades)
@@ -87,6 +91,7 @@ export default function TunnelHub() {
     setDilemmaResolved(true)
   }, [])
 
+  const canEnterSystem = computeCanEnterSystem(currentDilemma, dilemmaResolved)
 
   const [exitAnimationActive, setExitAnimationActive] = useState(false)
 
@@ -148,8 +153,8 @@ export default function TunnelHub() {
         handleRefuseDilemma()
         return
       }
-      // Enter for enter system
-      if (e.key === 'Enter') {
+      // Enter for enter system (blocked when dilemma unresolved)
+      if (e.key === 'Enter' && canEnterSystem) {
         handleEnterSystem()
       }
     }
@@ -276,17 +281,27 @@ export default function TunnelHub() {
           <div className="flex-1" />
 
           {/* Enter System button */}
-          <button
-            className="w-full py-3 font-semibold tracking-[0.2em] border border-game-border rounded
-              transition-all duration-150 select-none cursor-pointer outline-none
-              text-game-text hover:border-game-accent hover:scale-[1.02] hover:bg-game-accent/10
-              focus-visible:ring-2 focus-visible:ring-game-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0f]"
-            style={{ fontSize: 'clamp(14px, 1.5vw, 20px)' }}
-            onClick={handleEnterSystem}
-            onMouseEnter={() => playSFX('button-hover')}
-          >
-            ENTER SYSTEM &rarr;
-          </button>
+          <div>
+            <button
+              className={`w-full py-3 font-semibold tracking-[0.2em] border border-game-border rounded
+                transition-all duration-300 select-none outline-none
+                ${canEnterSystem
+                  ? 'cursor-pointer text-game-text hover:border-game-accent hover:scale-[1.02] hover:bg-game-accent/10 focus-visible:ring-2 focus-visible:ring-game-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0f]'
+                  : 'opacity-50 cursor-not-allowed'
+                }`}
+              style={{ fontSize: 'clamp(14px, 1.5vw, 20px)' }}
+              onClick={handleEnterSystem}
+              onMouseEnter={() => canEnterSystem && playSFX('button-hover')}
+              disabled={!canEnterSystem}
+            >
+              ENTER SYSTEM &rarr;
+            </button>
+            {!canEnterSystem && (
+              <p className="text-game-text-muted text-xs text-center mt-1.5 select-none">
+                Resolve the dilemma first
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </>
