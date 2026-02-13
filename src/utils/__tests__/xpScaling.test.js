@@ -27,8 +27,11 @@ describe('getXPForLevel', () => {
   })
 
   it('does not exceed Number.MAX_SAFE_INTEGER', () => {
-    // Level 300 would overflow without safeguard
-    expect(getXPForLevel(300)).toBeLessThanOrEqual(Number.MAX_SAFE_INTEGER)
+    // With 1.02 growth, unguarded value exceeds safe integer around level ~1446
+    const xp1500 = getXPForLevel(1500)
+    expect(xp1500).toBe(Number.MAX_SAFE_INTEGER)
+    // Moderate level should still be well below cap
+    expect(getXPForLevel(300)).toBeLessThan(Number.MAX_SAFE_INTEGER)
   })
 
   it('returns positive integers for all levels', () => {
