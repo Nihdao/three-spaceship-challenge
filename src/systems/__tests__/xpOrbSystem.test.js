@@ -1,6 +1,20 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { spawnOrb, collectOrb, updateOrbs, getOrbs, getActiveCount, resetOrbs } from '../xpOrbSystem.js'
+import { spawnOrb, collectOrb, updateOrbs, getOrbs, getActiveCount, resetOrbs, updateMagnetization } from '../xpOrbSystem.js'
 import { GAME_CONFIG } from '../../config/gameConfig.js'
+
+describe('XP Magnetization Config (Story 11.1)', () => {
+  it('XP_MAGNET_RADIUS exists and is larger than XP_ORB_PICKUP_RADIUS', () => {
+    expect(GAME_CONFIG.XP_MAGNET_RADIUS).toBeGreaterThan(GAME_CONFIG.XP_ORB_PICKUP_RADIUS)
+  })
+
+  it('XP_MAGNET_SPEED is a positive number', () => {
+    expect(GAME_CONFIG.XP_MAGNET_SPEED).toBeGreaterThan(0)
+  })
+
+  it('XP_MAGNET_ACCELERATION_CURVE is a positive number', () => {
+    expect(GAME_CONFIG.XP_MAGNET_ACCELERATION_CURVE).toBeGreaterThan(0)
+  })
+})
 
 describe('xpOrbSystem', () => {
   beforeEach(() => {
@@ -99,6 +113,179 @@ describe('xpOrbSystem', () => {
       expect(getActiveCount()).toBe(2)
       resetOrbs()
       expect(getActiveCount()).toBe(0)
+    })
+  })
+
+  describe('magnetization fields (Story 11.1)', () => {
+    it('spawned orbs have isMagnetized=false', () => {
+      spawnOrb(10, 20, 15)
+      const orb = getOrbs()[0]
+      expect(orb.isMagnetized).toBe(false)
+    })
+
+    it('recycled orbs reset magnetization fields', () => {
+      // Fill pool
+      for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
+        spawnOrb(i, i, 10)
+      }
+      // Manually magnetize the oldest orb
+      updateOrbs(5.0)
+      getOrbs()[0].elapsedTime = 0.1 // make index 0 not the oldest
+      const oldestOrb = getOrbs()[1]
+      oldestOrb.isMagnetized = true
+
+      // Spawn new orb — should recycle oldest (index 1)
+      spawnOrb(999, 888, 77)
+      // Find the recycled orb
+      const orbs = getOrbs()
+      for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
+        if (orbs[i].x === 999) {
+          expect(orbs[i].isMagnetized).toBe(false)
+          break
+        }
+      }
+    })
+
+    describe('updateMagnetization', () => {
+      it('magnetizes orbs within MAGNET_RADIUS', () => {
+        spawnOrb(5, 0, 10) // orb at (5, 0)
+        updateMagnetization(0, 0, 1/60) // player at origin, within radius 8
+        const orb = getOrbs()[0]
+        expect(orb.isMagnetized).toBe(true)
+      })
+
+      it('does not magnetize orbs outside MAGNET_RADIUS', () => {
+        spawnOrb(100, 100, 10) // orb far away
+        updateMagnetization(0, 0, 1/60)
+        const orb = getOrbs()[0]
+        expect(orb.isMagnetized).toBe(false)
+      })
+
+      it('de-magnetizes orbs that leave MAGNET_RADIUS', () => {
+        spawnOrb(5, 0, 10)
+        updateMagnetization(0, 0, 1/60) // magnetize
+        expect(getOrbs()[0].isMagnetized).toBe(true)
+        // Move orb far away manually
+        getOrbs()[0].x = 100
+        updateMagnetization(0, 0, 1/60)
+        expect(getOrbs()[0].isMagnetized).toBe(false)
+      })
+
+      it('moves magnetized orbs toward player', () => {
+        spawnOrb(5, 0, 10) // orb at (5, 0)
+        const orbBefore = getOrbs()[0].x
+        updateMagnetization(0, 0, 1/60) // player at origin
+        // After magnetization + movement, orb should have moved closer to player (x decreased)
+        expect(getOrbs()[0].x).toBeLessThan(orbBefore)
+      })
+
+      it('orbs accelerate as they get closer (ease-in)', () => {
+        // Spawn two orbs at different distances within magnet radius
+        spawnOrb(7, 0, 10) // far orb
+        spawnOrb(2, 0, 10) // close orb
+        updateMagnetization(0, 0, 1/60)
+        const farOrb = getOrbs()[0]
+        const closeOrb = getOrbs()[1]
+        // Close orb should have moved more (higher speed factor)
+        const farDelta = 7 - farOrb.x
+        const closeDelta = 2 - closeOrb.x
+        expect(closeDelta).toBeGreaterThan(farDelta)
+      })
+
+      it('non-magnetized orbs remain stationary', () => {
+        spawnOrb(100, 100, 10) // outside magnet radius
+        const xBefore = getOrbs()[0].x
+        const zBefore = getOrbs()[0].z
+        updateMagnetization(0, 0, 1/60)
+        expect(getOrbs()[0].x).toBe(xBefore)
+        expect(getOrbs()[0].z).toBe(zBefore)
+      })
+
+      it('handles multiple orbs simultaneously', () => {
+        spawnOrb(3, 0, 10)
+        spawnOrb(0, 4, 10)
+        spawnOrb(100, 100, 10) // outside radius
+        updateMagnetization(0, 0, 1/60)
+        expect(getOrbs()[0].isMagnetized).toBe(true)
+        expect(getOrbs()[1].isMagnetized).toBe(true)
+        expect(getOrbs()[2].isMagnetized).toBe(false)
+      })
+    })
+
+    it('resetOrbs clears magnetization state on all orbs', () => {
+      spawnOrb(5, 5, 10)
+      const orb = getOrbs()[0]
+      orb.isMagnetized = true
+      resetOrbs()
+      // After reset, spawn a new orb and verify the pool slot is clean
+      spawnOrb(1, 1, 5)
+      const freshOrb = getOrbs()[0]
+      expect(freshOrb.isMagnetized).toBe(false)
+    })
+
+    it('resetOrbs clears all base fields (x, z, xpValue, elapsedTime)', () => {
+      spawnOrb(42, 99, 777)
+      updateOrbs(3.5)
+      resetOrbs()
+      const orb = getOrbs()[0]
+      expect(orb.x).toBe(0)
+      expect(orb.z).toBe(0)
+      expect(orb.xpValue).toBe(0)
+      expect(orb.elapsedTime).toBe(0)
+    })
+
+    it('orb at boundary of MAGNET_RADIUS is magnetized', () => {
+      const radius = GAME_CONFIG.XP_MAGNET_RADIUS
+      spawnOrb(radius, 0, 10) // exactly at magnet radius
+      updateMagnetization(0, 0, 1/60)
+      expect(getOrbs()[0].isMagnetized).toBe(true)
+    })
+
+    it('orb just beyond MAGNET_RADIUS is not magnetized', () => {
+      const radius = GAME_CONFIG.XP_MAGNET_RADIUS
+      spawnOrb(radius + 0.01, 0, 10)
+      updateMagnetization(0, 0, 1/60)
+      expect(getOrbs()[0].isMagnetized).toBe(false)
+    })
+
+    it('orb very close to player does not divide by zero', () => {
+      spawnOrb(0.001, 0, 10) // very close to player
+      // Should not throw
+      updateMagnetization(0, 0, 1/60)
+      expect(getOrbs()[0].isMagnetized).toBe(true)
+    })
+
+    it('orb exactly at player position is safe', () => {
+      spawnOrb(0, 0, 10) // at player position
+      updateMagnetization(0, 0, 1/60)
+      // Should not throw, orb remains at player position
+      expect(getOrbs()[0].isMagnetized).toBe(true)
+    })
+
+    it('magnetized orb reaches pickup radius after repeated updates', () => {
+      const pickupRadius = GAME_CONFIG.XP_ORB_PICKUP_RADIUS
+      // Spawn orb just inside magnet radius but outside pickup radius
+      spawnOrb(pickupRadius + 2, 0, 10)
+      // Run magnetization for several frames to pull orb toward player at origin
+      for (let i = 0; i < 120; i++) {
+        updateMagnetization(0, 0, 1/60)
+      }
+      const orb = getOrbs()[0]
+      const dist = Math.sqrt(orb.x * orb.x + orb.z * orb.z)
+      expect(dist).toBeLessThanOrEqual(pickupRadius)
+    })
+
+    it('performance: 50 orbs magnetized in reasonable time', () => {
+      for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
+        spawnOrb(i % 8, (i * 0.1) % 8, 10)
+      }
+      const start = performance.now()
+      for (let frame = 0; frame < 60; frame++) {
+        updateMagnetization(0, 0, 1/60)
+      }
+      const elapsed = performance.now() - start
+      // 60 frames of 50 orbs should complete in under 50ms (generous threshold)
+      expect(elapsed).toBeLessThan(50)
     })
   })
 })

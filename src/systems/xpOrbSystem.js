@@ -5,7 +5,7 @@ const MAX_ORBS = GAME_CONFIG.MAX_XP_ORBS
 // Pre-allocated pool — zero GC pressure (follows particleSystem.js pattern)
 const orbs = []
 for (let i = 0; i < MAX_ORBS; i++) {
-  orbs[i] = { x: 0, z: 0, xpValue: 0, elapsedTime: 0 }
+  orbs[i] = { x: 0, z: 0, xpValue: 0, elapsedTime: 0, isMagnetized: false }
 }
 let activeCount = 0
 
@@ -21,6 +21,7 @@ export function spawnOrb(x, z, xpValue) {
     orb.z = z
     orb.xpValue = xpValue
     orb.elapsedTime = 0
+    orb.isMagnetized = false
     return
   }
   const orb = orbs[activeCount]
@@ -28,6 +29,7 @@ export function spawnOrb(x, z, xpValue) {
   orb.z = z
   orb.xpValue = xpValue
   orb.elapsedTime = 0
+  orb.isMagnetized = false
   activeCount++
 }
 
@@ -48,6 +50,39 @@ export function collectOrb(index) {
   return xpValue
 }
 
+export function updateMagnetization(px, pz, delta) {
+  const magnetRadiusSq = GAME_CONFIG.XP_MAGNET_RADIUS ** 2
+  const magnetSpeed = GAME_CONFIG.XP_MAGNET_SPEED
+  const accelCurve = GAME_CONFIG.XP_MAGNET_ACCELERATION_CURVE
+  const magnetRadius = GAME_CONFIG.XP_MAGNET_RADIUS
+
+  for (let i = 0; i < activeCount; i++) {
+    const orb = orbs[i]
+    const dx = px - orb.x
+    const dz = pz - orb.z
+    const distSq = dx * dx + dz * dz
+
+    if (distSq <= magnetRadiusSq) {
+      orb.isMagnetized = true
+    } else {
+      orb.isMagnetized = false
+    }
+
+    if (orb.isMagnetized) {
+      const dist = Math.sqrt(distSq)
+      if (dist > 0.01) {
+        const dirX = dx / dist
+        const dirZ = dz / dist
+        const normalizedDist = dist / magnetRadius
+        const speedFactor = Math.pow(1 - normalizedDist, accelCurve)
+        const speed = magnetSpeed * speedFactor
+        orb.x += dirX * speed * delta
+        orb.z += dirZ * speed * delta
+      }
+    }
+  }
+}
+
 export function getOrbs() {
   return orbs
 }
@@ -57,5 +92,12 @@ export function getActiveCount() {
 }
 
 export function resetOrbs() {
+  for (let i = 0; i < MAX_ORBS; i++) {
+    orbs[i].x = 0
+    orbs[i].z = 0
+    orbs[i].xpValue = 0
+    orbs[i].elapsedTime = 0
+    orbs[i].isMagnetized = false
+  }
   activeCount = 0
 }
