@@ -26,8 +26,25 @@ export const GAME_CONFIG = {
   XP_ORB_MESH_SCALE: [0.8, 0.8, 0.8],
   XP_ORB_COLOR: "#00ffcc",
 
-  // Progression
-  XP_LEVEL_CURVE: [100, 150, 225, 340, 510, 765, 1148, 1722, 2583, 3875],
+  // Progression — Story 11.2: Rebalanced for faster early-mid game progression
+  // Design goals: Level 5 in 2-3 min, level 10 in 5-6 min, smooth exponential curve
+  // Early levels (1-5): -20-30%, Mid levels (6-10): -15%, Late levels (11+): +50% growth
+  XP_LEVEL_CURVE: [
+    75,    // Level 1 → 2 (-25% from 100)
+    110,   // Level 2 → 3 (-27% from 150)
+    165,   // Level 3 → 4 (-27% from 225)
+    250,   // Level 4 → 5 (-26% from 340)
+    375,   // Level 5 → 6 (-26% from 510)
+    650,   // Level 6 → 7 (-15% from 765)
+    975,   // Level 7 → 8 (-15% from 1148)
+    1465,  // Level 8 → 9 (-15% from 1722)
+    2200,  // Level 9 → 10 (-15% from 2583)
+    3300,  // Level 10 → 11 (-15% from 3875)
+    4950,  // Level 11 → 12 (+50% growth)
+    7425,  // Level 12 → 13 (+50% growth)
+    11138, // Level 13 → 14 (+50% growth)
+    16707, // Level 14 → 15 (+50% growth, aspirational)
+  ],
 
   // Player movement (Story 1.2)
   PLAYER_ACCELERATION: 750, // units/sec² — how fast ship reaches full speed
@@ -143,12 +160,14 @@ export const GAME_CONFIG = {
 
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
-    EMISSIVE_INTENSITY: 0.5,          // Hull emissive intensity (0.3-0.8)
-    EMISSIVE_COLOR: '#00ffcc',        // Hull emissive color (cyan, matches UI theme)
-    ENGINE_EMISSIVE_INTENSITY: 1.5,   // Engine emissive intensity (1.0-2.0)
+    EMISSIVE_INTENSITY: 0,            // Hull emissive — not needed with strong point/fill lights
+    EMISSIVE_COLOR: '#000000',        // Hull emissive color
+    ENGINE_EMISSIVE_INTENSITY: 0.8,   // Engine emissive intensity
     ENGINE_EMISSIVE_COLOR: '#00ccff', // Engine emissive color (cyan/blue)
-    POINT_LIGHT_INTENSITY: 1.5,       // Local point light intensity (1.0-2.0)
-    POINT_LIGHT_DISTANCE: 12,         // Local point light distance (10-15 units)
-    FILL_LIGHT_INTENSITY: 0.7,        // Directional fill light intensity (0.5-1.0)
+    POINT_LIGHT_INTENSITY: 5.0,       // Local point light intensity
+    POINT_LIGHT_DISTANCE: 19,         // Local point light distance
+    POINT_LIGHT_Y: 1.0,              // Local point light Y offset
+    FILL_LIGHT_INTENSITY: 3.0,        // Directional fill light intensity
+    FILL_LIGHT_POSITION: [20, 8, -15], // Directional fill light position
   },
 };

@@ -5,8 +5,9 @@ import { useGLTF } from '@react-three/drei'
 import usePlayer from '../stores/usePlayer.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
+const _lighting = GAME_CONFIG.PLAYER_SHIP_LIGHTING
 const _dashEmissive = new THREE.Color(GAME_CONFIG.DASH_TRAIL_COLOR)
-const _defaultEmissive = new THREE.Color(0x000000)
+const _engineEmissive = new THREE.Color(_lighting.ENGINE_EMISSIVE_COLOR)
 
 export default function PlayerShip() {
   const groupRef = useRef()
@@ -15,20 +16,29 @@ export default function PlayerShip() {
   const { scene } = useGLTF('/models/ships/Spaceship.glb')
   const clonedScene = useMemo(() => scene.clone(), [scene])
 
-  // Collect all mesh materials from the cloned scene for emissive toggling
-  const meshMaterials = useMemo(() => {
-    const mats = []
+  // Collect mesh materials and apply engine emissive glow (Story 12.1)
+  const { allMaterials, engineMaterials } = useMemo(() => {
+    const all = []
+    const engines = []
     clonedScene.traverse((child) => {
       if (child.isMesh && child.material) {
         const materials = Array.isArray(child.material) ? child.material : [child.material]
+        const isEngine = child.name.toLowerCase().includes('engine') ||
+                         child.name.toLowerCase().includes('thruster')
         for (const mat of materials) {
-          if (mat.emissive !== undefined && !mats.includes(mat)) {
-            mats.push(mat)
+          if (mat.emissive !== undefined && !all.includes(mat)) {
+            all.push(mat)
+            if (isEngine) {
+              mat.emissive.copy(_engineEmissive)
+              mat.emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
+              mat.needsUpdate = true
+              engines.push(mat)
+            }
           }
         }
       }
     })
-    return mats
+    return { allMaterials: all, engineMaterials: engines }
   }, [clonedScene])
 
   const wasDashingRef = useRef(false)
@@ -42,26 +52,27 @@ export default function PlayerShip() {
     groupRef.current.rotation.set(0, Math.PI - rotation, 0)
 
     if (isDashing) {
-      // Full 360° barrel roll over DASH_DURATION
       const progress = (GAME_CONFIG.DASH_DURATION - dashTimer) / GAME_CONFIG.DASH_DURATION
       bankRef.current.rotation.set(0, 0, progress * Math.PI * 2)
 
-      // Magenta emissive tint during dash
       if (!wasDashingRef.current) {
-        for (let i = 0; i < meshMaterials.length; i++) {
-          meshMaterials[i].emissive.copy(_dashEmissive)
-          meshMaterials[i].emissiveIntensity = 0.6
+        for (let i = 0; i < allMaterials.length; i++) {
+          allMaterials[i].emissive.copy(_dashEmissive)
+          allMaterials[i].emissiveIntensity = 0.6
         }
       }
     } else {
       bankRef.current.rotation.set(0, 0, bankAngle)
 
-      // Restore default emissive when dash ends
-      // NOTE: Assumes no other system modifies mesh emissives concurrently
+      // Restore engine emissive when dash ends (Story 12.1)
       if (wasDashingRef.current) {
-        for (let i = 0; i < meshMaterials.length; i++) {
-          meshMaterials[i].emissive.copy(_defaultEmissive)
-          meshMaterials[i].emissiveIntensity = 1.0
+        for (let i = 0; i < allMaterials.length; i++) {
+          allMaterials[i].emissive.setScalar(0)
+          allMaterials[i].emissiveIntensity = 1.0
+        }
+        for (let i = 0; i < engineMaterials.length; i++) {
+          engineMaterials[i].emissive.copy(_engineEmissive)
+          engineMaterials[i].emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
         }
       }
     }
@@ -82,6 +93,14 @@ export default function PlayerShip() {
       <group ref={bankRef}>
         <primitive object={clonedScene} />
       </group>
+      {/* Local point light for ship illumination (Story 12.1) */}
+      <pointLight
+        intensity={_lighting.POINT_LIGHT_INTENSITY}
+        distance={_lighting.POINT_LIGHT_DISTANCE}
+        decay={2}
+        color="#ffffff"
+        position={[0, _lighting.POINT_LIGHT_Y, 0]}
+      />
       {/* Magenta trail — outside bankRef so it stays horizontal during barrel roll */}
       <mesh ref={trailRef} position={[0, 0, 4]} visible={false}>
         <planeGeometry args={[1.5, 8]} />
