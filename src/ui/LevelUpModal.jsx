@@ -8,6 +8,13 @@ import { playSFX } from '../audio/audioManager.js'
 
 export default function LevelUpModal() {
   const [choices, setChoices] = useState([])
+  const currentLevel = usePlayer(s => s.currentLevel)
+  const pendingLevelUps = usePlayer(s => s.pendingLevelUps)
+  const levelsGainedThisBatch = usePlayer(s => s.levelsGainedThisBatch)
+
+  // Calculate progress in multi-level sequence
+  const currentInSequence = levelsGainedThisBatch - pendingLevelUps
+  const showProgress = levelsGainedThisBatch > 1
 
   // Generate choices on mount
   useEffect(() => {
@@ -57,6 +64,11 @@ export default function LevelUpModal() {
       <h1 className="text-3xl font-bold tracking-widest text-game-text mb-8 animate-fade-in">
         LEVEL UP!
       </h1>
+      {showProgress && (
+        <p className="text-game-text-muted text-sm mb-4 animate-fade-in">
+          Level {currentLevel} &middot; {currentInSequence}/{levelsGainedThisBatch}
+        </p>
+      )}
       <div className="flex gap-4">
         {choices.map((choice, i) => (
           <div

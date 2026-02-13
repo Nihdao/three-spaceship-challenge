@@ -197,5 +197,8 @@ export const GAME_CONFIG = {
     POINT_LIGHT_Y: 1.0, // Local point light Y offset
     FILL_LIGHT_INTENSITY: 3.0, // Directional fill light intensity
     FILL_LIGHT_POSITION: [20, 8, -15], // Directional fill light position
+    // Per-scene fill light overrides (Story 15.1) — null = use FILL_LIGHT_INTENSITY default
+    FILL_LIGHT_INTENSITY_BOSS: null,
+    FILL_LIGHT_INTENSITY_TUNNEL: null,
   },
 };

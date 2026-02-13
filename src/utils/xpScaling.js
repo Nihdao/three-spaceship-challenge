@@ -9,7 +9,9 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 export function getXPForLevel(level) {
   const curve = GAME_CONFIG.XP_LEVEL_CURVE
 
-  if (level >= 1 && level <= curve.length) {
+  if (level < 1) return curve[0]
+
+  if (level <= curve.length) {
     return curve[level - 1]
   }
 

@@ -11,6 +11,7 @@ const RING_COLOR = new THREE.Color('#5518aa')
 const SCROLL_SPEED = -12
 
 const _lighting = GAME_CONFIG.PLAYER_SHIP_LIGHTING
+const _tunnelFillIntensity = _lighting.FILL_LIGHT_INTENSITY_TUNNEL ?? _lighting.FILL_LIGHT_INTENSITY
 const _engineEmissive = new THREE.Color(_lighting.ENGINE_EMISSIVE_COLOR)
 const _bgColor = new THREE.Color('#c8bfdf')
 
@@ -125,9 +126,13 @@ function TunnelShip() {
         decay={2}
         color="#ffffff"
       />
+      {/* Note: fill light is inside TunnelShip group (rotated π on Y) — direction differs
+         from scene-level fill lights in GameplayScene/BossScene but visually acceptable
+         for tunnel display context (Story 15.1 review) */}
       <directionalLight
         position={_lighting.FILL_LIGHT_POSITION}
-        intensity={_lighting.FILL_LIGHT_INTENSITY}
+        intensity={_tunnelFillIntensity}
+        castShadow={false}
         color="#ffffff"
       />
     </group>

@@ -313,7 +313,7 @@ export default function GameLoop() {
       // The killing blow in damageBoss() sets bossDefeated=true, next tick enters defeat animation branch
 
       // 8. Level-up (skip during defeat animation — bossDefeated check at top already returned)
-      if (usePlayer.getState().pendingLevelUp) {
+      if (usePlayer.getState().pendingLevelUps > 0) {
         playSFX('level-up')
         usePlayer.getState().consumeLevelUp()
         useGame.getState().triggerLevelUp()
@@ -603,7 +603,7 @@ export default function GameLoop() {
     }
 
     // 8e. Check pending level-up — consume flag and trigger pause + modal
-    if (usePlayer.getState().pendingLevelUp) {
+    if (usePlayer.getState().pendingLevelUps > 0) {
       playSFX('level-up')
       usePlayer.getState().consumeLevelUp()
       useGame.getState().triggerLevelUp()
