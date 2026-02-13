@@ -32,21 +32,22 @@ export const GAME_CONFIG = {
   // Progression — Story 11.2: Rebalanced for faster early-mid game progression
   // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~30% growth per level from level 6+
   // Early levels (1-5): -20-30% from original, Mid/Late levels (6+): ~30% growth rate
+  XP_GROWTH_RATE: 1.02, // Per-level XP growth rate for levels beyond XP_LEVEL_CURVE (Story 14.3)
   XP_LEVEL_CURVE: [
-    75,    // Level 1 → 2 (-25% from 100)
-    110,   // Level 2 → 3 (-27% from 150)
-    165,   // Level 3 → 4 (-27% from 225)
-    250,   // Level 4 → 5 (-26% from 340)
-    375,   // Level 5 → 6 (-26% from 510)
-    525,   // Level 6 → 7 (~30% growth)
-    700,   // Level 7 → 8 (~30% growth)
-    910,   // Level 8 → 9 (~30% growth)
-    1180,  // Level 9 → 10 (~30% growth)
-    1535,  // Level 10 → 11 (~30% growth)
-    2000,  // Level 11 → 12 (~30% growth)
-    2600,  // Level 12 → 13 (~30% growth)
-    3380,  // Level 13 → 14 (~30% growth)
-    4400,  // Level 14 → 15 (~30% growth, aspirational)
+    75, // Level 1 → 2 (-25% from 100)
+    110, // Level 2 → 3 (-27% from 150)
+    165, // Level 3 → 4 (-27% from 225)
+    250, // Level 4 → 5 (-26% from 340)
+    375, // Level 5 → 6 (-26% from 510)
+    525, // Level 6 → 7 (~30% growth)
+    700, // Level 7 → 8 (~30% growth)
+    910, // Level 8 → 9 (~30% growth)
+    1180, // Level 9 → 10 (~30% growth)
+    1535, // Level 10 → 11 (~30% growth)
+    2000, // Level 11 → 12 (~30% growth)
+    2600, // Level 12 → 13 (~30% growth)
+    3380, // Level 13 → 14 (~30% growth)
+    4400, // Level 14 → 15 (~30% growth, aspirational)
   ],
 
   // Player movement (Story 1.2, tuned Story 14.2 for organic feel)
@@ -168,33 +169,33 @@ export const GAME_CONFIG = {
     PULSE_AMPLITUDE: 0.08,
     FADE_IN_DURATION: 0.3,
     FADE_OUT_DURATION: 0.4,
-    SILVER_COLOR: '#cccccc',
-    GOLD_COLOR: '#ffdd00',
-    PLATINUM_COLOR: '#00ddff',
+    SILVER_COLOR: "#cccccc",
+    GOLD_COLOR: "#ffdd00",
+    PLATINUM_COLOR: "#00ddff",
     COMPLETED_OPACITY: 0.3,
-    COMPLETED_COLOR: '#888888',
+    COMPLETED_COLOR: "#888888",
     SHOW_COMPLETED_AURA: false,
   },
 
   // Projectile Visibility (Story 12.2)
   PROJECTILE_VISUALS: {
-    EMISSIVE_INTENSITY: 3.0,         // Projectile glow intensity (was 2.0, now brighter)
-    EMISSIVE_BASE_COLOR: '#ffffff',  // Material emissive color
-    MOTION_BLUR_ENABLED: true,       // Velocity-based elongation for fast projectiles
-    SPEED_SCALE_MULT: 0.003,         // Speed-to-scale multiplier (reduced from 0.015 — 0.003 gives subtle 1.3x-2x range)
-    SPEED_SCALE_MAX: 2.0,            // Maximum elongation cap (prevents extreme stretch on fast weapons like BEAM)
+    EMISSIVE_INTENSITY: 3.0, // Projectile glow intensity (was 2.0, now brighter)
+    EMISSIVE_BASE_COLOR: "#ffffff", // Material emissive color
+    MOTION_BLUR_ENABLED: true, // Velocity-based elongation for fast projectiles
+    SPEED_SCALE_MULT: 0.003, // Speed-to-scale multiplier (reduced from 0.015 — 0.003 gives subtle 1.3x-2x range)
+    SPEED_SCALE_MAX: 2.0, // Maximum elongation cap (prevents extreme stretch on fast weapons like BEAM)
   },
 
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
-    EMISSIVE_INTENSITY: 0,            // Hull emissive — not needed with strong point/fill lights
-    EMISSIVE_COLOR: '#000000',        // Hull emissive color
-    ENGINE_EMISSIVE_INTENSITY: 0.8,   // Engine emissive intensity
-    ENGINE_EMISSIVE_COLOR: '#00ccff', // Engine emissive color (cyan/blue)
-    POINT_LIGHT_INTENSITY: 5.0,       // Local point light intensity
-    POINT_LIGHT_DISTANCE: 19,         // Local point light distance
-    POINT_LIGHT_Y: 1.0,              // Local point light Y offset
-    FILL_LIGHT_INTENSITY: 3.0,        // Directional fill light intensity
+    EMISSIVE_INTENSITY: 0, // Hull emissive — not needed with strong point/fill lights
+    EMISSIVE_COLOR: "#000000", // Hull emissive color
+    ENGINE_EMISSIVE_INTENSITY: 0.8, // Engine emissive intensity
+    ENGINE_EMISSIVE_COLOR: "#00ccff", // Engine emissive color (cyan/blue)
+    POINT_LIGHT_INTENSITY: 5.0, // Local point light intensity
+    POINT_LIGHT_DISTANCE: 19, // Local point light distance
+    POINT_LIGHT_Y: 1.0, // Local point light Y offset
+    FILL_LIGHT_INTENSITY: 3.0, // Directional fill light intensity
     FILL_LIGHT_POSITION: [20, 8, -15], // Directional fill light position
   },
 };

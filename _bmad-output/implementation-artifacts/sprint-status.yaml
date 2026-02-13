@@ -148,20 +148,21 @@ development_status:
   13-1-tunnel-rendering-interaction-bugs-resolution: done
   13-2-sidebar-layout-compaction-no-scroll: done
   13-3-tunnel-3d-scene-ship-visibility: review
+  13-4-mandatory-dilemma-before-system-entry: ready-for-dev
   epic-13-retrospective: optional
 
   # Epic 14: Core Feel & Infinite Progression
   epic-14: in-progress
   14-1-camera-top-view-rotation-decoupling: done
   14-2-organic-ship-movement-acceleration: done
-  14-3-infinite-level-xp-scaling: review
+  14-3-infinite-level-xp-scaling: done
   14-4-level-up-overflow-choices: ready-for-dev
   epic-14-retrospective: optional
 
   # Epic 15: Visual Polish - Space Environment Enhancement
   epic-15: in-progress
   15-1-unified-player-lighting-all-scenes: ready-for-dev
-  15-2-multi-layer-starfield-parallax: backlog
+  15-2-multi-layer-starfield-parallax: ready-for-dev
   15-3-grid-visibility-reduction-ambient-fog: backlog
   15-4-ambient-light-zones-nebula-effects: backlog
   epic-15-retrospective: optional

@@ -1,6 +1,6 @@
 # Story 14.3: Infinite Level XP Scaling
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -120,7 +120,7 @@ Add helper function in `gameConfig.js` or `src/utils/xpScaling.js`:
  * Calibration:
  * - baseLevel = 14
  * - baseXP = 4400 (XP_LEVEL_CURVE[13])
- * - growthRate = 1.08 (2% growth per level, tuned for fast infinite progression)
+ * - growthRate = 1.02 (2% growth per level, tuned for fast infinite progression)
  */
 export function getXPForLevel(level) {
   const { XP_LEVEL_CURVE } = GAME_CONFIG
@@ -401,7 +401,7 @@ No issues encountered during implementation.
 - Created `getXPForLevel()` pure utility function with exponential scaling formula (1.02 growth rate, calibrated to match level 14→15 = 4400 XP)
 - Levels 1-14: return hardcoded XP_LEVEL_CURVE values; levels 15+: exponential formula `4400 * 1.02^(level - 14)`
 - Growth rate tuned from 1.3 to 1.02 for fast feel-good infinite progression
-- `Number.MAX_SAFE_INTEGER` safeguard caps XP at ~level 180 (acceptable for game scope)
+- `Number.MAX_SAFE_INTEGER` safeguard caps XP at ~level 1446 (well beyond gameplay scope)
 - Updated `addXP()` in usePlayer.jsx: removed `level <= curve.length` cap, replaced array access with `getXPForLevel()` call
 - All UI components (XPBarFullWidth, PauseMenu, GameOverScreen, VictoryScreen, HUD) render `currentLevel` as text with no hardcoded limits — no changes needed
 - `progressionSystem.generateChoices()` works at any level — pool is based on equipment state, not level number; stat_boost fallback activates when pool is exhausted
@@ -413,11 +413,13 @@ No issues encountered during implementation.
 ### Change Log
 
 - 2026-02-13: Implemented infinite XP scaling (Story 14.3) — removed level 15 cap, added exponential formula for levels 15+
+- 2026-02-13: Code review fixes — moved GROWTH_RATE to gameConfig.js, fixed MAX_SAFE_INTEGER test to exercise safeguard at level 1500, corrected cap level documentation (~1446 not ~180), fixed stale Dev Notes growth rate (1.02 not 1.08)
 
 ### File List
 
-- `src/utils/xpScaling.js` — NEW: `getXPForLevel()` pure utility function
-- `src/utils/__tests__/xpScaling.test.js` — NEW: 5 unit tests for XP scaling formula
+- `src/config/gameConfig.js` — MODIFIED: added `XP_GROWTH_RATE` constant (review fix: moved from xpScaling.js)
+- `src/utils/xpScaling.js` — NEW: `getXPForLevel()` pure utility function (review fix: reads growth rate from gameConfig)
+- `src/utils/__tests__/xpScaling.test.js` — NEW: 5 unit tests for XP scaling formula (review fix: MAX_SAFE_INTEGER test now exercises safeguard at level 1500)
 - `src/stores/usePlayer.jsx` — MODIFIED: import `getXPForLevel`, updated `addXP()` to remove level cap and use formula
 - `src/stores/__tests__/usePlayer.xp.test.js` — MODIFIED: replaced max-level test with infinite scaling tests (+3 tests)
 - `src/systems/__tests__/progressionSystem.test.js` — MODIFIED: added high-level compatibility tests (+2 tests)
