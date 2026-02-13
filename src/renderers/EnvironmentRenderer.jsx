@@ -1,12 +1,11 @@
 import { useRef, useMemo, useEffect } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import usePlayer from '../stores/usePlayer.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import { starTexture } from './starTexture.js'
 
 const {
-  STAR_COUNT,
-  STAR_FIELD_RADIUS,
   PLAY_AREA_SIZE,
   BOUNDARY_WARNING_DISTANCE,
   BOUNDARY_WALL_BASE_OPACITY,
@@ -14,6 +13,8 @@ const {
   BOUNDARY_WALL_HEIGHT,
   BOUNDARY_WALL_COLOR,
 } = GAME_CONFIG
+
+const { STARFIELD_LAYERS } = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS
 
 // Wall definitions: position, rotation, and player position axis index (0=X, 2=Z)
 const WALLS = [
@@ -23,49 +24,85 @@ const WALLS = [
   { position: [0, BOUNDARY_WALL_HEIGHT / 2, -PLAY_AREA_SIZE], rotation: [0, 0, 0], axis: 2 },
 ]
 
-function Starfield() {
-  const geometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry()
-    const pos = new Float32Array(STAR_COUNT * 3)
-    const col = new Float32Array(STAR_COUNT * 3)
+// Generate star geometry for a single layer (pure helper)
+function createStarGeometry(count, radius) {
+  const geo = new THREE.BufferGeometry()
+  const pos = new Float32Array(count * 3)
+  const col = new Float32Array(count * 3)
 
-    for (let i = 0; i < STAR_COUNT; i++) {
-      const theta = Math.random() * Math.PI * 2
-      const phi = Math.acos(2 * Math.random() - 1)
-      const r = STAR_FIELD_RADIUS * (0.8 + Math.random() * 0.2)
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2
+    const phi = Math.acos(2 * Math.random() - 1)
+    const r = radius * (0.9 + Math.random() * 0.1)
 
-      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta)
-      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
-      pos[i * 3 + 2] = r * Math.cos(phi)
+    pos[i * 3] = r * Math.sin(phi) * Math.cos(theta)
+    pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
+    pos[i * 3 + 2] = r * Math.cos(phi)
 
-      // White to blue-white color variation
-      const blueShift = 0.7 + Math.random() * 0.3
-      col[i * 3] = blueShift
-      col[i * 3 + 1] = blueShift
-      col[i * 3 + 2] = 1
-    }
+    // White to blue-white color variation
+    const blueShift = 0.7 + Math.random() * 0.3
+    col[i * 3] = blueShift
+    col[i * 3 + 1] = blueShift
+    col[i * 3 + 2] = 1
+  }
 
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
-    geo.computeBoundingSphere()
-    return geo
-  }, [])
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+  geo.computeBoundingSphere()
+  return geo
+}
+
+// Multi-layer starfield: each layer has distinct size, opacity, and parallax
+function StarfieldLayer({ layerConfig }) {
+  const groupRef = useRef()
+  const { camera } = useThree()
+
+  const geometry = useMemo(
+    () => createStarGeometry(layerConfig.count, layerConfig.radius),
+    [layerConfig]
+  )
 
   useEffect(() => {
     return () => geometry.dispose()
   }, [geometry])
 
+  // Parallax: offset group position based on camera movement
+  useFrame(() => {
+    if (layerConfig.parallaxFactor > 0 && groupRef.current) {
+      groupRef.current.position.x = -camera.position.x * layerConfig.parallaxFactor
+      groupRef.current.position.z = -camera.position.z * layerConfig.parallaxFactor
+    }
+  })
+
+  // Material-level opacity: average of the layer's opacity range (Option A)
+  const opacity = (layerConfig.opacityRange[0] + layerConfig.opacityRange[1]) / 2
+  // Material-level size: average of the layer's size range
+  const size = (layerConfig.sizeRange[0] + layerConfig.sizeRange[1]) / 2
+
   return (
-    <points geometry={geometry}>
-      <pointsMaterial
-        size={2}
-        sizeAttenuation={false}
-        vertexColors
-        transparent
-        opacity={0.9}
-        depthWrite={false}
-      />
-    </points>
+    <group ref={groupRef}>
+      <points geometry={geometry}>
+        <pointsMaterial
+          map={starTexture}
+          size={size}
+          sizeAttenuation={layerConfig.sizeAttenuation}
+          vertexColors
+          transparent
+          opacity={opacity}
+          depthWrite={false}
+        />
+      </points>
+    </group>
+  )
+}
+
+function Starfield() {
+  return (
+    <>
+      <StarfieldLayer layerConfig={STARFIELD_LAYERS.DISTANT} />
+      <StarfieldLayer layerConfig={STARFIELD_LAYERS.MID} />
+      <StarfieldLayer layerConfig={STARFIELD_LAYERS.NEAR} />
+    </>
   )
 }
 

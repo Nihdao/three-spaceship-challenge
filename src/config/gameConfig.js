@@ -186,6 +186,36 @@ export const GAME_CONFIG = {
     SPEED_SCALE_MAX: 2.0, // Maximum elongation cap (prevents extreme stretch on fast weapons like BEAM)
   },
 
+  // Environment Visual Effects (Story 15.2)
+  ENVIRONMENT_VISUAL_EFFECTS: {
+    STARFIELD_LAYERS: {
+      DISTANT: {
+        count: 1000,
+        radius: 5000,
+        sizeRange: [2, 3.5],
+        opacityRange: [0.45, 0.65],
+        parallaxFactor: 0,
+        sizeAttenuation: false,
+      },
+      MID: {
+        count: 1000,
+        radius: 3000,
+        sizeRange: [3.5, 6],
+        opacityRange: [0.65, 0.85],
+        parallaxFactor: 0.065,
+        sizeAttenuation: false,
+      },
+      NEAR: {
+        count: 1000,
+        radius: 1500,
+        sizeRange: [5.5, 8],
+        opacityRange: [0.85, 1.0],
+        parallaxFactor: 0.175,
+        sizeAttenuation: true,
+      },
+    },
+  },
+
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
     EMISSIVE_INTENSITY: 0, // Hull emissive — not needed with strong point/fill lights
