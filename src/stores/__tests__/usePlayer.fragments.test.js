@@ -49,7 +49,7 @@ describe('usePlayer — Fragments (Story 7.1)', () => {
       expect(state.currentXP).toBe(0)
       expect(state.currentLevel).toBe(1)
       expect(state.xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[0])
-      expect(state.pendingLevelUp).toBe(false)
+      expect(state.pendingLevelUps).toBe(0)
     })
 
     it('preserves currentHP and maxHP', () => {

@@ -156,13 +156,13 @@ development_status:
   14-1-camera-top-view-rotation-decoupling: done
   14-2-organic-ship-movement-acceleration: done
   14-3-infinite-level-xp-scaling: done
-  14-4-level-up-overflow-choices: review
+  14-4-level-up-overflow-choices: done
   epic-14-retrospective: optional
 
   # Epic 15: Visual Polish - Space Environment Enhancement
   epic-15: in-progress
-  15-1-unified-player-lighting-all-scenes: ready-for-dev
+  15-1-unified-player-lighting-all-scenes: done
   15-2-multi-layer-starfield-parallax: ready-for-dev
-  15-3-grid-visibility-reduction-ambient-fog: backlog
-  15-4-ambient-light-zones-nebula-effects: backlog
+  15-3-grid-visibility-reduction-ambient-fog: ready-for-dev
+  15-4-ambient-light-zones-nebula-effects: ready-for-dev
   epic-15-retrospective: optional

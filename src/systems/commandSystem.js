@@ -48,11 +48,12 @@ const COMMANDS = {
         currentXP: 0,
         currentLevel: 1,
         xpToNextLevel: curve[0],
-        pendingLevelUp: false,
+        pendingLevelUps: 0,
+        levelsGainedThisBatch: 0,
       })
       usePlayer.getState().addXP(totalXP)
       // Consume pending level up so it doesn't trigger modal
-      usePlayer.setState({ pendingLevelUp: false })
+      usePlayer.setState({ pendingLevelUps: 0, levelsGainedThisBatch: 0 })
       return { success: true, message: `Set level to ${targetLevel}` }
     },
     description: 'setlevel <level> - Set player level directly',

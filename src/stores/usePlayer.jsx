@@ -55,7 +55,8 @@ const usePlayer = create((set, get) => ({
   currentXP: 0,
   currentLevel: 1,
   xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
-  pendingLevelUp: false,
+  pendingLevelUps: 0,
+  levelsGainedThisBatch: 0,
 
   // --- Tick (called by GameLoop each frame) ---
   tick: (delta, input, speedMultiplier = 1, arenaSize = GAME_CONFIG.PLAY_AREA_SIZE, hpRegenRate = 0) => {
@@ -321,22 +322,28 @@ const usePlayer = create((set, get) => ({
     let xp = state.currentXP + amount
     let level = state.currentLevel
     let xpToNext = state.xpToNextLevel
-    let pending = state.pendingLevelUp
 
+    let levelsGained = 0
     while (xp >= xpToNext) {
+      if (xpToNext <= 0) break
       xp -= xpToNext
       level++
+      levelsGained++
       xpToNext = getXPForLevel(level)
-      pending = true
     }
 
-    set({ currentXP: xp, currentLevel: level, xpToNextLevel: xpToNext, pendingLevelUp: pending })
+    const updates = { currentXP: xp, currentLevel: level, xpToNextLevel: xpToNext }
+    if (levelsGained > 0) {
+      updates.pendingLevelUps = state.pendingLevelUps + levelsGained
+      updates.levelsGainedThisBatch = (state.pendingLevelUps > 0 ? state.levelsGainedThisBatch : 0) + levelsGained
+    }
+    set(updates)
   },
 
   consumeLevelUp: () => {
     const state = get()
-    if (!state.pendingLevelUp) return false
-    set({ pendingLevelUp: false })
+    if (state.pendingLevelUps <= 0) return false
+    set({ pendingLevelUps: state.pendingLevelUps - 1 })
     return true
   },
 
@@ -391,7 +398,8 @@ const usePlayer = create((set, get) => ({
     currentXP: 0,
     currentLevel: 1,
     xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
-    pendingLevelUp: false,
+    pendingLevelUps: 0,
+    levelsGainedThisBatch: 0,
     // _appliedMaxHPBonus intentionally preserved across system transitions (boons persist)
     // INTENTIONALLY PRESERVED across system transitions (within same run):
     // - Ship selection (Epic 9): currentShipId, shipBaseSpeed, shipBaseDamageMultiplier
@@ -429,7 +437,8 @@ const usePlayer = create((set, get) => ({
       currentXP: 0,
       currentLevel: 1,
       xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
-      pendingLevelUp: false,
+      pendingLevelUps: 0,
+      levelsGainedThisBatch: 0,
       fragments: 0,
       permanentUpgrades: {},
       acceptedDilemmas: [],

@@ -19,6 +19,9 @@ function Controls() {
   return null
 }
 
+const _lighting = GAME_CONFIG.PLAYER_SHIP_LIGHTING
+const _bossFillIntensity = _lighting.FILL_LIGHT_INTENSITY_BOSS ?? _lighting.FILL_LIGHT_INTENSITY
+
 const ARENA_SIZE = GAME_CONFIG.BOSS_ARENA_SIZE
 const WALL_HEIGHT = 100
 const WALL_COLOR = '#cc66ff'
@@ -111,6 +114,13 @@ export default function BossScene() {
       <ambientLight intensity={0.15} />
       <directionalLight position={[0, 30, 0]} intensity={0.5} color="#cc66ff" />
       <pointLight position={[0, 10, 0]} intensity={0.8} color="#cc66ff" distance={200} />
+      {/* Player fill light for consistent visibility (Story 15.1) */}
+      <directionalLight
+        position={_lighting.FILL_LIGHT_POSITION}
+        intensity={_bossFillIntensity}
+        castShadow={false}
+        color="#ffffff"
+      />
 
       {/* Player */}
       <PlayerShip />

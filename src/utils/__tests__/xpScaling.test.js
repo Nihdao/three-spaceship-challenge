@@ -34,6 +34,13 @@ describe('getXPForLevel', () => {
     expect(getXPForLevel(300)).toBeLessThan(Number.MAX_SAFE_INTEGER)
   })
 
+  it('returns first curve value for level 0 or negative levels', () => {
+    const firstCurveValue = GAME_CONFIG.XP_LEVEL_CURVE[0]
+    expect(getXPForLevel(0)).toBe(firstCurveValue)
+    expect(getXPForLevel(-1)).toBe(firstCurveValue)
+    expect(getXPForLevel(-100)).toBe(firstCurveValue)
+  })
+
   it('returns positive integers for all levels', () => {
     for (let level = 1; level <= 200; level++) {
       const xp = getXPForLevel(level)

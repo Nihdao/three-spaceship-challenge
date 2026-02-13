@@ -18,8 +18,12 @@ describe('usePlayer — XP & level system', () => {
       expect(usePlayer.getState().xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[0])
     })
 
-    it('pendingLevelUp is false initially', () => {
-      expect(usePlayer.getState().pendingLevelUp).toBe(false)
+    it('pendingLevelUps is 0 initially', () => {
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+    })
+
+    it('levelsGainedThisBatch is 0 initially', () => {
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(0)
     })
   })
 
@@ -38,7 +42,8 @@ describe('usePlayer — XP & level system', () => {
       const state = usePlayer.getState()
       expect(state.currentLevel).toBe(2)
       expect(state.currentXP).toBe(0) // exact threshold, no overflow
-      expect(state.pendingLevelUp).toBe(true)
+      expect(state.pendingLevelUps).toBe(1)
+      expect(state.levelsGainedThisBatch).toBe(1)
       expect(state.xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[1])
     })
 
@@ -58,7 +63,18 @@ describe('usePlayer — XP & level system', () => {
       expect(state.currentLevel).toBe(3)
       expect(state.currentXP).toBe(10)
       expect(state.xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[2])
-      expect(state.pendingLevelUp).toBe(true)
+      expect(state.pendingLevelUps).toBe(2) // gained 2 levels (2 and 3)
+      expect(state.levelsGainedThisBatch).toBe(2)
+    })
+
+    it('tracks multiple pending level-ups when gaining enough XP for multiple levels', () => {
+      // Total to reach level 4 = curve[0] + curve[1] + curve[2]
+      const totalToLevel4 = GAME_CONFIG.XP_LEVEL_CURVE[0] + GAME_CONFIG.XP_LEVEL_CURVE[1] + GAME_CONFIG.XP_LEVEL_CURVE[2]
+      usePlayer.getState().addXP(totalToLevel4)
+      const state = usePlayer.getState()
+      expect(state.currentLevel).toBe(4)
+      expect(state.pendingLevelUps).toBe(3) // levels 2, 3, 4
+      expect(state.levelsGainedThisBatch).toBe(3)
     })
 
     it('levels past the hardcoded curve into infinite scaling', () => {
@@ -96,21 +112,100 @@ describe('usePlayer — XP & level system', () => {
       expect(state.currentXP).toBeGreaterThanOrEqual(0)
       expect(state.currentXP).toBeLessThan(state.xpToNextLevel)
     })
+
+    it('does not change pendingLevelUps when no level is gained', () => {
+      usePlayer.getState().addXP(10) // not enough for level 2
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(0)
+    })
+
+    it('accumulates pendingLevelUps across multiple addXP calls', () => {
+      // First call: gain 1 level
+      usePlayer.getState().addXP(GAME_CONFIG.XP_LEVEL_CURVE[0])
+      expect(usePlayer.getState().pendingLevelUps).toBe(1)
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(1)
+
+      // Second call: gain another level (without consuming the first)
+      usePlayer.getState().addXP(GAME_CONFIG.XP_LEVEL_CURVE[1])
+      expect(usePlayer.getState().pendingLevelUps).toBe(2)
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(2) // accumulates with existing pending
+    })
   })
 
   describe('consumeLevelUp', () => {
-    it('returns true once after level-up and clears the flag', () => {
+    it('returns true and decrements pendingLevelUps after single level-up', () => {
       usePlayer.getState().addXP(GAME_CONFIG.XP_LEVEL_CURVE[0])
-      expect(usePlayer.getState().pendingLevelUp).toBe(true)
+      expect(usePlayer.getState().pendingLevelUps).toBe(1)
 
       const result = usePlayer.getState().consumeLevelUp()
       expect(result).toBe(true)
-      expect(usePlayer.getState().pendingLevelUp).toBe(false)
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
     })
 
     it('returns false when no level-up is pending', () => {
       const result = usePlayer.getState().consumeLevelUp()
       expect(result).toBe(false)
+    })
+
+    it('decrements pendingLevelUps count sequentially for multi-level gain', () => {
+      // Gain 3 levels at once
+      const totalToLevel4 = GAME_CONFIG.XP_LEVEL_CURVE[0] + GAME_CONFIG.XP_LEVEL_CURVE[1] + GAME_CONFIG.XP_LEVEL_CURVE[2]
+      usePlayer.getState().addXP(totalToLevel4)
+      expect(usePlayer.getState().pendingLevelUps).toBe(3)
+
+      // Consume first
+      usePlayer.getState().consumeLevelUp()
+      expect(usePlayer.getState().pendingLevelUps).toBe(2)
+
+      // Consume second
+      usePlayer.getState().consumeLevelUp()
+      expect(usePlayer.getState().pendingLevelUps).toBe(1)
+
+      // Consume third
+      usePlayer.getState().consumeLevelUp()
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+
+      // Consume when empty — returns false
+      const result = usePlayer.getState().consumeLevelUp()
+      expect(result).toBe(false)
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+    })
+
+    it('preserves levelsGainedThisBatch throughout entire sequence including final modal', () => {
+      // Gain 3 levels at once
+      const totalToLevel4 = GAME_CONFIG.XP_LEVEL_CURVE[0] + GAME_CONFIG.XP_LEVEL_CURVE[1] + GAME_CONFIG.XP_LEVEL_CURVE[2]
+      usePlayer.getState().addXP(totalToLevel4)
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(3)
+
+      // After first consume, batch count preserved
+      usePlayer.getState().consumeLevelUp()
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(3)
+      expect(usePlayer.getState().pendingLevelUps).toBe(2)
+
+      // After second consume, batch count preserved
+      usePlayer.getState().consumeLevelUp()
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(3)
+      expect(usePlayer.getState().pendingLevelUps).toBe(1)
+
+      // After final consume, batch count STILL preserved (for last modal's progress indicator)
+      usePlayer.getState().consumeLevelUp()
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(3)
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+    })
+
+    it('resets levelsGainedThisBatch when next addXP starts a fresh batch', () => {
+      // Gain 3 levels, consume all
+      const totalToLevel4 = GAME_CONFIG.XP_LEVEL_CURVE[0] + GAME_CONFIG.XP_LEVEL_CURVE[1] + GAME_CONFIG.XP_LEVEL_CURVE[2]
+      usePlayer.getState().addXP(totalToLevel4)
+      usePlayer.getState().consumeLevelUp()
+      usePlayer.getState().consumeLevelUp()
+      usePlayer.getState().consumeLevelUp()
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(3) // stale but harmless
+
+      // Next addXP that gains a level starts fresh batch
+      usePlayer.getState().addXP(GAME_CONFIG.XP_LEVEL_CURVE[3])
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(1) // fresh batch
+      expect(usePlayer.getState().pendingLevelUps).toBe(1)
     })
   })
 
@@ -123,7 +218,8 @@ describe('usePlayer — XP & level system', () => {
       expect(state.currentXP).toBe(0)
       expect(state.currentLevel).toBe(1)
       expect(state.xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[0])
-      expect(state.pendingLevelUp).toBe(false)
+      expect(state.pendingLevelUps).toBe(0)
+      expect(state.levelsGainedThisBatch).toBe(0)
     })
   })
 })

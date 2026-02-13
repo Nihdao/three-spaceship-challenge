@@ -49,4 +49,22 @@ describe('PLAYER_SHIP_LIGHTING config', () => {
   it('has POINT_LIGHT_Y as number', () => {
     expect(typeof cfg.POINT_LIGHT_Y).toBe('number')
   })
+
+  // Story 15.1: Per-scene fill light intensity overrides
+  it('has FILL_LIGHT_INTENSITY_BOSS as null or positive number', () => {
+    const val = cfg.FILL_LIGHT_INTENSITY_BOSS
+    expect(val === null || (typeof val === 'number' && val > 0)).toBe(true)
+  })
+
+  it('has FILL_LIGHT_INTENSITY_TUNNEL as null or positive number', () => {
+    const val = cfg.FILL_LIGHT_INTENSITY_TUNNEL
+    expect(val === null || (typeof val === 'number' && val > 0)).toBe(true)
+  })
+
+  it('falls back to FILL_LIGHT_INTENSITY when per-scene override is null', () => {
+    const bossIntensity = cfg.FILL_LIGHT_INTENSITY_BOSS ?? cfg.FILL_LIGHT_INTENSITY
+    const tunnelIntensity = cfg.FILL_LIGHT_INTENSITY_TUNNEL ?? cfg.FILL_LIGHT_INTENSITY
+    expect(bossIntensity).toBeGreaterThan(0)
+    expect(tunnelIntensity).toBeGreaterThan(0)
+  })
 })

@@ -410,16 +410,33 @@ No issues encountered during implementation.
 - Added 2 progressionSystem tests (high-level compatibility, stat_boost fallback at level 100)
 - Full suite: 69 files, 1045 tests, 0 failures, 0 regressions
 
+### Senior Developer Review (AI)
+
+**Reviewer:** Adam (2026-02-13)
+**Issues Found:** 2 High, 2 Medium, 1 Low
+**Outcome:** 2 HIGH fixed, 2 MEDIUM noted (process issues in committed code)
+
+**Fixed:**
+- [HIGH] `getXPForLevel()` accepted invalid levels (0, -1) returning nonsensical values — added guard returning `curve[0]` for `level < 1`
+- [HIGH] `addXP()` while loop had no infinite loop guard — added `if (xpToNext <= 0) break` safety net
+- Added test for invalid level inputs (0, -1, -100)
+
+**Noted (process, not fixable post-commit):**
+- [MEDIUM] Commit c9b1ba9 includes unrelated cosmetic reformatting in gameConfig.js (~30 lines quote/whitespace changes) polluting git blame
+- [MEDIUM] Task 3 (UI display validation) marked [x] without automated tests or documented manual testing results
+- [LOW] No test for `addXP` with 0 or negative amounts (edge case, no current callers pass invalid values)
+
 ### Change Log
 
 - 2026-02-13: Implemented infinite XP scaling (Story 14.3) — removed level 15 cap, added exponential formula for levels 15+
 - 2026-02-13: Code review fixes — moved GROWTH_RATE to gameConfig.js, fixed MAX_SAFE_INTEGER test to exercise safeguard at level 1500, corrected cap level documentation (~1446 not ~180), fixed stale Dev Notes growth rate (1.02 not 1.08)
+- 2026-02-13: Second code review fixes — guard getXPForLevel for invalid levels, infinite loop guard in addXP, added edge case test
 
 ### File List
 
 - `src/config/gameConfig.js` — MODIFIED: added `XP_GROWTH_RATE` constant (review fix: moved from xpScaling.js)
-- `src/utils/xpScaling.js` — NEW: `getXPForLevel()` pure utility function (review fix: reads growth rate from gameConfig)
-- `src/utils/__tests__/xpScaling.test.js` — NEW: 5 unit tests for XP scaling formula (review fix: MAX_SAFE_INTEGER test now exercises safeguard at level 1500)
-- `src/stores/usePlayer.jsx` — MODIFIED: import `getXPForLevel`, updated `addXP()` to remove level cap and use formula
+- `src/utils/xpScaling.js` — NEW: `getXPForLevel()` pure utility function (review fix #1: reads growth rate from gameConfig; review fix #2: guard for level < 1)
+- `src/utils/__tests__/xpScaling.test.js` — NEW: 6 unit tests for XP scaling formula (review fix #1: MAX_SAFE_INTEGER test; review fix #2: invalid level test)
+- `src/stores/usePlayer.jsx` — MODIFIED: import `getXPForLevel`, updated `addXP()` (review fix #2: infinite loop guard)
 - `src/stores/__tests__/usePlayer.xp.test.js` — MODIFIED: replaced max-level test with infinite scaling tests (+3 tests)
 - `src/systems/__tests__/progressionSystem.test.js` — MODIFIED: added high-level compatibility tests (+2 tests)
