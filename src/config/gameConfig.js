@@ -18,8 +18,11 @@ export const GAME_CONFIG = {
   SPATIAL_HASH_CELL_SIZE: 2, // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
 
-  // XP Orbs (Story 3.1)
-  XP_ORB_PICKUP_RADIUS: 3.0,
+  // XP Orbs (Story 3.1, extended Story 11.1)
+  XP_ORB_PICKUP_RADIUS: 2.0,
+  XP_MAGNET_RADIUS: 15.0, // Magnetization activation radius (> pickup radius)
+  XP_MAGNET_SPEED: 120, // Orb movement speed when magnetized (units/sec)
+  XP_MAGNET_ACCELERATION_CURVE: 2.0, // Ease-in exponent: 1.0=linear, 2.0=quadratic
   XP_ORB_MESH_SCALE: [0.8, 0.8, 0.8],
   XP_ORB_COLOR: "#00ffcc",
 
@@ -137,4 +140,15 @@ export const GAME_CONFIG = {
 
   // Scoring (Story 8.4)
   SCORE_PER_KILL: 100,
+
+  // Player Ship Lighting (Story 12.1)
+  PLAYER_SHIP_LIGHTING: {
+    EMISSIVE_INTENSITY: 0.5,          // Hull emissive intensity (0.3-0.8)
+    EMISSIVE_COLOR: '#00ffcc',        // Hull emissive color (cyan, matches UI theme)
+    ENGINE_EMISSIVE_INTENSITY: 1.5,   // Engine emissive intensity (1.0-2.0)
+    ENGINE_EMISSIVE_COLOR: '#00ccff', // Engine emissive color (cyan/blue)
+    POINT_LIGHT_INTENSITY: 1.5,       // Local point light intensity (1.0-2.0)
+    POINT_LIGHT_DISTANCE: 12,         // Local point light distance (10-15 units)
+    FILL_LIGHT_INTENSITY: 0.7,        // Directional fill light intensity (0.5-1.0)
+  },
 };

@@ -129,7 +129,7 @@ development_status:
 
   # Epic 11: Gameplay Balance & Content Completion
   epic-11: in-progress
-  11-1-xp-magnetization-system: ready-for-dev
+  11-1-xp-magnetization-system: done
   11-2-xp-curve-rebalancing: ready-for-dev
   11-3-complete-weapon-roster-implementation: ready-for-dev
   11-4-complete-boon-roster-implementation: ready-for-dev
@@ -137,14 +137,14 @@ development_status:
 
   # Epic 12: Visual Polish & Player Readability
   epic-12: in-progress
-  12-1-player-ship-lighting-improvements: ready-for-dev
+  12-1-player-ship-lighting-improvements: review
   12-2-projectile-visibility-enhancements: ready-for-dev
-  12-3-planet-capture-zone-aura-system: backlog
+  12-3-planet-capture-zone-aura-system: ready-for-dev
   epic-12-retrospective: optional
 
   # Epic 13: Tunnel Hub Fixes & UX Improvements
-  epic-13: backlog
-  13-1-tunnel-rendering-interaction-bugs-resolution: backlog
-  13-2-sidebar-layout-compaction-no-scroll: backlog
+  epic-13: in-progress
+  13-1-tunnel-rendering-interaction-bugs-resolution: ready-for-dev
+  13-2-sidebar-layout-compaction-no-scroll: ready-for-dev
   13-3-tunnel-3d-scene-ship-visibility: backlog
   epic-13-retrospective: optional

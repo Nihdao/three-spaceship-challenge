@@ -14,7 +14,7 @@ import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { playSFX } from './audio/audioManager.js'
-import { spawnOrb, updateOrbs, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
+import { spawnOrb, updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 
 // Pre-allocated orb IDs — avoids template string allocation per frame (50 orbs × 60 FPS)
@@ -512,8 +512,9 @@ export default function GameLoop() {
     }
 
     // 8. XP + progression
-    // 8a. Update orb timers
+    // 8a. Update orb timers + magnetization (Story 11.1)
     updateOrbs(clampedDelta)
+    updateMagnetization(playerPos[0], playerPos[2], clampedDelta)
 
     // 8b. Register XP orbs in spatial hash
     const orbArray = getOrbs()
