@@ -18,5 +18,5 @@ export function DebugControls() {
     },
   });
 
-  return {};
+  return null;
 }

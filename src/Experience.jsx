@@ -1,6 +1,7 @@
 import { Perf } from 'r3f-perf'
 import useGame from './stores/useGame.jsx'
 import { useDebugMode } from './hooks/useDebugMode.jsx'
+import { DebugControls } from './components/DebugControls.jsx'
 import GameLoop from './GameLoop.jsx'
 import GameplayScene from './scenes/GameplayScene.jsx'
 import MenuScene from './scenes/MenuScene.jsx'
@@ -21,6 +22,7 @@ export default function Experience() {
   return (
     <>
       {isDebugMode && <Perf position="bottom-right" />}
+      {isDebugMode && <DebugControls />}
 
       <GameLoop />
 

@@ -7,7 +7,7 @@ export const GAME_CONFIG = {
 
   // Player
   PLAYER_BASE_HP: 100,
-  PLAYER_BASE_SPEED: 150, // units/sec
+  PLAYER_BASE_SPEED: 80, // units/sec (was 150, reduced for tighter control)
   DASH_COOLDOWN: 3, // seconds
   DASH_DURATION: 0.3, // seconds
   DASH_TRAIL_COLOR: "#ff00ff", // magenta trail during dash
@@ -49,9 +49,9 @@ export const GAME_CONFIG = {
     4400,  // Level 14 → 15 (~30% growth, aspirational)
   ],
 
-  // Player movement (Story 1.2)
-  PLAYER_ACCELERATION: 750, // units/sec² — how fast ship reaches full speed
-  PLAYER_FRICTION: 0.92, // per-frame velocity decay when no input (0-1, lower = more drag)
+  // Player movement (Story 1.2, tuned Story 14.2 for organic feel)
+  PLAYER_ACCELERATION: 800, // units/sec² — how fast ship reaches full speed (bumped for punchier feel)
+  PLAYER_FRICTION: 0.87, // per-frame velocity decay when no input (0-1, lower = more drag; was 0.92, tuned for slight glide feel)
   PLAYER_ROTATION_SPEED: 20, // radians/sec interpolation speed for yaw (Story 2.8: doubled for snappy rotation, < 0.2s for 90° turn)
   PLAYER_MAX_BANK_ANGLE: 0.4, // radians (~23°) — max visual tilt during turns
   PLAYER_BANK_SPEED: 8, // how fast bank angle responds
