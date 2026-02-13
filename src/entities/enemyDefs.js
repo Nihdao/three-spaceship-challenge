@@ -8,7 +8,7 @@ export const ENEMIES = {
     speed: 17,
     damage: 5,
     radius: 1.5,
-    xpReward: 10,
+    xpReward: 12, // Story 11.2: +20% for faster progression
     behavior: 'chase',
     spawnWeight: 100,
     modelPath: '/models/enemies/robot-enemy-flying.glb',
@@ -22,7 +22,7 @@ export const ENEMIES = {
     speed: 30,
     damage: 3,
     radius: 1.2,
-    xpReward: 8,
+    xpReward: 10, // Story 11.2: +25% for faster progression
     behavior: 'chase',
     spawnWeight: 60,
     modelPath: '/models/enemies/robot-enemy-flying-gun.glb',

@@ -1,6 +1,6 @@
 # Story 12.1: Player Ship Lighting Improvements
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -507,23 +507,28 @@ No debug issues encountered.
 ### Completion Notes List
 
 - **Task 1 (Analysis):** Reviewed all 4 scenes. Only GameplayScene and BossScene use the PlayerShip component. MenuScene uses its own PatrolShip clone. TunnelScene uses a cone placeholder. BossScene has the darkest ambient (0.15) — key area where emissive improvements help most.
-- **Task 2 (Emissive):** Applied cyan emissive (#00ffcc, intensity 0.5) to hull materials and cyan/blue emissive (#00ccff, intensity 1.5) to engine materials via scene.traverse() in useMemo. Materials separated by mesh name (engine/thruster detection). Key fix: _defaultEmissive changed from black (0x000000) to configured hull emissive — dash VFX now restores to cyan glow instead of black.
+- **Task 2 (Emissive):** Applied cyan/blue emissive (#00ccff, intensity 0.8) to engine materials via scene.traverse() in useMemo. Hull emissive left at 0 — strong point light (5.0) and fill light (3.0) provide sufficient hull visibility without emissive. Materials separated by mesh name (engine/thruster detection). During dash, all materials switch to magenta (0.6). After dash, hull resets to black and engines restore to cyan/blue.
 - **Task 3 (Rim lighting):** Evaluated both approaches. Option A (MeshPhysicalMaterial transmission) was rejected as GLB materials are MeshStandardMaterial — converting would risk visual side effects. The combination of emissive color + point light + fill light already provides excellent silhouette enhancement without dedicated rim lighting. No separate rim config needed.
 - **Task 4 (Point light):** Added pointLight as child of ship group at [0, 2, 0] (slightly above). Intensity 1.5, distance 12, decay 2. Moves with ship automatically. Distance decay prevents over-brightening nearby enemies.
 - **Task 5 (Fill light):** Added directional fill light in GameplayScene at [5, 8, 3] with intensity 0.7 and castShadow=false. Only added to GameplayScene — BossScene already has adequate purple lighting, fill light only affects gameplay scene. Fill light is a scene-level directional, not attached to PlayerShip.
 - **Task 6 (Engine glow):** Engine materials identified by mesh name containing "engine" or "thruster". Set to ENGINE_EMISSIVE_COLOR #00ccff at intensity 1.5 (higher than hull 0.5). No bloom post-processing added — not currently in the scene pipeline.
 - **Tasks 7-8 (Testing):** Emissive material changes have negligible GPU cost (same shader, just different uniform values). One additional pointLight (1 of 8 max). One additional directional fill light. Total added lights: 2 — well within Three.js limits.
 - **Task 9 (Config):** Added PLAYER_SHIP_LIGHTING section to gameConfig.js with 7 configurable values, all with inline range comments.
-- **Task 10 (Edge cases):** Dash emissive toggling preserved — during dash, all materials switch to magenta emissive (0.6 intensity). After dash ends, hull materials restore to configured cyan emissive and engine materials restore to configured cyan/blue emissive (separate restore loops).
+- **Task 10 (Edge cases):** Dash emissive toggling preserved — during dash, all materials switch to magenta emissive (0.6 intensity). After dash ends, hull materials reset to black (no hull emissive) and engine materials restore to cyan/blue emissive (#00ccff, 0.8) via separate restore loops.
 - **Task 11 (Documentation):** All code changes include inline comments referencing Story 12.1. Config test file validates all config values are in their specified ranges.
+
+### Review Follow-ups (AI)
+
+- [ ] [AI-Review][HIGH] Add PlayerShip renderer unit tests — verify engine emissive setup, dash emissive toggle, point light props [src/renderers/__tests__/PlayerShip.test.jsx]
 
 ### Change Log
 
 - 2026-02-13: Story 12.1 implementation — Player ship lighting improvements (emissive materials, point light, fill light, config)
+- 2026-02-13: Code review — accepted light-based approach (point + fill lights, no hull emissive). Corrected completion notes. Added action item for PlayerShip renderer tests.
 
 ### File List
 
 - src/config/gameConfig.js (modified — added PLAYER_SHIP_LIGHTING section)
-- src/renderers/PlayerShip.jsx (modified — emissive material application, hull/engine separation, point light, dash restore fix)
+- src/renderers/PlayerShip.jsx (modified — emissive material application, hull/engine separation, point light, dash restore)
 - src/scenes/GameplayScene.jsx (modified — added fill directional light, imported GAME_CONFIG)
-- src/config/__tests__/gameConfig.shipLighting.test.js (new — 8 unit tests for config validation)
+- src/config/__tests__/gameConfig.shipLighting.test.js (new — 10 unit tests for config validation)
