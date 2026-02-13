@@ -166,20 +166,20 @@ describe('HUD logic', () => {
   })
 
   describe('getBoonLabel (Story 10.5)', () => {
-    it('returns label for DAMAGE_AMP', () => {
-      expect(getBoonLabel('DAMAGE_AMP')).toBe('Dmg')
+    it('derives label from BOONS name (first word) for DAMAGE_AMP', () => {
+      expect(getBoonLabel('DAMAGE_AMP')).toBe('Damage')
     })
 
-    it('returns label for SPEED_BOOST', () => {
+    it('derives label from BOONS name (first word) for SPEED_BOOST', () => {
       expect(getBoonLabel('SPEED_BOOST')).toBe('Speed')
     })
 
-    it('returns label for COOLDOWN_REDUCTION', () => {
+    it('derives label from BOONS name (first word) for COOLDOWN_REDUCTION', () => {
       expect(getBoonLabel('COOLDOWN_REDUCTION')).toBe('Rapid')
     })
 
-    it('returns label for CRIT_CHANCE', () => {
-      expect(getBoonLabel('CRIT_CHANCE')).toBe('Crit')
+    it('derives label from BOONS name (first word) for CRIT_CHANCE', () => {
+      expect(getBoonLabel('CRIT_CHANCE')).toBe('Critical')
     })
 
     it('returns fallback for unknown boon', () => {

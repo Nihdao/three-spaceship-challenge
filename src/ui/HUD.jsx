@@ -191,15 +191,10 @@ function WeaponSlots({ activeWeapons }) {
 
 // --- Boon Slots with update animation (Story 10.5) ---
 
-/** Get short display label for a boon (first word of name). */
+/** Get short display label for a boon (first word of name, like weapons). */
 export function getBoonLabel(boonId) {
-  const BOON_LABELS = {
-    DAMAGE_AMP: 'Dmg',
-    SPEED_BOOST: 'Speed',
-    COOLDOWN_REDUCTION: 'Rapid',
-    CRIT_CHANCE: 'Crit',
-  }
-  return BOON_LABELS[boonId] || '?'
+  const def = BOONS[boonId]
+  return def?.name?.split(' ')[0] || '?'
 }
 
 /** Detect which boon slots changed (added or upgraded) between prev and current arrays. */
@@ -263,13 +258,11 @@ function BoonSlots({ activeBoons }) {
         const def = BOONS[boon.boonId]
         const name = def?.name || '?'
         const label = getBoonLabel(boon.boonId)
-        const description = def?.tiers?.[boon.level - 1]?.description || ''
         return (
           <div
             key={boon.boonId}
             className="relative flex flex-col items-center justify-center"
             aria-label={`boon slot ${i + 1} ${name} level ${boon.level}`}
-            title={`${name}: ${description}`}
             style={{
               width: 'clamp(32px, 3vw, 48px)',
               height: 'clamp(32px, 3vw, 48px)',
