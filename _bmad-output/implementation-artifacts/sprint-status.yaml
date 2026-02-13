@@ -162,7 +162,7 @@ development_status:
   # Epic 15: Visual Polish - Space Environment Enhancement
   epic-15: in-progress
   15-1-unified-player-lighting-all-scenes: done
-  15-2-multi-layer-starfield-parallax: review
-  15-3-grid-visibility-reduction-ambient-fog: ready-for-dev
+  15-2-multi-layer-starfield-parallax: done
+  15-3-grid-visibility-reduction-ambient-fog: in-progress
   15-4-ambient-light-zones-nebula-effects: ready-for-dev
   epic-15-retrospective: optional

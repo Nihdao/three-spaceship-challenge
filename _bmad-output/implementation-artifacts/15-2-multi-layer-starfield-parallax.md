@@ -1,6 +1,6 @@
 # Story 15.2: Multi-Layer Starfield with Parallax Effect
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -560,12 +560,15 @@ None — clean implementation with no issues.
 ### Change Log
 
 - 2026-02-13: Story 15.2 implemented — Multi-layer starfield with parallax in GameplayScene and BossScene
+- 2026-02-13: Code review fixes — Extracted shared StarfieldLayer component, removed dead constants, lazy-init starTexture, added geometry tests
 
 ### File List
 
-- `src/config/gameConfig.js` — Added ENVIRONMENT_VISUAL_EFFECTS.STARFIELD_LAYERS section
-- `src/renderers/EnvironmentRenderer.jsx` — Refactored Starfield to 3-layer StarfieldLayer with parallax + soft circular texture
-- `src/renderers/starTexture.js` — NEW: Shared soft circular star texture (canvas-generated radial gradient)
-- `src/scenes/BossScene.jsx` — Refactored ArenaStarfield to 3-layer ArenaStarfieldLayer with purple tint + soft circular texture
-- `src/scenes/MenuScene.jsx` — Refactored MenuStarfield to 3-layer MenuStarfieldLayer with parallax + soft circular texture
+- `src/config/gameConfig.js` — Added ENVIRONMENT_VISUAL_EFFECTS.STARFIELD_LAYERS section; removed dead STAR_COUNT/STAR_FIELD_RADIUS
+- `src/renderers/StarfieldLayer.jsx` — NEW: Shared starfield layer component with parallax + configurable colorFn
+- `src/renderers/EnvironmentRenderer.jsx` — Uses shared StarfieldLayer (removed local copy)
+- `src/renderers/starTexture.js` — Soft circular star texture with lazy initialization (getStarTexture)
+- `src/scenes/BossScene.jsx` — Uses shared StarfieldLayer with purpleColorFn
+- `src/scenes/MenuScene.jsx` — Uses shared StarfieldLayer
 - `src/config/__tests__/gameConfig.starfieldLayers.test.js` — NEW: 17 tests for starfield layer config validation
+- `src/renderers/__tests__/starGeometry.test.js` — NEW: 6 tests for createStarGeometry helper
