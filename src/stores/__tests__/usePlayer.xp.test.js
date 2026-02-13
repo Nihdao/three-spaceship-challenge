@@ -61,12 +61,40 @@ describe('usePlayer — XP & level system', () => {
       expect(state.pendingLevelUp).toBe(true)
     })
 
-    it('does not level past the max level (curve length + 1)', () => {
+    it('levels past the hardcoded curve into infinite scaling', () => {
       const curve = GAME_CONFIG.XP_LEVEL_CURVE
       const totalXP = curve.reduce((sum, val) => sum + val, 0)
-      usePlayer.getState().addXP(totalXP + 9999) // way past max
+      usePlayer.getState().addXP(totalXP + 9999) // past level 15
       const state = usePlayer.getState()
-      expect(state.currentLevel).toBe(curve.length + 1) // max level
+      expect(state.currentLevel).toBeGreaterThan(curve.length + 1)
+      expect(state.currentXP).toBeGreaterThanOrEqual(0)
+      expect(state.currentXP).toBeLessThan(state.xpToNextLevel)
+    })
+
+    it('correctly transitions from level 14 to 15 to 16 using scaled XP', () => {
+      // Reach level 14 first
+      const curve = GAME_CONFIG.XP_LEVEL_CURVE
+      const xpToLevel14 = curve.slice(0, 13).reduce((sum, val) => sum + val, 0)
+      usePlayer.getState().addXP(xpToLevel14)
+      expect(usePlayer.getState().currentLevel).toBe(14)
+
+      // Level 14→15 requires curve[13] = 4400
+      usePlayer.getState().addXP(4400)
+      expect(usePlayer.getState().currentLevel).toBe(15)
+      expect(usePlayer.getState().xpToNextLevel).toBe(4488) // 4400 * 1.02
+
+      // Level 15→16 requires 4488
+      usePlayer.getState().addXP(4488)
+      expect(usePlayer.getState().currentLevel).toBe(16)
+      expect(usePlayer.getState().xpToNextLevel).toBe(4577) // 4400 * 1.02^2
+    })
+
+    it('handles massive XP gain skipping many levels', () => {
+      usePlayer.getState().addXP(500000)
+      const state = usePlayer.getState()
+      expect(state.currentLevel).toBeGreaterThan(15)
+      expect(state.currentXP).toBeGreaterThanOrEqual(0)
+      expect(state.currentXP).toBeLessThan(state.xpToNextLevel)
     })
   })
 
