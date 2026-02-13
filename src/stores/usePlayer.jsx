@@ -33,6 +33,9 @@ const usePlayer = create((set, get) => ({
   dashTimer: 0,
   dashCooldownTimer: 0,
 
+  // --- God mode (Story 11.5) ---
+  _godMode: false,
+
   // --- Visual damage feedback (Story 4.6) ---
   damageFlashTimer: 0,
   cameraShakeTimer: 0,
@@ -225,7 +228,7 @@ const usePlayer = create((set, get) => ({
   },
 
   addFragments: (amount) => set(state => ({
-    fragments: state.fragments + Math.round(amount * state.upgradeStats.fragmentMult),
+    fragments: state.fragments + Math.round(amount),
   })),
 
   applyPermanentUpgrade: (upgradeId) => {
@@ -378,6 +381,7 @@ const usePlayer = create((set, get) => ({
     invulnerabilityTimer: 0,
     lastDamageTime: 0,
     contactDamageCooldown: 0,
+    _godMode: false,
     isDashing: false,
     dashTimer: 0,
     dashCooldownTimer: 0,
@@ -411,6 +415,7 @@ const usePlayer = create((set, get) => ({
       maxHP: ship.baseHP,
       shipBaseSpeed: ship.baseSpeed,
       shipBaseDamageMultiplier: ship.baseDamageMultiplier,
+      _godMode: false,
       isInvulnerable: false,
       invulnerabilityTimer: 0,
       lastDamageTime: 0,

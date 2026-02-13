@@ -136,7 +136,7 @@ export default function GameLoop() {
         }
         if (defeatResult.animationComplete) {
           playSFX('boss-defeat')
-          const fragMult = useBoons.getState().modifiers.fragmentMultiplier ?? 1.0
+          const fragMult = (useBoons.getState().modifiers.fragmentMultiplier ?? 1.0) * usePlayer.getState().upgradeStats.fragmentMult
           usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_FRAGMENT_REWARD * fragMult))
           if (useLevel.getState().currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
             useGame.getState().setPhase('tunnel')
@@ -386,7 +386,7 @@ export default function GameLoop() {
 
     // 5. Enemy spawning + movement (skip during wormhole activation/active)
     const wormholeStatePre = useLevel.getState().wormholeState
-    if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
+    if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && !useGame.getState()._debugSpawnPaused) {
       const currentSystem = useLevel.getState().currentSystem
       const difficultyMult = GAME_CONFIG.SYSTEM_DIFFICULTY_MULTIPLIERS[currentSystem] || 1.0
       const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], difficultyMult)
