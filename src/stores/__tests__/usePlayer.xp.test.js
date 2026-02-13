@@ -51,9 +51,9 @@ describe('usePlayer — XP & level system', () => {
     })
 
     it('handles multi-level skip from single large XP gain', () => {
-      // XP_LEVEL_CURVE: [100, 150, 225, ...]
-      // Total to reach level 3 = 100 + 150 = 250
-      usePlayer.getState().addXP(260) // should reach level 3 with 10 overflow
+      // Total to reach level 3 = curve[0] + curve[1]
+      const totalToLevel3 = GAME_CONFIG.XP_LEVEL_CURVE[0] + GAME_CONFIG.XP_LEVEL_CURVE[1]
+      usePlayer.getState().addXP(totalToLevel3 + 10) // should reach level 3 with 10 overflow
       const state = usePlayer.getState()
       expect(state.currentLevel).toBe(3)
       expect(state.currentXP).toBe(10)

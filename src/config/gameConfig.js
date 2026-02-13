@@ -27,23 +27,23 @@ export const GAME_CONFIG = {
   XP_ORB_COLOR: "#00ffcc",
 
   // Progression — Story 11.2: Rebalanced for faster early-mid game progression
-  // Design goals: Level 5 in 2-3 min, level 10 in 5-6 min, smooth exponential curve
-  // Early levels (1-5): -20-30%, Mid levels (6-10): -15%, Late levels (11+): +50% growth
+  // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~30% growth per level from level 6+
+  // Early levels (1-5): -20-30% from original, Mid/Late levels (6+): ~30% growth rate
   XP_LEVEL_CURVE: [
     75,    // Level 1 → 2 (-25% from 100)
     110,   // Level 2 → 3 (-27% from 150)
     165,   // Level 3 → 4 (-27% from 225)
     250,   // Level 4 → 5 (-26% from 340)
     375,   // Level 5 → 6 (-26% from 510)
-    650,   // Level 6 → 7 (-15% from 765)
-    975,   // Level 7 → 8 (-15% from 1148)
-    1465,  // Level 8 → 9 (-15% from 1722)
-    2200,  // Level 9 → 10 (-15% from 2583)
-    3300,  // Level 10 → 11 (-15% from 3875)
-    4950,  // Level 11 → 12 (+50% growth)
-    7425,  // Level 12 → 13 (+50% growth)
-    11138, // Level 13 → 14 (+50% growth)
-    16707, // Level 14 → 15 (+50% growth, aspirational)
+    525,   // Level 6 → 7 (~30% growth)
+    700,   // Level 7 → 8 (~30% growth)
+    910,   // Level 8 → 9 (~30% growth)
+    1180,  // Level 9 → 10 (~30% growth)
+    1535,  // Level 10 → 11 (~30% growth)
+    2000,  // Level 11 → 12 (~30% growth)
+    2600,  // Level 12 → 13 (~30% growth)
+    3380,  // Level 13 → 14 (~30% growth)
+    4400,  // Level 14 → 15 (~30% growth, aspirational)
   ],
 
   // Player movement (Story 1.2)
