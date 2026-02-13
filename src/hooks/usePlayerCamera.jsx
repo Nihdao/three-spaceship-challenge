@@ -1,59 +1,53 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useControls, folder } from "leva";
+import { useControls } from "leva";
 import usePlayer from "../stores/usePlayer.jsx";
 import { GAME_CONFIG } from "../config/gameConfig.js";
 
 const _targetPos = new THREE.Vector3();
-const _lookTarget = new THREE.Vector3();
+
+/**
+ * Pure computation for a single camera frame. Exported for testability (H1 fix).
+ * Mutates smoothedPosition, camera.position, and camera.rotation in place.
+ */
+export function computeCameraFrame(camera, smoothedPosition, playerState, delta, offsetY, posSmooth, elapsedTime) {
+  const { position, cameraShakeTimer, cameraShakeIntensity } = playerState;
+
+  // Target camera position: directly above player (pure top-down, Story 14.1)
+  _targetPos.set(position[0], offsetY, position[2]);
+
+  // Frame-rate independent smooth lerp
+  const posLerp = 1 - Math.exp(-posSmooth * delta);
+  smoothedPosition.lerp(_targetPos, posLerp);
+
+  camera.position.copy(smoothedPosition);
+
+  // Camera shake (Story 4.6) — applied to camera position directly,
+  // NOT to smoothedPosition ref, to avoid corrupting the smooth follow state
+  if (cameraShakeTimer > 0) {
+    const t = cameraShakeTimer / GAME_CONFIG.CAMERA_SHAKE_DURATION;
+    const amp = cameraShakeIntensity * t;
+    camera.position.x += Math.sin(elapsedTime * 37.5) * amp;
+    camera.position.z += Math.cos(elapsedTime * 53.1) * amp;
+  }
+
+  // Fixed top-down orientation (Story 14.1): no lookAt, set rotation directly
+  // to prevent any camera rotation tied to player facing or velocity
+  camera.rotation.set(-Math.PI / 2, 0, 0);
+}
 
 export function usePlayerCamera() {
-  const { offsetY, offsetZ, posSmooth, lookSmooth } = useControls("Camera Follow", {
-    offsetY: { value: 60, min: 10, max: 120, step: 1 },
-    offsetZ: { value: 30, min: 0, max: 60, step: 1 },
-    posSmooth: { value: 5, min: 1, max: 20, step: 0.5 },
-    lookSmooth: { value: 7, min: 1, max: 20, step: 0.5 },
+  const { offsetY, posSmooth } = useControls("Camera Follow", {
+    offsetY: { value: 120, min: 10, max: 200, step: 1 },
+    posSmooth: { value: 20, min: 1, max: 40, step: 0.5 },
   });
 
-  const smoothedPosition = useRef(new THREE.Vector3(0, 60, 30));
-  const smoothedLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  // Note: initial Y matches default offsetY to avoid lerp jump on first frame (L1)
+  const smoothedPosition = useRef(new THREE.Vector3(0, 120, 0));
 
   useFrame((state, delta) => {
-    const { position, velocity, cameraShakeTimer, cameraShakeIntensity } = usePlayer.getState();
-
-    // Target camera position: above player with offset
-    _targetPos.set(
-      position[0],
-      offsetY,
-      position[2] + offsetZ
-    );
-
-    // Look at player position with slight lead based on velocity
-    _lookTarget.set(
-      position[0] + velocity[0] * 0.1,
-      0,
-      position[2] + velocity[2] * 0.1
-    );
-
-    // Frame-rate independent smooth lerp
-    const posLerp = 1 - Math.exp(-posSmooth * delta);
-    const lookLerp = 1 - Math.exp(-lookSmooth * delta);
-    smoothedPosition.current.lerp(_targetPos, posLerp);
-    smoothedLookAt.current.lerp(_lookTarget, lookLerp);
-
-    state.camera.position.copy(smoothedPosition.current);
-
-    // Camera shake (Story 4.6) — applied to camera position directly,
-    // NOT to smoothedPosition ref, to avoid corrupting the smooth follow state
-    if (cameraShakeTimer > 0) {
-      const t = cameraShakeTimer / GAME_CONFIG.CAMERA_SHAKE_DURATION;
-      const amp = cameraShakeIntensity * t;
-      const elapsed = state.clock.elapsedTime;
-      state.camera.position.x += Math.sin(elapsed * 37.5) * amp;
-      state.camera.position.z += Math.cos(elapsed * 53.1) * amp;
-    }
-
-    state.camera.lookAt(smoothedLookAt.current);
+    const playerState = usePlayer.getState();
+    computeCameraFrame(state.camera, smoothedPosition.current, playerState, delta, offsetY, posSmooth, state.clock.elapsedTime);
   });
 }
