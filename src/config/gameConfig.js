@@ -1,4 +1,7 @@
 export const GAME_CONFIG = {
+  // Debug (Story 11.5)
+  DEBUG_CONSOLE_ENABLED: true,
+
   // System
   SYSTEM_TIMER: 600, // 10 minutes in seconds
 

@@ -102,15 +102,15 @@ describe('usePlayer — Permanent Upgrades (Story 7.2)', () => {
     })
   })
 
-  describe('addFragments with fragmentMult', () => {
-    it('applies fragment multiplier to rewards', () => {
+  describe('addFragments', () => {
+    it('adds raw amount without internal multiplier (multipliers composed at GameLoop call site)', () => {
       usePlayer.setState({ fragments: 100 })
       usePlayer.getState().applyPermanentUpgrade('FRAGMENT_BOOST_1')
       // fragments after purchase: 100 - 70 = 30
       expect(usePlayer.getState().fragments).toBe(30)
-      // Now add 100 fragments with 1.5x multiplier = 150
+      // addFragments adds raw amount — fragmentMult is composed externally by GameLoop
       usePlayer.getState().addFragments(100)
-      expect(usePlayer.getState().fragments).toBe(180) // 30 + 150
+      expect(usePlayer.getState().fragments).toBe(130) // 30 + 100 (raw)
     })
   })
 

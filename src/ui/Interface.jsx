@@ -11,6 +11,8 @@ import VictoryScreen from './VictoryScreen.jsx'
 import TunnelHub from './TunnelHub.jsx'
 import ShipSelect from './ShipSelect.jsx'
 import PauseMenu from './PauseMenu.jsx'
+import DebugConsole from './DebugConsole.jsx'
+import { GAME_CONFIG } from '../config/gameConfig.js'
 
 export default function Interface() {
   const phase = useGame((s) => s.phase)
@@ -56,6 +58,7 @@ export default function Interface() {
       {phase === 'gameOver' && <GameOverScreen />}
       {phase === 'victory' && <VictoryScreen />}
       {phase === 'tunnel' && <TunnelHub />}
+      {GAME_CONFIG.DEBUG_CONSOLE_ENABLED && (phase === 'gameplay' || phase === 'boss') && <DebugConsole />}
     </>
   )
 }

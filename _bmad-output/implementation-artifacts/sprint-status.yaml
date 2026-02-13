@@ -132,8 +132,8 @@ development_status:
   11-1-xp-magnetization-system: done
   11-2-xp-curve-rebalancing: done
   11-3-complete-weapon-roster-implementation: done
-  11-4-complete-boon-roster-implementation: in-progress
-  11-5-debug-console-god-mode: ready-for-dev
+  11-4-complete-boon-roster-implementation: done
+  11-5-debug-console-god-mode: done
   epic-11-retrospective: optional
 
   # Epic 12: Visual Polish & Player Readability
@@ -149,3 +149,11 @@ development_status:
   13-2-sidebar-layout-compaction-no-scroll: ready-for-dev
   13-3-tunnel-3d-scene-ship-visibility: ready-for-dev
   epic-13-retrospective: optional
+
+  # Epic 14: Core Feel & Infinite Progression
+  epic-14: in-progress
+  14-1-camera-top-view-rotation-decoupling: ready-for-dev
+  14-2-organic-ship-movement-acceleration: backlog
+  14-3-infinite-level-xp-scaling: backlog
+  14-4-level-up-overflow-choices: backlog
+  epic-14-retrospective: optional
