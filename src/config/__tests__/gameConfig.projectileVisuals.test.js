@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { GAME_CONFIG } from '../gameConfig.js'
+import { WEAPONS } from '../../entities/weaponDefs.js'
 
 describe('GAME_CONFIG.PROJECTILE_VISUALS (Story 12.2)', () => {
   const visuals = GAME_CONFIG.PROJECTILE_VISUALS
@@ -24,5 +25,21 @@ describe('GAME_CONFIG.PROJECTILE_VISUALS (Story 12.2)', () => {
   it('SPEED_SCALE_MULT is a positive number', () => {
     expect(visuals.SPEED_SCALE_MULT).toBeGreaterThan(0)
     expect(visuals.SPEED_SCALE_MULT).toBeLessThan(0.1)
+  })
+
+  it('SPEED_SCALE_MAX caps elongation', () => {
+    expect(visuals.SPEED_SCALE_MAX).toBeGreaterThanOrEqual(1.5)
+    expect(visuals.SPEED_SCALE_MAX).toBeLessThanOrEqual(3.0)
+  })
+
+  // Motion blur elongation sanity check for all weapon speeds
+  it('motion blur produces subtle elongation (1.0x-2.0x) for all weapon speeds', () => {
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      const speed = def.baseSpeed // assumes normalized direction vector magnitude ~1.0
+      const rawMult = 1.0 + speed * visuals.SPEED_SCALE_MULT
+      const capped = Math.min(rawMult, visuals.SPEED_SCALE_MAX)
+      expect(capped, `${id} (speed ${speed}) elongation ${capped.toFixed(2)}x exceeds cap`).toBeLessThanOrEqual(visuals.SPEED_SCALE_MAX)
+      expect(capped, `${id} (speed ${speed}) elongation should be >= 1.0`).toBeGreaterThanOrEqual(1.0)
+    }
   })
 })

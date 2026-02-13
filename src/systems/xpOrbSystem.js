@@ -50,11 +50,11 @@ export function collectOrb(index) {
   return xpValue
 }
 
-export function updateMagnetization(px, pz, delta) {
-  const magnetRadiusSq = GAME_CONFIG.XP_MAGNET_RADIUS ** 2
+export function updateMagnetization(px, pz, delta, pickupRadiusMultiplier = 1.0) {
+  const magnetRadius = GAME_CONFIG.XP_MAGNET_RADIUS * pickupRadiusMultiplier
+  const magnetRadiusSq = magnetRadius * magnetRadius
   const magnetSpeed = GAME_CONFIG.XP_MAGNET_SPEED
   const accelCurve = GAME_CONFIG.XP_MAGNET_ACCELERATION_CURVE
-  const magnetRadius = GAME_CONFIG.XP_MAGNET_RADIUS
 
   for (let i = 0; i < activeCount; i++) {
     const orb = orbs[i]

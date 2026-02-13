@@ -198,10 +198,32 @@ describe('weaponDefs — weapon roster (Story 11.3)', () => {
 
   // Story 12.2: Projectile visibility enhancements
   describe('projectile visibility (Story 12.2)', () => {
+    const BOSS_COLOR = '#ff6600'
+
+    // Parse hex color to RGB components
+    function hexToRgb(hex) {
+      const val = parseInt(hex.slice(1), 16)
+      return [(val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff]
+    }
+
+    // Euclidean distance in RGB space (0-441 range)
+    function colorDistance(hex1, hex2) {
+      const [r1, g1, b1] = hexToRgb(hex1)
+      const [r2, g2, b2] = hexToRgb(hex2)
+      return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2)
+    }
+
     it('no player weapon shares the boss projectile color (#ff6600)', () => {
-      const BOSS_COLOR = '#ff6600'
       for (const [id, def] of Object.entries(WEAPONS)) {
         expect(def.projectileColor, `${id} uses boss projectile color`).not.toBe(BOSS_COLOR)
+      }
+    })
+
+    it('all player weapons have sufficient color distance from boss (#ff6600)', () => {
+      const MIN_DISTANCE = 80 // minimum RGB Euclidean distance (catches orange/red-orange proximity, allows pure red)
+      for (const [id, def] of Object.entries(WEAPONS)) {
+        const dist = colorDistance(def.projectileColor, BOSS_COLOR)
+        expect(dist, `${id} (${def.projectileColor}) too close to boss ${BOSS_COLOR} — distance ${dist.toFixed(0)}`).toBeGreaterThanOrEqual(MIN_DISTANCE)
       }
     })
 

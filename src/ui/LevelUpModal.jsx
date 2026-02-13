@@ -26,8 +26,10 @@ export default function LevelUpModal() {
       useWeapons.getState().addWeapon(choice.id)
     } else if (choice.type === 'new_boon') {
       useBoons.getState().addBoon(choice.id)
+      usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     } else if (choice.type === 'boon_upgrade') {
       useBoons.getState().upgradeBoon(choice.id)
+      usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     }
     useGame.getState().resumeGameplay()
   }, [])

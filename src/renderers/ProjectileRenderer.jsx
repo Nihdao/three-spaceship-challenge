@@ -51,7 +51,8 @@ export default function ProjectileRenderer() {
       let scaleZ = p.meshScale[2]
       if (visuals.MOTION_BLUR_ENABLED) {
         const speed = Math.sqrt(p.dirX ** 2 + p.dirZ ** 2) * p.speed
-        scaleZ *= 1.0 + speed * visuals.SPEED_SCALE_MULT
+        const speedMult = Math.min(1.0 + speed * visuals.SPEED_SCALE_MULT, visuals.SPEED_SCALE_MAX)
+        scaleZ *= speedMult
       }
       dummy.scale.set(p.meshScale[0], p.meshScale[1], scaleZ)
 
