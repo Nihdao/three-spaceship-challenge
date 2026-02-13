@@ -71,8 +71,6 @@ export const GAME_CONFIG = {
   SPAWN_BATCH_RAMP_INTERVAL: 30, // seconds between batch size increases
 
   // Environment (Story 1.3)
-  STAR_COUNT: 4000,
-  STAR_FIELD_RADIUS: 5000,
   BOUNDARY_WALL_BASE_OPACITY: 0.08,
   BOUNDARY_WALL_WARN_OPACITY: 0.6,
   BOUNDARY_WALL_HEIGHT: 200,
@@ -186,8 +184,42 @@ export const GAME_CONFIG = {
     SPEED_SCALE_MAX: 2.0, // Maximum elongation cap (prevents extreme stretch on fast weapons like BEAM)
   },
 
-  // Environment Visual Effects (Story 15.2)
+  // Environment Visual Effects (Story 15.2, 15.3)
   ENVIRONMENT_VISUAL_EFFECTS: {
+    // Grid visibility (Story 15.3)
+    GRID_VISIBILITY: {
+      GAMEPLAY: {
+        enabled: true,
+        divisions: 40,
+        colorCenterLine: '#0d0d18',
+        colorGrid: '#0a0a0f',
+      },
+      BOSS: {
+        enabled: true,
+        divisions: 20,
+        colorCenterLine: '#1a0828',
+        colorGrid: '#0d0415',
+      },
+      DEBUG: {
+        colorCenterLine: '#00ffcc',
+        colorGrid: '#00aaaa',
+      },
+    },
+
+    // Ambient fog (Story 15.3)
+    AMBIENT_FOG: {
+      GAMEPLAY: {
+        enabled: true,
+        color: '#050510',
+        density: 0.0003,
+      },
+      BOSS: {
+        enabled: true,
+        color: '#0a0515',
+        density: 0.0002,
+      },
+    },
+
     STARFIELD_LAYERS: {
       DISTANT: {
         count: 1000,
