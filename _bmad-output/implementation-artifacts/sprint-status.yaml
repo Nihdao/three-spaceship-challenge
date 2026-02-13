@@ -130,7 +130,7 @@ development_status:
   # Epic 11: Gameplay Balance & Content Completion
   epic-11: in-progress
   11-1-xp-magnetization-system: done
-  11-2-xp-curve-rebalancing: ready-for-dev
+  11-2-xp-curve-rebalancing: review
   11-3-complete-weapon-roster-implementation: ready-for-dev
   11-4-complete-boon-roster-implementation: ready-for-dev
   epic-11-retrospective: optional
@@ -146,5 +146,5 @@ development_status:
   epic-13: in-progress
   13-1-tunnel-rendering-interaction-bugs-resolution: ready-for-dev
   13-2-sidebar-layout-compaction-no-scroll: ready-for-dev
-  13-3-tunnel-3d-scene-ship-visibility: backlog
+  13-3-tunnel-3d-scene-ship-visibility: ready-for-dev
   epic-13-retrospective: optional
