@@ -195,4 +195,37 @@ describe('weaponDefs — weapon roster (Story 11.3)', () => {
       expect(WEAPONS[id].slot).toBe('any')
     }
   })
+
+  // Story 12.2: Projectile visibility enhancements
+  describe('projectile visibility (Story 12.2)', () => {
+    it('no player weapon shares the boss projectile color (#ff6600)', () => {
+      const BOSS_COLOR = '#ff6600'
+      for (const [id, def] of Object.entries(WEAPONS)) {
+        expect(def.projectileColor, `${id} uses boss projectile color`).not.toBe(BOSS_COLOR)
+      }
+    })
+
+    it('all projectileColor values are valid hex colors', () => {
+      const hexRegex = /^#[0-9a-fA-F]{6}$/
+      for (const [id, def] of Object.entries(WEAPONS)) {
+        expect(def.projectileColor, `${id} has invalid hex color`).toMatch(hexRegex)
+      }
+    })
+
+    it('upgrade visual colors are progressively brighter for weapons that have them', () => {
+      // Weapons with upgradeVisuals.color at levels 5 and 9 should have brighter colors at level 9
+      for (const [id, def] of Object.entries(WEAPONS)) {
+        const lvl5 = def.upgrades.find(u => u.level === 5 && u.upgradeVisuals?.color)
+        const lvl9 = def.upgrades.find(u => u.level === 9 && u.upgradeVisuals?.color)
+        if (lvl5 && lvl9) {
+          // Level 9 color should have higher total RGB than level 5 (brighter)
+          const rgb5 = parseInt(lvl5.upgradeVisuals.color.slice(1), 16)
+          const r5 = (rgb5 >> 16) & 0xff, g5 = (rgb5 >> 8) & 0xff, b5 = rgb5 & 0xff
+          const rgb9 = parseInt(lvl9.upgradeVisuals.color.slice(1), 16)
+          const r9 = (rgb9 >> 16) & 0xff, g9 = (rgb9 >> 8) & 0xff, b9 = rgb9 & 0xff
+          expect(r9 + g9 + b9, `${id} level 9 should be brighter than level 5`).toBeGreaterThanOrEqual(r5 + g5 + b5)
+        }
+      }
+    })
+  })
 })

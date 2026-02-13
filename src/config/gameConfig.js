@@ -173,6 +173,14 @@ export const GAME_CONFIG = {
     SHOW_COMPLETED_AURA: false,
   },
 
+  // Projectile Visibility (Story 12.2)
+  PROJECTILE_VISUALS: {
+    EMISSIVE_INTENSITY: 3.0,         // Projectile glow intensity (was 2.0, now brighter)
+    EMISSIVE_BASE_COLOR: '#ffffff',  // Material emissive color
+    MOTION_BLUR_ENABLED: true,       // Velocity-based elongation for fast projectiles
+    SPEED_SCALE_MULT: 0.015,         // Speed-to-scale multiplier for motion blur
+  },
+
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
     EMISSIVE_INTENSITY: 0,            // Hull emissive — not needed with strong point/fill lights

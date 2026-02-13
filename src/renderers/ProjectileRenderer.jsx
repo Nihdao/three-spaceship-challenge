@@ -16,8 +16,8 @@ export default function ProjectileRenderer() {
     () =>
       new THREE.MeshStandardMaterial({
         color: '#ffffff',
-        emissive: '#ffffff',
-        emissiveIntensity: 2,
+        emissive: GAME_CONFIG.PROJECTILE_VISUALS.EMISSIVE_BASE_COLOR,
+        emissiveIntensity: GAME_CONFIG.PROJECTILE_VISUALS.EMISSIVE_INTENSITY,
         toneMapped: false,
       }),
     [],
@@ -37,6 +37,7 @@ export default function ProjectileRenderer() {
     const projectiles = useWeapons.getState().projectiles
     const dummy = dummyRef.current
     const tempColor = tempColorRef.current
+    const visuals = GAME_CONFIG.PROJECTILE_VISUALS
 
     let count = 0
     for (let i = 0; i < projectiles.length; i++) {
@@ -45,7 +46,15 @@ export default function ProjectileRenderer() {
 
       dummy.position.set(p.x, p.y ?? 0.5, p.z)
       dummy.rotation.set(0, Math.atan2(p.dirX, p.dirZ), 0)
-      dummy.scale.set(p.meshScale[0], p.meshScale[1], p.meshScale[2])
+
+      // Story 12.2: velocity-based elongation for motion blur effect
+      let scaleZ = p.meshScale[2]
+      if (visuals.MOTION_BLUR_ENABLED) {
+        const speed = Math.sqrt(p.dirX ** 2 + p.dirZ ** 2) * p.speed
+        scaleZ *= 1.0 + speed * visuals.SPEED_SCALE_MULT
+      }
+      dummy.scale.set(p.meshScale[0], p.meshScale[1], scaleZ)
+
       dummy.updateMatrix()
       mesh.setMatrixAt(count, dummy.matrix)
 
