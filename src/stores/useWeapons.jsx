@@ -22,7 +22,7 @@ const useWeapons = create((set, get) => ({
   tick: (delta, playerPosition, playerRotation, boonModifiers = {}) => {
     const { activeWeapons, projectiles } = get()
     const newProjectiles = []
-    const { damageMultiplier = 1, cooldownMultiplier = 1, critChance = 0 } = boonModifiers
+    const { damageMultiplier = 1, cooldownMultiplier = 1, critChance = 0, critMultiplier = 2.0, projectileSpeedMultiplier = 1.0 } = boonModifiers
 
     for (let i = 0; i < activeWeapons.length; i++) {
       const weapon = activeWeapons[i]
@@ -46,7 +46,7 @@ const useWeapons = create((set, get) => ({
         const fwd = GAME_CONFIG.PROJECTILE_SPAWN_FORWARD_OFFSET
         let baseDamage = weapon.overrides?.damage ?? def.baseDamage
         let projDamage = baseDamage * damageMultiplier
-        if (critChance > 0 && Math.random() < critChance) projDamage *= 2
+        if (critChance > 0 && Math.random() < critChance) projDamage *= critMultiplier
         const color = weapon.overrides?.upgradeVisuals?.color ?? def.projectileColor
         const meshScale = weapon.overrides?.upgradeVisuals?.meshScale ?? def.projectileMeshScale
 
@@ -93,7 +93,7 @@ const useWeapons = create((set, get) => ({
             y: GAME_CONFIG.PROJECTILE_SPAWN_Y_OFFSET,
             dirX,
             dirZ,
-            speed: def.baseSpeed,
+            speed: def.baseSpeed * projectileSpeedMultiplier,
             damage: projDamage,
             radius: def.projectileRadius,
             lifetime: def.projectileLifetime,

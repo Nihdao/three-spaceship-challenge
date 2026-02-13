@@ -124,7 +124,7 @@ export default function GameLoop() {
         const boonModifiers = useBoons.getState().modifiers
         const { upgradeStats: uS, dilemmaStats: dS } = usePlayer.getState()
         const defeatSpeedMult = (boonModifiers.speedMultiplier ?? 1) * uS.speedMult * dS.speedMult
-        usePlayer.getState().tick(clampedDelta, input, defeatSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE)
+        usePlayer.getState().tick(clampedDelta, input, defeatSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE, boonModifiers.hpRegenRate ?? 0)
 
         // Run defeat animation tick
         const defeatResult = useBoss.getState().defeatTick(clampedDelta)
@@ -136,7 +136,8 @@ export default function GameLoop() {
         }
         if (defeatResult.animationComplete) {
           playSFX('boss-defeat')
-          usePlayer.getState().addFragments(GAME_CONFIG.BOSS_FRAGMENT_REWARD)
+          const fragMult = useBoons.getState().modifiers.fragmentMultiplier ?? 1.0
+          usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_FRAGMENT_REWARD * fragMult))
           if (useLevel.getState().currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
             useGame.getState().setPhase('tunnel')
           } else {
@@ -154,7 +155,7 @@ export default function GameLoop() {
       const boonModifiers = useBoons.getState().modifiers
       const { upgradeStats: bossUS, dilemmaStats: bossDS } = usePlayer.getState()
       const bossSpeedMult = (boonModifiers.speedMultiplier ?? 1) * bossUS.speedMult * bossDS.speedMult
-      usePlayer.getState().tick(clampedDelta, input, bossSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE)
+      usePlayer.getState().tick(clampedDelta, input, bossSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE, boonModifiers.hpRegenRate ?? 0)
 
       // 2b. Dash input (edge detection)
       if (input.dash && !prevDashRef.current) {
@@ -173,6 +174,8 @@ export default function GameLoop() {
         damageMultiplier: composeDamageMultiplier(playerState, boonModifiers, bossUS, bossDS),
         cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * bossUS.cooldownMult * bossDS.cooldownMult,
         critChance: boonModifiers.critChance ?? 0,
+        critMultiplier: boonModifiers.critMultiplier ?? 2.0,
+        projectileSpeedMultiplier: boonModifiers.projectileSpeedMultiplier ?? 1.0,
       }
       const projCountBefore = useWeapons.getState().projectiles.length
       useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, bossWeaponMods)
@@ -279,7 +282,7 @@ export default function GameLoop() {
             hitIds.add(bpHits[i].id)
           }
           if (totalDamage > 0) {
-            usePlayer.getState().takeDamage(totalDamage)
+            usePlayer.getState().takeDamage(totalDamage, boonModifiers.damageReduction ?? 0)
             playSFX('damage-taken')
           }
           // Remove hit projectiles immutably
@@ -293,7 +296,7 @@ export default function GameLoop() {
         if (contactHits.length > 0) {
           const pState = usePlayer.getState()
           if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
-            usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.difficultyMult || 1)))
+            usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.difficultyMult || 1)), boonModifiers.damageReduction ?? 0)
             playSFX('damage-taken')
           }
         }
@@ -333,7 +336,7 @@ export default function GameLoop() {
     const boonModifiers = useBoons.getState().modifiers
     const { upgradeStats, dilemmaStats } = usePlayer.getState()
     const composedSpeedMult = (boonModifiers.speedMultiplier ?? 1) * upgradeStats.speedMult * dilemmaStats.speedMult
-    usePlayer.getState().tick(clampedDelta, input, composedSpeedMult)
+    usePlayer.getState().tick(clampedDelta, input, composedSpeedMult, GAME_CONFIG.PLAY_AREA_SIZE, boonModifiers.hpRegenRate ?? 0)
 
     // 2b. Dash input (edge detection: trigger only on press, not hold)
     const prevCooldown = prevDashCooldownRef.current
@@ -358,6 +361,8 @@ export default function GameLoop() {
       damageMultiplier: composeDamageMultiplier(playerState, boonModifiers, upgradeStats, dilemmaStats),
       cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * upgradeStats.cooldownMult * dilemmaStats.cooldownMult,
       critChance: boonModifiers.critChance ?? 0,
+      critMultiplier: boonModifiers.critMultiplier ?? 2.0,
+      projectileSpeedMultiplier: boonModifiers.projectileSpeedMultiplier ?? 1.0,
     }
     const projCountBefore = useWeapons.getState().projectiles.length
     useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, composedWeaponMods)
@@ -498,7 +503,7 @@ export default function GameLoop() {
           if (enemy) totalDamage += enemy.damage
         }
         if (totalDamage > 0) {
-          usePlayer.getState().takeDamage(totalDamage)
+          usePlayer.getState().takeDamage(totalDamage, boonModifiers.damageReduction ?? 0)
           playSFX('damage-taken')
         }
       }
@@ -569,7 +574,7 @@ export default function GameLoop() {
     // 8. XP + progression
     // 8a. Update orb timers + magnetization (Story 11.1)
     updateOrbs(clampedDelta)
-    updateMagnetization(playerPos[0], playerPos[2], clampedDelta)
+    updateMagnetization(playerPos[0], playerPos[2], clampedDelta, boonModifiers.pickupRadiusMultiplier ?? 1.0)
 
     // 8b. Register XP orbs in spatial hash
     const orbArray = getOrbs()
@@ -590,9 +595,10 @@ export default function GameLoop() {
         if (orbIndex < getOrbCount()) indices.push(orbIndex)
       }
       indices.sort((a, b) => b - a)
+      const xpMult = boonModifiers.xpMultiplier ?? 1.0
       for (let i = 0; i < indices.length; i++) {
         const xpValue = collectOrb(indices[i])
-        usePlayer.getState().addXP(xpValue)
+        usePlayer.getState().addXP(xpValue * xpMult)
       }
     }
 

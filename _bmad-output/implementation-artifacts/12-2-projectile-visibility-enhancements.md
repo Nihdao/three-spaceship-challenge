@@ -1,6 +1,6 @@
 # Story 12.2: Projectile Visibility Enhancements
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -633,20 +633,31 @@ None — clean implementation with no blockers.
 - **Tasks 9-11 (Testing & Edge Cases):** All 897 tests pass with no regressions. Added projectile visibility tests (boss color conflict, hex validation, progressive brightness). Added PROJECTILE_VISUALS config tests.
 - **Task 10 (Motion Blur):** Implemented velocity-based elongation in ProjectileRenderer.jsx — fast projectiles appear elongated in movement direction. Configurable via SPEED_SCALE_MULT.
 - **Task 12 (Documentation):** Inline comments added to all modified files.
+- **Post-review fix:** Increased PROJECTILE_SPAWN_FORWARD_OFFSET from 2.5 to 5.0 — the higher emissive intensity (3.0) made the laser projectile glow visible behind/under the ship at the old spawn distance.
+
+#### Code Review Fixes (AI)
+
+- **[H1] Motion blur elongation excessive:** Reduced SPEED_SCALE_MULT (0.015→0.003), added SPEED_SCALE_MAX (2.0) cap in config, applied cap in ProjectileRenderer.jsx. Prevents extreme 5-10x elongation on fast weapons (BEAM, RAILGUN).
+- **[H2] SATELLITE/EXPLOSIVE_ROUND too close to boss color:** Changed SATELLITE (#ffaa00→#bb66ff purple) and EXPLOSIVE_ROUND (#ff4400→#ff2244 crimson) with updated upgradeVisuals.color at levels 5 and 9.
+- **[M1] Uncommitted spawn offset:** Improved comment wording for PROJECTILE_SPAWN_FORWARD_OFFSET.
+- **[M2] Missing motion blur test:** Added motion blur sanity test in gameConfig.projectileVisuals.test.js — validates elongation stays within 1.0x-2.0x for all weapon speeds.
+- **[M3] Boss color test too narrow:** Added RGB Euclidean distance test (threshold 80) to catch near-matches, not just exact #ff6600.
 
 ### File List
 
 **Modified:**
-- src/config/gameConfig.js — Added PROJECTILE_VISUALS config section
-- src/renderers/ProjectileRenderer.jsx — Applied config-driven emissive intensity, added motion blur elongation
-- src/entities/weaponDefs.js — Updated projectileColor values (brighter, more saturated), updated upgradeVisuals.color for levels 5 and 9, fixed TRI_SHOT color conflict with boss
+- src/config/gameConfig.js — Added PROJECTILE_VISUALS config section (SPEED_SCALE_MULT: 0.003, SPEED_SCALE_MAX: 2.0), increased PROJECTILE_SPAWN_FORWARD_OFFSET (2.5→5.0)
+- src/renderers/ProjectileRenderer.jsx — Applied config-driven emissive intensity, added motion blur elongation with cap
+- src/entities/weaponDefs.js — Updated projectileColor values (brighter, more saturated), updated upgradeVisuals.color for levels 5 and 9, fixed TRI_SHOT/SATELLITE/EXPLOSIVE_ROUND color conflicts with boss
 
 **New:**
-- src/config/__tests__/gameConfig.projectileVisuals.test.js — Tests for PROJECTILE_VISUALS config
+- src/config/__tests__/gameConfig.projectileVisuals.test.js — Tests for PROJECTILE_VISUALS config + motion blur sanity
 
 **Modified (tests):**
-- src/entities/__tests__/weaponDefs.test.js — Added Story 12.2 visibility tests (boss color conflict, hex validation, progressive brightness)
+- src/entities/__tests__/weaponDefs.test.js — Added Story 12.2 visibility tests (boss color conflict, color distance, hex validation, progressive brightness)
 
 ### Change Log
 
 - 2026-02-13: Story 12.2 — Projectile visibility enhancements: brighter colors, higher emissive intensity (2→3), motion blur elongation, PROJECTILE_VISUALS config section, TRI_SHOT color fix (boss conflict resolved), 8 new tests added
+- 2026-02-13: Post-review fix — Increased PROJECTILE_SPAWN_FORWARD_OFFSET (2.5→5.0) to prevent laser glow visible behind ship
+- 2026-02-13: Code review fixes — Motion blur cap (SPEED_SCALE_MULT 0.015→0.003 + SPEED_SCALE_MAX 2.0), SATELLITE/EXPLOSIVE_ROUND color fixes (boss proximity), improved boss color distance test, motion blur sanity test

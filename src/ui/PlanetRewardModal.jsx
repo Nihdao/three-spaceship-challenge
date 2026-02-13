@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import useGame from '../stores/useGame.jsx'
+import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import { generatePlanetReward } from '../systems/progressionSystem.js'
@@ -40,8 +41,10 @@ export default function PlanetRewardModal() {
       useWeapons.getState().addWeapon(choice.id)
     } else if (choice.type === 'new_boon') {
       useBoons.getState().addBoon(choice.id)
+      usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     } else if (choice.type === 'boon_upgrade') {
       useBoons.getState().upgradeBoon(choice.id)
+      usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     }
     // stat_boost: intentional no-op fallback (all slots maxed edge case)
     useGame.getState().resumeGameplay()

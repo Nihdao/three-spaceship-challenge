@@ -132,14 +132,14 @@ development_status:
   11-1-xp-magnetization-system: done
   11-2-xp-curve-rebalancing: done
   11-3-complete-weapon-roster-implementation: done
-  11-4-complete-boon-roster-implementation: ready-for-dev
+  11-4-complete-boon-roster-implementation: in-progress
   11-5-debug-console-god-mode: ready-for-dev
   epic-11-retrospective: optional
 
   # Epic 12: Visual Polish & Player Readability
   epic-12: in-progress
   12-1-player-ship-lighting-improvements: done
-  12-2-projectile-visibility-enhancements: review
+  12-2-projectile-visibility-enhancements: done
   12-3-planet-capture-zone-aura-system: done
   epic-12-retrospective: optional
 

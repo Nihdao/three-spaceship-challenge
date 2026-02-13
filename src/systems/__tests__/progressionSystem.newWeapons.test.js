@@ -28,21 +28,28 @@ describe('progressionSystem — new weapon integration (Story 11.3)', () => {
   })
 
   it('new weapons can be added via addWeapon and equipped', () => {
-    // Simulate full 4-slot equipped state with new weapons
+    // Simulate full 4-slot equipped state with new weapons + 3 boon slots filled
+    // (fills boon slots to prevent new_boon choices from diluting pool)
     const equipped = [
       { weaponId: 'LASER_FRONT', level: 1 },
       { weaponId: 'RAILGUN', level: 1 },
       { weaponId: 'SHOTGUN', level: 1 },
       { weaponId: 'SATELLITE', level: 1 },
     ]
-    const choices = generateChoices(5, equipped, [])
+    const equippedBoonIds = ['DAMAGE_AMP', 'SPEED_BOOST', 'CRIT_CHANCE']
+    const equippedBoons = [
+      { boonId: 'DAMAGE_AMP', level: 1 },
+      { boonId: 'SPEED_BOOST', level: 1 },
+      { boonId: 'CRIT_CHANCE', level: 1 },
+    ]
+    const choices = generateChoices(5, equipped, equippedBoonIds, equippedBoons)
 
     // With 4 slots full, should offer upgrades not new weapons
     const newWeaponChoices = choices.filter(c => c.type === 'new_weapon')
     expect(newWeaponChoices.length).toBe(0)
 
-    // Should offer upgrade choices for equipped weapons
-    const upgradeChoices = choices.filter(c => c.type === 'weapon_upgrade')
+    // Should offer upgrade choices for equipped weapons or boons
+    const upgradeChoices = choices.filter(c => c.type === 'weapon_upgrade' || c.type === 'boon_upgrade')
     expect(upgradeChoices.length).toBeGreaterThan(0)
   })
 

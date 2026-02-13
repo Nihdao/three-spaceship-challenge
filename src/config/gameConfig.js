@@ -80,7 +80,7 @@ export const GAME_CONFIG = {
 
   // Projectile spawn offsets (Story 2.9)
   PROJECTILE_SPAWN_Y_OFFSET: -0.5, // negative Y to spawn below ship model
-  PROJECTILE_SPAWN_FORWARD_OFFSET: 2.5, // distance forward along ship's facing direction
+  PROJECTILE_SPAWN_FORWARD_OFFSET: 5.0, // distance forward along ship's facing direction (Story 12.2: increased from 2.5 to prevent emissive glow visible behind ship)
 
   // Combat resolution (Story 2.4 / Story 3.5)
   CONTACT_DAMAGE_COOLDOWN: 0.5, // seconds between contact damage ticks
@@ -178,7 +178,8 @@ export const GAME_CONFIG = {
     EMISSIVE_INTENSITY: 3.0,         // Projectile glow intensity (was 2.0, now brighter)
     EMISSIVE_BASE_COLOR: '#ffffff',  // Material emissive color
     MOTION_BLUR_ENABLED: true,       // Velocity-based elongation for fast projectiles
-    SPEED_SCALE_MULT: 0.015,         // Speed-to-scale multiplier for motion blur
+    SPEED_SCALE_MULT: 0.003,         // Speed-to-scale multiplier (reduced from 0.015 — 0.003 gives subtle 1.3x-2x range)
+    SPEED_SCALE_MAX: 2.0,            // Maximum elongation cap (prevents extreme stretch on fast weapons like BEAM)
   },
 
   // Player Ship Lighting (Story 12.1)

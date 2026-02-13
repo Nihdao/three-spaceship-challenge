@@ -54,7 +54,7 @@ const usePlayer = create((set, get) => ({
   pendingLevelUp: false,
 
   // --- Tick (called by GameLoop each frame) ---
-  tick: (delta, input, speedMultiplier = 1, arenaSize = GAME_CONFIG.PLAY_AREA_SIZE) => {
+  tick: (delta, input, speedMultiplier = 1, arenaSize = GAME_CONFIG.PLAY_AREA_SIZE, hpRegenRate = 0) => {
     const state = get()
     const {
       PLAYER_BASE_SPEED,
@@ -180,7 +180,15 @@ const usePlayer = create((set, get) => ({
     let cameraShakeIntensity = state.cameraShakeIntensity
     if (cameraShakeTimer <= 0) cameraShakeIntensity = 0
 
+    // --- HP Regeneration (Story 11.4) ---
+    let currentHP = state.currentHP
+    let maxHP = state.maxHP
+    if (hpRegenRate > 0 && currentHP < maxHP && currentHP > 0) {
+      currentHP = Math.min(currentHP + hpRegenRate * delta, maxHP)
+    }
+
     set({
+      currentHP,
       position: [px, 0, pz],
       velocity: [vx, 0, vz],
       rotation: yaw,
@@ -291,6 +299,19 @@ const usePlayer = create((set, get) => ({
     return true
   },
 
+  // Story 11.4: Apply boon maxHP bonus — call after boon add/upgrade
+  applyMaxHPBonus: (totalBonus) => {
+    const state = get()
+    const prevBonus = state._appliedMaxHPBonus || 0
+    const delta = totalBonus - prevBonus
+    if (delta === 0) return
+    set({
+      maxHP: state.maxHP + delta,
+      currentHP: state.currentHP + delta,
+      _appliedMaxHPBonus: totalBonus,
+    })
+  },
+
   addXP: (amount) => {
     const state = get()
     const curve = GAME_CONFIG.XP_LEVEL_CURVE
@@ -330,12 +351,13 @@ const usePlayer = create((set, get) => ({
 
   // Double-guard: invulnerability (post-hit i-frames, Story 3.5) + contact cooldown (Story 2.4).
   // Both currently share the same duration but serve as independent safety nets.
-  takeDamage: (amount) => {
+  takeDamage: (amount, damageReduction = 0) => {
     const state = get()
     if (state.isInvulnerable) return
     if (state.contactDamageCooldown > 0) return
+    const reducedAmount = amount * (1 - damageReduction)
     set({
-      currentHP: Math.max(0, state.currentHP - amount),
+      currentHP: Math.max(0, state.currentHP - reducedAmount),
       isInvulnerable: true,
       invulnerabilityTimer: GAME_CONFIG.INVULNERABILITY_DURATION,
       lastDamageTime: Date.now(),
@@ -366,6 +388,7 @@ const usePlayer = create((set, get) => ({
     currentLevel: 1,
     xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
     pendingLevelUp: false,
+    // _appliedMaxHPBonus intentionally preserved across system transitions (boons persist)
     // INTENTIONALLY PRESERVED across system transitions (within same run):
     // - Ship selection (Epic 9): currentShipId, shipBaseSpeed, shipBaseDamageMultiplier
     //   → Player's ship choice persists for entire run (tunnel → system → tunnel → system)
@@ -407,6 +430,7 @@ const usePlayer = create((set, get) => ({
       acceptedDilemmas: [],
       upgradeStats: { ...DEFAULT_UPGRADE_STATS },
       dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
+      _appliedMaxHPBonus: 0,
     })
   },
 }))
