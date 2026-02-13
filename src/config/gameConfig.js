@@ -158,6 +158,21 @@ export const GAME_CONFIG = {
   // Scoring (Story 8.4)
   SCORE_PER_KILL: 100,
 
+  // Planet Capture Zone Aura (Story 12.3)
+  PLANET_AURA: {
+    OPACITY_MAX: 0.3,
+    PULSE_SPEED: 2.0,
+    PULSE_AMPLITUDE: 0.08,
+    FADE_IN_DURATION: 0.3,
+    FADE_OUT_DURATION: 0.4,
+    SILVER_COLOR: '#cccccc',
+    GOLD_COLOR: '#ffdd00',
+    PLATINUM_COLOR: '#00ddff',
+    COMPLETED_OPACITY: 0.3,
+    COMPLETED_COLOR: '#888888',
+    SHOW_COMPLETED_AURA: false,
+  },
+
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
     EMISSIVE_INTENSITY: 0,            // Hull emissive — not needed with strong point/fill lights

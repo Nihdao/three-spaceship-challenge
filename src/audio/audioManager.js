@@ -35,6 +35,14 @@ const SFX_CATEGORY_MAP = {
   'dilemma-refuse': 'ui',
   'hp-recover': 'sfxFeedbackPositive',
   'high-score': 'events',
+  // Story 11.3: New weapon SFX entries
+  'railgun-fire': 'sfxAction',
+  'trishot-fire': 'sfxAction',
+  'shotgun-fire': 'sfxAction',
+  'satellite-fire': 'sfxAction',
+  'drone-fire': 'sfxAction',
+  'beam-fire': 'sfxAction',
+  'explosive-fire': 'sfxAction',
 }
 
 let currentMusic = null

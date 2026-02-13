@@ -49,8 +49,24 @@ const useWeapons = create((set, get) => ({
         if (def.projectilePattern === 'spread') {
           const spreadAngle = def.spreadAngle || 0.26
           angles = [playerRotation - spreadAngle, playerRotation, playerRotation + spreadAngle]
+        } else if (def.projectilePattern === 'pellet') {
+          // Shotgun: multiple pellets with randomized angles within cone
+          const pelletCount = def.pelletCount || 7
+          const spreadAngle = def.spreadAngle || 0.45
+          angles = []
+          for (let p = 0; p < pelletCount; p++) {
+            angles.push(playerRotation + (Math.random() * 2 - 1) * spreadAngle)
+          }
         } else {
           angles = [playerRotation]
+        }
+
+        // Determine spawn position (drone fires from offset)
+        let spawnX = playerPosition[0] + Math.sin(playerRotation) * fwd
+        let spawnZ = playerPosition[2] + (-Math.cos(playerRotation)) * fwd
+        if (def.projectilePattern === 'drone' && def.followOffset) {
+          spawnX = playerPosition[0] + def.followOffset[0]
+          spawnZ = playerPosition[2] + def.followOffset[2]
         }
 
         for (let a = 0; a < angles.length; a++) {
@@ -59,11 +75,11 @@ const useWeapons = create((set, get) => ({
           const dirX = Math.sin(angle)
           const dirZ = -Math.cos(angle)
 
-          newProjectiles.push({
+          const proj = {
             id: `proj_${nextProjectileId++}`,
             weaponId: weapon.weaponId,
-            x: playerPosition[0] + Math.sin(playerRotation) * fwd,
-            z: playerPosition[2] + (-Math.cos(playerRotation)) * fwd,
+            x: spawnX,
+            z: spawnZ,
             y: GAME_CONFIG.PROJECTILE_SPAWN_Y_OFFSET,
             dirX,
             dirZ,
@@ -76,7 +92,22 @@ const useWeapons = create((set, get) => ({
             meshScale,
             homing: def.homing || false,
             active: true,
-          })
+          }
+
+          // Story 11.3: Piercing projectiles (Railgun)
+          if (def.projectilePattern === 'piercing') {
+            proj.piercing = true
+            proj.pierceCount = def.pierceCount || 3
+            proj.pierceHits = 0
+          }
+
+          // Story 11.3: Explosive projectiles
+          if (def.projectilePattern === 'explosion') {
+            proj.explosionRadius = def.explosionRadius || 15
+            proj.explosionDamage = def.explosionDamage || def.baseDamage
+          }
+
+          newProjectiles.push(proj)
         }
       }
     }
