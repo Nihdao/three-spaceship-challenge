@@ -10,6 +10,7 @@ import GameOverScreen from './GameOverScreen.jsx'
 import VictoryScreen from './VictoryScreen.jsx'
 import TunnelHub from './TunnelHub.jsx'
 import ShipSelect from './ShipSelect.jsx'
+import PauseMenu from './PauseMenu.jsx'
 
 export default function Interface() {
   const phase = useGame((s) => s.phase)
@@ -26,11 +27,28 @@ export default function Interface() {
     return () => window.removeEventListener('keydown', handler)
   }, [phase])
 
+  // ESC / P key toggles pause during gameplay (Story 10.6)
+  useEffect(() => {
+    if (phase !== 'gameplay') return
+    const handler = (e) => {
+      if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        const { isPaused } = useGame.getState()
+        // Only toggle pause ON here; toggling OFF is handled by PauseMenu's own key listeners
+        if (!isPaused) {
+          useGame.getState().setPaused(true)
+        }
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [phase])
+
   return (
     <>
       {phase === 'menu' && <MainMenu />}
       {phase === 'shipSelect' && <ShipSelect />}
       {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <HUD />}
+      {phase === 'gameplay' && <PauseMenu />}
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}
       {phase === 'boss' && <BossHPBar />}

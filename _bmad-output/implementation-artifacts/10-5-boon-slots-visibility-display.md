@@ -1,6 +1,6 @@
 # Story 10.5: Boon Slots Visibility & Display
 
-Status: review
+Status: done
 
 ## Story
 
@@ -471,6 +471,7 @@ const { activeBoons } = useBoons()
 
 - 2026-02-12: Implemented boon slots visibility & display in HUD (Story 10.5)
 - 2026-02-12: Changed boon slot display from emoji icons to text labels (Dmg/Speed/Rapid/Crit + Lv) matching weapon slot style per user feedback
+- 2026-02-12: Code review fixes — getBoonLabel derives from BOONS[id].name (no separate mapping), removed non-functional title tooltip (pointer-events-none), updated stale File List references
 
 ## Dev Agent Record
 
@@ -501,5 +502,5 @@ Claude Opus 4.6
 
 ### File List
 
-- `src/ui/HUD.jsx` — Modified: Added useBoons import, BOONS import, BOON_ICONS map, getBoonIcon(), detectChangedBoons(), BoonSlots component, integrated in top-left cluster
-- `src/ui/__tests__/HUD.test.jsx` — Modified: Added 12 tests for detectChangedBoons and getBoonIcon
+- `src/ui/HUD.jsx` — Modified: Added useBoons/BOONS imports, getBoonLabel() (derives from BOONS name), detectChangedBoons(), BoonSlots component, integrated in top-left cluster
+- `src/ui/__tests__/HUD.test.jsx` — Modified: Added 12 tests for detectChangedBoons and getBoonLabel

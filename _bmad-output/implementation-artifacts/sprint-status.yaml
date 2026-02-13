@@ -123,9 +123,8 @@ development_status:
   10-2-top-stats-display-score-fragments-level-kills: done
   10-3-enhanced-minimap-styling: done
   10-4-hp-item-slots-reorganization-top-left-cluster: review
-  10-5-boon-slots-visibility-display: review
-  10-6-pause-menu-with-detailed-inventory: ready-for-dev
-  10-7-bottom-item-library-bar: ready-for-dev
+  10-5-boon-slots-visibility-display: done
+  10-6-pause-menu-with-detailed-inventory: done
   epic-10-retrospective: optional
 
   # Epic 11: Gameplay Balance & Content Completion
@@ -137,9 +136,9 @@ development_status:
   epic-11-retrospective: optional
 
   # Epic 12: Visual Polish & Player Readability
-  epic-12: backlog
-  12-1-player-ship-lighting-improvements: backlog
-  12-2-projectile-visibility-enhancements: backlog
+  epic-12: in-progress
+  12-1-player-ship-lighting-improvements: ready-for-dev
+  12-2-projectile-visibility-enhancements: ready-for-dev
   12-3-planet-capture-zone-aura-system: backlog
   epic-12-retrospective: optional
 
