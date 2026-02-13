@@ -11,7 +11,7 @@ export const WEAPONS = {
     projectileLifetime: 3.0,        // seconds before auto-despawn
     projectileColor: '#00ffff',     // cyan beam per UX neon palette
     projectileMeshScale: [0.75, 0.75, 3.0], // elongated beam shape (Story 2.9)
-    sfxKey: 'laser',
+    sfxKey: 'laser-fire',
     slot: 'any',            // 'fixed' for slot 1, 'any' for slots 2-4
     upgrades: [
       { level: 2, damage: 12, cooldown: 0.48, statPreview: 'Damage: 10 → 12' },
@@ -37,19 +37,19 @@ export const WEAPONS = {
     spreadAngle: 0.26,              // ~15 degrees
     projectileRadius: 0.8,
     projectileLifetime: 2.0,
-    projectileColor: '#ff8800',
+    projectileColor: '#ffcc00',     // Story 12.2: brighter yellow (was #ff8800 orange)
     projectileMeshScale: [0.5, 0.5, 1.5],
-    sfxKey: 'spread',
+    sfxKey: 'laser-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 8, cooldown: 0.65, statPreview: 'Damage: 6 → 8' },
       { level: 3, damage: 10, cooldown: 0.60, statPreview: 'Damage: 8 → 10' },
       { level: 4, damage: 12, cooldown: 0.55, statPreview: 'Damage: 10 → 12' },
-      { level: 5, damage: 15, cooldown: 0.50, statPreview: 'Damage: 12 → 15', upgradeVisuals: { color: '#ffaa33' } },
+      { level: 5, damage: 15, cooldown: 0.50, statPreview: 'Damage: 12 → 15', upgradeVisuals: { color: '#ffdd33' } },
       { level: 6, damage: 18, cooldown: 0.46, statPreview: 'Damage: 15 → 18' },
       { level: 7, damage: 22, cooldown: 0.42, statPreview: 'Damage: 18 → 22' },
       { level: 8, damage: 27, cooldown: 0.38, statPreview: 'Damage: 22 → 27', upgradeVisuals: { meshScale: [0.6, 0.6, 1.8] } },
-      { level: 9, damage: 33, cooldown: 0.34, statPreview: 'Damage: 27 → 33', upgradeVisuals: { color: '#ffcc66', meshScale: [0.7, 0.7, 2.0] } },
+      { level: 9, damage: 33, cooldown: 0.34, statPreview: 'Damage: 27 → 33', upgradeVisuals: { color: '#ffee66', meshScale: [0.7, 0.7, 2.0] } },
     ],
   },
 
@@ -64,19 +64,19 @@ export const WEAPONS = {
     homing: true,
     projectileRadius: 1.2,
     projectileLifetime: 5.0,
-    projectileColor: '#ff3333',
+    projectileColor: '#ff5555',     // Story 12.2: brighter red (was #ff3333)
     projectileMeshScale: [0.6, 0.6, 2.0],
-    sfxKey: 'missile',
+    sfxKey: 'laser-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 30, cooldown: 1.8, statPreview: 'Damage: 25 → 30' },
       { level: 3, damage: 38, cooldown: 1.6, statPreview: 'Damage: 30 → 38' },
       { level: 4, damage: 46, cooldown: 1.45, statPreview: 'Damage: 38 → 46' },
-      { level: 5, damage: 55, cooldown: 1.30, statPreview: 'Damage: 46 → 55', upgradeVisuals: { color: '#ff5555' } },
+      { level: 5, damage: 55, cooldown: 1.30, statPreview: 'Damage: 46 → 55', upgradeVisuals: { color: '#ff7777' } },
       { level: 6, damage: 65, cooldown: 1.15, statPreview: 'Damage: 55 → 65' },
       { level: 7, damage: 78, cooldown: 1.00, statPreview: 'Damage: 65 → 78' },
       { level: 8, damage: 92, cooldown: 0.85, statPreview: 'Damage: 78 → 92', upgradeVisuals: { meshScale: [0.72, 0.72, 2.4] } },
-      { level: 9, damage: 110, cooldown: 0.70, statPreview: 'Damage: 92 → 110', upgradeVisuals: { color: '#ff8888', meshScale: [0.84, 0.84, 2.8] } },
+      { level: 9, damage: 110, cooldown: 0.70, statPreview: 'Damage: 92 → 110', upgradeVisuals: { color: '#ff9999', meshScale: [0.84, 0.84, 2.8] } },
     ],
   },
 
@@ -90,19 +90,19 @@ export const WEAPONS = {
     projectileType: 'bolt',
     projectileRadius: 1.0,
     projectileLifetime: 3.5,
-    projectileColor: '#aa00ff',
+    projectileColor: '#ff00ff',     // Story 12.2: bright magenta (was #aa00ff)
     projectileMeshScale: [0.7, 0.7, 2.0],
-    sfxKey: 'plasma',
+    sfxKey: 'laser-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 25, cooldown: 1.1, statPreview: 'Damage: 20 → 25' },
       { level: 3, damage: 32, cooldown: 1.0, statPreview: 'Damage: 25 → 32' },
       { level: 4, damage: 40, cooldown: 0.92, statPreview: 'Damage: 32 → 40' },
-      { level: 5, damage: 50, cooldown: 0.84, statPreview: 'Damage: 40 → 50', upgradeVisuals: { color: '#cc44ff' } },
+      { level: 5, damage: 50, cooldown: 0.84, statPreview: 'Damage: 40 → 50', upgradeVisuals: { color: '#ff44ff' } },
       { level: 6, damage: 62, cooldown: 0.76, statPreview: 'Damage: 50 → 62' },
       { level: 7, damage: 76, cooldown: 0.68, statPreview: 'Damage: 62 → 76' },
       { level: 8, damage: 92, cooldown: 0.60, statPreview: 'Damage: 76 → 92', upgradeVisuals: { meshScale: [0.84, 0.84, 2.4] } },
-      { level: 9, damage: 112, cooldown: 0.52, statPreview: 'Damage: 92 → 112', upgradeVisuals: { color: '#dd77ff', meshScale: [0.98, 0.98, 2.8] } },
+      { level: 9, damage: 112, cooldown: 0.52, statPreview: 'Damage: 92 → 112', upgradeVisuals: { color: '#ff88ff', meshScale: [0.98, 0.98, 2.8] } },
     ],
   },
 
@@ -122,7 +122,7 @@ export const WEAPONS = {
     projectileLifetime: 2.5,
     projectileColor: '#4488ff',
     projectileMeshScale: [0.3, 0.3, 6.0],
-    sfxKey: 'railgun',
+    sfxKey: 'railgun-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 42, cooldown: 1.44, statPreview: 'Damage: 35 → 42' },
@@ -148,19 +148,19 @@ export const WEAPONS = {
     spreadAngle: 0.15,
     projectileRadius: 0.6,
     projectileLifetime: 2.0,
-    projectileColor: '#ff6600',
+    projectileColor: '#88ff00',     // Story 12.2: lime green (was #ff6600, conflicted with boss orange)
     projectileMeshScale: [0.4, 0.4, 1.2],
-    sfxKey: 'trishot',
+    sfxKey: 'trishot-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 10, cooldown: 0.58, statPreview: 'Damage: 8 → 10' },
       { level: 3, damage: 12, cooldown: 0.54, statPreview: 'Damage: 10 → 12' },
       { level: 4, damage: 15, cooldown: 0.50, statPreview: 'Damage: 12 → 15' },
-      { level: 5, damage: 18, cooldown: 0.46, statPreview: 'Damage: 15 → 18', upgradeVisuals: { color: '#ff8833' } },
+      { level: 5, damage: 18, cooldown: 0.46, statPreview: 'Damage: 15 → 18', upgradeVisuals: { color: '#aaff33' } },
       { level: 6, damage: 22, cooldown: 0.41, statPreview: 'Damage: 18 → 22' },
       { level: 7, damage: 27, cooldown: 0.37, statPreview: 'Damage: 22 → 27' },
       { level: 8, damage: 33, cooldown: 0.32, statPreview: 'Damage: 27 → 33', upgradeVisuals: { meshScale: [0.48, 0.48, 1.44] } },
-      { level: 9, damage: 40, cooldown: 0.27, statPreview: 'Damage: 33 → 40', upgradeVisuals: { color: '#ffaa55', meshScale: [0.56, 0.56, 1.68] } },
+      { level: 9, damage: 40, cooldown: 0.27, statPreview: 'Damage: 33 → 40', upgradeVisuals: { color: '#ccff66', meshScale: [0.56, 0.56, 1.68] } },
     ],
   },
 
@@ -179,7 +179,7 @@ export const WEAPONS = {
     projectileLifetime: 1.0,
     projectileColor: '#ffff00',
     projectileMeshScale: [0.3, 0.3, 0.5],
-    sfxKey: 'shotgun',
+    sfxKey: 'shotgun-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 5, cooldown: 0.96, statPreview: 'Damage: 4 → 5' },
@@ -208,7 +208,7 @@ export const WEAPONS = {
     projectileLifetime: 2.0,
     projectileColor: '#ffaa00',
     projectileMeshScale: [0.6, 0.6, 0.6],
-    sfxKey: 'satellite',
+    sfxKey: 'satellite-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 15, cooldown: 0.77, statPreview: 'Damage: 12 → 15' },
@@ -236,7 +236,7 @@ export const WEAPONS = {
     projectileLifetime: 2.0,
     projectileColor: '#00ffaa',
     projectileMeshScale: [0.4, 0.4, 1.0],
-    sfxKey: 'drone',
+    sfxKey: 'drone-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 12, cooldown: 0.67, statPreview: 'Damage: 10 → 12' },
@@ -256,7 +256,7 @@ export const WEAPONS = {
     description: 'Continuous damage ray that locks onto enemies',
     baseDamage: 8,
     baseCooldown: 0.1,
-    baseSpeed: 0,
+    baseSpeed: 600,
     projectileType: 'beam_continuous',
     projectilePattern: 'beam',
     beamDuration: 2.0,
@@ -265,7 +265,7 @@ export const WEAPONS = {
     projectileLifetime: 0.12,
     projectileColor: '#ff0088',
     projectileMeshScale: [0.5, 0.5, 8.0],
-    sfxKey: 'beam',
+    sfxKey: 'beam-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 10, cooldown: 0.096, statPreview: 'DPS: 80 → 104' },
@@ -294,7 +294,7 @@ export const WEAPONS = {
     projectileLifetime: 3.0,
     projectileColor: '#ff4400',
     projectileMeshScale: [1.2, 1.2, 1.2],
-    sfxKey: 'explosive',
+    sfxKey: 'explosive-fire',
     slot: 'any',
     upgrades: [
       { level: 2, damage: 18, cooldown: 1.44, statPreview: 'Damage: 15 → 18' },

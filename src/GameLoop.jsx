@@ -16,6 +16,7 @@ import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { playSFX } from './audio/audioManager.js'
 import { spawnOrb, updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
+import { WEAPONS } from './entities/weaponDefs.js'
 
 // Pre-allocated orb IDs — avoids template string allocation per frame (50 orbs × 60 FPS)
 const _orbIds = []
@@ -175,7 +176,18 @@ export default function GameLoop() {
       }
       const projCountBefore = useWeapons.getState().projectiles.length
       useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, bossWeaponMods)
-      if (useWeapons.getState().projectiles.length > projCountBefore) playSFX('laser-fire')
+      // Story 11.3: Play per-weapon SFX for newly fired projectiles
+      const bossNewProjs = useWeapons.getState().projectiles
+      if (bossNewProjs.length > projCountBefore) {
+        let lastWid = null
+        for (let i = projCountBefore; i < bossNewProjs.length; i++) {
+          const wid = bossNewProjs[i].weaponId
+          if (wid !== lastWid) {
+            playSFX(WEAPONS[wid]?.sfxKey ?? 'laser-fire')
+            lastWid = wid
+          }
+        }
+      }
 
       // 4. Projectile movement (no enemies for homing during boss)
       projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta, [])
@@ -349,8 +361,17 @@ export default function GameLoop() {
     }
     const projCountBefore = useWeapons.getState().projectiles.length
     useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, composedWeaponMods)
-    if (useWeapons.getState().projectiles.length > projCountBefore) {
-      playSFX('laser-fire')
+    // Story 11.3: Play per-weapon SFX for newly fired projectiles
+    const allProjs = useWeapons.getState().projectiles
+    if (allProjs.length > projCountBefore) {
+      let lastWid = null
+      for (let i = projCountBefore; i < allProjs.length; i++) {
+        const wid = allProjs[i].weaponId
+        if (wid !== lastWid) {
+          playSFX(WEAPONS[wid]?.sfxKey ?? 'laser-fire')
+          lastWid = wid
+        }
+      }
     }
 
     // 4. Projectile movement (pass enemies for homing missile steering)

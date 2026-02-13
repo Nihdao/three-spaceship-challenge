@@ -1,6 +1,6 @@
 # Story 11.3: Complete Weapon Roster Implementation
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 

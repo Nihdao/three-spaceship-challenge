@@ -26,12 +26,18 @@ const useWeapons = create((set, get) => ({
 
     for (let i = 0; i < activeWeapons.length; i++) {
       const weapon = activeWeapons[i]
+      const def = WEAPONS[weapon.weaponId]
+
+      // Story 11.3: Advance orbital angle every tick for smooth rotation
+      if (def.projectilePattern === 'orbital') {
+        weapon.orbitalAngle = (weapon.orbitalAngle || 0) + delta * (def.orbitalSpeed || 2.0)
+      }
+
       // Mutate cooldown in-place (no set() call) to avoid unnecessary Zustand re-renders.
       // Cooldown is internal bookkeeping — no subscriber needs to react to timer ticks.
       weapon.cooldownTimer -= delta
 
       if (weapon.cooldownTimer <= 0) {
-        const def = WEAPONS[weapon.weaponId]
         weapon.cooldownTimer = (weapon.overrides?.cooldown ?? def.baseCooldown) * cooldownMultiplier
 
         // Respect MAX_PROJECTILES cap
@@ -67,6 +73,10 @@ const useWeapons = create((set, get) => ({
         if (def.projectilePattern === 'drone' && def.followOffset) {
           spawnX = playerPosition[0] + def.followOffset[0]
           spawnZ = playerPosition[2] + def.followOffset[2]
+        } else if (def.projectilePattern === 'orbital') {
+          const radius = def.orbitalRadius || 12
+          spawnX = playerPosition[0] + Math.cos(weapon.orbitalAngle || 0) * radius
+          spawnZ = playerPosition[2] + Math.sin(weapon.orbitalAngle || 0) * radius
         }
 
         for (let a = 0; a < angles.length; a++) {
@@ -97,7 +107,7 @@ const useWeapons = create((set, get) => ({
           // Story 11.3: Piercing projectiles (Railgun)
           if (def.projectilePattern === 'piercing') {
             proj.piercing = true
-            proj.pierceCount = def.pierceCount || 3
+            proj.pierceCount = weapon.overrides?.pierceCount ?? def.pierceCount ?? 3
             proj.pierceHits = 0
           }
 
@@ -141,6 +151,12 @@ const useWeapons = create((set, get) => ({
         newOverrides.upgradeVisuals = upgrade.upgradeVisuals
       } else if (weapon.overrides?.upgradeVisuals) {
         newOverrides.upgradeVisuals = weapon.overrides.upgradeVisuals
+      }
+      // Story 11.3: Propagate pierceCount from upgrades (e.g., Railgun level 9)
+      if (upgrade.pierceCount !== undefined) {
+        newOverrides.pierceCount = upgrade.pierceCount
+      } else if (weapon.overrides?.pierceCount !== undefined) {
+        newOverrides.pierceCount = weapon.overrides.pierceCount
       }
       updated[idx].overrides = newOverrides
     }
