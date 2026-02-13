@@ -32,6 +32,14 @@ export const ASSET_MANIFEST = {
       dashReady: 'audio/sfx/dash-ready.mp3',
       scanStart: 'audio/sfx/scan-start.mp3',
       scanComplete: 'audio/sfx/scan-complete.mp3',
+      // Story 11.3: New weapon SFX
+      railgunFire: 'audio/sfx/railgun-fire.mp3',
+      trishotFire: 'audio/sfx/trishot-fire.mp3',
+      shotgunFire: 'audio/sfx/shotgun-fire.mp3',
+      satelliteFire: 'audio/sfx/satellite-fire.mp3',
+      droneFire: 'audio/sfx/drone-fire.mp3',
+      beamFire: 'audio/sfx/beam-fire.mp3',
+      explosiveFire: 'audio/sfx/explosive-fire.mp3',
     },
   },
 

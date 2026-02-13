@@ -235,8 +235,15 @@ export default function GameLoop() {
           if (!pEntity) continue
           const hits = cs.queryCollisions(pEntity, CATEGORY_BOSS)
           if (hits.length > 0) {
-            projectiles[i].active = false
-            const result = useBoss.getState().damageBoss(projectiles[i].damage)
+            const proj = projectiles[i]
+            // Story 11.3: Piercing projectiles hit boss and continue
+            if (proj.piercing) {
+              proj.pierceHits = (proj.pierceHits || 0) + 1
+              if (proj.pierceHits >= proj.pierceCount) proj.active = false
+            } else {
+              proj.active = false
+            }
+            const result = useBoss.getState().damageBoss(proj.damage)
             playSFX('boss-hit')
             if (result.killed) {
               addExplosion(boss.x, boss.z, '#cc66ff')
@@ -404,8 +411,35 @@ export default function GameLoop() {
       if (!pEntity) continue
       const hits = cs.queryCollisions(pEntity, CATEGORY_ENEMY)
       if (hits.length > 0) {
-        projectiles[i].active = false
-        projectileHits.push({ enemyId: hits[0].id, damage: projectiles[i].damage })
+        const proj = projectiles[i]
+
+        // Story 11.3: Piercing projectiles (Railgun) — hit multiple enemies before despawning
+        if (proj.piercing) {
+          for (let h = 0; h < hits.length; h++) {
+            if (proj.pierceHits >= proj.pierceCount) break
+            projectileHits.push({ enemyId: hits[h].id, damage: proj.damage })
+            proj.pierceHits++
+          }
+          if (proj.pierceHits >= proj.pierceCount) proj.active = false
+        // Story 11.3: Explosive projectiles — deal direct hit + area damage
+        } else if (proj.explosionRadius) {
+          proj.active = false
+          projectileHits.push({ enemyId: hits[0].id, damage: proj.damage })
+          // Area damage to all enemies within explosion radius
+          for (let e = 0; e < enemies.length; e++) {
+            if (enemies[e].id === hits[0].id) continue // already hit directly
+            const dx = enemies[e].x - proj.x
+            const dz = enemies[e].z - proj.z
+            const dist = Math.sqrt(dx * dx + dz * dz)
+            if (dist <= proj.explosionRadius) {
+              projectileHits.push({ enemyId: enemies[e].id, damage: proj.explosionDamage })
+            }
+          }
+          addExplosion(proj.x, proj.z, proj.color)
+        } else {
+          proj.active = false
+          projectileHits.push({ enemyId: hits[0].id, damage: proj.damage })
+        }
       }
     }
 

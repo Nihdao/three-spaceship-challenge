@@ -28,6 +28,14 @@ const SFX_MAP = {
   'tunnel-exit': ASSET_MANIFEST.tier2.audio.tunnelExit,
   'hp-recover': ASSET_MANIFEST.tier2.audio.hpRecover,
   'high-score': ASSET_MANIFEST.gameplay.audio.highScore,
+  // Story 11.3: New weapon SFX
+  'railgun-fire': ASSET_MANIFEST.gameplay.audio.railgunFire,
+  'trishot-fire': ASSET_MANIFEST.gameplay.audio.trishotFire,
+  'shotgun-fire': ASSET_MANIFEST.gameplay.audio.shotgunFire,
+  'satellite-fire': ASSET_MANIFEST.gameplay.audio.satelliteFire,
+  'drone-fire': ASSET_MANIFEST.gameplay.audio.droneFire,
+  'beam-fire': ASSET_MANIFEST.gameplay.audio.beamFire,
+  'explosive-fire': ASSET_MANIFEST.gameplay.audio.explosiveFire,
 }
 
 export default function useAudio() {
