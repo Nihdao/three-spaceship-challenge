@@ -195,6 +195,32 @@ describe('progressionSystem', () => {
       expect(found).toBe(true)
     })
 
+    // --- Story 14.3: High level compatibility ---
+
+    it('returns valid choices at level 20, 50, 100', () => {
+      for (const level of [20, 50, 100]) {
+        const choices = generateChoices(level, [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+        expect(choices.length).toBeGreaterThanOrEqual(3)
+        expect(choices.length).toBeLessThanOrEqual(4)
+        for (const choice of choices) {
+          expect(['weapon_upgrade', 'new_weapon', 'new_boon', 'boon_upgrade', 'stat_boost']).toContain(choice.type)
+        }
+      }
+    })
+
+    it('returns stat_boost fallbacks when pool is exhausted at high levels', () => {
+      const allWeaponIds = Object.keys(WEAPONS)
+      const maxedWeapons = allWeaponIds.slice(0, 4).map(id => ({ weaponId: id, level: 9 }))
+      const allBoonIds = Object.keys(BOONS)
+      const maxedBoonIds = allBoonIds.slice(0, 3)
+      const maxedBoons = maxedBoonIds.map(id => ({ boonId: id, level: BOONS[id].maxLevel || 1 }))
+
+      const choices = generateChoices(100, maxedWeapons, maxedBoonIds, maxedBoons)
+      expect(choices.length).toBeGreaterThanOrEqual(3)
+      const statBoosts = choices.filter(c => c.type === 'stat_boost')
+      expect(statBoosts.length).toBeGreaterThan(0)
+    })
+
     it('each choice has valid type including boon_upgrade', () => {
       const equippedBoons = [{ boonId: 'DAMAGE_AMP', level: 1 }]
       const choices = generateChoices(3, [{ weaponId: 'LASER_FRONT', level: 1 }], ['DAMAGE_AMP'], equippedBoons)

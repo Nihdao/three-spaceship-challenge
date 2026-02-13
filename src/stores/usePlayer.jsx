@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import { getXPForLevel } from '../utils/xpScaling.js'
 import { UPGRADES } from '../entities/upgradeDefs.js'
 import { DILEMMAS } from '../entities/dilemmaDefs.js'
 import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
@@ -317,16 +318,15 @@ const usePlayer = create((set, get) => ({
 
   addXP: (amount) => {
     const state = get()
-    const curve = GAME_CONFIG.XP_LEVEL_CURVE
     let xp = state.currentXP + amount
     let level = state.currentLevel
     let xpToNext = state.xpToNextLevel
     let pending = state.pendingLevelUp
 
-    while (xp >= xpToNext && level <= curve.length) {
+    while (xp >= xpToNext) {
       xp -= xpToNext
       level++
-      xpToNext = curve[level - 1] ?? Infinity
+      xpToNext = getXPForLevel(level)
       pending = true
     }
 
