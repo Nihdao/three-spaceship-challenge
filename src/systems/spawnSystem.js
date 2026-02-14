@@ -1,10 +1,6 @@
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
 
-// Pre-compute enemy type entries for weighted random selection (exclude boss and any entry without spawnWeight)
-const enemyTypes = Object.values(ENEMIES).filter(e => e.spawnWeight > 0)
-const totalWeight = enemyTypes.reduce((sum, e) => sum + e.spawnWeight, 0)
-
 // Sweep group size range
 const SWEEP_GROUP_MIN = 3
 const SWEEP_GROUP_MAX = 5
@@ -14,17 +10,43 @@ const SWEEP_LINE_SPACING = 5
 const SNIPER_FIXED_SPAWN_DISTANCE_MIN = 150
 const SNIPER_FIXED_SPAWN_DISTANCE_MAX = 200
 
+// Story 16.3: Get enemy types available at current elapsed time
+function getAvailableEnemyTypes(elapsedTime) {
+  const schedule = GAME_CONFIG.TIME_GATED_SPAWN_SCHEDULE
+  const availableIds = new Set()
+
+  for (const entry of schedule) {
+    if (elapsedTime >= entry.minTime) {
+      availableIds.add(entry.typeId)
+    }
+  }
+
+  return Object.values(ENEMIES).filter(
+    e => e.spawnWeight > 0 && availableIds.has(e.id)
+  )
+}
+
 export function createSpawnSystem() {
   let spawnTimer = GAME_CONFIG.SPAWN_INTERVAL_BASE
   let elapsedTime = 0
 
   function pickEnemyType() {
-    let roll = Math.random() * totalWeight
-    for (let i = 0; i < enemyTypes.length; i++) {
-      roll -= enemyTypes[i].spawnWeight
-      if (roll <= 0) return enemyTypes[i].id
+    const available = getAvailableEnemyTypes(elapsedTime)
+    if (available.length === 0) {
+      // Fallback to basic enemy if schedule is empty (shouldn't happen in normal gameplay)
+      const fallback = Object.values(ENEMIES).find(e => e.spawnWeight > 0)
+      return fallback ? fallback.id : 'FODDER_BASIC'
     }
-    return enemyTypes[enemyTypes.length - 1].id
+
+    const totalWeight = available.reduce((sum, e) => sum + e.spawnWeight, 0)
+    let roll = Math.random() * totalWeight
+
+    for (const enemy of available) {
+      roll -= enemy.spawnWeight
+      if (roll <= 0) return enemy.id
+    }
+
+    return available[available.length - 1].id
   }
 
   function tick(delta, playerX, playerZ, scaling = null) {

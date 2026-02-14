@@ -144,7 +144,7 @@ body,
   left: 50%;
   transform: translate(-50%, 0);
   z-index: 150;
-  animation: systemBanner 3.3s ease-out 0.3s forwards;
+  animation: systemBanner var(--animation-duration, 3.3s) ease-out var(--animation-delay, 0.3s) forwards;
   pointer-events: none;
   opacity: 0;
 }

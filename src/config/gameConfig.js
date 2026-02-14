@@ -71,6 +71,20 @@ export const GAME_CONFIG = {
   SPAWN_BATCH_SIZE_BASE: 1, // enemies per spawn at start
   SPAWN_BATCH_RAMP_INTERVAL: 30, // seconds between batch size increases
 
+  // Time-gated enemy spawn schedule (Story 16.3)
+  // Each entry defines when an enemy type becomes available for spawning
+  // minTime: seconds of elapsed gameplay time before this type can spawn
+  // typeId: enemy ID from enemyDefs.js
+  TIME_GATED_SPAWN_SCHEDULE: [
+    { minTime: 0,   typeId: 'FODDER_BASIC' },
+    { minTime: 0,   typeId: 'FODDER_TANK' },
+    { minTime: 60,  typeId: 'FODDER_SWARM' },    // 1 minute
+    { minTime: 120, typeId: 'SHOCKWAVE_BLOB' },  // 2 minutes
+    { minTime: 180, typeId: 'SNIPER_MOBILE' },   // 3 minutes
+    { minTime: 300, typeId: 'SNIPER_FIXED' },    // 5 minutes
+    { minTime: 360, typeId: 'TELEPORTER' },      // 6 minutes
+  ],
+
   // Environment (Story 1.3)
   BOUNDARY_WALL_BASE_OPACITY: 0.08,
   BOUNDARY_WALL_WARN_OPACITY: 0.6,

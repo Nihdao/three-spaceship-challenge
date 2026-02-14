@@ -14,6 +14,11 @@ export default function SystemNameBanner() {
     }
   }, [phase])
 
+  // Cleanup: reset visibility on unmount to prevent memory leak
+  useEffect(() => {
+    return () => setIsVisible(false)
+  }, [])
+
   const handleAnimationEnd = () => {
     if (phase !== 'systemEntry') {
       setIsVisible(false)
@@ -22,12 +27,29 @@ export default function SystemNameBanner() {
 
   if (!isVisible) return null
 
-  const systemName = GAME_CONFIG.SYSTEM_NAMES[currentSystem - 1] || `SYSTEM ${currentSystem}`
+  // Get system name with validation
+  const systemName = GAME_CONFIG.SYSTEM_NAMES[currentSystem - 1]
+  if (!systemName && import.meta.env.DEV) {
+    console.warn(`[SystemNameBanner] No system name configured for system ${currentSystem}. Using fallback.`)
+  }
+  const displayName = systemName || `SYSTEM ${currentSystem}`
+
+  // Calculate animation duration from config
+  const { FADE_IN_DURATION, DISPLAY_DURATION, FADE_OUT_DURATION } = GAME_CONFIG.SYSTEM_BANNER
+  const totalDuration = FADE_IN_DURATION + DISPLAY_DURATION + FADE_OUT_DURATION
+  const animationDelay = 0.3 // seconds - delay after white flash
 
   return (
-    <div className="system-name-banner" onAnimationEnd={handleAnimationEnd}>
+    <div
+      className="system-name-banner"
+      onAnimationEnd={handleAnimationEnd}
+      style={{
+        '--animation-duration': `${totalDuration}s`,
+        '--animation-delay': `${animationDelay}s`,
+      }}
+    >
       <div className="system-name-banner-text">
-        {systemName} SYSTEM
+        {displayName} SYSTEM
       </div>
     </div>
   )
