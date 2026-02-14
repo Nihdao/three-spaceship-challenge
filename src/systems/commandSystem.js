@@ -109,12 +109,14 @@ const COMMANDS = {
       if (count < 1 || count > 50) return { success: false, message: 'Count must be 1-50' }
       const playerPos = usePlayer.getState().position
       const instructions = []
+      // Story 16.4: Use System 1 scaling (base stats) for debug spawn
+      const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2
         const dist = GAME_CONFIG.SPAWN_DISTANCE_MIN + Math.random() * (GAME_CONFIG.SPAWN_DISTANCE_MAX - GAME_CONFIG.SPAWN_DISTANCE_MIN)
         const x = playerPos[0] + Math.cos(angle) * dist
         const z = playerPos[2] + Math.sin(angle) * dist
-        instructions.push({ typeId: enemyType, x, z, difficultyMult: 1.0 })
+        instructions.push({ typeId: enemyType, x, z, scaling })
       }
       useEnemies.getState().spawnEnemies(instructions)
       return { success: true, message: `Spawned ${count} ${enemyType}` }
@@ -140,6 +142,8 @@ const COMMANDS = {
       const instructions = []
       const enemyTypes = Object.values(ENEMIES).filter(e => e.spawnWeight > 0)
       const totalWeight = enemyTypes.reduce((sum, e) => sum + e.spawnWeight, 0)
+      // Story 16.4: Create uniform scaling object from waveLevel
+      const scaling = { hp: waveLevel, damage: waveLevel, speed: waveLevel, xpReward: waveLevel }
       for (let i = 0; i < count; i++) {
         let roll = Math.random() * totalWeight
         let typeId = enemyTypes[0].id
@@ -153,7 +157,7 @@ const COMMANDS = {
           typeId,
           x: playerPos[0] + Math.cos(angle) * dist,
           z: playerPos[2] + Math.sin(angle) * dist,
-          difficultyMult: waveLevel,
+          scaling,
         })
       }
       useEnemies.getState().spawnEnemies(instructions)

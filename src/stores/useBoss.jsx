@@ -11,8 +11,9 @@ const useBoss = create((set, get) => ({
   defeatExplosionCount: 0,
 
   spawnBoss: (currentSystem = 1) => {
-    const mult = GAME_CONFIG.SYSTEM_DIFFICULTY_MULTIPLIERS[currentSystem] || 1.0
-    const bossHP = Math.round(GAME_CONFIG.BOSS_HP * mult)
+    // Story 16.4: Use per-stat scaling from ENEMY_SCALING_PER_SYSTEM
+    const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || { hp: 1, damage: 1, speed: 1, xpReward: 1 }
+    const bossHP = Math.round(GAME_CONFIG.BOSS_HP * scaling.hp)
     set({
     boss: {
       x: 0, z: 0,
@@ -23,7 +24,7 @@ const useBoss = create((set, get) => ({
       telegraphTimer: 0,
       attackType: null,
       lastHitTime: -Infinity,
-      difficultyMult: mult,
+      damageMultiplier: scaling.damage, // Damage scaling for projectiles/contact (Story 16.4)
     },
     isActive: true,
     bossDefeated: false,
@@ -77,7 +78,7 @@ const useBoss = create((set, get) => ({
             z: boss.z,
             vx: Math.cos(angle) * GAME_CONFIG.BOSS_PROJECTILE_SPEED,
             vz: Math.sin(angle) * GAME_CONFIG.BOSS_PROJECTILE_SPEED,
-            damage: Math.round(GAME_CONFIG.BOSS_PROJECTILE_DAMAGE * (boss.difficultyMult || 1)),
+            damage: Math.round(GAME_CONFIG.BOSS_PROJECTILE_DAMAGE * (boss.damageMultiplier || 1)),
             radius: GAME_CONFIG.BOSS_PROJECTILE_RADIUS,
             lifetime: 5,
           })

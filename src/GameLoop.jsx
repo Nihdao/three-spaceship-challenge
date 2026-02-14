@@ -310,7 +310,7 @@ export default function GameLoop() {
         if (contactHits.length > 0) {
           const pState = usePlayer.getState()
           if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
-            usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.difficultyMult || 1)), boonModifiers.damageReduction ?? 0)
+            usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.damageMultiplier || 1)), boonModifiers.damageReduction ?? 0)
             playSFX('damage-taken')
           }
         }
