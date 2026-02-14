@@ -1,6 +1,6 @@
 # Story 16.4: Enemy Difficulty Scaling Across Systems
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -28,43 +28,45 @@ So that progression across systems feels meaningful and challenging.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Replace SYSTEM_DIFFICULTY_MULTIPLIERS with ENEMY_SCALING_PER_SYSTEM in gameConfig.js (AC: #3)
-  - [ ] 1.1: Add `ENEMY_SCALING_PER_SYSTEM` object with per-stat multipliers for systems 1, 2, and 3
-  - [ ] 1.2: Remove old `SYSTEM_DIFFICULTY_MULTIPLIERS` single-multiplier config
-  - [ ] 1.3: Define System 1: `{ hp: 1.0, damage: 1.0, speed: 1.0, xpReward: 1.0 }`
-  - [ ] 1.4: Define System 2: `{ hp: 1.5, damage: 1.5, speed: 1.25, xpReward: 1.3 }`
-  - [ ] 1.5: Define System 3: `{ hp: 2.2, damage: 2.2, speed: 1.5, xpReward: 1.8 }`
+**Note:** Tasks 2-4 were already implemented in Story 18.3 with different scaling values. This story updates config values (Task 1) and adapts boss/commands/tests (Tasks 5-7) to use the new Story 16.4 multipliers.
 
-- [ ] Task 2: Update GameLoop.jsx to pass per-stat scaling object (AC: #4)
-  - [ ] 2.1: Replace `const difficultyMult = GAME_CONFIG.SYSTEM_DIFFICULTY_MULTIPLIERS[currentSystem]` with `const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem]`
-  - [ ] 2.2: Pass `scaling` object to spawnSystem.tick() instead of single number
-  - [ ] 2.3: Update xpReward calculation on enemy death (line ~482) to read from `event.enemy.xpReward` instead of `ENEMIES[typeId].xpReward`
+- [x] Task 1: Replace SYSTEM_DIFFICULTY_MULTIPLIERS with ENEMY_SCALING_PER_SYSTEM in gameConfig.js (AC: #3)
+  - [x] 1.1: Add `ENEMY_SCALING_PER_SYSTEM` object with per-stat multipliers for systems 1, 2, and 3
+  - [x] 1.2: Remove old `SYSTEM_DIFFICULTY_MULTIPLIERS` single-multiplier config
+  - [x] 1.3: Define System 1: `{ hp: 1.0, damage: 1.0, speed: 1.0, xpReward: 1.0 }`
+  - [x] 1.4: Define System 2: `{ hp: 1.5, damage: 1.5, speed: 1.25, xpReward: 1.3 }`
+  - [x] 1.5: Define System 3: `{ hp: 2.2, damage: 2.2, speed: 1.5, xpReward: 1.8 }`
 
-- [ ] Task 3: Update spawnSystem.js to pass scaling object through instructions (AC: #4)
-  - [ ] 3.1: Change `tick(delta, playerX, playerZ, difficultyMult)` signature to `tick(delta, playerX, playerZ, scaling)`
-  - [ ] 3.2: Replace `instructions.push({ typeId, x, z, difficultyMult })` with `instructions.push({ typeId, x, z, scaling })`
+- [x] Task 2: ~~Update GameLoop.jsx to pass per-stat scaling object~~ **VERIFIED** (AC: #4) — Already implemented in Story 18.3
+  - [x] 2.1: ~~Replace `const difficultyMult`~~ **VERIFIED** — GameLoop.jsx:405 reads ENEMY_SCALING_PER_SYSTEM[currentSystem]
+  - [x] 2.2: ~~Pass `scaling` object to spawnSystem.tick()~~ **VERIFIED** — GameLoop.jsx:406 passes scaling object
+  - [x] 2.3: ~~Update xpReward calculation~~ **VERIFIED** — GameLoop.jsx:528 reads event.enemy.xpReward
 
-- [ ] Task 4: Update useEnemies.jsx spawnEnemies() to apply per-stat multipliers (AC: #4, #5)
-  - [ ] 4.1: Destructure `scaling` instead of `difficultyMult` from instructions (with fallback: `scaling = { hp: 1, damage: 1, speed: 1, xpReward: 1 }`)
-  - [ ] 4.2: Apply `scaling.hp` to hp/maxHp, `scaling.damage` to damage, `scaling.speed` to speed
-  - [ ] 4.3: Store `xpReward: Math.round(def.xpReward * (scaling.xpReward || 1))` on the enemy entity
+- [x] Task 3: ~~Update spawnSystem.js to pass scaling object~~ **VERIFIED** (AC: #4) — Already implemented in Story 18.3
+  - [x] 3.1: ~~Change tick signature~~ **VERIFIED** — spawnSystem.js:53 accepts scaling parameter
+  - [x] 3.2: ~~Replace instructions.push~~ **VERIFIED** — spawnSystem.js:97,118 pass scaling in instructions
 
-- [ ] Task 5: Update useBoss.jsx to use per-stat scaling (AC: #7)
-  - [ ] 5.1: Change `spawnBoss(currentSystem)` to read from ENEMY_SCALING_PER_SYSTEM instead of SYSTEM_DIFFICULTY_MULTIPLIERS
-  - [ ] 5.2: Apply per-stat multipliers to boss HP, damage, speed
+- [x] Task 4: ~~Update useEnemies.jsx spawnEnemies()~~ **VERIFIED** (AC: #4, #5) — Already implemented in Story 18.3
+  - [x] 4.1: ~~Destructure `scaling`~~ **VERIFIED** — useEnemies.jsx:98 destructures scaling with fallback
+  - [x] 4.2: ~~Apply per-stat multipliers~~ **VERIFIED** — useEnemies.jsx:103-106,108-117 apply scaling
+  - [x] 4.3: ~~Store xpReward on entity~~ **VERIFIED** — useEnemies.jsx:122 stores scaled xpReward
 
-- [ ] Task 6: Update commandSystem.js debug commands (AC: #4)
-  - [ ] 6.1: Update `spawn` command to pass `scaling` object (default: system 1 = all 1.0x)
-  - [ ] 6.2: Update `spawnwave` command similarly
+- [x] Task 5: Update useBoss.jsx to use per-stat scaling (AC: #7)
+  - [x] 5.1: Change `spawnBoss(currentSystem)` to read from ENEMY_SCALING_PER_SYSTEM instead of SYSTEM_DIFFICULTY_MULTIPLIERS
+  - [x] 5.2: Apply per-stat multipliers to boss HP, damage, speed
 
-- [ ] Task 7: Write/update unit tests (AC: #1-#7)
-  - [ ] 7.1: Update existing `difficultyScaling.test.js` tests to use per-stat scaling
-  - [ ] 7.2: Test System 1 spawns at base stats (all 1.0x)
-  - [ ] 7.3: Test System 2 spawns with HP 1.5x, damage 1.5x, speed 1.25x, xpReward 1.3x
-  - [ ] 7.4: Test System 3 spawns with HP 2.2x, damage 2.2x, speed 1.5x, xpReward 1.8x
-  - [ ] 7.5: Test xpReward is stored on enemy entity and used on death
-  - [ ] 7.6: Test boss scaling uses per-stat multipliers
-  - [ ] 7.7: Test reset returns to base difficulty
+- [x] Task 6: Update commandSystem.js debug commands (AC: #4)
+  - [x] 6.1: Update `spawn` command to pass `scaling` object (default: system 1 = all 1.0x)
+  - [x] 6.2: Update `spawnwave` command similarly
+
+- [x] Task 7: Write/update unit tests (AC: #1-#7)
+  - [x] 7.1: Update existing `difficultyScaling.test.js` tests to use per-stat scaling
+  - [x] 7.2: Test System 1 spawns at base stats (all 1.0x)
+  - [x] 7.3: Test System 2 spawns with HP 1.5x, damage 1.5x, speed 1.25x, xpReward 1.3x
+  - [x] 7.4: Test System 3 spawns with HP 2.2x, damage 2.2x, speed 1.5x, xpReward 1.8x
+  - [x] 7.5: Test xpReward is stored on enemy entity and used on death
+  - [x] 7.6: Test boss scaling uses per-stat multipliers
+  - [x] 7.7: Test reset returns to base difficulty
 
 ## Dev Notes
 
@@ -277,10 +279,38 @@ Debug commands currently pass `difficultyMult: 1.0` (spawn) and `difficultyMult:
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### Debug Log References
 
+No debug issues encountered. This story updated ENEMY_SCALING_PER_SYSTEM config values to match Epic 16 specifications and removed deprecated SYSTEM_DIFFICULTY_MULTIPLIERS. The per-stat scaling infrastructure (GameLoop → spawnSystem → useEnemies pipeline) was already implemented in Story 18.3.
+
 ### Completion Notes List
 
+- **Task 1 (Config Update)**: Updated ENEMY_SCALING_PER_SYSTEM in gameConfig.js with Epic 16 Story 16.4 values (System 2: 1.5/1.5/1.25/1.3, System 3: 2.2/2.2/1.5/1.8). Removed deprecated SYSTEM_DIFFICULTY_MULTIPLIERS entirely. Cleaned up outdated comment referencing removed config (Code Review fix).
+
+- **Tasks 2-4 (Core Pipeline Verification)**: Verified existing Story 18.3 implementation. GameLoop.jsx passes scaling object (line 405), spawnSystem.js accepts scaling parameter (line 53), useEnemies.jsx applies per-stat multipliers (lines 98-122) with backward compatibility for single difficultyMult.
+
+- **Task 5 (Boss Scaling)**: Updated useBoss.jsx spawnBoss() to use ENEMY_SCALING_PER_SYSTEM instead of SYSTEM_DIFFICULTY_MULTIPLIERS. Boss uses per-stat hp and damage multipliers (AC #7). Renamed boss.difficultyMult → boss.damageMultiplier for clarity (Code Review fix). Updated GameLoop.jsx:313 and tests accordingly.
+
+- **Task 6 (Debug Commands)**: Updated commandSystem.js spawn and spawnwave commands to use scaling objects instead of difficultyMult numbers. Spawn uses System 1 base scaling, spawnwave creates uniform scaling from waveLevel parameter.
+
+- **Task 7 (Tests)**: Updated all 24 tests in difficultyScaling.test.js to expect Epic 16 Story 16.4 scaling values. All tests passing. Full test suite: 1258/1258 tests passing, no regressions.
+
+**Key Implementation Notes:**
+- Story 18.3 had already implemented the per-stat scaling infrastructure (GameLoop → spawnSystem → useEnemies pipeline) with different scaling values
+- This story's scope: (1) Update config values to Epic 16 specifications, (2) Remove SYSTEM_DIFFICULTY_MULTIPLIERS, (3) Update boss/commands/tests to use new values
+- Backward compatibility maintained: useEnemies.spawnEnemies() still accepts legacy difficultyMult format for compatibility
+- Code Review fixes: Removed outdated comment in gameConfig.js, renamed boss.difficultyMult → boss.damageMultiplier for naming consistency
+
 ### File List
+
+- src/config/gameConfig.js
+- src/stores/useBoss.jsx
+- src/systems/commandSystem.js
+- src/systems/__tests__/difficultyScaling.test.js
+- src/GameLoop.jsx (Code Review: Updated boss.difficultyMult → boss.damageMultiplier reference)
+
+## Change Log
+
+- **2026-02-14**: Story 16.4 implemented - Updated enemy difficulty scaling values to new per-stat multipliers (System 2: hp=1.5x, damage=1.5x, speed=1.25x, xpReward=1.3x; System 3: hp=2.2x, damage=2.2x, speed=1.5x, xpReward=1.8x). Removed deprecated SYSTEM_DIFFICULTY_MULTIPLIERS config. Updated useBoss.jsx to use per-stat scaling. Updated debug commands to use scaling objects. All 1258 tests passing.

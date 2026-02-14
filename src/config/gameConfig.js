@@ -136,6 +136,23 @@ export const GAME_CONFIG = {
   WORMHOLE_BLOOM_FLASH_DURATION: 0.3,
   WORMHOLE_TRANSITION_DELAY: 2.0,
 
+  // Wormhole Visual (Story 17.3)
+  WORMHOLE_VISUAL: {
+    SPHERE_RADIUS: 8,
+    SPHERE_SEGMENTS: 32,
+    PARTICLE_COUNT: 25,
+    PARTICLE_ORBIT_RADIUS_MIN: 10,
+    PARTICLE_ORBIT_RADIUS_MAX: 14,
+    DORMANT_SWIRL_SPEED: 0.3,
+    ACTIVE_SWIRL_SPEED: 1.5,
+    DORMANT_PARTICLE_SPEED: 0.5,
+    ACTIVE_PARTICLE_SPEED: 2.0,
+    DORMANT_EMISSIVE_MIN: 0.2,
+    DORMANT_EMISSIVE_MAX: 0.5,
+    ACTIVE_EMISSIVE: 2.0,
+    ACTIVATION_SCALE: 1.4,
+  },
+
   // Boss (Story 6.2)
   BOSS_HP: 500,
   BOSS_ARENA_SIZE: 400,
@@ -159,14 +176,12 @@ export const GAME_CONFIG = {
   BOSS_DEFEAT_TRANSITION_DELAY: 3.0,
   BOSS_FRAGMENT_REWARD: 100,
 
-  // System difficulty scaling (Story 7.3) — kept for boss scaling (useBoss.jsx)
-  SYSTEM_DIFFICULTY_MULTIPLIERS: { 1: 1.0, 2: 1.3, 3: 1.6 },
-
-  // Per-stat enemy scaling per system (Story 18.3)
+  // Per-stat enemy scaling per system (Story 16.4)
+  // Each stat can be tuned independently for balance
   ENEMY_SCALING_PER_SYSTEM: {
     1: { hp: 1.0, damage: 1.0, speed: 1.0, xpReward: 1.0 },
-    2: { hp: 1.6, damage: 1.5, speed: 1.3, xpReward: 1.4 },
-    3: { hp: 2.5, damage: 2.2, speed: 1.6, xpReward: 2.0 },
+    2: { hp: 1.5, damage: 1.5, speed: 1.25, xpReward: 1.3 },
+    3: { hp: 2.2, damage: 2.2, speed: 1.5, xpReward: 1.8 },
   },
 
   // Tunnel (Story 7.1)

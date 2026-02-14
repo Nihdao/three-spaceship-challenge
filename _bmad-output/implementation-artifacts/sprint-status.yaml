@@ -172,7 +172,7 @@ development_status:
   16-1-enemy-definitions-model-integration: done
   16-2-enemy-behavior-system-implementation: done
   16-3-time-based-enemy-spawn-system: done
-  16-4-enemy-difficulty-scaling-across-systems: ready-for-dev
+  16-4-enemy-difficulty-scaling-across-systems: done
   epic-16-retrospective: optional
 
   # Epic 17: Cinematic Transitions & Wormhole Overhaul
