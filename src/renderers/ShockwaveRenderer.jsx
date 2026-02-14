@@ -45,14 +45,6 @@ export default function ShockwaveRenderer() {
     if (count > 0) {
       mesh.instanceMatrix.needsUpdate = true
     }
-
-    // Fade opacity based on average lifetime progress
-    if (count > 0 && shockwaves.length > 0) {
-      const firstActive = shockwaves.find(sw => sw.active)
-      if (firstActive) {
-        material.opacity = Math.max(0, firstActive.lifetime * 0.8)
-      }
-    }
   })
 
   return (

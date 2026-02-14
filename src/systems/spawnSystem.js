@@ -10,6 +10,9 @@ const SWEEP_GROUP_MIN = 3
 const SWEEP_GROUP_MAX = 5
 // Spacing between sweep enemies in line formation (perpendicular to sweep direction)
 const SWEEP_LINE_SPACING = 5
+// Sniper fixed spawn distance (far from player, outside visible area)
+const SNIPER_FIXED_SPAWN_DISTANCE_MIN = 150
+const SNIPER_FIXED_SPAWN_DISTANCE_MAX = 200
 
 export function createSpawnSystem() {
   let spawnTimer = GAME_CONFIG.SPAWN_INTERVAL_BASE
@@ -69,10 +72,16 @@ export function createSpawnSystem() {
           const z = Math.max(-bound, Math.min(bound, baseZ + perpZ * offset))
           instructions.push({ typeId, x, z, scaling, sweepDirection })
         }
+        // Count sweep group toward batch size
+        i += groupSize - 1
       } else {
+        // Sniper fixed: spawn far from player (outside visible area)
+        const isSniperFixed = def && def.behavior === 'sniper_fixed'
+        const minDist = isSniperFixed ? SNIPER_FIXED_SPAWN_DISTANCE_MIN : GAME_CONFIG.SPAWN_DISTANCE_MIN
+        const maxDist = isSniperFixed ? SNIPER_FIXED_SPAWN_DISTANCE_MAX : GAME_CONFIG.SPAWN_DISTANCE_MAX
+
         const angle = Math.random() * Math.PI * 2
-        const distance = GAME_CONFIG.SPAWN_DISTANCE_MIN +
-          Math.random() * (GAME_CONFIG.SPAWN_DISTANCE_MAX - GAME_CONFIG.SPAWN_DISTANCE_MIN)
+        const distance = minDist + Math.random() * (maxDist - minDist)
 
         let x = playerX + Math.cos(angle) * distance
         let z = playerZ + Math.sin(angle) * distance

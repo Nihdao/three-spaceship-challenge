@@ -396,7 +396,15 @@ export default function GameLoop() {
     }
     useEnemies.getState().tick(clampedDelta, playerPos)
 
-    // 5b. Shockwave expansion + enemy projectile movement
+    // 5b. Teleport particle effects (departure + arrival bursts)
+    const teleportEvents = useEnemies.getState().consumeTeleportEvents()
+    for (let i = 0; i < teleportEvents.length; i++) {
+      const te = teleportEvents[i]
+      addExplosion(te.oldX, te.oldZ, '#cc66ff', 0.5)
+      addExplosion(te.newX, te.newZ, '#cc66ff', 0.5)
+    }
+
+    // 5c. Shockwave expansion + enemy projectile movement
     useEnemies.getState().tickShockwaves(clampedDelta)
     useEnemies.getState().tickEnemyProjectiles(clampedDelta)
 

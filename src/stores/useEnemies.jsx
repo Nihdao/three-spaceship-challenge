@@ -47,6 +47,7 @@ const useEnemies = create((set, get) => ({
   nextShockwaveId: 0,
   enemyProjectiles: [],
   nextEnemyProjId: 0,
+  _teleportEvents: [],
 
   // --- Actions ---
   spawnEnemy: (typeId, x, z) => {
@@ -399,9 +400,15 @@ const useEnemies = create((set, get) => ({
           const newX = e.x + Math.cos(angle) * teleportDist
           const newZ = e.z + Math.sin(angle) * teleportDist
 
+          // Record teleport event for particle effects (consumed by GameLoop)
+          const oldX = e.x
+          const oldZ = e.z
+
           // Clamp to play area
           e.x = Math.max(-bound, Math.min(bound, newX))
           e.z = Math.max(-bound, Math.min(bound, newZ))
+
+          get()._teleportEvents.push({ oldX, oldZ, newX: e.x, newZ: e.z })
 
           // Reset timer
           e.teleportTimer = def.teleportCooldown
@@ -494,6 +501,14 @@ const useEnemies = create((set, get) => ({
     set({ enemies: filtered })
   },
 
+  consumeTeleportEvents: () => {
+    const events = get()._teleportEvents
+    if (events.length === 0) return []
+    const copy = events.slice()
+    events.length = 0
+    return copy
+  },
+
   reset: () => set({
     enemies: [],
     nextId: 0,
@@ -501,6 +516,7 @@ const useEnemies = create((set, get) => ({
     nextShockwaveId: 0,
     enemyProjectiles: [],
     nextEnemyProjId: 0,
+    _teleportEvents: [],
   }),
 }))
 
