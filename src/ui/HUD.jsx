@@ -25,9 +25,9 @@ export const MINIMAP = {
   planetDotSize: '6px',
   wormholeBaseSize: '6px',
   wormholeActiveSize: '9px',
-  wormholeColor: '#00ccff',
-  wormholeGlowActive: '0 0 10px rgba(0, 204, 255, 0.9)',
-  wormholeGlowBase: '0 0 3px rgba(0, 204, 255, 0.4)',
+  wormholeColor: '#bb88ff', // Bright purple matching portal rift
+  wormholeGlowActive: '0 0 12px rgba(187, 136, 255, 1.0)', // Purple glow when active
+  wormholeGlowBase: '0 0 8px rgba(85, 24, 170, 0.9)', // Deep purple glow
   dotTransition: 'left 40ms ease-out, top 40ms ease-out',
   boundaryInset: '5%',
   boundaryBorder: '1px solid rgba(255,255,255,0.1)',
