@@ -1,6 +1,6 @@
 # Story 19.2: Heal Gem Drops
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
