@@ -3,13 +3,14 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 const MAX_ORBS = GAME_CONFIG.MAX_XP_ORBS
 
 // Pre-allocated pool — zero GC pressure (follows particleSystem.js pattern)
+// Story 19.1: Added isRare field to support rare XP gems
 const orbs = []
 for (let i = 0; i < MAX_ORBS; i++) {
-  orbs[i] = { x: 0, z: 0, xpValue: 0, elapsedTime: 0, isMagnetized: false }
+  orbs[i] = { x: 0, z: 0, xpValue: 0, elapsedTime: 0, isMagnetized: false, isRare: false }
 }
 let activeCount = 0
 
-export function spawnOrb(x, z, xpValue) {
+export function spawnOrb(x, z, xpValue, isRare = false) {
   if (activeCount >= MAX_ORBS) {
     // Recycle oldest orb (highest elapsedTime) to avoid silent XP loss
     let oldestIdx = 0
@@ -22,6 +23,7 @@ export function spawnOrb(x, z, xpValue) {
     orb.xpValue = xpValue
     orb.elapsedTime = 0
     orb.isMagnetized = false
+    orb.isRare = isRare
     return
   }
   const orb = orbs[activeCount]
@@ -30,6 +32,7 @@ export function spawnOrb(x, z, xpValue) {
   orb.xpValue = xpValue
   orb.elapsedTime = 0
   orb.isMagnetized = false
+  orb.isRare = isRare
   activeCount++
 }
 
@@ -98,6 +101,7 @@ export function resetOrbs() {
     orbs[i].xpValue = 0
     orbs[i].elapsedTime = 0
     orbs[i].isMagnetized = false
+    orbs[i].isRare = false
   }
   activeCount = 0
 }

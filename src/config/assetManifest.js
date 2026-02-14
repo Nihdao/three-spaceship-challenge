@@ -32,6 +32,8 @@ export const ASSET_MANIFEST = {
       dashReady: 'audio/sfx/dash-ready.mp3',
       scanStart: 'audio/sfx/scan-start.mp3',
       scanComplete: 'audio/sfx/scan-complete.mp3',
+      // Story 19.1: Rare XP gem pickup SFX
+      xpRarePickup: 'audio/sfx/xp-rare-pickup.mp3',
       // Story 11.3: New weapon SFX
       railgunFire: 'audio/sfx/railgun-fire.mp3',
       trishotFire: 'audio/sfx/trishot-fire.mp3',
