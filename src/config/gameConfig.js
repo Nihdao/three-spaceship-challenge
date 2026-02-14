@@ -1,6 +1,7 @@
 export const GAME_CONFIG = {
-  // Debug (Story 11.5)
+  // Debug (Story 11.5, Story 18.4)
   DEBUG_CONSOLE_ENABLED: true,
+  DEBUG_TRANSITIONS: false, // Story 18.4: Enable detailed system transition logging
 
   // System
   SYSTEM_TIMER: 600, // 10 minutes in seconds
@@ -268,7 +269,14 @@ export const GAME_CONFIG = {
   },
 
   // System names for display (Story 17.2)
-  SYSTEM_NAMES: ['ALPHA', 'BETA', 'GAMMA'],
+  SYSTEM_NAMES: ['ALPHA CENTAURI', 'PROXIMA', 'KEPLER-442'],
+
+  // System name banner timing (Story 17.2)
+  SYSTEM_BANNER: {
+    FADE_IN_DURATION: 0.3,  // seconds
+    DISPLAY_DURATION: 2.5,  // seconds
+    FADE_OUT_DURATION: 0.5, // seconds
+  },
 
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
