@@ -30,8 +30,9 @@ export function createSpawnSystem() {
   let spawnTimer = GAME_CONFIG.SPAWN_INTERVAL_BASE
   let elapsedTime = 0
 
-  function pickEnemyType() {
-    const available = getAvailableEnemyTypes(elapsedTime)
+  // Story 16.3 Task 2.4: Accept elapsedTime parameter for testability and clarity
+  function pickEnemyType(currentElapsedTime) {
+    const available = getAvailableEnemyTypes(currentElapsedTime)
     if (available.length === 0) {
       // Fallback to basic enemy if schedule is empty (shouldn't happen in normal gameplay)
       const fallback = Object.values(ENEMIES).find(e => e.spawnWeight > 0)
@@ -67,7 +68,8 @@ export function createSpawnSystem() {
 
     const instructions = []
     for (let i = 0; i < batchSize; i++) {
-      const typeId = pickEnemyType()
+      // Story 16.3 HIGH-1 fix: Pass elapsedTime to pickEnemyType (avoids redundant filtering in loop)
+      const typeId = pickEnemyType(elapsedTime)
       const def = ENEMIES[typeId]
 
       if (def && def.behavior === 'sweep') {

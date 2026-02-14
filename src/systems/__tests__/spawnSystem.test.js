@@ -212,7 +212,7 @@ describe('spawnSystem', () => {
         // Force random to select first available enemy type
         mockRandom.mockReturnValue(0.01)
 
-        const instructions = ss.tick(delta, 0, 0, 1.0)
+        const instructions = ss.tick(delta, 0, 0)
 
         expect(instructions.length).toBeGreaterThan(0)
         const spawnedTypes = instructions.map(inst => inst.typeId)
@@ -232,7 +232,7 @@ describe('spawnSystem', () => {
         for (let i = 0; i < 50; i++) {
           ss.reset()
           mockRandom.mockReturnValue(Math.random())
-          const instructions = ss.tick(delta, 0, 0, 1.0)
+          const instructions = ss.tick(delta, 0, 0)
           instructions.forEach(inst => allSpawnedTypes.add(inst.typeId))
         }
 
@@ -249,10 +249,10 @@ describe('spawnSystem', () => {
         const testSS = createSpawnSystem()
 
         // Advance to 54s, leaving room for one spawn interval
-        testSS.tick(54, 0, 0, 1.0)
+        testSS.tick(54, 0, 0)
 
         // Force a spawn - adds SPAWN_INTERVAL_BASE (~5s), total = 59s < 60s
-        const instructions = testSS.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0, 1.0)
+        const instructions = testSS.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0)
 
         const spawnedTypes = instructions.map(inst => inst.typeId)
         expect(spawnedTypes.includes('FODDER_SWARM')).toBe(false)
@@ -260,7 +260,7 @@ describe('spawnSystem', () => {
 
       it('should spawn FODDER_SWARM at t=60', () => {
         // Advance time to 60 seconds
-        ss.tick(60, 0, 0, 1.0)
+        ss.tick(60, 0, 0)
 
         // Trigger spawn - force FODDER_SWARM selection
         const delta = GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1
@@ -270,7 +270,7 @@ describe('spawnSystem', () => {
         // FODDER_SWARM range: 160-200 / 200 = 0.8-1.0
         mockRandom.mockReturnValue(0.85) // Should select FODDER_SWARM
 
-        const instructions = ss.tick(delta, 0, 0, 1.0)
+        const instructions = ss.tick(delta, 0, 0)
 
         const spawnedTypes = instructions.map(inst => inst.typeId)
         expect(spawnedTypes.some(typeId => typeId === 'FODDER_SWARM')).toBe(true)
@@ -283,23 +283,23 @@ describe('spawnSystem', () => {
         const testSS = createSpawnSystem()
 
         // Advance to 114s, leaving room for one spawn interval (~5s)
-        testSS.tick(114, 0, 0, 1.0)
+        testSS.tick(114, 0, 0)
 
         // Force a spawn - adds SPAWN_INTERVAL_BASE (~5s), total = 119s < 120s
-        const instructions = testSS.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0, 1.0)
+        const instructions = testSS.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0)
 
         const spawnedTypes = instructions.map(inst => inst.typeId)
         expect(spawnedTypes.includes('SHOCKWAVE_BLOB')).toBe(false)
       })
 
       it('should spawn SHOCKWAVE_BLOB at t=120', () => {
-        ss.tick(120, 0, 0, 1.0)
+        ss.tick(120, 0, 0)
 
         // Total weight at t=120 = 100 + 60 + 40 + 30 = 230
         // SHOCKWAVE_BLOB range: 200-230 / 230 = 0.87-1.0
         mockRandom.mockReturnValue(0.90)
 
-        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
         const spawnedTypes = instructions.map(inst => inst.typeId)
 
         expect(spawnedTypes.some(typeId => typeId === 'SHOCKWAVE_BLOB')).toBe(true)
@@ -308,13 +308,13 @@ describe('spawnSystem', () => {
 
     describe('Task 4.4: SNIPER_MOBILE becomes available at t=180', () => {
       it('should spawn SNIPER_MOBILE at t=180 or later', () => {
-        ss.tick(180, 0, 0, 1.0)
+        ss.tick(180, 0, 0)
 
         // Total weight at t=180 = 100 + 60 + 40 + 30 + 25 = 255
         // SNIPER_MOBILE range: 230-255 / 255 = 0.902-1.0
         mockRandom.mockReturnValue(0.95)
 
-        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
         const spawnedTypes = instructions.map(inst => inst.typeId)
 
         expect(spawnedTypes.some(typeId => typeId === 'SNIPER_MOBILE')).toBe(true)
@@ -323,13 +323,13 @@ describe('spawnSystem', () => {
 
     describe('Task 4.5: SNIPER_FIXED becomes available at t=300', () => {
       it('should spawn SNIPER_FIXED at t=300 or later', () => {
-        ss.tick(300, 0, 0, 1.0)
+        ss.tick(300, 0, 0)
 
         // Total weight at t=300 = 100 + 60 + 40 + 30 + 25 + 10 = 265
         // SNIPER_FIXED range: 255-265 / 265 = 0.962-1.0
         mockRandom.mockReturnValue(0.98)
 
-        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
         const spawnedTypes = instructions.map(inst => inst.typeId)
 
         expect(spawnedTypes.some(typeId => typeId === 'SNIPER_FIXED')).toBe(true)
@@ -338,13 +338,13 @@ describe('spawnSystem', () => {
 
     describe('Task 4.6: TELEPORTER becomes available at t=360', () => {
       it('should spawn TELEPORTER at t=360 or later', () => {
-        ss.tick(360, 0, 0, 1.0)
+        ss.tick(360, 0, 0)
 
         // Total weight at t=360 = 100 + 60 + 40 + 30 + 25 + 10 + 20 = 285
         // TELEPORTER range: 265-285 / 285 = 0.930-1.0
         mockRandom.mockReturnValue(0.96)
 
-        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
         const spawnedTypes = instructions.map(inst => inst.typeId)
 
         expect(spawnedTypes.some(typeId => typeId === 'TELEPORTER')).toBe(true)
@@ -356,13 +356,13 @@ describe('spawnSystem', () => {
         // Restore real Math.random for this test since we need true randomness
         mockRandom.mockRestore()
 
-        ss.tick(360, 0, 0, 1.0)
+        ss.tick(360, 0, 0)
 
         const allSpawnedTypes = new Set()
 
         // Run many spawns to collect all possible types (increase iterations for better coverage)
         for (let i = 0; i < 300; i++) {
-          const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+          const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
           instructions.forEach(inst => allSpawnedTypes.add(inst.typeId))
         }
 
@@ -376,12 +376,12 @@ describe('spawnSystem', () => {
       })
 
       it('should never spawn BOSS_SENTINEL through spawn system', () => {
-        ss.tick(360, 0, 0, 1.0)
+        ss.tick(360, 0, 0)
 
         const allSpawnedTypes = new Set()
         for (let i = 0; i < 100; i++) {
           mockRandom.mockReturnValue(Math.random())
-          const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+          const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
           instructions.forEach(inst => allSpawnedTypes.add(inst.typeId))
         }
 
@@ -402,7 +402,7 @@ describe('spawnSystem', () => {
         // Run many spawns and count type distribution
         for (let i = 0; i < 1000; i++) {
           ss.reset()
-          const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+          const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
           instructions.forEach(inst => {
             if (spawnCounts[inst.typeId] !== undefined) {
               spawnCounts[inst.typeId]++
@@ -426,11 +426,11 @@ describe('spawnSystem', () => {
     describe('Reset functionality with time gates', () => {
       it('should reset elapsedTime and return to t=0 spawn behavior', () => {
         // Advance to late game
-        ss.tick(360, 0, 0, 1.0)
+        ss.tick(360, 0, 0)
 
         // Verify advanced types are available
         mockRandom.mockReturnValue(0.96)
-        let instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0, 1.0)
+        let instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
         let spawnedTypes = instructions.map(inst => inst.typeId)
         expect(spawnedTypes.some(typeId => typeId === 'TELEPORTER')).toBe(true)
 
@@ -444,7 +444,7 @@ describe('spawnSystem', () => {
         // Advance by small amounts (total < 60s to prevent FODDER_SWARM unlock)
         for (let i = 0; i < 10; i++) {
           // Tick 5s at a time = 50s total, staying under 60s threshold
-          instructions = ss.tick(5.0, 0, 0, 1.0)
+          instructions = ss.tick(5.0, 0, 0)
           instructions.forEach(inst => allTypesAfterReset.add(inst.typeId))
         }
 
@@ -455,6 +455,77 @@ describe('spawnSystem', () => {
           expect(allTypesAfterReset.has(typeId)).toBe(false)
         })
       })
+    })
+
+    // MEDIUM-2 fix: Floating-point edge case test at time thresholds
+    describe('Floating-point precision at time thresholds', () => {
+      it('should NOT spawn FODDER_SWARM just below 60s threshold with accumulated deltas', () => {
+        // Test with accumulated time that approaches but doesn't reach 60s
+        // Advance to 54s first
+        ss.tick(54, 0, 0)
+
+        // Then add small incremental deltas that stay under 60s total
+        // 54 + 5.9 = 59.9s (still < 60s)
+        const instructions = ss.tick(5.9, 0, 0)
+        const spawnedTypes = instructions.map(inst => inst.typeId)
+
+        // FODDER_SWARM should NOT be available yet at 59.9s
+        expect(spawnedTypes.includes('FODDER_SWARM')).toBe(false)
+
+        // Only FODDER_BASIC and FODDER_TANK should spawn
+        const allowedTypes = ['FODDER_BASIC', 'FODDER_TANK']
+        spawnedTypes.forEach(typeId => {
+          expect(allowedTypes).toContain(typeId)
+        })
+      })
+
+      it('should spawn FODDER_SWARM at exactly t=60.0 threshold', () => {
+        // Advance to exactly 60s
+        ss.tick(60.0, 0, 0)
+
+        // Force FODDER_SWARM selection via weighted random
+        mockRandom.mockReturnValue(0.85)
+
+        const instructions = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.1, 0, 0)
+        const spawnedTypes = instructions.map(inst => inst.typeId)
+
+        // FODDER_SWARM should be available at t=60.0
+        expect(spawnedTypes.some(typeId => typeId === 'FODDER_SWARM')).toBe(true)
+      })
+    })
+  })
+
+  // MEDIUM-1 fix: Task 5 - Debug command enemy type verification
+  describe('Task 5: Debug command support for all enemy types', () => {
+    it('should support spawning all TIME_GATED_SPAWN_SCHEDULE enemy types', () => {
+      // Verify that all enemy types in the spawn schedule actually exist in ENEMIES
+      const scheduleTypeIds = GAME_CONFIG.TIME_GATED_SPAWN_SCHEDULE.map(entry => entry.typeId)
+
+      scheduleTypeIds.forEach(typeId => {
+        expect(ENEMIES[typeId]).toBeDefined()
+        expect(ENEMIES[typeId].id).toBe(typeId)
+        expect(ENEMIES[typeId].spawnWeight).toBeGreaterThan(0)
+      })
+
+      // Verify expected 7 spawnable types
+      expect(scheduleTypeIds).toHaveLength(7)
+      expect(scheduleTypeIds).toContain('FODDER_BASIC')
+      expect(scheduleTypeIds).toContain('FODDER_TANK')
+      expect(scheduleTypeIds).toContain('FODDER_SWARM')
+      expect(scheduleTypeIds).toContain('SHOCKWAVE_BLOB')
+      expect(scheduleTypeIds).toContain('SNIPER_MOBILE')
+      expect(scheduleTypeIds).toContain('SNIPER_FIXED')
+      expect(scheduleTypeIds).toContain('TELEPORTER')
+    })
+
+    it('should verify BOSS_SENTINEL is excluded from spawn schedule', () => {
+      const scheduleTypeIds = GAME_CONFIG.TIME_GATED_SPAWN_SCHEDULE.map(entry => entry.typeId)
+
+      // BOSS_SENTINEL should NOT be in the time-gated spawn schedule
+      expect(scheduleTypeIds).not.toContain('BOSS_SENTINEL')
+
+      // BOSS_SENTINEL should have spawnWeight 0 (not spawnable via spawn system)
+      expect(ENEMIES.BOSS_SENTINEL.spawnWeight).toBe(0)
     })
   })
 })
