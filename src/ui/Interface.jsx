@@ -13,6 +13,7 @@ import ShipSelect from './ShipSelect.jsx'
 import PauseMenu from './PauseMenu.jsx'
 import DebugConsole from './DebugConsole.jsx'
 import WhiteFlashTransition from './WhiteFlashTransition.jsx'
+import SystemNameBanner from './SystemNameBanner.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 export default function Interface() {
@@ -69,6 +70,7 @@ export default function Interface() {
       {phase === 'gameOver' && <GameOverScreen />}
       {phase === 'victory' && <VictoryScreen />}
       {phase === 'tunnel' && <TunnelHub />}
+      {phase === 'systemEntry' && <SystemNameBanner />}
       {GAME_CONFIG.DEBUG_CONSOLE_ENABLED && (phase === 'gameplay' || phase === 'boss') && <DebugConsole />}
       <WhiteFlashTransition
         active={showFlash}

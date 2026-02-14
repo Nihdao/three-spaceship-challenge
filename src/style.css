@@ -117,3 +117,49 @@ body,
   height: 100%;
   background: #0a0a0f;
 }
+
+/* System Name Banner (Story 17.2) */
+@keyframes systemBanner {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  9% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+}
+
+.system-name-banner {
+  position: fixed;
+  top: 12%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 150;
+  animation: systemBanner 3.3s ease-out 0.3s forwards;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.system-name-banner-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  letter-spacing: 0.15em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  background: rgba(255, 0, 255, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 10px 24px;
+  border-radius: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
