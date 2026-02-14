@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import useGame from '../stores/useGame.jsx'
-import { playMusic, crossfadeMusic, fadeOutMusic, preloadSounds, loadAudioSettings } from '../audio/audioManager.js'
+import { playMusic, crossfadeMusic, fadeOutMusic, preloadSounds, loadAudioSettings, unlockAudioContext } from '../audio/audioManager.js'
 import { ASSET_MANIFEST } from '../config/assetManifest.js'
 
 // SFX key → asset manifest path mapping for preloading
@@ -45,6 +45,15 @@ export default function useAudio() {
     // Preload all SFX on mount
     preloadSounds(SFX_MAP)
 
+    // Unlock AudioContext on first user interaction (browser autoplay policy)
+    const handleInteraction = () => {
+      unlockAudioContext()
+      document.removeEventListener('click', handleInteraction)
+      document.removeEventListener('keydown', handleInteraction)
+    }
+    document.addEventListener('click', handleInteraction)
+    document.addEventListener('keydown', handleInteraction)
+
     // Subscribe to phase changes for music transitions
     const unsub = useGame.subscribe(
       (s) => s.phase,
@@ -82,6 +91,10 @@ export default function useAudio() {
       }
     )
 
-    return unsub
+    return () => {
+      unsub()
+      document.removeEventListener('click', handleInteraction)
+      document.removeEventListener('keydown', handleInteraction)
+    }
   }, [])
 }

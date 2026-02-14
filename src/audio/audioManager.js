@@ -222,3 +222,14 @@ export function isUnlocked() {
     return false
   }
 }
+
+// Resume suspended AudioContext after first user interaction (browser autoplay policy)
+export function unlockAudioContext() {
+  try {
+    if (Howler.ctx && Howler.ctx.state === 'suspended') {
+      Howler.ctx.resume()
+    }
+  } catch {
+    // AudioContext not available
+  }
+}
