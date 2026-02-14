@@ -22,13 +22,19 @@ export const GAME_CONFIG = {
   SPATIAL_HASH_CELL_SIZE: 2, // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
 
-  // XP Orbs (Story 3.1, extended Story 11.1)
+  // XP Orbs (Story 3.1, extended Story 11.1, Story 19.1)
   XP_ORB_PICKUP_RADIUS: 2.0,
   XP_MAGNET_RADIUS: 15.0, // Magnetization activation radius (> pickup radius)
   XP_MAGNET_SPEED: 120, // Orb movement speed when magnetized (units/sec)
   XP_MAGNET_ACCELERATION_CURVE: 2.0, // Ease-in exponent: 1.0=linear, 2.0=quadratic
   XP_ORB_MESH_SCALE: [0.8, 0.8, 0.8],
   XP_ORB_COLOR: "#00ffcc",
+  // Rare XP Gems (Story 19.1)
+  RARE_XP_GEM_DROP_CHANCE: 0.10, // 10% chance for rare gem instead of standard orb
+  RARE_XP_GEM_MULTIPLIER: 3, // Rare gems worth 3x base XP
+  RARE_XP_GEM_COLOR: "#ffdd00", // Golden-yellow color for rare gems
+  RARE_XP_GEM_SCALE_MULTIPLIER: 1.3, // 1.3x larger than standard orbs
+  RARE_XP_GEM_PULSE_SPEED: 3.0, // Pulse animation speed (radians/sec)
 
   // Progression — Story 11.2: Rebalanced for faster early-mid game progression
   // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~30% growth per level from level 6+

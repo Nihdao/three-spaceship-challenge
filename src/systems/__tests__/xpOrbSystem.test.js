@@ -288,4 +288,80 @@ describe('xpOrbSystem', () => {
       expect(elapsed).toBeLessThan(50)
     })
   })
+
+  describe('Rare XP Gem Support (Story 19.1)', () => {
+    beforeEach(() => {
+      resetOrbs()
+    })
+
+    it('spawnOrb with isRare=true stores isRare field correctly', () => {
+      spawnOrb(10, 20, 36, true) // rare gem worth 36 XP
+      const orb = getOrbs()[0]
+      expect(orb.isRare).toBe(true)
+      expect(orb.xpValue).toBe(36)
+    })
+
+    it('spawnOrb with isRare=false stores isRare=false', () => {
+      spawnOrb(10, 20, 12, false) // standard orb
+      const orb = getOrbs()[0]
+      expect(orb.isRare).toBe(false)
+      expect(orb.xpValue).toBe(12)
+    })
+
+    it('spawnOrb with no isRare parameter defaults to false (backward compatibility)', () => {
+      spawnOrb(10, 20, 12) // existing code without isRare param
+      const orb = getOrbs()[0]
+      expect(orb.isRare).toBe(false)
+    })
+
+    it('collectOrb returns correct xpValue for rare orbs (pre-multiplied)', () => {
+      spawnOrb(5, 5, 36, true) // rare gem worth 36 XP (12 * 3)
+      const val = collectOrb(0)
+      expect(val).toBe(36) // returns the pre-multiplied value
+      expect(getActiveCount()).toBe(0)
+    })
+
+    it('magnetization works identically for rare and standard orbs', () => {
+      spawnOrb(5, 0, 12, false) // standard orb
+      spawnOrb(0, 5, 36, true)  // rare orb
+      updateMagnetization(0, 0, 1/60) // player at origin
+      const standardOrb = getOrbs()[0]
+      const rareOrb = getOrbs()[1]
+      // Both should be magnetized
+      expect(standardOrb.isMagnetized).toBe(true)
+      expect(rareOrb.isMagnetized).toBe(true)
+    })
+
+    it('resetOrbs clears isRare field on all orbs', () => {
+      spawnOrb(5, 5, 36, true) // rare orb
+      const orb = getOrbs()[0]
+      expect(orb.isRare).toBe(true)
+      resetOrbs()
+      // After reset, spawn a new orb and verify the pool slot is clean
+      spawnOrb(1, 1, 5) // standard orb, no isRare param
+      const freshOrb = getOrbs()[0]
+      expect(freshOrb.isRare).toBe(false)
+    })
+
+    it('recycled rare orbs reset isRare field to false', () => {
+      // Fill pool with rare orbs
+      for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
+        spawnOrb(i, i, 30, true)
+      }
+      // Age all orbs
+      updateOrbs(5.0)
+      // Make index 0 not the oldest
+      getOrbs()[0].elapsedTime = 0.1
+      // Spawn a standard orb (no isRare) — should recycle oldest (index 1)
+      spawnOrb(999, 888, 12) // standard orb, isRare should default to false
+      // Find the recycled orb
+      const orbs = getOrbs()
+      for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
+        if (orbs[i].x === 999) {
+          expect(orbs[i].isRare).toBe(false)
+          break
+        }
+      }
+    })
+  })
 })

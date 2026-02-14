@@ -36,6 +36,8 @@ const SFX_MAP = {
   'drone-fire': ASSET_MANIFEST.gameplay.audio.droneFire,
   'beam-fire': ASSET_MANIFEST.gameplay.audio.beamFire,
   'explosive-fire': ASSET_MANIFEST.gameplay.audio.explosiveFire,
+  // Story 19.1: Rare XP gem pickup SFX
+  'xp_rare_pickup': ASSET_MANIFEST.gameplay.audio.xpRarePickup,
 }
 
 export default function useAudio() {

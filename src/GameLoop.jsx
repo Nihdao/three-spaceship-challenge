@@ -527,7 +527,13 @@ export default function GameLoop() {
           playSFX('explosion')
           const xpReward = event.enemy.xpReward ?? ENEMIES[event.enemy.typeId]?.xpReward ?? 0
           if (xpReward > 0) {
-            spawnOrb(event.enemy.x, event.enemy.z, xpReward)
+            // Story 19.1: Roll for rare XP gem drop
+            const isRare = Math.random() < GAME_CONFIG.RARE_XP_GEM_DROP_CHANCE
+            if (isRare) {
+              spawnOrb(event.enemy.x, event.enemy.z, xpReward * GAME_CONFIG.RARE_XP_GEM_MULTIPLIER, true)
+            } else {
+              spawnOrb(event.enemy.x, event.enemy.z, xpReward, false)
+            }
           }
           useGame.getState().incrementKills()
           useGame.getState().addScore(GAME_CONFIG.SCORE_PER_KILL)
@@ -680,8 +686,15 @@ export default function GameLoop() {
       indices.sort((a, b) => b - a)
       const xpMult = boonModifiers.xpMultiplier ?? 1.0
       for (let i = 0; i < indices.length; i++) {
-        const xpValue = collectOrb(indices[i])
+        const orbIndex = indices[i]
+        // Story 19.1: Check if orb is rare before collecting (to play appropriate SFX)
+        const isRare = orbArray[orbIndex].isRare
+        const xpValue = collectOrb(orbIndex)
         usePlayer.getState().addXP(xpValue * xpMult)
+        // Story 19.1: Play distinct SFX for rare XP gem collection
+        if (isRare) {
+          playSFX('xp_rare_pickup')
+        }
       }
     }
 
