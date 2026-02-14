@@ -1,6 +1,6 @@
 # Story 17.3: Wormhole Visual Overhaul
 
-Status: review
+Status: done
 
 ## Story
 

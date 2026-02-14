@@ -1,6 +1,6 @@
 # Story 19.1: Rare XP Gem Drops
 
-Status: review
+Status: done
 
 ## Story
 

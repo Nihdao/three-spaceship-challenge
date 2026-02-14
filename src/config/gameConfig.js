@@ -30,7 +30,7 @@ export const GAME_CONFIG = {
   XP_ORB_MESH_SCALE: [0.8, 0.8, 0.8],
   XP_ORB_COLOR: "#00ffcc",
   // Rare XP Gems (Story 19.1)
-  RARE_XP_GEM_DROP_CHANCE: 0.10, // 10% chance for rare gem instead of standard orb
+  RARE_XP_GEM_DROP_CHANCE: 0.05, // 5% chance for rare gem instead of standard orb
   RARE_XP_GEM_MULTIPLIER: 3, // Rare gems worth 3x base XP
   RARE_XP_GEM_COLOR: "#ffdd00", // Golden-yellow color for rare gems
   RARE_XP_GEM_SCALE_MULTIPLIER: 1.3, // 1.3x larger than standard orbs
