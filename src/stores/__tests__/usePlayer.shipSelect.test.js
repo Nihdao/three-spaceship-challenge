@@ -67,12 +67,12 @@ describe('usePlayer — ship selection (Story 9.1)', () => {
     expect(state.shipBaseDamageMultiplier).toBe(other.baseDamageMultiplier)
   })
 
-  it('phase transition: menu → shipSelect → gameplay works', () => {
+  it('phase transition: menu → shipSelect → systemEntry works', () => {
     useGame.getState().setPhase('shipSelect')
     expect(useGame.getState().phase).toBe('shipSelect')
 
     usePlayer.getState().setCurrentShipId('BALANCED')
     useGame.getState().startGameplay()
-    expect(useGame.getState().phase).toBe('gameplay')
+    expect(useGame.getState().phase).toBe('systemEntry')
   })
 })

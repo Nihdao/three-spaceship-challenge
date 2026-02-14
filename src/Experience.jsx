@@ -14,7 +14,7 @@ export default function Experience() {
   const isDebugMode = useDebugMode()
 
   // During levelUp, keep the scene from prevCombatPhase mounted
-  const showGameplay = phase === 'gameplay' || phase === 'planetReward' || phase === 'gameOver' ||
+  const showGameplay = phase === 'gameplay' || phase === 'systemEntry' || phase === 'planetReward' || phase === 'gameOver' ||
     (phase === 'levelUp' && prevCombatPhase === 'gameplay')
   const showBoss = phase === 'boss' ||
     (phase === 'levelUp' && prevCombatPhase === 'boss')

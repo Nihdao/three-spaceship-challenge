@@ -7,6 +7,7 @@ import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import PlanetRenderer from '../renderers/PlanetRenderer.jsx'
 import PlanetAuraRenderer from '../renderers/PlanetAuraRenderer.jsx'
 import WormholeRenderer from '../renderers/WormholeRenderer.jsx'
+import SystemEntryPortal from '../renderers/SystemEntryPortal.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
@@ -22,12 +23,16 @@ function Controls() {
 }
 
 const _fill = GAME_CONFIG.PLAYER_SHIP_LIGHTING
+const _fog = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.AMBIENT_FOG.GAMEPLAY
 
 export default function GameplayScene() {
   return (
     <>
       <Controls />
       <CameraRig />
+
+      {/* Ambient fog for atmospheric depth (Story 15.3) */}
+      {_fog.enabled && <fogExp2 attach="fog" args={[_fog.color, _fog.density]} />}
 
       {/* Lighting */}
       <ambientLight intensity={0.35} />
@@ -63,6 +68,9 @@ export default function GameplayScene() {
 
       {/* Wormhole */}
       <WormholeRenderer />
+
+      {/* System entry portal animation (Story 17.1) */}
+      <SystemEntryPortal />
     </>
   )
 }
