@@ -41,15 +41,18 @@ describe('usePlayer — Fragments (Story 7.1)', () => {
       expect(usePlayer.getState().fragments).toBe(150)
     })
 
-    it('resets XP and level', () => {
+    it('preserves XP and level across system transition (Story 18.1)', () => {
       usePlayer.getState().addXP(200)
       usePlayer.getState().addFragments(100)
+      const preState = usePlayer.getState()
+      const xpBefore = preState.currentXP
+      const levelBefore = preState.currentLevel
+      const xpToNextBefore = preState.xpToNextLevel
       usePlayer.getState().resetForNewSystem()
       const state = usePlayer.getState()
-      expect(state.currentXP).toBe(0)
-      expect(state.currentLevel).toBe(1)
-      expect(state.xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[0])
-      expect(state.pendingLevelUps).toBe(0)
+      expect(state.currentXP).toBe(xpBefore)
+      expect(state.currentLevel).toBe(levelBefore)
+      expect(state.xpToNextLevel).toBe(xpToNextBefore)
     })
 
     it('preserves currentHP and maxHP', () => {

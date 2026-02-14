@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import usePlayer from '../stores/usePlayer.jsx'
+import useGame from '../stores/useGame.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import StarfieldLayer from './StarfieldLayer.jsx'
 
@@ -68,7 +69,8 @@ function BoundaryRenderer() {
   )
 }
 
-function GroundPlane({ debugGrid = false }) {
+function GroundPlane() {
+  const debugGrid = useGame((s) => !!s._debugGrid)
   const gridSize = PLAY_AREA_SIZE * 2.2
   const gridConfig = debugGrid ? GRID_VISIBILITY.DEBUG : GRID_VISIBILITY.GAMEPLAY
 

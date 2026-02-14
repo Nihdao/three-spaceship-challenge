@@ -311,6 +311,15 @@ const COMMANDS = {
     description: 'listenemies - List all enemy types',
   },
 
+  grid: {
+    handler: () => {
+      const current = !!useGame.getState()._debugGrid
+      useGame.setState({ _debugGrid: !current })
+      return { success: true, message: `Debug grid ${!current ? 'ENABLED (bright cyan)' : 'DISABLED (subtle)'}` }
+    },
+    description: 'grid - Toggle debug grid visibility (bright cyan)',
+  },
+
   clearconsole: {
     handler: () => {
       // Handled by the store; this returns feedback before clearing

@@ -4,6 +4,7 @@ import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import useLevel from '../stores/useLevel.jsx'
+import useEnemies from '../stores/useEnemies.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
@@ -315,6 +316,7 @@ export default function HUD() {
   const activeScanPlanetId = useLevel((s) => s.activeScanPlanetId)
   const wormholeState = useLevel((s) => s.wormholeState)
   const wormhole = useLevel((s) => s.wormhole)
+  const sniperFixedEnemies = useEnemies((s) => s.enemies.filter(e => e.behavior === 'sniper_fixed'))
 
   const remaining = GAME_CONFIG.SYSTEM_TIMER - systemTimer
   const timerDisplay = formatTimer(remaining)
@@ -447,6 +449,18 @@ export default function HUD() {
                 transition: 'width 200ms ease-out, height 200ms ease-out',
               }} />
             )}
+            {/* Sniper fixed enemy dots (Story 16.2) */}
+            {sniperFixedEnemies.map((e) => (
+              <div key={e.id} style={{
+                position: 'absolute',
+                width: '4px', height: '4px',
+                borderRadius: '50%',
+                backgroundColor: '#ff0000',
+                boxShadow: '0 0 4px #ff000080',
+                ...minimapDotPosition(e.x, e.z, GAME_CONFIG.PLAY_AREA_SIZE),
+                transform: 'translate(-50%, -50%)',
+              }} />
+            ))}
             {/* Compass labels (z-10 to stay above dots) */}
             {[
               { label: 'N', pos: { top: '2px', left: '50%', transform: 'translateX(-50%)' } },

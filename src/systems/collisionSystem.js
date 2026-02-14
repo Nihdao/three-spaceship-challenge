@@ -8,6 +8,8 @@ export const CATEGORY_PROJECTILE = 'projectile'
 export const CATEGORY_XP_ORB = 'xpOrb'
 export const CATEGORY_BOSS = 'boss'
 export const CATEGORY_BOSS_PROJECTILE = 'boss_projectile'
+export const CATEGORY_SHOCKWAVE = 'shockwave'
+export const CATEGORY_ENEMY_PROJECTILE = 'enemy_projectile'
 
 // Collision matrix — defines which category pairs can collide
 // Key format: "categoryA:categoryB" (sorted alphabetically for consistency)
@@ -18,6 +20,8 @@ const COLLISION_PAIRS = new Set([
   `${CATEGORY_BOSS}:${CATEGORY_PROJECTILE}`,    // player projectile↔boss (damage boss)
   `${CATEGORY_BOSS_PROJECTILE}:${CATEGORY_PLAYER}`, // boss projectile↔player (damage player)
   `${CATEGORY_BOSS}:${CATEGORY_PLAYER}`,        // boss↔player (contact damage)
+  `${CATEGORY_PLAYER}:${CATEGORY_SHOCKWAVE}`,    // shockwave↔player (damage)
+  `${CATEGORY_ENEMY_PROJECTILE}:${CATEGORY_PLAYER}`, // enemy projectile↔player (damage)
 ])
 
 function _pairKey(catA, catB) {

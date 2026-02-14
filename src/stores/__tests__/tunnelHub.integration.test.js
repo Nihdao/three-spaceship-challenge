@@ -174,11 +174,11 @@ describe('Tunnel Hub — Store Integration (Story 13.1)', () => {
       expect(usePlayer.getState().maxHP).toBe(120)
     })
 
-    it('resets XP and level to 1', () => {
+    it('preserves XP and level across system transition (Story 18.1)', () => {
       usePlayer.setState({ currentXP: 500, currentLevel: 5 })
       usePlayer.getState().resetForNewSystem()
-      expect(usePlayer.getState().currentXP).toBe(0)
-      expect(usePlayer.getState().currentLevel).toBe(1)
+      expect(usePlayer.getState().currentXP).toBe(500)
+      expect(usePlayer.getState().currentLevel).toBe(5)
     })
 
     it('resets position to origin', () => {
@@ -264,7 +264,7 @@ describe('Tunnel Hub — Store Integration (Story 13.1)', () => {
 
     it('simulates full multi-tunnel flow without state corruption', () => {
       // System 1 boss defeated → tunnel 1
-      usePlayer.setState({ fragments: 300 })
+      usePlayer.setState({ fragments: 300, currentXP: 350, currentLevel: 6, xpToNextLevel: 900 })
       useGame.setState({ phase: 'tunnel' })
 
       // Buy an upgrade in tunnel 1
@@ -281,8 +281,9 @@ describe('Tunnel Hub — Store Integration (Story 13.1)', () => {
       expect(usePlayer.getState().fragments).toBe(fragmentsAfterTunnel1)
       expect(usePlayer.getState().permanentUpgrades.SPEED_BOOST_1).toBe(true)
       expect(usePlayer.getState().acceptedDilemmas).toContain('HIGH_RISK')
-      expect(usePlayer.getState().currentXP).toBe(0)
-      expect(usePlayer.getState().currentLevel).toBe(1)
+      // Story 18.1: XP and level persist across system transitions
+      expect(usePlayer.getState().currentXP).toBe(350)
+      expect(usePlayer.getState().currentLevel).toBe(6)
 
       // System 2 boss defeated → tunnel 2
       usePlayer.setState({ fragments: usePlayer.getState().fragments + 100 })
@@ -305,6 +306,9 @@ describe('Tunnel Hub — Store Integration (Story 13.1)', () => {
       expect(usePlayer.getState().permanentUpgrades.SPEED_BOOST_2).toBe(true)
       expect(usePlayer.getState().acceptedDilemmas).toContain('HIGH_RISK')
       expect(usePlayer.getState().acceptedDilemmas).toContain('SLOW_TANK')
+      // XP/level still preserved after second transition
+      expect(usePlayer.getState().currentXP).toBe(350)
+      expect(usePlayer.getState().currentLevel).toBe(6)
     })
   })
 })

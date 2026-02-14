@@ -34,7 +34,7 @@ describe('Game-over to retry reset flow', () => {
   it('clears all enemies after simulating a game with enemies present', () => {
     // Simulate a game in progress with enemies
     useEnemies.getState().spawnEnemy('FODDER_BASIC', 10, 20)
-    useEnemies.getState().spawnEnemy('FODDER_FAST', -5, 15)
+    useEnemies.getState().spawnEnemy('FODDER_TANK', -5, 15)
     expect(useEnemies.getState().enemies.length).toBe(2)
     expect(useEnemies.getState().nextId).toBe(2)
 

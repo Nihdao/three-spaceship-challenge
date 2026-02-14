@@ -566,6 +566,99 @@ describe('useWeapons store', () => {
     expect(p.damage).toBe(WEAPONS.LASER_FRONT.baseDamage)
   })
 
+  // --- Story 18.1: System transition weapon persistence ---
+
+  it('clearProjectiles should clear projectiles but preserve activeWeapons', () => {
+    useWeapons.getState().initializeWeapons()
+    useWeapons.getState().addWeapon('SPREAD_SHOT')
+    // Fire some projectiles
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+    expect(useWeapons.getState().projectiles.length).toBeGreaterThan(0)
+    expect(useWeapons.getState().activeWeapons.length).toBe(2)
+
+    useWeapons.getState().clearProjectiles()
+
+    expect(useWeapons.getState().projectiles).toEqual([])
+    expect(useWeapons.getState().activeWeapons.length).toBe(2)
+    expect(useWeapons.getState().activeWeapons[0].weaponId).toBe('LASER_FRONT')
+    expect(useWeapons.getState().activeWeapons[1].weaponId).toBe('SPREAD_SHOT')
+  })
+
+  it('clearProjectiles should reset projectile ID counter', () => {
+    useWeapons.getState().initializeWeapons()
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+    useWeapons.getState().clearProjectiles()
+    // Fire again — IDs should restart from 0
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+    expect(useWeapons.getState().projectiles[0].id).toBe('proj_0')
+  })
+
+  it('clearProjectiles should preserve weapon levels and overrides', () => {
+    useWeapons.getState().initializeWeapons()
+    useWeapons.getState().addWeapon('SPREAD_SHOT')
+    // Upgrade LASER_FRONT to level 5 (has overrides + upgradeVisuals)
+    for (let i = 0; i < 4; i++) useWeapons.getState().upgradeWeapon('LASER_FRONT')
+    // Fire some projectiles
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+
+    useWeapons.getState().clearProjectiles()
+
+    const weapons = useWeapons.getState().activeWeapons
+    expect(weapons[0].level).toBe(5)
+    expect(weapons[0].overrides).toBeDefined()
+    expect(weapons[0].overrides.damage).toBe(WEAPONS.LASER_FRONT.upgrades[3].damage)
+    expect(weapons[0].overrides.cooldown).toBe(WEAPONS.LASER_FRONT.upgrades[3].cooldown)
+    expect(weapons[0].overrides.upgradeVisuals).toBeDefined()
+    expect(weapons[1].weaponId).toBe('SPREAD_SHOT')
+    expect(weapons[1].level).toBe(1)
+  })
+
+  it('clearProjectiles should reset weapon cooldown timers for clean start', () => {
+    useWeapons.getState().initializeWeapons()
+    // Fire to set cooldown
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+    expect(useWeapons.getState().activeWeapons[0].cooldownTimer).toBeGreaterThan(0)
+
+    useWeapons.getState().clearProjectiles()
+
+    // Cooldown timers reset so weapons fire immediately in new system
+    expect(useWeapons.getState().activeWeapons[0].cooldownTimer).toBe(0)
+  })
+
+  it('clearProjectiles should preserve upgraded weapons through system transition flow', () => {
+    useWeapons.getState().initializeWeapons()
+    useWeapons.getState().addWeapon('MISSILE_HOMING')
+    // Upgrade LASER_FRONT to level 3
+    useWeapons.getState().upgradeWeapon('LASER_FRONT')
+    useWeapons.getState().upgradeWeapon('LASER_FRONT')
+    // Upgrade MISSILE_HOMING to level 2
+    useWeapons.getState().upgradeWeapon('MISSILE_HOMING')
+    // Fire projectiles
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+    expect(useWeapons.getState().projectiles.length).toBeGreaterThan(0)
+
+    // Simulate system transition: clearProjectiles (not reset)
+    useWeapons.getState().clearProjectiles()
+
+    expect(useWeapons.getState().projectiles).toEqual([])
+    const weapons = useWeapons.getState().activeWeapons
+    expect(weapons.length).toBe(2)
+    expect(weapons[0].weaponId).toBe('LASER_FRONT')
+    expect(weapons[0].level).toBe(3)
+    expect(weapons[0].overrides.damage).toBe(WEAPONS.LASER_FRONT.upgrades[1].damage)
+    expect(weapons[1].weaponId).toBe('MISSILE_HOMING')
+    expect(weapons[1].level).toBe(2)
+    expect(weapons[1].overrides.damage).toBe(WEAPONS.MISSILE_HOMING.upgrades[0].damage)
+
+    // Weapons should fire immediately in new system (cooldown reset to 0)
+    useWeapons.getState().tick(0.01, [0, 0, 0], 0)
+    const projs = useWeapons.getState().projectiles
+    expect(projs.length).toBeGreaterThan(0)
+    // Upgraded damage applied to fired projectiles
+    const laserProj = projs.find(p => p.weaponId === 'LASER_FRONT')
+    expect(laserProj.damage).toBe(WEAPONS.LASER_FRONT.upgrades[1].damage)
+  })
+
   it('should layer boon damageMultiplier on top of weapon upgrade overrides', () => {
     useWeapons.getState().initializeWeapons()
     useWeapons.getState().upgradeWeapon('LASER_FRONT') // level 1 → 2

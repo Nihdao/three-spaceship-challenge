@@ -314,7 +314,7 @@ describe('commandSystem — executeCommand', () => {
       const result = executeCommand('listenemies')
       expect(result.success).toBe(true)
       expect(result.message).toContain('FODDER_BASIC')
-      expect(result.message).toContain('FODDER_FAST')
+      expect(result.message).toContain('FODDER_TANK')
     })
   })
 
@@ -337,6 +337,29 @@ describe('commandSystem — executeCommand', () => {
     it('adds fragments directly', () => {
       executeCommand('addfragments 100')
       expect(usePlayer.getState().fragments).toBe(100)
+    })
+  })
+
+  describe('grid', () => {
+    it('toggles debug grid flag on useGame store', () => {
+      expect(useGame.getState()._debugGrid).toBeFalsy()
+
+      const result1 = executeCommand('grid')
+      expect(result1.success).toBe(true)
+      expect(result1.message).toContain('ENABLED')
+      expect(useGame.getState()._debugGrid).toBe(true)
+
+      const result2 = executeCommand('grid')
+      expect(result2.success).toBe(true)
+      expect(result2.message).toContain('DISABLED')
+      expect(useGame.getState()._debugGrid).toBe(false)
+    })
+
+    it('is cleared on store reset', () => {
+      executeCommand('grid')
+      expect(useGame.getState()._debugGrid).toBe(true)
+      useGame.getState().reset()
+      expect(useGame.getState()._debugGrid).toBe(false)
     })
   })
 
