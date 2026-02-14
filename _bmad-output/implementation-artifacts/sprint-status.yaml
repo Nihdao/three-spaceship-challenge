@@ -179,7 +179,7 @@ development_status:
   epic-17: in-progress
   17-1-system-entry-portal-animation: done
   17-2-system-name-banner-display: done
-  17-3-wormhole-visual-overhaul: review
+  17-3-wormhole-visual-overhaul: done
   17-4-boss-arrival-in-gameplay-scene: ready-for-dev
   17-5-transition-flash-effects: ready-for-dev
   epic-17-retrospective: optional
@@ -194,7 +194,7 @@ development_status:
 
   # Epic 19: Enemy Loot System
   epic-19: in-progress
-  19-1-rare-xp-gem-drops: ready-for-dev
+  19-1-rare-xp-gem-drops: done
   19-2-heal-gem-drops: ready-for-dev
   19-3-fragment-drops: ready-for-dev
   19-4-loot-visual-consistency-drop-pool-management: ready-for-dev
