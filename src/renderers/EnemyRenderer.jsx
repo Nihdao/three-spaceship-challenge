@@ -80,7 +80,13 @@ function EnemyTypeMesh({ typeId }) {
 
       // Hit flash: scale pulse after taking non-lethal damage
       const hitAge = now - e.lastHitTime
-      const scaleMult = hitAge < GAME_CONFIG.HIT_FLASH_DURATION_MS ? GAME_CONFIG.HIT_FLASH_SCALE_MULT : 1
+      let scaleMult = hitAge < GAME_CONFIG.HIT_FLASH_DURATION_MS ? GAME_CONFIG.HIT_FLASH_SCALE_MULT : 1
+
+      // Sniper fixed telegraph: pulsing scale during charge-up (Story 16.2)
+      if (e.attackState === 'telegraph') {
+        scaleMult *= 1.0 + 0.15 * Math.sin(e.telegraphTimer * Math.PI * 4)
+      }
+
       dummy.scale.set(
         e.meshScale[0] * scaleMult,
         e.meshScale[1] * scaleMult,

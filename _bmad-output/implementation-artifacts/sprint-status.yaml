@@ -170,7 +170,7 @@ development_status:
   # Epic 16: Enemy System Expansion
   epic-16: in-progress
   16-1-enemy-definitions-model-integration: done
-  16-2-enemy-behavior-system-implementation: review
+  16-2-enemy-behavior-system-implementation: done
   16-3-time-based-enemy-spawn-system: ready-for-dev
   16-4-enemy-difficulty-scaling-across-systems: ready-for-dev
   epic-16-retrospective: optional

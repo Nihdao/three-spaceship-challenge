@@ -1,6 +1,6 @@
 # Story 16.2: Enemy Behavior System Implementation
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -481,7 +481,8 @@ tickEnemyProjectiles: (delta) => {
    - Existing particle system handles rendering
 
 5. **Minimap Red Dots:** Extend HUD.jsx minimap component
-   - Read useEnemies.enemies.filter(e => e.behavior === 'sniper_fixed')
+   - Poll sniper_fixed enemies imperatively via `useEnemies.getState()` every 500ms (useEffect + setInterval)
+   - NOTE: A reactive Zustand selector causes "Maximum update depth exceeded" because `set()` is called inside tick() for shockwave/projectile spawning. Imperative polling avoids infinite re-render loops.
    - Render red dot at minimap position for each sniper_fixed
    - CSS: `background: #ff0000; width: 4px; height: 4px; border-radius: 50%;`
 
@@ -645,24 +646,36 @@ No debug issues encountered.
 - SpawnSystem: sweep enemies spawn in groups of 3-5 with shared sweepDirection and line formation
 - Created ShockwaveRenderer.jsx (instanced ring geometry with opacity fade)
 - Created EnemyProjectileRenderer.jsx (instanced spheres with per-instance color)
-- Added sniper_fixed red dots on HUD minimap
+- Added sniper_fixed red dots on HUD minimap (imperative polling every 500ms to avoid infinite re-render from reactive selector)
 - 49 new tests in useEnemies.test.js covering all behaviors, shockwaves, enemy projectiles
 - 1 new test in spawnSystem.test.js for sweep group spawning
 - All 1203 tests pass, 0 regressions
 
+### Code Review Fixes (2026-02-14)
+
+- [Fixed] Teleport particle bursts: added _teleportEvents tracking in useEnemies, consumed by GameLoop with addExplosion at departure/arrival (AC #5)
+- [Fixed] Sniper_fixed telegraph visual: added scale pulse in EnemyRenderer during attackState==='telegraph' (AC #4)
+- [Fixed] Sniper_fixed spawn distance: added SNIPER_FIXED_SPAWN_DISTANCE_MIN/MAX (150-200) in spawnSystem (AC #4)
+- [Fixed] ShockwaveRenderer opacity: removed shared material opacity hack that applied first-active lifetime to all instances
+- [Fixed] Sweep batch inflation: sweep group now counts toward batchSize (i += groupSize - 1) to prevent spawn rate explosion
+- [Fixed] spawnSystem.test.js: updated batch size assertion to account for sweep group inflation (toBeGreaterThanOrEqual)
+- [Noted] Object pooling slot reuse without set() is by architectural design (renderers read via getState() in useFrame, not reactive subscriptions)
+
 ### Change Log
 
 - 2026-02-14: Implemented Story 16.2 — Enemy Behavior System (all 10 tasks complete)
+- 2026-02-14: Code review fixes — 6 issues fixed (teleport particles, telegraph visual, sniper spawn distance, shockwave opacity, sweep batch, test fix)
 
 ### File List
 
-- src/stores/useEnemies.jsx (modified — behavior tick logic, shockwave/projectile pools, initBehaviorData)
+- src/stores/useEnemies.jsx (modified — behavior tick logic, shockwave/projectile pools, initBehaviorData, _teleportEvents, consumeTeleportEvents)
 - src/systems/collisionSystem.js (modified — CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE)
-- src/GameLoop.jsx (modified — shockwave/projectile tick, collision registration, damage resolution)
-- src/systems/spawnSystem.js (modified — sweep group spawning with shared direction)
+- src/GameLoop.jsx (modified — shockwave/projectile tick, collision registration, damage resolution, teleport particle effects)
+- src/systems/spawnSystem.js (modified — sweep group spawning with shared direction, sweep batch counting, sniper_fixed spawn distance)
+- src/renderers/EnemyRenderer.jsx (modified — sniper_fixed telegraph scale pulse)
 - src/renderers/EnemyProjectileRenderer.jsx (new — instanced enemy projectile rendering)
-- src/renderers/ShockwaveRenderer.jsx (new — instanced shockwave ring rendering)
+- src/renderers/ShockwaveRenderer.jsx (new — instanced shockwave ring rendering, fixed opacity)
 - src/scenes/GameplayScene.jsx (modified — mount EnemyProjectileRenderer, ShockwaveRenderer)
 - src/ui/HUD.jsx (modified — sniper_fixed red dots on minimap)
 - src/stores/__tests__/useEnemies.test.js (modified — 31 new behavior tests)
-- src/systems/__tests__/spawnSystem.test.js (modified — sweep group spawn test)
+- src/systems/__tests__/spawnSystem.test.js (modified — sweep group spawn test, batch size assertion fix)
