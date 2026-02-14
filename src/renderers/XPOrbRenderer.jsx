@@ -13,15 +13,12 @@ export default function XPOrbRenderer() {
   const rareColorRef = useRef(new THREE.Color(GAME_CONFIG.RARE_XP_GEM_COLOR))
 
   const geometry = useMemo(() => new THREE.SphereGeometry(1, 8, 8), [])
-  // Story 19.1: Material uses white as base so instanceColor can control per-orb color
-  // emissive is set to white with high intensity for glow effect
+  // Story 19.1: Use MeshBasicMaterial for proper instanceColor support + glow effect
+  // MeshBasicMaterial is unlit but bright, perfect for glowing orbs
   const material = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
-        color: '#ffffff', // Base color multiplied by instanceColor
-        emissive: '#ffffff', // Emissive glow multiplied by instanceColor
-        emissiveIntensity: 2,
-        toneMapped: false,
+      new THREE.MeshBasicMaterial({
+        toneMapped: false, // Allows colors to be brighter than usual
       }),
     [],
   )
