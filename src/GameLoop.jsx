@@ -76,6 +76,7 @@ export default function GameLoop() {
   const prevDashRef = useRef(false)
   const prevDashCooldownRef = useRef(0)
   const prevScanPlanetRef = useRef(null)
+  const tunnelTransitionTimerRef = useRef(null)
 
 
   // NOTE: Relies on mount order for correct useFrame execution sequence.
@@ -138,6 +139,12 @@ export default function GameLoop() {
 
     // Story 17.4: Boss phase is deprecated — boss fight now happens during 'gameplay' phase
     // Removed deprecated boss phase tick code (previously ~210 lines, boss tick now in gameplay section 7f-ter)
+
+    // Clear pending tunnel transition timer if we left gameplay unexpectedly (game over, menu)
+    if (phase !== 'gameplay' && tunnelTransitionTimerRef.current) {
+      clearTimeout(tunnelTransitionTimerRef.current)
+      tunnelTransitionTimerRef.current = null
+    }
 
     // Only tick during active gameplay
     if (phase !== 'gameplay' || isPaused) return
@@ -329,8 +336,9 @@ export default function GameLoop() {
         if (event.killed) {
           addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
           playSFX('explosion')
-          // Story 19.4: Centralized loot drop system
-          rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z)
+          // Story 19.5: Registry-based loot system with per-enemy dropOverrides support
+          // Pass enemy instance (not enemyDef) to enable per-enemy dropOverrides
+          rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
           useGame.getState().incrementKills()
           useGame.getState().addScore(GAME_CONFIG.SCORE_PER_KILL)
         }
@@ -456,20 +464,21 @@ export default function GameLoop() {
       const dx = playerPos[0] - wh.x
       const dz = playerPos[2] - wh.z
       const dist = Math.sqrt(dx * dx + dz * dz)
-      const gameState = useGame.getState()
-      if (dist <= GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS && !gameState.tunnelTransitionPending) {
+      const wormholeGameState = useGame.getState()
+      if (dist <= GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS && !wormholeGameState.tunnelTransitionPending) {
         if (levelState.currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
           // Story 17.6: Trigger flash immediately, transition very quickly
           // Flash covers the entire scene loading while fading out
-          gameState.setTunnelTransitionPending(true)
-          gameState.triggerTunnelEntryFlash() // Flash starts NOW at full opacity
+          wormholeGameState.setTunnelTransitionPending(true)
+          wormholeGameState.triggerTunnelEntryFlash() // Flash starts NOW at full opacity
           const transitionDelay = 150 // ms - Very short delay, just enough to see flash start
-          setTimeout(() => {
+          tunnelTransitionTimerRef.current = setTimeout(() => {
+            tunnelTransitionTimerRef.current = null
             useGame.getState().setPhase('tunnel')
           }, transitionDelay)
         } else {
-          gameState.updateHighScore()
-          gameState.triggerVictory()
+          wormholeGameState.updateHighScore()
+          wormholeGameState.triggerVictory()
         }
       }
     }

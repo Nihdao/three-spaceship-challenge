@@ -1,5 +1,16 @@
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
+/**
+ * Enemy type definitions with stats, behavior, and visuals.
+ *
+ * Story 19.5: Optional dropOverrides field added for per-enemy loot customization.
+ * Format: dropOverrides: { LOOT_TYPE_ID: dropChance }
+ * Example: dropOverrides: { FRAGMENT_GEM: 0.25 } // 25% fragment chance vs 12% default
+ *
+ * Note: dropOverrides are optional. If not specified, global drop chances from
+ * gameConfig.js are used. This is for future balance tuning (e.g., elite enemies
+ * or mini-bosses with higher Fragment drop rates).
+ */
 export const ENEMIES = {
   // Type 1: Basic Chaser
   FODDER_BASIC: {
