@@ -73,6 +73,20 @@ export default function GameLoop() {
     // advanceSystem + resetForNewSystem are called by TunnelHub BEFORE phase change
     // GameLoop only clears entity pools and resets per-system systems
     if ((phase === 'gameplay' || phase === 'systemEntry') && prevPhaseRef.current === 'tunnel') {
+      // Debug logging for system transitions (Story 18.4)
+      if (GAME_CONFIG.DEBUG_TRANSITIONS) {
+        const p = usePlayer.getState()
+        const g = useGame.getState()
+        const l = useLevel.getState()
+        console.group(`[System Transition] Entering System ${l.currentSystem}`)
+        console.log('Player: level=%d, HP=%d/%d, XP=%d/%d, fragments=%d', p.currentLevel, p.currentHP, p.maxHP, p.currentXP, p.xpForNextLevel, p.fragments)
+        console.log('Weapons:', useWeapons.getState().activeWeapons.length, 'equipped')
+        console.log('Boons:', useBoons.getState().activeBoons.length, 'active')
+        console.log('Run stats: kills=%d, score=%d, totalTime=%.1fs', g.kills, g.score, g.totalElapsedTime)
+        console.log('Reset: enemies, projectiles, orbs, particles, boss, spawn system, system timer')
+        console.groupEnd()
+      }
+
       useEnemies.getState().reset()
       useWeapons.getState().clearProjectiles()
       useBoss.getState().reset()

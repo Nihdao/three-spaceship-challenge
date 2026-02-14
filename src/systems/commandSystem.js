@@ -3,6 +3,7 @@ import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import useEnemies from '../stores/useEnemies.jsx'
 import useGame from '../stores/useGame.jsx'
+import useLevel from '../stores/useLevel.jsx'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
@@ -348,6 +349,51 @@ const COMMANDS = {
       return { success: true, message: `Added ${amount} fragments (total: ${current + amount})` }
     },
     description: 'addfragments <amount> - Add fragments directly',
+  },
+
+  system: {
+    handler: (args) => {
+      const subcommand = (args[0] || 'info').toLowerCase()
+      if (subcommand !== 'info') {
+        return { success: false, message: 'Usage: system [info] - Display current state classification' }
+      }
+
+      const p = usePlayer.getState()
+      const g = useGame.getState()
+      const l = useLevel.getState()
+      const w = useWeapons.getState()
+      const b = useBoons.getState()
+      const e = useEnemies.getState()
+
+      const lines = [
+        '=== SYSTEM STATE CLASSIFICATION (Story 18.4) ===',
+        '',
+        '--- RUN-PERSISTENT STATE (survives system transitions) ---',
+        `Current System: ${l.currentSystem}/${GAME_CONFIG.MAX_SYSTEMS}`,
+        `Player: Level ${p.currentLevel}, XP ${p.currentXP}/${p.xpForNextLevel}`,
+        `HP: ${p.currentHP}/${p.maxHP}, Fragments: ${p.fragments}`,
+        `Weapons: ${w.activeWeapons.length} equipped (${w.activeWeapons.map(wep => wep.weaponId).join(', ') || 'none'})`,
+        `Boons: ${b.activeBoons.length} active (${b.activeBoons.map(bn => bn.boonId).join(', ') || 'none'})`,
+        `Run Stats: Kills ${g.kills}, Score ${g.score}, Total Time ${g.totalElapsedTime.toFixed(1)}s`,
+        `Ship: ${p.currentShipId}`,
+        '',
+        '--- SYSTEM-SPECIFIC STATE (resets on system transition) ---',
+        `System Timer: ${g.systemTimer.toFixed(1)}s`,
+        `Position: [${p.position.map(v => v.toFixed(1)).join(', ')}]`,
+        `Velocity: [${p.velocity.map(v => v.toFixed(1)).join(', ')}]`,
+        `Dash: ${p.isDashing ? 'ACTIVE' : 'READY'}, Cooldown: ${p.dashCooldownTimer.toFixed(2)}s`,
+        `Invulnerable: ${p.isInvulnerable ? 'YES' : 'NO'}, Timer: ${p.invulnerabilityTimer.toFixed(2)}s`,
+        `Wormhole: ${l.wormholeState}`,
+        `Planets: ${l.planets.length} active`,
+        `Enemies: ${e.enemies.length} alive`,
+        `Projectiles: ${w.projectiles.length} active`,
+        '',
+        'Use "help" to see all available debug commands',
+      ]
+
+      return { success: true, message: lines.join('\n') }
+    },
+    description: 'system [info] - Display current state classification',
   },
 }
 

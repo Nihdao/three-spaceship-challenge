@@ -1,6 +1,8 @@
 # Story 18.4: Run Continuity & State Management
 
-Status: ready-for-dev
+Status: in-progress
+Epic: 18 (Cross-System Progression Persistence)
+Review: Code review completed - Implementation ✅ CORRECT, Git workflow ⚠️ REQUIRES manual commit separation
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -26,56 +28,56 @@ So that transitions are reliable and bugs are minimized.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Audit and verify AC #1 — run-persistent stores do NOT reset on system transition (AC: #1)
-  - [ ] 1.1: Read `src/GameLoop.jsx` tunnel->gameplay transition block (lines 75-91) and confirm `usePlayer.reset()`, `useWeapons.reset()`, `useBoons.reset()` are NOT called
-  - [ ] 1.2: Confirm `usePlayer.resetForNewSystem()` is called (preserves level, XP, weapons, boons, HP, fragments, upgrades, dilemmas) and only resets movement/combat state
-  - [ ] 1.3: Confirm `useWeapons.clearProjectiles()` is called (NOT `initializeWeapons()` or `reset()`) — preserves activeWeapons
-  - [ ] 1.4: Confirm `useBoons.reset()` is NOT called during system transitions — boons persist
+- [x] Task 1: Audit and verify AC #1 — run-persistent stores do NOT reset on system transition (AC: #1)
+  - [x] 1.1: Read `src/GameLoop.jsx` tunnel->gameplay transition block (lines 75-91) and confirm `usePlayer.reset()`, `useWeapons.reset()`, `useBoons.reset()` are NOT called
+  - [x] 1.2: Confirm `usePlayer.resetForNewSystem()` is called (preserves level, XP, weapons, boons, HP, fragments, upgrades, dilemmas) and only resets movement/combat state
+  - [x] 1.3: Confirm `useWeapons.clearProjectiles()` is called (NOT `initializeWeapons()` or `reset()`) — preserves activeWeapons
+  - [x] 1.4: Confirm `useBoons.reset()` is NOT called during system transitions — boons persist
 
-- [ ] Task 2: Audit and verify AC #2 — useLevel system-specific reset (AC: #2)
-  - [ ] 2.1: Read `useLevel.advanceSystem()` and confirm it increments `currentSystem`, resets `systemTimer: 0`, `difficulty: 1`, `planets: []`, `wormholeState: 'hidden'`, `wormhole: null`, `wormholeActivationTimer: 0`, `activeScanPlanetId: null`
-  - [ ] 2.2: Confirm `advanceSystem()` is called from `TunnelHub.executeSystemTransition()` BEFORE the phase change
-  - [ ] 2.3: Confirm `currentSystem` does not exceed `MAX_SYSTEMS` (capped via `Math.min`)
+- [x] Task 2: Audit and verify AC #2 — useLevel system-specific reset (AC: #2)
+  - [x] 2.1: Read `useLevel.advanceSystem()` and confirm it increments `currentSystem`, resets `systemTimer: 0`, `difficulty: 1`, `planets: []`, `wormholeState: 'hidden'`, `wormhole: null`, `wormholeActivationTimer: 0`, `activeScanPlanetId: null`
+  - [x] 2.2: Confirm `advanceSystem()` is called from `TunnelHub.executeSystemTransition()` BEFORE the phase change
+  - [x] 2.3: Confirm `currentSystem` does not exceed `MAX_SYSTEMS` (capped via `Math.min`)
 
-- [ ] Task 3: Audit and verify AC #3 — entity pool resets (AC: #3)
-  - [ ] 3.1: Confirm `useEnemies.getState().reset()` is called (clears `enemies: []`, `nextId: 0`)
-  - [ ] 3.2: Confirm `resetOrbs()` is called (zeros all orb slots, `activeCount: 0`)
-  - [ ] 3.3: Confirm `projectileSystemRef.current.reset()` is called (clears projectiles)
-  - [ ] 3.4: Confirm `resetParticles()` is called (clears particle effects)
-  - [ ] 3.5: Confirm `spawnSystemRef.current.reset()` is called (resets `spawnTimer`, `elapsedTime`)
-  - [ ] 3.6: Confirm `useBoss.getState().reset()` is called (clears boss state)
+- [x] Task 3: Audit and verify AC #3 — entity pool resets (AC: #3)
+  - [x] 3.1: Confirm `useEnemies.getState().reset()` is called (clears `enemies: []`, `nextId: 0`)
+  - [x] 3.2: Confirm `resetOrbs()` is called (zeros all orb slots, `activeCount: 0`)
+  - [x] 3.3: Confirm `projectileSystemRef.current.reset()` is called (clears projectiles)
+  - [x] 3.4: Confirm `resetParticles()` is called (clears particle effects)
+  - [x] 3.5: Confirm `spawnSystemRef.current.reset()` is called (resets `spawnTimer`, `elapsedTime`)
+  - [x] 3.6: Confirm `useBoss.getState().reset()` is called (clears boss state)
 
-- [ ] Task 4: Audit and verify AC #4 — run metadata persistence (AC: #4)
-  - [ ] 4.1: Confirm `useGame.kills` persists across system transitions (NOT reset in tunnel->gameplay block, only in `startGameplay()`)
-  - [ ] 4.2: Confirm `useGame.score` persists across system transitions (NOT reset in tunnel->gameplay block, only in `startGameplay()`)
-  - [ ] 4.3: Confirm `useGame.totalElapsedTime` accumulates correctly — `accumulateTime(prevSystemTime)` is called before `setSystemTimer(0)` in the transition block
-  - [ ] 4.4: Confirm GameOverScreen captures `kills`, `score`, `totalElapsedTime + systemTimer`, `currentSystem`, `currentLevel`, `activeWeapons` on mount
-  - [ ] 4.5: Confirm VictoryScreen captures the same plus `fragments` and `activeBoons`
+- [x] Task 4: Audit and verify AC #4 — run metadata persistence (AC: #4)
+  - [x] 4.1: Confirm `useGame.kills` persists across system transitions (NOT reset in tunnel->gameplay block, only in `startGameplay()`)
+  - [x] 4.2: Confirm `useGame.score` persists across system transitions (NOT reset in tunnel->gameplay block, only in `startGameplay()`)
+  - [x] 4.3: Confirm `useGame.totalElapsedTime` accumulates correctly — `accumulateTime(prevSystemTime)` is called before `setSystemTimer(0)` in the transition block
+  - [x] 4.4: Confirm GameOverScreen captures `kills`, `score`, `totalElapsedTime + systemTimer`, `currentSystem`, `currentLevel`, `activeWeapons` on mount
+  - [x] 4.5: Confirm VictoryScreen captures the same plus `fragments` and `activeBoons`
 
-- [ ] Task 5: Add debug logging for system transitions (AC: #5)
-  - [ ] 5.1: In `src/GameLoop.jsx` tunnel->gameplay transition block, add a `console.log` group showing: current system number, player stats (level, HP, XP, weapons count, boons count, fragments), which stores are being reset
-  - [ ] 5.2: Guard the debug logging behind `GAME_CONFIG.DEBUG_TRANSITIONS` flag (default `false`) so it doesn't clutter the console in production
-  - [ ] 5.3: Add `DEBUG_TRANSITIONS: false` to `src/config/gameConfig.js`
-  - [ ] 5.4: In the debug `system` command (if it exists in commandSystem.js) or add one, support `system info` to dump the current state classification
+- [x] Task 5: Add debug logging for system transitions (AC: #5)
+  - [x] 5.1: In `src/GameLoop.jsx` tunnel->gameplay transition block, add a `console.log` group showing: current system number, player stats (level, HP, XP, weapons count, boons count, fragments), which stores are being reset
+  - [x] 5.2: Guard the debug logging behind `GAME_CONFIG.DEBUG_TRANSITIONS` flag (default `false`) so it doesn't clutter the console in production
+  - [x] 5.3: Add `DEBUG_TRANSITIONS: false` to `src/config/gameConfig.js`
+  - [x] 5.4: In the debug `system` command (if it exists in commandSystem.js) or add one, support `system info` to dump the current state classification
 
-- [ ] Task 6: Write comprehensive tests for run continuity (AC: #1-#6)
-  - [ ] 6.1: Create `src/stores/__tests__/runContinuity.test.js`
-  - [ ] 6.2: Test: after `resetForNewSystem()`, run-persistent fields are preserved (level, XP, HP, fragments, permanentUpgrades, acceptedDilemmas)
-  - [ ] 6.3: Test: after `resetForNewSystem()`, combat/movement fields are reset (position, velocity, dash, invulnerability)
-  - [ ] 6.4: Test: `useGame.kills` and `useGame.score` are NOT reset when `setSystemTimer(0)` is called (only by `startGameplay()`)
-  - [ ] 6.5: Test: `accumulateTime()` correctly adds to `totalElapsedTime`
-  - [ ] 6.6: Test: `advanceSystem()` increments `currentSystem` and resets wormhole/planets/timer
-  - [ ] 6.7: Test: `advanceSystem()` does not exceed `MAX_SYSTEMS`
-  - [ ] 6.8: Test: `useEnemies.reset()` clears enemies and nextId
-  - [ ] 6.9: Test: full run simulation — set level 8, 3 weapons, 2 boons, fragments=50, kills=100, score=5000 -> call resetForNewSystem + advanceSystem -> verify persistent state preserved, system-specific state reset
-  - [ ] 6.10: Test: full game reset — after above, call `usePlayer.reset()` + `useGame.startGameplay()` + `useLevel.reset()` -> verify EVERYTHING returns to initial values
-  - [ ] 6.11: All existing tests pass with no regressions
+- [x] Task 6: Write comprehensive tests for run continuity (AC: #1-#6)
+  - [x] 6.1: Create `src/stores/__tests__/runContinuity.test.js`
+  - [x] 6.2: Test: after `resetForNewSystem()`, run-persistent fields are preserved (level, XP, HP, fragments, permanentUpgrades, acceptedDilemmas)
+  - [x] 6.3: Test: after `resetForNewSystem()`, combat/movement fields are reset (position, velocity, dash, invulnerability)
+  - [x] 6.4: Test: `useGame.kills` and `useGame.score` are NOT reset when `setSystemTimer(0)` is called (only by `startGameplay()`)
+  - [x] 6.5: Test: `accumulateTime()` correctly adds to `totalElapsedTime`
+  - [x] 6.6: Test: `advanceSystem()` increments `currentSystem` and resets wormhole/planets/timer
+  - [x] 6.7: Test: `advanceSystem()` does not exceed `MAX_SYSTEMS`
+  - [x] 6.8: Test: `useEnemies.reset()` clears enemies and nextId
+  - [x] 6.9: Test: full run simulation — set level 8, 3 weapons, 2 boons, fragments=50, kills=100, score=5000 -> call resetForNewSystem + advanceSystem -> verify persistent state preserved, system-specific state reset
+  - [x] 6.10: Test: full game reset — after above, call `usePlayer.reset()` + `useGame.startGameplay()` + `useLevel.reset()` -> verify EVERYTHING returns to initial values
+  - [x] 6.11: All existing tests pass with no regressions
 
-- [ ] Task 7: Verify full game reset path (AC: #6)
-  - [ ] 7.1: In `src/GameLoop.jsx` fresh game start block (lines 94-106), confirm ALL stores are fully reset
-  - [ ] 7.2: Confirm `usePlayer.reset()` resets level to 1, XP to 0, HP to ship base, fragments to 0, upgrades to {}, dilemmas to []
-  - [ ] 7.3: Confirm `useLevel.reset()` resets currentSystem to 1
-  - [ ] 7.4: Confirm `useGame.startGameplay()` resets kills to 0, score to 0, systemTimer to 0, totalElapsedTime to 0
+- [x] Task 7: Verify full game reset path (AC: #6)
+  - [x] 7.1: In `src/GameLoop.jsx` fresh game start block (lines 94-106), confirm ALL stores are fully reset
+  - [x] 7.2: Confirm `usePlayer.reset()` resets level to 1, XP to 0, HP to ship base, fragments to 0, upgrades to {}, dilemmas to []
+  - [x] 7.3: Confirm `useLevel.reset()` resets currentSystem to 1
+  - [x] 7.4: Confirm `useGame.startGameplay()` resets kills to 0, score to 0, systemTimer to 0, totalElapsedTime to 0
 
 ## Dev Notes
 
@@ -299,10 +301,109 @@ Adding redundant fields would violate the "avoid over-engineering" principle. Th
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### Debug Log References
 
+None — all verifications and tests completed successfully.
+
+### Code Review Findings
+
+**🔥 CRITICAL: Git Contamination Detected (AI Code Review - Fixed)**
+
+**Issue:** Uncommitted changes from Story 17.2 (System Name Banner Display) are mixed with Story 18.4 changes in the working directory. This violates the atomic commit principle and will cause git history confusion.
+
+**Affected Files (Story 17.2):**
+- src/style.css
+- src/ui/Interface.jsx
+- src/ui/SystemNameBanner.jsx (new file)
+- _bmad-output/implementation-artifacts/17-2-system-name-banner-display.md
+
+**Resolution Steps (BEFORE committing Story 18.4):**
+
+1. **Commit Story 17.2 changes first:**
+   ```bash
+   git add src/style.css src/ui/Interface.jsx src/ui/SystemNameBanner.jsx
+   git add _bmad-output/implementation-artifacts/17-2-system-name-banner-display.md
+   git commit -m "feat: implement system name banner display for Story 17.2
+
+   - Add SystemNameBanner component with fade in/display/fade out animation
+   - Integrate banner in Interface.jsx during systemEntry phase
+   - Add SYSTEM_BANNER timing config to gameConfig.js
+   - Update Story 17.2 doc with implementation details
+
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+   ```
+
+2. **Then commit Story 18.4 changes:**
+   ```bash
+   git add src/config/gameConfig.js src/GameLoop.jsx src/systems/commandSystem.js
+   git add src/stores/__tests__/runContinuity.test.js
+   git add _bmad-output/implementation-artifacts/18-4-run-continuity-state-management.md
+   git add _bmad-output/implementation-artifacts/sprint-status.yaml
+   git commit -m "feat: add run continuity verification and debug tooling for Story 18.4
+
+   - Add DEBUG_TRANSITIONS flag in gameConfig.js (default false)
+   - Add comprehensive debug logging in GameLoop system transitions
+   - Add 'system info' command to debug console (state classification dump)
+   - Create runContinuity.test.js with 19 integration tests (all ACs covered)
+   - All 1222 tests pass with 0 regressions
+
+   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+   ```
+
+3. **Update sprint-status.yaml for Story 17.2:**
+   - Run `/bmad-bmm-code-review 17.2` to complete Story 17.2's review cycle
+   - This will sync sprint-status.yaml correctly
+
+**Impact:** Medium severity. Implementation is correct, only git workflow affected. Tests pass, no code bugs.
+
+**Fixed in this review:** File List updated to document all modified files transparently. Epic metadata added to story frontmatter.
+
+---
+
 ### Completion Notes List
 
+**Story 18.4 Implementation Summary:**
+
+This story was primarily a **verification, testing, and debug tooling** story. The core state management for run continuity was already implemented in Stories 18.1, 18.2, and 7.3. This story added:
+
+1. **Systematic audit (Tasks 1-4, 7)**: Verified all state transitions are correct
+   - AC #1: Run-persistent stores (usePlayer, useWeapons, useBoons) do NOT reset on system transition ✅
+   - AC #2: useLevel.advanceSystem() correctly increments system and resets level-specific state ✅
+   - AC #3: All entity pools (enemies, orbs, projectiles, particles, boss, spawn system) reset correctly ✅
+   - AC #4: Run metadata (kills, score, totalElapsedTime) persists across systems ✅
+   - AC #6: Full game reset path verified — everything returns to initial values ✅
+
+2. **Debug logging (Task 5)**: Added comprehensive transition debugging
+   - DEBUG_TRANSITIONS flag in gameConfig.js (default false)
+   - Console group logging in GameLoop showing system number, player stats, run stats, reset operations
+   - `system info` command in debug console to dump current state classification
+
+3. **Comprehensive test suite (Task 6)**: Created runContinuity.test.js with 19 integration tests
+   - Tests cover all 6 Acceptance Criteria
+   - Full run simulation: System 1 → 2 → 3 with complex state (level 8, 3 weapons, 2 boons, fragments, kills, score)
+   - Full game reset verification
+   - All 1222 tests pass with 0 regressions ✅
+
+**Key Findings:**
+- Ship selection (`currentShipId`) persists across runs by design (not reset in `usePlayer.reset()`)
+- Starting weapon depends on ship selection (SHIP_TANK starts with LASER_FRONT, not BASIC_SHOT)
+- State classification is correctly implemented: run-persistent vs system-specific fields are properly managed
+
 ### File List
+
+**Story 18.4 Changes:**
+- `src/config/gameConfig.js` — Added DEBUG_TRANSITIONS flag
+- `src/GameLoop.jsx` — Added debug logging in tunnel→gameplay transition block
+- `src/systems/commandSystem.js` — Added useLevel import and `system info` command
+- `src/stores/__tests__/runContinuity.test.js` — Comprehensive run continuity integration tests (19 tests) [CREATED]
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — Auto-updated status sync
+
+**⚠️ Uncommitted Story 17.2 Changes (Git Contamination):**
+- `src/style.css` — System name banner animations (Story 17.2)
+- `src/ui/Interface.jsx` — SystemNameBanner import (Story 17.2)
+- `src/ui/SystemNameBanner.jsx` — System name banner component (Story 17.2) [CREATED]
+- `_bmad-output/implementation-artifacts/17-2-system-name-banner-display.md` — Story 17.2 doc update
+
+**Action Required:** These files from Story 17.2 MUST be committed separately before committing Story 18.4 changes. See Code Review Findings below.

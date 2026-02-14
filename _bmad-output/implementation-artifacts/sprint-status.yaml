@@ -178,7 +178,7 @@ development_status:
   # Epic 17: Cinematic Transitions & Wormhole Overhaul
   epic-17: in-progress
   17-1-system-entry-portal-animation: done
-  17-2-system-name-banner-display: ready-for-dev
+  17-2-system-name-banner-display: review
   17-3-wormhole-visual-overhaul: ready-for-dev
   17-4-boss-arrival-in-gameplay-scene: ready-for-dev
   17-5-transition-flash-effects: ready-for-dev
@@ -189,7 +189,7 @@ development_status:
   18-1-progression-state-persistence-across-systems: done
   18-2-system-specific-state-reset: done
   18-3-enemy-difficulty-scaling-systems-2-3: done
-  18-4-run-continuity-state-management: ready-for-dev
+  18-4-run-continuity-state-management: in-progress # AI review: Implementation ✅ correct, git workflow ⚠️ requires manual commit separation (Story 17.2 contamination)
   epic-18-retrospective: optional
 
   # Epic 19: Enemy Loot System
