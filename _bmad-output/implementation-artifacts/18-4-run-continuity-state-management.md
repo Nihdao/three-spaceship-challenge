@@ -1,8 +1,8 @@
 # Story 18.4: Run Continuity & State Management
 
-Status: in-progress
+Status: done
 Epic: 18 (Cross-System Progression Persistence)
-Review: Code review completed - Implementation ✅ CORRECT, Git workflow ⚠️ REQUIRES manual commit separation
+Review: Code review completed ✅ - All issues resolved, commits properly separated
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -309,9 +309,9 @@ None — all verifications and tests completed successfully.
 
 ### Code Review Findings
 
-**🔥 CRITICAL: Git Contamination Detected (AI Code Review - Fixed)**
+**✅ RESOLVED: Git Contamination (AI Code Review - Fixed)**
 
-**Issue:** Uncommitted changes from Story 17.2 (System Name Banner Display) are mixed with Story 18.4 changes in the working directory. This violates the atomic commit principle and will cause git history confusion.
+**Issue:** Uncommitted changes from Story 17.2 (System Name Banner Display) were mixed with Story 18.4 changes in the working directory. This violated the atomic commit principle and could have caused git history confusion.
 
 **Affected Files (Story 17.2):**
 - src/style.css
@@ -319,46 +319,25 @@ None — all verifications and tests completed successfully.
 - src/ui/SystemNameBanner.jsx (new file)
 - _bmad-output/implementation-artifacts/17-2-system-name-banner-display.md
 
-**Resolution Steps (BEFORE committing Story 18.4):**
+**Resolution Applied:**
 
-1. **Commit Story 17.2 changes first:**
-   ```bash
-   git add src/style.css src/ui/Interface.jsx src/ui/SystemNameBanner.jsx
-   git add _bmad-output/implementation-artifacts/17-2-system-name-banner-display.md
-   git commit -m "feat: implement system name banner display for Story 17.2
+✅ **Story 17.2 committed separately** (commit 47e7df6):
+- src/style.css, src/ui/Interface.jsx, src/ui/SystemNameBanner.jsx
+- _bmad-output/implementation-artifacts/17-2-system-name-banner-display.md
 
-   - Add SystemNameBanner component with fade in/display/fade out animation
-   - Integrate banner in Interface.jsx during systemEntry phase
-   - Add SYSTEM_BANNER timing config to gameConfig.js
-   - Update Story 17.2 doc with implementation details
+✅ **Story 18.4 committed separately** (commit 67e216c):
+- src/config/gameConfig.js, src/GameLoop.jsx, src/systems/commandSystem.js
+- src/stores/__tests__/runContinuity.test.js
+- _bmad-output/implementation-artifacts/18-4-run-continuity-state-management.md
+- _bmad-output/implementation-artifacts/sprint-status.yaml
 
-   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-   ```
+**Impact:** Git history now clean and atomic. Each story has its own commit for easy review and potential revert.
 
-2. **Then commit Story 18.4 changes:**
-   ```bash
-   git add src/config/gameConfig.js src/GameLoop.jsx src/systems/commandSystem.js
-   git add src/stores/__tests__/runContinuity.test.js
-   git add _bmad-output/implementation-artifacts/18-4-run-continuity-state-management.md
-   git add _bmad-output/implementation-artifacts/sprint-status.yaml
-   git commit -m "feat: add run continuity verification and debug tooling for Story 18.4
-
-   - Add DEBUG_TRANSITIONS flag in gameConfig.js (default false)
-   - Add comprehensive debug logging in GameLoop system transitions
-   - Add 'system info' command to debug console (state classification dump)
-   - Create runContinuity.test.js with 19 integration tests (all ACs covered)
-   - All 1222 tests pass with 0 regressions
-
-   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-   ```
-
-3. **Update sprint-status.yaml for Story 17.2:**
-   - Run `/bmad-bmm-code-review 17.2` to complete Story 17.2's review cycle
-   - This will sync sprint-status.yaml correctly
-
-**Impact:** Medium severity. Implementation is correct, only git workflow affected. Tests pass, no code bugs.
-
-**Fixed in this review:** File List updated to document all modified files transparently. Epic metadata added to story frontmatter.
+**Fixed in this review:**
+- ✅ File List updated to document all modified files transparently
+- ✅ Epic metadata added to story frontmatter
+- ✅ sprint-status.yaml synced (Story 18.4: done, Epic 18: done)
+- ✅ Git commits properly separated (Story 17.2 → commit 47e7df6, Story 18.4 → commit 67e216c)
 
 ---
 

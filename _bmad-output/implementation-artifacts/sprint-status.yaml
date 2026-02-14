@@ -185,11 +185,11 @@ development_status:
   epic-17-retrospective: optional
 
   # Epic 18: Cross-System Progression Persistence
-  epic-18: in-progress
+  epic-18: done # All stories completed
   18-1-progression-state-persistence-across-systems: done
   18-2-system-specific-state-reset: done
   18-3-enemy-difficulty-scaling-systems-2-3: done
-  18-4-run-continuity-state-management: in-progress # AI review: Implementation ✅ correct, git workflow ⚠️ requires manual commit separation (Story 17.2 contamination)
+  18-4-run-continuity-state-management: done
   epic-18-retrospective: optional
 
   # Epic 19: Enemy Loot System
