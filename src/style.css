@@ -74,6 +74,12 @@
   100% { opacity: 0; }
 }
 
+/* Story 17.6: Fade-out only animation for boss→tunnel transition */
+@keyframes whiteFlashFadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 @keyframes tunnelExitFade {
   from { opacity: 1; }
   to { opacity: 0; }

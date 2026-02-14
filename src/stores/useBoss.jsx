@@ -9,6 +9,7 @@ const useBoss = create((set, get) => ({
   nextProjectileId: 0,
   defeatAnimationTimer: 0,
   defeatExplosionCount: 0,
+  rewardGiven: false,
 
   spawnBoss: (currentSystem = 1, wormholePos = null) => {
     // Story 16.4: Use per-stat scaling from ENEMY_SCALING_PER_SYSTEM
@@ -179,6 +180,8 @@ const useBoss = create((set, get) => ({
     return { explosions, animationComplete }
   },
 
+  setRewardGiven: (value) => set({ rewardGiven: value }),
+
   reset: () => set({
     boss: null,
     bossProjectiles: [],
@@ -187,6 +190,7 @@ const useBoss = create((set, get) => ({
     nextProjectileId: 0,
     defeatAnimationTimer: 0,
     defeatExplosionCount: 0,
+    rewardGiven: false,
   }),
 }))
 

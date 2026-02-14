@@ -62,7 +62,7 @@ export function isLowTime(remaining) {
 
 // --- Stat with update animation ---
 
-function AnimatedStat({ value, icon, colorClass, label }) {
+function AnimatedStat({ value, icon, colorClass, label, style }) {
   const ref = useRef(null)
   const prevValue = useRef(value)
 
@@ -78,13 +78,13 @@ function AnimatedStat({ value, icon, colorClass, label }) {
 
   return (
     <div className="flex items-center gap-1" aria-label={label}>
-      <span className={colorClass} style={{ fontSize: 'clamp(11px, 1.1vw, 16px)' }}>
+      <span className={colorClass} style={{ fontSize: 'clamp(11px, 1.1vw, 16px)', ...style }}>
         {icon}
       </span>
       <span
         ref={ref}
         className={`${colorClass} tabular-nums font-bold`}
-        style={{ fontSize: 'clamp(11px, 1.1vw, 16px)' }}
+        style={{ fontSize: 'clamp(11px, 1.1vw, 16px)', ...style }}
       >
         {typeof value === 'number' ? value.toLocaleString('en-US') : value}
       </span>
@@ -370,7 +370,8 @@ export default function HUD() {
           {/* Stats cluster: Kills | Fragments | Score (Story 10.2) */}
           <div className="flex items-center gap-3">
             <AnimatedStat value={kills} icon="💀" colorClass="text-game-danger" label="kills" />
-            <AnimatedStat value={fragments} icon="◆" colorClass="text-cyan-400" label="fragments" />
+            {/* Story 19.3: Fragment icon color set to purple (#cc66ff) to match fragment gems */}
+            <AnimatedStat value={fragments} icon="◆" colorClass="text-purple-400" label="fragments" style={{ color: '#cc66ff' }} />
             <AnimatedStat value={score} icon="⭐" colorClass="text-yellow-400" label="score" />
           </div>
 
@@ -381,15 +382,15 @@ export default function HUD() {
           <BoonSlots activeBoons={activeBoons} />
         </div>
 
-        {/* Timer — top-center */}
+        {/* Timer — top-center (Story 17.6: continues during boss fight) */}
         <div className="flex flex-col items-center gap-0.5">
-          {phase !== 'boss' && <span
+          <span
             className={`font-bold tabular-nums ${lowTime ? 'text-game-danger animate-pulse' : 'text-game-timer'}`}
             style={{ fontSize: 'clamp(20px, 2.2vw, 32px)' }}
             data-testid="timer"
           >
             {timerDisplay}
-          </span>}
+          </span>
         </div>
 
         {/* Right column: Level + Minimap */}

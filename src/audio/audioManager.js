@@ -45,6 +45,8 @@ const SFX_CATEGORY_MAP = {
   'explosive-fire': 'sfxAction',
   // Story 19.1: Rare XP gem pickup SFX
   'xp_rare_pickup': 'sfxFeedbackPositive',
+  // Story 19.3: Fragment gem pickup SFX
+  'fragment_pickup': 'sfxFeedbackPositive',
 }
 
 let currentMusic = null

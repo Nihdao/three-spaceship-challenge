@@ -8,7 +8,7 @@ import useLevel from './stores/useLevel.jsx'
 import useWeapons from './stores/useWeapons.jsx'
 import useBoons from './stores/useBoons.jsx'
 import useBoss from './stores/useBoss.jsx'
-import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM } from './systems/collisionSystem.js'
+import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM, CATEGORY_FRAGMENT_GEM } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
@@ -16,6 +16,7 @@ import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { playSFX } from './audio/audioManager.js'
 import { spawnOrb, updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
 import { spawnHealGem, updateHealGemMagnetization, collectHealGem, getHealGems, getActiveHealGemCount, resetHealGems } from './systems/healGemSystem.js'
+import { spawnGem, updateMagnetization as updateFragmentGemMagnetization, collectGem, getActiveGems, getActiveCount as getFragmentGemCount, reset as resetFragmentGems } from './systems/fragmentGemSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 import { WEAPONS } from './entities/weaponDefs.js'
 
@@ -29,6 +30,12 @@ for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
 const _healGemIds = []
 for (let i = 0; i < GAME_CONFIG.MAX_HEAL_GEMS; i++) {
   _healGemIds[i] = `healGem_${i}`
+}
+
+// Pre-allocated fragment gem IDs — same pattern as orbs (Story 19.3)
+const _fragmentGemIds = []
+for (let i = 0; i < GAME_CONFIG.MAX_FRAGMENT_GEMS; i++) {
+  _fragmentGemIds[i] = `fragmentGem_${i}`
 }
 
 // Assigns collision entity properties without creating a new object
@@ -102,6 +109,7 @@ export default function GameLoop() {
       resetParticles()
       resetOrbs()
       resetHealGems() // Story 19.2
+      resetFragmentGems() // Story 19.3
       // Accumulate elapsed time before resetting (for total run time display)
       const prevSystemTime = useGame.getState().systemTimer
       if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
@@ -121,6 +129,7 @@ export default function GameLoop() {
       resetParticles()
       resetOrbs()
       resetHealGems() // Story 19.2
+      resetFragmentGems() // Story 19.3
       usePlayer.getState().reset()
       useEnemies.getState().reset()
       useLevel.getState().reset()
@@ -337,6 +346,10 @@ export default function GameLoop() {
           if (Math.random() < GAME_CONFIG.HEAL_GEM_DROP_CHANCE) {
             spawnHealGem(event.enemy.x, event.enemy.z, GAME_CONFIG.HEAL_GEM_RESTORE_AMOUNT)
           }
+          // Story 19.3: Roll for fragment gem drop
+          if (Math.random() < GAME_CONFIG.FRAGMENT_DROP_CHANCE) {
+            spawnGem(event.enemy.x, event.enemy.z, GAME_CONFIG.FRAGMENT_DROP_AMOUNT)
+          }
           useGame.getState().incrementKills()
           useGame.getState().addScore(GAME_CONFIG.SCORE_PER_KILL)
         }
@@ -446,6 +459,8 @@ export default function GameLoop() {
         useLevel.getState().activateWormhole()
         useEnemies.getState().reset()
         playSFX('wormhole-activate')
+        // Story 17.6: Trigger impressive flash on first wormhole touch (map clear celebration)
+        useGame.getState().triggerWormholeFirstTouch()
       }
     } else if (levelState.wormholeState === 'activating') {
       const result = useLevel.getState().wormholeTick(clampedDelta)
@@ -460,12 +475,20 @@ export default function GameLoop() {
       const dx = playerPos[0] - wh.x
       const dz = playerPos[2] - wh.z
       const dist = Math.sqrt(dx * dx + dz * dz)
-      if (dist <= GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS) {
+      const gameState = useGame.getState()
+      if (dist <= GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS && !gameState.tunnelTransitionPending) {
         if (levelState.currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
-          useGame.getState().setPhase('tunnel')
+          // Story 17.6: Trigger flash immediately, transition very quickly
+          // Flash covers the entire scene loading while fading out
+          gameState.setTunnelTransitionPending(true)
+          gameState.triggerTunnelEntryFlash() // Flash starts NOW at full opacity
+          const transitionDelay = 150 // ms - Very short delay, just enough to see flash start
+          setTimeout(() => {
+            useGame.getState().setPhase('tunnel')
+          }, transitionDelay)
         } else {
-          useGame.getState().updateHighScore()
-          useGame.getState().triggerVictory()
+          gameState.updateHighScore()
+          gameState.triggerVictory()
         }
       }
     }
@@ -484,11 +507,12 @@ export default function GameLoop() {
           addExplosion(exp.x, exp.z, '#cc66ff', scale)
           playSFX('boss-hit')
         }
-        if (defeatResult.animationComplete) {
+        if (defeatResult.animationComplete && !bossState.rewardGiven) {
           playSFX('boss-defeat')
           const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult
           usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_FRAGMENT_REWARD * fragMult))
           useLevel.getState().reactivateWormhole()
+          useBoss.getState().setRewardGiven(true)
         }
       } else {
         // Boss AI tick
@@ -595,6 +619,8 @@ export default function GameLoop() {
     updateMagnetization(playerPos[0], playerPos[2], clampedDelta, boonModifiers.pickupRadiusMultiplier ?? 1.0)
     // Story 19.2: Update heal gem magnetization (uses same radius/speed as XP orbs)
     updateHealGemMagnetization(playerPos[0], playerPos[2], clampedDelta, boonModifiers.pickupRadiusMultiplier ?? 1.0)
+    // Story 19.3: Update fragment gem magnetization (uses same radius/speed as XP orbs)
+    updateFragmentGemMagnetization(playerPos[0], playerPos[2], clampedDelta)
 
     // 8b. Register XP orbs in spatial hash
     const orbArray = getOrbs()
@@ -611,6 +637,15 @@ export default function GameLoop() {
     for (let i = 0; i < healGemCount; i++) {
       if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
       assignEntity(pool[idx], _healGemIds[i], healGemArray[i].x, healGemArray[i].z, GAME_CONFIG.HEAL_GEM_PICKUP_RADIUS, CATEGORY_HEAL_GEM)
+      cs.registerEntity(pool[idx++])
+    }
+
+    // Story 19.3: Register fragment gems in spatial hash
+    const fragmentGemArray = getActiveGems()
+    const fragmentGemCount = getFragmentGemCount()
+    for (let i = 0; i < fragmentGemCount; i++) {
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      assignEntity(pool[idx], _fragmentGemIds[i], fragmentGemArray[i].x, fragmentGemArray[i].z, GAME_CONFIG.FRAGMENT_GEM_PICKUP_RADIUS, CATEGORY_FRAGMENT_GEM)
       cs.registerEntity(pool[idx++])
     }
 
@@ -652,6 +687,24 @@ export default function GameLoop() {
         const healAmount = collectHealGem(gemIndex)
         usePlayer.getState().healFromGem(healAmount)
         playSFX('hp-recover')
+      }
+    }
+
+    // Story 19.3: Query player-fragmentGem collisions
+    const fragmentGemHits = cs.queryCollisions(pool[0], CATEGORY_FRAGMENT_GEM)
+    if (fragmentGemHits.length > 0) {
+      const indices = []
+      for (let i = 0; i < fragmentGemHits.length; i++) {
+        const gemIndex = parseInt(fragmentGemHits[i].id.split('_')[1], 10)
+        if (gemIndex < getFragmentGemCount()) indices.push(gemIndex)
+      }
+      indices.sort((a, b) => b - a)
+      const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult
+      for (let i = 0; i < indices.length; i++) {
+        const gemIndex = indices[i]
+        const fragmentValue = collectGem(gemIndex)
+        usePlayer.getState().addFragments(Math.round(fragmentValue * fragMult))
+        playSFX('fragment_pickup')
       }
     }
 

@@ -6,6 +6,7 @@ import ShockwaveRenderer from '../renderers/ShockwaveRenderer.jsx'
 import ParticleRenderer from '../renderers/ParticleRenderer.jsx'
 import XPOrbRenderer from '../renderers/XPOrbRenderer.jsx'
 import HealGemRenderer from '../renderers/HealGemRenderer.jsx'
+import FragmentGemRenderer from '../renderers/FragmentGemRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import PlanetRenderer from '../renderers/PlanetRenderer.jsx'
 import PlanetAuraRenderer from '../renderers/PlanetAuraRenderer.jsx'
@@ -77,6 +78,9 @@ export default function GameplayScene() {
 
       {/* Heal gems (Story 19.2) */}
       <HealGemRenderer />
+
+      {/* Fragment gems (Story 19.3) */}
+      <FragmentGemRenderer />
 
       {/* Death explosion particles */}
       <ParticleRenderer />
