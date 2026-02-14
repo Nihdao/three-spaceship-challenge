@@ -1,6 +1,6 @@
 # Story 16.3: Time-Based Enemy Spawn System
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -278,9 +278,54 @@ N/A - All tests passed on first implementation after fixes
 - Both commands intentionally bypass spawnSystem for testing flexibility
 
 **Test Results:**
-- spawnSystem.test.js: 26/26 tests passing
-- Full test suite: 1254/1254 tests passing
+- spawnSystem.test.js: 30/30 tests passing (26 original + 4 new from code review)
+- Full test suite: All passing
 - No regressions introduced
+
+### Code Review and Fixes (2026-02-14)
+
+**Adversarial Code Review Findings:**
+- 3 HIGH severity issues identified and fixed
+- 2 MEDIUM severity issues identified and fixed
+- 4 LOW severity issues documented (non-blocking)
+
+**HIGH-1 Fix: Performance - Redundant filtering eliminated**
+- **Problem:** `getAvailableEnemyTypes()` was called batchSize times per spawn event (5-10x redundant filtering)
+- **Fix:** Refactored `pickEnemyType()` to accept `elapsedTime` as parameter instead of reading from closure
+- **Impact:** Eliminates O(n*m) redundancy where n=batchSize, m=schedule length
+- **Files:** `src/systems/spawnSystem.js`
+
+**HIGH-2 Fix: Task 2.4 implementation mismatch resolved**
+- **Problem:** Task 2.4 specified pickEnemyType() should accept elapsedTime parameter, but implementation used closure variable
+- **Fix:** Updated pickEnemyType(currentElapsedTime) signature to match task specification
+- **Impact:** Code now matches task description exactly
+- **Files:** `src/systems/spawnSystem.js`
+
+**HIGH-3 Fix: Test data type corrections**
+- **Problem:** Tests passed `1.0` (number) as scaling parameter instead of proper object or null
+- **Fix:** Replaced all `1.0` scaling arguments with default `null` (correct API usage)
+- **Impact:** Tests now validate correct API contract
+- **Files:** `src/systems/__tests__/spawnSystem.test.js`
+
+**MEDIUM-1 Fix: Added automated test coverage for Task 5**
+- **Problem:** Task 5 claimed debug command verification but had no automated tests
+- **Fix:** Added 2 tests verifying all TIME_GATED_SPAWN_SCHEDULE types are spawnable and BOSS_SENTINEL is excluded
+- **Impact:** Automated validation of debug command support
+- **Files:** `src/systems/__tests__/spawnSystem.test.js` (+2 tests)
+
+**MEDIUM-2 Fix: Floating-point edge case testing**
+- **Problem:** No explicit test for time threshold edge cases (e.g., t=59.9 vs t=60.0)
+- **Fix:** Added 2 tests verifying correct behavior at threshold boundaries with accumulated deltas
+- **Impact:** Validates >= comparison handles floating-point precision correctly
+- **Files:** `src/systems/__tests__/spawnSystem.test.js` (+2 tests)
+
+**LOW severity issues (documented, not blocking):**
+- Missing JSDoc comments on helper functions
+- Magic constants (SWEEP_GROUP_MIN/MAX) could be in gameConfig.js for consistency
+- Missing integration tests between spawnSystem and useEnemies (unit tests are comprehensive)
+- AC2 sweep behavior implementation in Story 16.2 (dependency noted)
+
+**Review Outcome:** All HIGH and MEDIUM issues fixed. Story marked as **done**.
 
 ### File List
 
