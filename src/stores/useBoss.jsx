@@ -10,13 +10,16 @@ const useBoss = create((set, get) => ({
   defeatAnimationTimer: 0,
   defeatExplosionCount: 0,
 
-  spawnBoss: (currentSystem = 1) => {
+  spawnBoss: (currentSystem = 1, wormholePos = null) => {
     // Story 16.4: Use per-stat scaling from ENEMY_SCALING_PER_SYSTEM
     const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || { hp: 1, damage: 1, speed: 1, xpReward: 1 }
     const bossHP = Math.round(GAME_CONFIG.BOSS_HP * scaling.hp)
+    // Story 17.4: Spawn at wormhole position if provided, otherwise at origin
+    const spawnX = wormholePos?.x ?? 0
+    const spawnZ = wormholePos?.z ?? 0
     set({
     boss: {
-      x: 0, z: 0,
+      x: spawnX, z: spawnZ,
       hp: bossHP,
       maxHp: bossHP,
       phase: 0,

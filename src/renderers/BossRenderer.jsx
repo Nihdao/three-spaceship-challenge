@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import useBoss from '../stores/useBoss.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import { addExplosion } from '../systems/particleSystem.js'
 
 const BOSS_COLOR = new THREE.Color('#cc66ff')
 const BOSS_HIT_COLOR = new THREE.Color('#ffffff')
@@ -12,6 +13,8 @@ const HIT_FLASH_MS = GAME_CONFIG.HIT_FLASH_DURATION_MS
 export default function BossRenderer() {
   const meshRef = useRef()
   const telegraphRef = useRef()
+  const spawnTimeRef = useRef(null) // Story 17.4: Track boss spawn time for spawn animation
+  const spawnBurstTriggeredRef = useRef(false) // Story 17.4: Track if spawn burst was triggered
 
   const bodyMaterial = useMemo(() => new THREE.MeshStandardMaterial({
     color: '#220033',
@@ -43,6 +46,12 @@ export default function BossRenderer() {
 
     const clock = state.clock.elapsedTime
 
+    // Story 17.4: Initialize spawn time on first frame
+    if (spawnTimeRef.current === null) {
+      spawnTimeRef.current = clock
+      spawnBurstTriggeredRef.current = false
+    }
+
     // Defeat animation: flicker and hide after animation completes
     if (bossState.bossDefeated) {
       if (bossState.defeatAnimationTimer <= 0) {
@@ -64,9 +73,27 @@ export default function BossRenderer() {
     meshRef.current.position.set(boss.x, 4, boss.z)
     meshRef.current.visible = true
 
+    // Story 17.4: Spawn animation — scale from 0.1 to 1.0
+    const spawnElapsed = clock - spawnTimeRef.current
+    const spawnDuration = GAME_CONFIG.BOSS_SPAWN.SPAWN_SCALE_DURATION
+    let baseScale = 1.0
+
+    if (spawnElapsed < spawnDuration) {
+      // Spawn animation in progress — ease-out from 0.1 to 1.0
+      const progress = spawnElapsed / spawnDuration
+      const easeOut = 1 - Math.pow(1 - progress, 3) // cubic ease-out
+      baseScale = 0.1 + easeOut * 0.9
+
+      // Story 17.4: Trigger particle burst on first frame only
+      if (!spawnBurstTriggeredRef.current) {
+        addExplosion(boss.x, boss.z, '#cc66ff', 1.5)
+        spawnBurstTriggeredRef.current = true
+      }
+    }
+
     // Idle animation: slow rotation + subtle pulse
     meshRef.current.rotation.y += 0.01
-    const pulse = 1 + Math.sin(clock * 2) * 0.03
+    const pulse = baseScale * (1 + Math.sin(clock * 2) * 0.03)
     meshRef.current.scale.setScalar(pulse)
 
     // Hit feedback: white flash
@@ -99,6 +126,14 @@ export default function BossRenderer() {
 
   const boss = useBoss((s) => s.boss)
   const isActive = useBoss((s) => s.isActive)
+
+  // Story 17.4: Reset spawn time when boss becomes inactive
+  useEffect(() => {
+    if (!isActive) {
+      spawnTimeRef.current = null
+      spawnBurstTriggeredRef.current = false
+    }
+  }, [isActive])
 
   if (!isActive || !boss) return null
 

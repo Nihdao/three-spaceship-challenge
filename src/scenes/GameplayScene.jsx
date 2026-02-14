@@ -5,14 +5,18 @@ import EnemyProjectileRenderer from '../renderers/EnemyProjectileRenderer.jsx'
 import ShockwaveRenderer from '../renderers/ShockwaveRenderer.jsx'
 import ParticleRenderer from '../renderers/ParticleRenderer.jsx'
 import XPOrbRenderer from '../renderers/XPOrbRenderer.jsx'
+import HealGemRenderer from '../renderers/HealGemRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import PlanetRenderer from '../renderers/PlanetRenderer.jsx'
 import PlanetAuraRenderer from '../renderers/PlanetAuraRenderer.jsx'
 import WormholeRenderer from '../renderers/WormholeRenderer.jsx'
 import SystemEntryPortal from '../renderers/SystemEntryPortal.jsx'
+import BossRenderer from '../renderers/BossRenderer.jsx'
+import BossProjectileRenderer from '../renderers/BossProjectileRenderer.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import useBoss from '../stores/useBoss.jsx'
 
 function CameraRig() {
   usePlayerCamera()
@@ -28,6 +32,9 @@ const _fill = GAME_CONFIG.PLAYER_SHIP_LIGHTING
 const _fog = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.AMBIENT_FOG.GAMEPLAY
 
 export default function GameplayScene() {
+  const { isActive, bossDefeated } = useBoss()
+  const showBoss = isActive || bossDefeated
+
   return (
     <>
       <Controls />
@@ -57,8 +64,19 @@ export default function GameplayScene() {
       <EnemyProjectileRenderer />
       <ShockwaveRenderer />
 
+      {/* Boss (Story 17.4) - rendered when active or defeated */}
+      {showBoss && (
+        <>
+          <BossRenderer />
+          <BossProjectileRenderer />
+        </>
+      )}
+
       {/* XP orbs */}
       <XPOrbRenderer />
+
+      {/* Heal gems (Story 19.2) */}
+      <HealGemRenderer />
 
       {/* Death explosion particles */}
       <ParticleRenderer />

@@ -8,13 +8,14 @@ import useLevel from './stores/useLevel.jsx'
 import useWeapons from './stores/useWeapons.jsx'
 import useBoons from './stores/useBoons.jsx'
 import useBoss from './stores/useBoss.jsx'
-import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE } from './systems/collisionSystem.js'
+import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { playSFX } from './audio/audioManager.js'
 import { spawnOrb, updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
+import { spawnHealGem, updateHealGemMagnetization, collectHealGem, getHealGems, getActiveHealGemCount, resetHealGems } from './systems/healGemSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 import { WEAPONS } from './entities/weaponDefs.js'
 
@@ -22,6 +23,12 @@ import { WEAPONS } from './entities/weaponDefs.js'
 const _orbIds = []
 for (let i = 0; i < GAME_CONFIG.MAX_XP_ORBS; i++) {
   _orbIds[i] = `xporb_${i}`
+}
+
+// Pre-allocated heal gem IDs — same pattern as orbs (Story 19.2)
+const _healGemIds = []
+for (let i = 0; i < GAME_CONFIG.MAX_HEAL_GEMS; i++) {
+  _healGemIds[i] = `healGem_${i}`
 }
 
 // Assigns collision entity properties without creating a new object
@@ -94,6 +101,7 @@ export default function GameLoop() {
       projectileSystemRef.current.reset()
       resetParticles()
       resetOrbs()
+      resetHealGems() // Story 19.2
       // Accumulate elapsed time before resetting (for total run time display)
       const prevSystemTime = useGame.getState().systemTimer
       if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
@@ -112,6 +120,7 @@ export default function GameLoop() {
       useBoons.getState().reset()
       resetParticles()
       resetOrbs()
+      resetHealGems() // Story 19.2
       usePlayer.getState().reset()
       useEnemies.getState().reset()
       useLevel.getState().reset()
@@ -119,222 +128,10 @@ export default function GameLoop() {
       useBoss.getState().reset()
     }
 
-    // Spawn boss when entering boss phase
-    if (phase === 'boss' && prevPhaseRef.current !== 'boss' && prevPhaseRef.current !== 'levelUp') {
-      useBoss.getState().spawnBoss(useLevel.getState().currentSystem)
-    }
-
     prevPhaseRef.current = phase
 
-    // === BOSS PHASE TICK ===
-    if (phase === 'boss' && !isPaused) {
-      const clampedDelta = Math.min(delta, 0.1)
-
-      // Check if boss is in defeat animation — player is safe, boss AI skipped
-      const bossDefeatCheck = useBoss.getState()
-      if (bossDefeatCheck.bossDefeated) {
-        // Player can still move during defeat animation
-        const input = useControlsStore.getState()
-        const boonModifiers = useBoons.getState().modifiers
-        const { upgradeStats: uS, dilemmaStats: dS } = usePlayer.getState()
-        const defeatSpeedMult = (boonModifiers.speedMultiplier ?? 1) * uS.speedMult * dS.speedMult
-        usePlayer.getState().tick(clampedDelta, input, defeatSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE, boonModifiers.hpRegenRate ?? 0)
-
-        // Run defeat animation tick
-        const defeatResult = useBoss.getState().defeatTick(clampedDelta)
-        for (let i = 0; i < defeatResult.explosions.length; i++) {
-          const exp = defeatResult.explosions[i]
-          const scale = exp.isFinal ? GAME_CONFIG.BOSS_DEATH_FINAL_EXPLOSION_SCALE : 1
-          addExplosion(exp.x, exp.z, '#cc66ff', scale)
-          playSFX('boss-hit')
-        }
-        if (defeatResult.animationComplete) {
-          playSFX('boss-defeat')
-          const fragMult = (useBoons.getState().modifiers.fragmentMultiplier ?? 1.0) * usePlayer.getState().upgradeStats.fragmentMult
-          usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_FRAGMENT_REWARD * fragMult))
-          if (useLevel.getState().currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
-            useGame.getState().setPhase('tunnel')
-          } else {
-            useGame.getState().updateHighScore()
-            useGame.getState().triggerVictory()
-          }
-        }
-        return
-      }
-
-      // 1. Input
-      const input = useControlsStore.getState()
-
-      // 2. Player movement (with boss arena size) — compose boon + upgrade + dilemma speed
-      const boonModifiers = useBoons.getState().modifiers
-      const { upgradeStats: bossUS, dilemmaStats: bossDS } = usePlayer.getState()
-      const bossSpeedMult = (boonModifiers.speedMultiplier ?? 1) * bossUS.speedMult * bossDS.speedMult
-      usePlayer.getState().tick(clampedDelta, input, bossSpeedMult, GAME_CONFIG.BOSS_ARENA_SIZE, boonModifiers.hpRegenRate ?? 0)
-
-      // 2b. Dash input (edge detection)
-      if (input.dash && !prevDashRef.current) {
-        usePlayer.getState().startDash()
-        if (usePlayer.getState().isDashing) playSFX('dash-whoosh')
-      }
-      prevDashRef.current = input.dash
-      const currentCooldown = usePlayer.getState().dashCooldownTimer
-      if (prevDashCooldownRef.current > 0 && currentCooldown <= 0) playSFX('dash-ready')
-      prevDashCooldownRef.current = currentCooldown
-
-      // 3. Player weapons fire — compose boon + upgrade + dilemma + ship weapon mods
-      const playerState = usePlayer.getState()
-      const playerPos = playerState.position
-      const bossWeaponMods = {
-        damageMultiplier: composeDamageMultiplier(playerState, boonModifiers, bossUS, bossDS),
-        cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * bossUS.cooldownMult * bossDS.cooldownMult,
-        critChance: boonModifiers.critChance ?? 0,
-        critMultiplier: boonModifiers.critMultiplier ?? 2.0,
-        projectileSpeedMultiplier: boonModifiers.projectileSpeedMultiplier ?? 1.0,
-      }
-      const projCountBefore = useWeapons.getState().projectiles.length
-      useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, bossWeaponMods)
-      // Story 11.3: Play per-weapon SFX for newly fired projectiles
-      const bossNewProjs = useWeapons.getState().projectiles
-      if (bossNewProjs.length > projCountBefore) {
-        let lastWid = null
-        for (let i = projCountBefore; i < bossNewProjs.length; i++) {
-          const wid = bossNewProjs[i].weaponId
-          if (wid !== lastWid) {
-            playSFX(WEAPONS[wid]?.sfxKey ?? 'laser-fire')
-            lastWid = wid
-          }
-        }
-      }
-
-      // 4. Projectile movement (no enemies for homing during boss)
-      projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta, [])
-      useWeapons.getState().cleanupInactive()
-
-      // 5. Boss AI tick
-      const prevBossPhase = useBoss.getState().boss?.phase ?? 0
-      const bossProjCountBefore = useBoss.getState().bossProjectiles.length
-      useBoss.getState().tick(clampedDelta, playerPos)
-      const newBossPhase = useBoss.getState().boss?.phase ?? 0
-      if (newBossPhase > prevBossPhase) playSFX('boss-phase')
-      if (useBoss.getState().bossProjectiles.length > bossProjCountBefore) playSFX('boss-attack')
-
-      // 6. Collision detection (boss phase)
-      const cs = collisionSystemRef.current
-      cs.clear()
-      const pool = entityPoolRef.current
-      let idx = 0
-
-      // Register player
-      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
-      assignEntity(pool[idx], 'player', playerState.position[0], playerState.position[2], GAME_CONFIG.PLAYER_COLLISION_RADIUS, CATEGORY_PLAYER)
-      cs.registerEntity(pool[idx++])
-
-      // Register boss
-      const bossState = useBoss.getState()
-      const boss = bossState.boss
-      if (boss && boss.hp > 0) {
-        if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
-        assignEntity(pool[idx], 'boss', boss.x, boss.z, GAME_CONFIG.BOSS_COLLISION_RADIUS, CATEGORY_BOSS)
-        cs.registerEntity(pool[idx++])
-      }
-
-      // Register player projectiles
-      const { projectiles } = useWeapons.getState()
-      const projStartIdx = idx
-      for (let i = 0; i < projectiles.length; i++) {
-        if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
-        const p = projectiles[i]
-        assignEntity(pool[idx], p.id, p.x, p.z, p.radius, CATEGORY_PROJECTILE)
-        cs.registerEntity(pool[idx++])
-      }
-
-      // Register boss projectiles
-      const bossProjectiles = bossState.bossProjectiles
-      for (let i = 0; i < bossProjectiles.length; i++) {
-        if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
-        const bp = bossProjectiles[i]
-        assignEntity(pool[idx], bp.id, bp.x, bp.z, bp.radius, CATEGORY_BOSS_PROJECTILE)
-        cs.registerEntity(pool[idx++])
-      }
-
-      // 6a. Player projectiles vs boss
-      if (boss && boss.hp > 0) {
-        for (let i = 0; i < projectiles.length; i++) {
-          const pEntity = pool[projStartIdx + i]
-          if (!pEntity) continue
-          const hits = cs.queryCollisions(pEntity, CATEGORY_BOSS)
-          if (hits.length > 0) {
-            const proj = projectiles[i]
-            // Story 11.3: Piercing projectiles hit boss and continue
-            if (proj.piercing) {
-              proj.pierceHits = (proj.pierceHits || 0) + 1
-              if (proj.pierceHits >= proj.pierceCount) proj.active = false
-            } else {
-              proj.active = false
-            }
-            const result = useBoss.getState().damageBoss(proj.damage)
-            playSFX('boss-hit')
-            if (result.killed) {
-              addExplosion(boss.x, boss.z, '#cc66ff')
-            }
-          }
-        }
-        useWeapons.getState().cleanupInactive()
-      }
-
-      // 6b. Boss projectiles vs player
-      const playerEntity = pool[0]
-      const bpHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS_PROJECTILE)
-      if (bpHits.length > 0) {
-        const pState = usePlayer.getState()
-        if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
-          let totalDamage = 0
-          const hitIds = new Set()
-          for (let i = 0; i < bpHits.length; i++) {
-            const hitBp = bossProjectiles.find(bp => bp.id === bpHits[i].id)
-            totalDamage += hitBp ? hitBp.damage : GAME_CONFIG.BOSS_PROJECTILE_DAMAGE
-            hitIds.add(bpHits[i].id)
-          }
-          if (totalDamage > 0) {
-            usePlayer.getState().takeDamage(totalDamage, boonModifiers.damageReduction ?? 0)
-            playSFX('damage-taken')
-          }
-          // Remove hit projectiles immutably
-          useBoss.setState({ bossProjectiles: bossProjectiles.filter(bp => !hitIds.has(bp.id)) })
-        }
-      }
-
-      // 6c. Boss body vs player (contact damage)
-      if (boss && boss.hp > 0) {
-        const contactHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS)
-        if (contactHits.length > 0) {
-          const pState = usePlayer.getState()
-          if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
-            usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.damageMultiplier || 1)), boonModifiers.damageReduction ?? 0)
-            playSFX('damage-taken')
-          }
-        }
-      }
-
-      // 7. Death checks
-      if (usePlayer.getState().currentHP <= 0) {
-        playSFX('game-over-impact')
-        useGame.getState().updateHighScore()
-        useGame.getState().triggerGameOver()
-        return
-      }
-      // Boss defeat is now handled at top of boss tick (defeat animation flow)
-      // The killing blow in damageBoss() sets bossDefeated=true, next tick enters defeat animation branch
-
-      // 8. Level-up (skip during defeat animation — bossDefeated check at top already returned)
-      if (usePlayer.getState().pendingLevelUps > 0) {
-        playSFX('level-up')
-        usePlayer.getState().consumeLevelUp()
-        useGame.getState().triggerLevelUp()
-      }
-
-      return
-    }
+    // Story 17.4: Boss phase is deprecated — boss fight now happens during 'gameplay' phase
+    // Removed deprecated boss phase tick code (previously ~210 lines, boss tick now in gameplay section 7f-ter)
 
     // Only tick during active gameplay
     if (phase !== 'gameplay' || isPaused) return
@@ -398,9 +195,10 @@ export default function GameLoop() {
     projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta, enemiesForHoming)
     useWeapons.getState().cleanupInactive()
 
-    // 5. Enemy spawning + movement (skip during wormhole activation/active)
+    // 5. Enemy spawning + movement (skip during wormhole activation/active/boss fight — Story 17.4)
     const wormholeStatePre = useLevel.getState().wormholeState
-    if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && !useGame.getState()._debugSpawnPaused) {
+    const bossActive = useBoss.getState().isActive
+    if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && wormholeStatePre !== 'inactive' && !bossActive && !useGame.getState()._debugSpawnPaused) {
       const currentSystem = useLevel.getState().currentSystem
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
       const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], scaling)
@@ -535,6 +333,10 @@ export default function GameLoop() {
               spawnOrb(event.enemy.x, event.enemy.z, xpReward, false)
             }
           }
+          // Story 19.2: Roll for heal gem drop
+          if (Math.random() < GAME_CONFIG.HEAL_GEM_DROP_CHANCE) {
+            spawnHealGem(event.enemy.x, event.enemy.z, GAME_CONFIG.HEAL_GEM_RESTORE_AMOUNT)
+          }
           useGame.getState().incrementKills()
           useGame.getState().addScore(GAME_CONFIG.SCORE_PER_KILL)
         }
@@ -607,18 +409,21 @@ export default function GameLoop() {
       return // Stop processing — no XP/level-up after death
     }
 
-    // 7f. System timer — increment and check timeout
+    // 7f. System timer — increment and check timeout (pause during boss fight — Story 17.4)
     const gameState = useGame.getState()
-    const newTimer = gameState.systemTimer + clampedDelta
-    gameState.setSystemTimer(newTimer)
-    if (newTimer >= GAME_CONFIG.SYSTEM_TIMER) {
-      // Don't trigger game over if wormhole is activating/active (player found it)
-      if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
-        playSFX('game-over-impact')
-        gameState.updateHighScore()
-        gameState.triggerGameOver()
-        useWeapons.getState().cleanupInactive()
-        return // Stop processing — timer expired
+    let newTimer = gameState.systemTimer // Initialize with current timer
+    if (!bossActive) {
+      newTimer = gameState.systemTimer + clampedDelta
+      gameState.setSystemTimer(newTimer)
+      if (newTimer >= GAME_CONFIG.SYSTEM_TIMER) {
+        // Don't trigger game over if wormhole is activating/active (player found it)
+        if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
+          playSFX('game-over-impact')
+          gameState.updateHighScore()
+          gameState.triggerGameOver()
+          useWeapons.getState().cleanupInactive()
+          return // Stop processing — timer expired
+        }
       }
     }
 
@@ -645,9 +450,133 @@ export default function GameLoop() {
     } else if (levelState.wormholeState === 'activating') {
       const result = useLevel.getState().wormholeTick(clampedDelta)
       if (result.transitionReady) {
-        useGame.getState().setPhase('boss')
+        // Story 17.4: Spawn boss in-place instead of transitioning to BossScene
+        useBoss.getState().spawnBoss(levelState.currentSystem, levelState.wormhole)
+        useLevel.getState().setWormholeInactive()
+      }
+    } else if (levelState.wormholeState === 'reactivated') {
+      // Story 17.4: Post-boss wormhole — player must enter to transition
+      const wh = levelState.wormhole
+      const dx = playerPos[0] - wh.x
+      const dz = playerPos[2] - wh.z
+      const dist = Math.sqrt(dx * dx + dz * dz)
+      if (dist <= GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS) {
+        if (levelState.currentSystem < GAME_CONFIG.MAX_SYSTEMS) {
+          useGame.getState().setPhase('tunnel')
+        } else {
+          useGame.getState().updateHighScore()
+          useGame.getState().triggerVictory()
+        }
       }
     }
+
+    // 7f-ter. Boss fight in gameplay (Story 17.4)
+    if (bossActive) {
+      const bossState = useBoss.getState()
+      const boss = bossState.boss
+
+      // Boss defeat animation
+      if (bossState.bossDefeated) {
+        const defeatResult = bossState.defeatTick(clampedDelta)
+        for (let i = 0; i < defeatResult.explosions.length; i++) {
+          const exp = defeatResult.explosions[i]
+          const scale = exp.isFinal ? GAME_CONFIG.BOSS_DEATH_FINAL_EXPLOSION_SCALE : 1
+          addExplosion(exp.x, exp.z, '#cc66ff', scale)
+          playSFX('boss-hit')
+        }
+        if (defeatResult.animationComplete) {
+          playSFX('boss-defeat')
+          const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult
+          usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_FRAGMENT_REWARD * fragMult))
+          useLevel.getState().reactivateWormhole()
+        }
+      } else {
+        // Boss AI tick
+        const prevBossPhase = boss?.phase ?? 0
+        const bossProjCountBefore = bossState.bossProjectiles.length
+        bossState.tick(clampedDelta, playerPos)
+        const newBossPhase = bossState.boss?.phase ?? 0
+        if (newBossPhase > prevBossPhase) playSFX('boss-phase')
+        if (bossState.bossProjectiles.length > bossProjCountBefore) playSFX('boss-attack')
+
+        // Register boss entities in collision system
+        const bossIdx = idx
+        if (boss && boss.hp > 0) {
+          if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+          assignEntity(pool[idx], 'boss', boss.x, boss.z, GAME_CONFIG.BOSS_COLLISION_RADIUS, CATEGORY_BOSS)
+          cs.registerEntity(pool[idx++])
+        }
+
+        // Register boss projectiles
+        const bossProjectiles = bossState.bossProjectiles
+        const bossProjStartIdx = idx
+        for (let i = 0; i < bossProjectiles.length; i++) {
+          if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+          const bp = bossProjectiles[i]
+          assignEntity(pool[idx], bp.id, bp.x, bp.z, bp.radius, CATEGORY_BOSS_PROJECTILE)
+          cs.registerEntity(pool[idx++])
+        }
+
+        // Player projectiles vs boss
+        if (boss && boss.hp > 0) {
+          const projStartIdx = 1 + enemies.length
+          for (let i = 0; i < projectiles.length; i++) {
+            const pEntity = pool[projStartIdx + i]
+            if (!pEntity) continue
+            const hits = cs.queryCollisions(pEntity, CATEGORY_BOSS)
+            if (hits.length > 0) {
+              const proj = projectiles[i]
+              if (proj.piercing) {
+                proj.pierceHits = (proj.pierceHits || 0) + 1
+                if (proj.pierceHits >= proj.pierceCount) proj.active = false
+              } else {
+                proj.active = false
+              }
+              const result = bossState.damageBoss(proj.damage)
+              playSFX('boss-hit')
+              if (result.killed) {
+                addExplosion(boss.x, boss.z, '#cc66ff')
+              }
+            }
+          }
+          useWeapons.getState().cleanupInactive()
+        }
+
+        // Boss projectiles vs player
+        const playerEntity = pool[0]
+        const bpHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS_PROJECTILE)
+        if (bpHits.length > 0) {
+          const pState = usePlayer.getState()
+          if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
+            let totalDamage = 0
+            const hitIds = new Set()
+            for (let i = 0; i < bpHits.length; i++) {
+              const hitBp = bossProjectiles.find(bp => bp.id === bpHits[i].id)
+              totalDamage += hitBp ? hitBp.damage : GAME_CONFIG.BOSS_PROJECTILE_DAMAGE
+              hitIds.add(bpHits[i].id)
+            }
+            if (totalDamage > 0) {
+              usePlayer.getState().takeDamage(totalDamage, boonModifiers.damageReduction ?? 0)
+              playSFX('damage-taken')
+            }
+            useBoss.setState({ bossProjectiles: bossProjectiles.filter(bp => !hitIds.has(bp.id)) })
+          }
+        }
+
+        // Boss contact damage
+        if (boss && boss.hp > 0) {
+          const contactHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS)
+          if (contactHits.length > 0) {
+            const pState = usePlayer.getState()
+            if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
+              usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.damageMultiplier || 1)), boonModifiers.damageReduction ?? 0)
+              playSFX('damage-taken')
+            }
+          }
+        }
+      }
+    }
+
     // 7g. Planet scanning
     const scanResult = useLevel.getState().scanningTick(clampedDelta, playerPos[0], playerPos[2])
     const currentScanId = scanResult.activeScanPlanetId
@@ -664,6 +593,8 @@ export default function GameLoop() {
     // 8a. Update orb timers + magnetization (Story 11.1)
     updateOrbs(clampedDelta)
     updateMagnetization(playerPos[0], playerPos[2], clampedDelta, boonModifiers.pickupRadiusMultiplier ?? 1.0)
+    // Story 19.2: Update heal gem magnetization (uses same radius/speed as XP orbs)
+    updateHealGemMagnetization(playerPos[0], playerPos[2], clampedDelta, boonModifiers.pickupRadiusMultiplier ?? 1.0)
 
     // 8b. Register XP orbs in spatial hash
     const orbArray = getOrbs()
@@ -671,6 +602,15 @@ export default function GameLoop() {
     for (let i = 0; i < orbCount; i++) {
       if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
       assignEntity(pool[idx], _orbIds[i], orbArray[i].x, orbArray[i].z, GAME_CONFIG.XP_ORB_PICKUP_RADIUS, CATEGORY_XP_ORB)
+      cs.registerEntity(pool[idx++])
+    }
+
+    // Story 19.2: Register heal gems in spatial hash
+    const healGemArray = getHealGems()
+    const healGemCount = getActiveHealGemCount()
+    for (let i = 0; i < healGemCount; i++) {
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      assignEntity(pool[idx], _healGemIds[i], healGemArray[i].x, healGemArray[i].z, GAME_CONFIG.HEAL_GEM_PICKUP_RADIUS, CATEGORY_HEAL_GEM)
       cs.registerEntity(pool[idx++])
     }
 
@@ -695,6 +635,23 @@ export default function GameLoop() {
         if (isRare) {
           playSFX('xp_rare_pickup')
         }
+      }
+    }
+
+    // Story 19.2: Query player-healGem collisions
+    const healGemHits = cs.queryCollisions(pool[0], CATEGORY_HEAL_GEM)
+    if (healGemHits.length > 0) {
+      const indices = []
+      for (let i = 0; i < healGemHits.length; i++) {
+        const gemIndex = parseInt(healGemHits[i].id.split('_')[1], 10)
+        if (gemIndex < getActiveHealGemCount()) indices.push(gemIndex)
+      }
+      indices.sort((a, b) => b - a)
+      for (let i = 0; i < indices.length; i++) {
+        const gemIndex = indices[i]
+        const healAmount = collectHealGem(gemIndex)
+        usePlayer.getState().healFromGem(healAmount)
+        playSFX('hp-recover')
       }
     }
 
