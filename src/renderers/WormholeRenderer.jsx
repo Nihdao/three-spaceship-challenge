@@ -186,15 +186,31 @@ export default function WormholeRenderer() {
       portalRef.current.scale.setScalar(WORMHOLE_VISUAL.ACTIVATION_SCALE)
       particlesRef.current.scale.setScalar(WORMHOLE_VISUAL.ACTIVATION_SCALE)
       riftMaterial.uniforms.uOpacity.value = 1.0
+
+    } else if (wormholeState === 'inactive') {
+      // Story 17.4: Inactive state during boss fight — dimmed and slow
+      portalRef.current.scale.setScalar(0.8)
+      particlesRef.current.scale.setScalar(0.8)
+      riftMaterial.uniforms.uOpacity.value = GAME_CONFIG.WORMHOLE_INACTIVE.EMISSIVE_INTENSITY
+
+    } else if (wormholeState === 'reactivated') {
+      // Story 17.4: Reactivated after boss defeat — bright pulsing, inviting
+      const pulse = Math.sin(clock * 3) * 0.1 + 0.9
+      const scale = WORMHOLE_VISUAL.ACTIVATION_SCALE * pulse
+      portalRef.current.scale.setScalar(scale)
+      particlesRef.current.scale.setScalar(scale)
+      riftMaterial.uniforms.uOpacity.value = 1.0 * pulse
     }
 
-    // Animate particles — orbit around portal
+    // Animate particles — orbit around portal (Story 17.4: slow for inactive state)
     if (particlesRef.current.visible && particleGeoRef.current) {
       const posAttr = particleGeoRef.current.getAttribute('position')
       if (posAttr) {
         const count = WORMHOLE_VISUAL.PARTICLE_COUNT
+        // Story 17.4: Reduce particle speed during inactive state
+        const speedMult = wormholeState === 'inactive' ? GAME_CONFIG.WORMHOLE_INACTIVE.PARTICLE_SPEED : 1.0
         for (let i = 0; i < count; i++) {
-          const angSpeed = particleVelocities[i * 2]
+          const angSpeed = particleVelocities[i * 2] * speedMult
           const baseR = particleVelocities[i * 2 + 1]
           const angle = (i / count) * Math.PI * 2 + clock * angSpeed
           const r = baseR + Math.sin(clock * 3 + i) * 1.5

@@ -166,6 +166,15 @@ const useLevel = create((set, get) => ({
     return { transitionReady: false }
   },
 
+  // Story 17.4: Boss fight wormhole states
+  setWormholeInactive: () => {
+    set({ wormholeState: 'inactive' })
+  },
+
+  reactivateWormhole: () => {
+    set({ wormholeState: 'reactivated' })
+  },
+
   advanceSystem: () => set(state => ({
     currentSystem: Math.min(state.currentSystem + 1, GAME_CONFIG.MAX_SYSTEMS),
     systemTimer: 0,

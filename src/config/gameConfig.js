@@ -36,6 +36,13 @@ export const GAME_CONFIG = {
   RARE_XP_GEM_SCALE_MULTIPLIER: 1.3, // 1.3x larger than standard orbs
   RARE_XP_GEM_PULSE_SPEED: 3.0, // Pulse animation speed (radians/sec)
 
+  // Heal Gems (Story 19.2)
+  HEAL_GEM_DROP_CHANCE: 0.04, // 4% chance to drop on enemy death
+  HEAL_GEM_RESTORE_AMOUNT: 20, // HP restored per heal gem
+  HEAL_GEM_COLOR: '#ff3366', // Red-pink color
+  MAX_HEAL_GEMS: 30, // Maximum heal gems on field
+  HEAL_GEM_PICKUP_RADIUS: 2.0, // Pickup collision radius
+
   // Progression — Story 11.2: Rebalanced for faster early-mid game progression
   // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~30% growth per level from level 6+
   // Early levels (1-5): -20-30% from original, Mid/Late levels (6+): ~30% growth rate
@@ -181,6 +188,20 @@ export const GAME_CONFIG = {
   BOSS_DEATH_FINAL_EXPLOSION_SCALE: 3.0,
   BOSS_DEFEAT_TRANSITION_DELAY: 3.0,
   BOSS_FRAGMENT_REWARD: 100,
+
+  // Boss spawn in gameplay (Story 17.4)
+  BOSS_SPAWN: {
+    SPAWN_SCALE_DURATION: 1.2, // seconds for scale-up animation
+    SPAWN_OFFSET_FROM_WORMHOLE: 0, // spawn at wormhole position
+    BOSS_PLAY_AREA_SIZE: 400, // constrain boss movement within smaller zone centered on origin
+  },
+
+  // Wormhole inactive state (Story 17.4)
+  WORMHOLE_INACTIVE: {
+    EMISSIVE_INTENSITY: 0.1,
+    SWIRL_SPEED: 0.1,
+    PARTICLE_SPEED: 0.2,
+  },
 
   // Per-stat enemy scaling per system (Story 16.4)
   // Each stat can be tuned independently for balance

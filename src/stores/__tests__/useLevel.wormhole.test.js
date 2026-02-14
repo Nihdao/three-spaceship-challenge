@@ -115,4 +115,43 @@ describe('useLevel — wormhole (Story 6.1)', () => {
       expect(wormholeActivationTimer).toBe(0)
     })
   })
+
+  describe('setWormholeInactive() — Story 17.4', () => {
+    it('sets wormholeState to inactive', () => {
+      useLevel.getState().spawnWormhole(0, 0)
+      useLevel.getState().activateWormhole()
+      useLevel.getState().setWormholeInactive()
+      const { wormholeState } = useLevel.getState()
+      expect(wormholeState).toBe('inactive')
+    })
+
+    it('does not clear wormhole position', () => {
+      useLevel.getState().spawnWormhole(0, 0)
+      const wormholeBefore = useLevel.getState().wormhole
+      useLevel.getState().setWormholeInactive()
+      const wormholeAfter = useLevel.getState().wormhole
+      expect(wormholeAfter).toEqual(wormholeBefore)
+      expect(wormholeAfter).not.toBe(null)
+    })
+  })
+
+  describe('reactivateWormhole() — Story 17.4', () => {
+    it('sets wormholeState to reactivated', () => {
+      useLevel.getState().spawnWormhole(0, 0)
+      useLevel.getState().setWormholeInactive()
+      useLevel.getState().reactivateWormhole()
+      const { wormholeState } = useLevel.getState()
+      expect(wormholeState).toBe('reactivated')
+    })
+
+    it('does not clear wormhole position', () => {
+      useLevel.getState().spawnWormhole(0, 0)
+      const wormholeBefore = useLevel.getState().wormhole
+      useLevel.getState().setWormholeInactive()
+      useLevel.getState().reactivateWormhole()
+      const wormholeAfter = useLevel.getState().wormhole
+      expect(wormholeAfter).toEqual(wormholeBefore)
+      expect(wormholeAfter).not.toBe(null)
+    })
+  })
 })

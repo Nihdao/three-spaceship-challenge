@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import useGame from '../stores/useGame.jsx'
+import useBoss from '../stores/useBoss.jsx'
 import useAudio from '../hooks/useAudio.jsx'
 import MainMenu from './MainMenu.jsx'
 import LevelUpModal from './LevelUpModal.jsx'
@@ -18,13 +19,18 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 
 export default function Interface() {
   const phase = useGame((s) => s.phase)
+  const isBossActive = useBoss((s) => s.isActive)
   useAudio()
 
-  // White flash on any→systemEntry transition (Story 17.1)
+  // White flash on any→systemEntry transition (Story 17.1) and tunnel entry after boss (Story 17.4)
   const [showFlash, setShowFlash] = useState(false)
   const prevPhaseRef = useRef(phase)
   useEffect(() => {
     if (phase === 'systemEntry' && prevPhaseRef.current !== 'systemEntry') {
+      setShowFlash(true)
+    }
+    // Story 17.4: White flash when entering tunnel after boss defeat (AC6)
+    if (phase === 'tunnel' && prevPhaseRef.current === 'gameplay') {
       setShowFlash(true)
     }
     prevPhaseRef.current = phase
@@ -65,8 +71,8 @@ export default function Interface() {
       {phase === 'gameplay' && <PauseMenu />}
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}
-      {phase === 'boss' && <BossHPBar />}
-      {phase === 'boss' && <HUD />}
+      {/* Story 17.4: BossHPBar renders when boss is active, regardless of phase */}
+      {isBossActive && <BossHPBar />}
       {phase === 'gameOver' && <GameOverScreen />}
       {phase === 'victory' && <VictoryScreen />}
       {phase === 'tunnel' && <TunnelHub />}
