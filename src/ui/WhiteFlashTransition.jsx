@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 
-export default function WhiteFlashTransition({ active, onComplete, duration = 200 }) {
+export default function WhiteFlashTransition({ active, onComplete, duration = 200, variant = 'default' }) {
   const [visible, setVisible] = useState(false)
   const divRef = useRef(null)
 
@@ -19,6 +19,9 @@ export default function WhiteFlashTransition({ active, onComplete, duration = 20
 
   if (!visible) return null
 
+  // Story 17.6: Choose animation based on variant
+  const animationName = variant === 'fadeOut' ? 'whiteFlashFadeOut' : 'whiteFlash'
+
   return (
     <div
       ref={divRef}
@@ -30,7 +33,7 @@ export default function WhiteFlashTransition({ active, onComplete, duration = 20
         zIndex: 100,
         background: 'white',
         pointerEvents: 'none',
-        animation: `whiteFlash ${duration}ms ease-out forwards`,
+        animation: `${animationName} ${duration}ms ease-out forwards`,
       }}
     />
   )

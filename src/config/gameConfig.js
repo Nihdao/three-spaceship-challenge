@@ -43,6 +43,15 @@ export const GAME_CONFIG = {
   MAX_HEAL_GEMS: 30, // Maximum heal gems on field
   HEAL_GEM_PICKUP_RADIUS: 2.0, // Pickup collision radius
 
+  // Fragment Gems (Story 19.3)
+  FRAGMENT_DROP_CHANCE: 0.12, // 12% chance to drop on enemy death
+  FRAGMENT_DROP_AMOUNT: 1, // Fragments awarded per gem
+  FRAGMENT_GEM_COLOR: '#cc66ff', // Purple color
+  FRAGMENT_GEM_SCALE: [1.0, 1.0, 1.0], // Visual scale
+  FRAGMENT_GEM_PULSE_SPEED: 2.5, // Pulse animation speed (radians/sec)
+  MAX_FRAGMENT_GEMS: 20, // Maximum fragment gems on field
+  FRAGMENT_GEM_PICKUP_RADIUS: 2.0, // Pickup collision radius
+
   // Progression — Story 11.2: Rebalanced for faster early-mid game progression
   // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~30% growth per level from level 6+
   // Early levels (1-5): -20-30% from original, Mid/Late levels (6+): ~30% growth rate
@@ -141,13 +150,13 @@ export const GAME_CONFIG = {
   // Planet scanning (Story 5.3)
   PLANET_SCAN_REWARD_CHOICES: 3,
 
-  // Wormhole (Story 6.1)
+  // Wormhole (Story 6.1, Story 17.6: faster activation)
   WORMHOLE_SPAWN_TIMER_THRESHOLD: 0.01,
   WORMHOLE_ACTIVATION_RADIUS: 25,
-  WORMHOLE_SHOCKWAVE_DURATION: 1.5,
+  WORMHOLE_SHOCKWAVE_DURATION: 0.8, // Story 17.6: Reduced from 1.5 for faster wormhole opening
   WORMHOLE_SPAWN_DISTANCE_FROM_PLAYER: 300,
   WORMHOLE_BLOOM_FLASH_DURATION: 0.3,
-  WORMHOLE_TRANSITION_DELAY: 2.0,
+  WORMHOLE_TRANSITION_DELAY: 1.0, // Story 17.6: Reduced from 2.0 for faster boss arrival
 
   // Wormhole Visual (Story 17.3)
   WORMHOLE_VISUAL: {
@@ -189,9 +198,9 @@ export const GAME_CONFIG = {
   BOSS_DEFEAT_TRANSITION_DELAY: 3.0,
   BOSS_FRAGMENT_REWARD: 100,
 
-  // Boss spawn in gameplay (Story 17.4)
+  // Boss spawn in gameplay (Story 17.4, Story 17.6: faster spawn)
   BOSS_SPAWN: {
-    SPAWN_SCALE_DURATION: 1.2, // seconds for scale-up animation
+    SPAWN_SCALE_DURATION: 0.6, // Story 17.6: Reduced from 1.2 for faster boss appearance
     SPAWN_OFFSET_FROM_WORMHOLE: 0, // spawn at wormhole position
     BOSS_PLAY_AREA_SIZE: 400, // constrain boss movement within smaller zone centered on origin
   },
@@ -322,6 +331,12 @@ export const GAME_CONFIG = {
     PORTAL_COLOR: '#00ccff',    // portal glow color
     PORTAL_PARTICLE_COUNT: 40,  // orbiting particles around portal
     PORTAL_OFFSET_Z: 40,        // portal position below center (positive Z = bottom of screen)
+  },
+
+  // Tunnel Entry Transition (Story 17.6)
+  TUNNEL_ENTRY: {
+    FLASH_DURATION: 1.0,        // seconds — long flash for dramatic boss→tunnel transition (increased from 0.5)
+    WORMHOLE_CLEAR_FLASH_DURATION: 0.6, // seconds — impressive flash when first touching wormhole after map clear
   },
 
   // System names for display (Story 17.2)

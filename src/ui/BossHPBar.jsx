@@ -14,9 +14,9 @@ export default function BossHPBar() {
   const barColor = phaseColors[boss?.phase ?? 0] || '#ff4444'
 
   return (
-    <div className="fixed top-0 left-1/2 -translate-x-1/2 z-50 pointer-events-none font-game">
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none font-game">
       <div style={{ animation: bossDefeated ? 'bossHPFadeOut 0.5s ease-out forwards' : 'bossHPSlideIn 600ms ease-out forwards' }}>
-        <div className="flex flex-col items-center pt-6 gap-1">
+        <div className="flex flex-col items-center pt-2 gap-1">
           {/* Boss name */}
           <span
             className="font-bold tracking-[0.3em] text-game-text"

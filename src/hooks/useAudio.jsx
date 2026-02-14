@@ -38,6 +38,8 @@ const SFX_MAP = {
   'explosive-fire': ASSET_MANIFEST.gameplay.audio.explosiveFire,
   // Story 19.1: Rare XP gem pickup SFX
   'xp_rare_pickup': ASSET_MANIFEST.gameplay.audio.xpRarePickup,
+  // Story 19.3: Fragment gem pickup SFX
+  'fragment_pickup': ASSET_MANIFEST.gameplay.audio.fragmentPickup,
 }
 
 export default function useAudio() {

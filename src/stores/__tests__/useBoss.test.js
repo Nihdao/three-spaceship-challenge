@@ -283,6 +283,42 @@ describe('useBoss store', () => {
     })
   })
 
+  describe('setRewardGiven(value) (Story 19.3 bugfix)', () => {
+    it('sets rewardGiven flag to true', () => {
+      expect(useBoss.getState().rewardGiven).toBe(false)
+      useBoss.getState().setRewardGiven(true)
+      expect(useBoss.getState().rewardGiven).toBe(true)
+    })
+
+    it('sets rewardGiven flag to false', () => {
+      useBoss.getState().setRewardGiven(true)
+      expect(useBoss.getState().rewardGiven).toBe(true)
+      useBoss.getState().setRewardGiven(false)
+      expect(useBoss.getState().rewardGiven).toBe(false)
+    })
+
+    it('prevents duplicate boss rewards when animationComplete is true across multiple frames', () => {
+      // This test simulates the bug where animationComplete stays true after timer reaches 0
+      useBoss.getState().spawnBoss()
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+
+      // Tick to complete animation
+      const result1 = useBoss.getState().defeatTick(GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY)
+      expect(result1.animationComplete).toBe(true)
+      expect(useBoss.getState().rewardGiven).toBe(false)
+
+      // Simulate GameLoop giving reward and setting flag
+      useBoss.getState().setRewardGiven(true)
+
+      // Tick again - animationComplete should still be true
+      const result2 = useBoss.getState().defeatTick(0.1)
+      expect(result2.animationComplete).toBe(true)
+
+      // But rewardGiven flag should prevent duplicate rewards in GameLoop
+      expect(useBoss.getState().rewardGiven).toBe(true)
+    })
+  })
+
   describe('reset()', () => {
     it('clears all boss state', () => {
       useBoss.getState().spawnBoss()
@@ -308,6 +344,14 @@ describe('useBoss store', () => {
       const state = useBoss.getState()
       expect(state.defeatAnimationTimer).toBe(0)
       expect(state.defeatExplosionCount).toBe(0)
+    })
+
+    it('resets rewardGiven flag (Story 19.3 bugfix)', () => {
+      useBoss.getState().setRewardGiven(true)
+      expect(useBoss.getState().rewardGiven).toBe(true)
+
+      useBoss.getState().reset()
+      expect(useBoss.getState().rewardGiven).toBe(false)
     })
   })
 })

@@ -182,6 +182,7 @@ development_status:
   17-3-wormhole-visual-overhaul: done
   17-4-boss-arrival-in-gameplay-scene: done
   17-5-transition-flash-effects: review
+  17-6-transition-polish-improvements: review
   epic-17-retrospective: optional
 
   # Epic 18: Cross-System Progression Persistence
@@ -196,7 +197,7 @@ development_status:
   epic-19: in-progress
   19-1-rare-xp-gem-drops: done
   19-2-heal-gem-drops: done
-  19-3-fragment-drops: ready-for-dev
+  19-3-fragment-drops: done
   19-4-loot-visual-consistency-drop-pool-management: ready-for-dev
   19-5-loot-system-extensibility-future-chest-preparation: ready-for-dev
   epic-19-retrospective: optional

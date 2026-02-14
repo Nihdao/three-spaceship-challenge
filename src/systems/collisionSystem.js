@@ -11,6 +11,7 @@ export const CATEGORY_BOSS_PROJECTILE = 'boss_projectile'
 export const CATEGORY_SHOCKWAVE = 'shockwave'
 export const CATEGORY_ENEMY_PROJECTILE = 'enemy_projectile'
 export const CATEGORY_HEAL_GEM = 'healGem'
+export const CATEGORY_FRAGMENT_GEM = 'fragmentGem'
 
 // Collision matrix — defines which category pairs can collide
 // Key format: "categoryA:categoryB" (sorted alphabetically for consistency)
@@ -24,6 +25,7 @@ const COLLISION_PAIRS = new Set([
   `${CATEGORY_PLAYER}:${CATEGORY_SHOCKWAVE}`,    // shockwave↔player (damage)
   `${CATEGORY_ENEMY_PROJECTILE}:${CATEGORY_PLAYER}`, // enemy projectile↔player (damage)
   `${CATEGORY_HEAL_GEM}:${CATEGORY_PLAYER}`,    // player↔healGem (pickup)
+  `${CATEGORY_FRAGMENT_GEM}:${CATEGORY_PLAYER}`, // player↔fragmentGem (pickup)
 ])
 
 function _pairKey(catA, catB) {

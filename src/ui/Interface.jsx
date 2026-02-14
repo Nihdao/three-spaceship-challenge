@@ -22,19 +22,44 @@ export default function Interface() {
   const isBossActive = useBoss((s) => s.isActive)
   useAudio()
 
-  // White flash on any→systemEntry transition (Story 17.1) and tunnel entry after boss (Story 17.4)
+  // White flash on phase transitions (Story 17.1, 17.5, 17.6)
   const [showFlash, setShowFlash] = useState(false)
+  const [flashDuration, setFlashDuration] = useState(GAME_CONFIG.SYSTEM_ENTRY.FLASH_DURATION * 1000)
+  const [flashVariant, setFlashVariant] = useState('default')
   const prevPhaseRef = useRef(phase)
+
   useEffect(() => {
     if (phase === 'systemEntry' && prevPhaseRef.current !== 'systemEntry') {
-      setShowFlash(true)
-    }
-    // Story 17.4: White flash when entering tunnel after boss defeat (AC6)
-    if (phase === 'tunnel' && prevPhaseRef.current === 'gameplay') {
+      setFlashDuration(GAME_CONFIG.SYSTEM_ENTRY.FLASH_DURATION * 1000)
+      setFlashVariant('default')
       setShowFlash(true)
     }
     prevPhaseRef.current = phase
   }, [phase])
+
+  // Story 17.6: Tunnel entry flash (triggered independently of phase change)
+  const tunnelEntryFlashTriggered = useGame((s) => s.tunnelEntryFlashTriggered)
+  const prevTunnelEntryFlashRef = useRef(tunnelEntryFlashTriggered)
+  useEffect(() => {
+    if (tunnelEntryFlashTriggered && !prevTunnelEntryFlashRef.current) {
+      setFlashDuration(GAME_CONFIG.TUNNEL_ENTRY.FLASH_DURATION * 1000)
+      setFlashVariant('fadeOut') // Start at full opacity, fade out only
+      setShowFlash(true)
+    }
+    prevTunnelEntryFlashRef.current = tunnelEntryFlashTriggered
+  }, [tunnelEntryFlashTriggered])
+
+  // Story 17.6: Wormhole clear flash (first touch only)
+  const wormholeFirstTouch = useGame((s) => s.wormholeFirstTouch)
+  const prevWormholeFirstTouchRef = useRef(wormholeFirstTouch)
+  useEffect(() => {
+    if (wormholeFirstTouch && !prevWormholeFirstTouchRef.current) {
+      setFlashDuration(GAME_CONFIG.TUNNEL_ENTRY.WORMHOLE_CLEAR_FLASH_DURATION * 1000)
+      setFlashVariant('default') // Regular fade in + out
+      setShowFlash(true)
+    }
+    prevWormholeFirstTouchRef.current = wormholeFirstTouch
+  }, [wormholeFirstTouch])
 
   // Debug-only: press V during gameplay to trigger victory screen (temporary — replaced by real victory condition in Epic 6)
   useEffect(() => {
@@ -80,8 +105,15 @@ export default function Interface() {
       {GAME_CONFIG.DEBUG_CONSOLE_ENABLED && (phase === 'gameplay' || phase === 'boss') && <DebugConsole />}
       <WhiteFlashTransition
         active={showFlash}
-        onComplete={() => setShowFlash(false)}
-        duration={GAME_CONFIG.SYSTEM_ENTRY.FLASH_DURATION * 1000}
+        onComplete={() => {
+          setShowFlash(false)
+          // Reset tunnel entry flash flag after completion
+          if (flashVariant === 'fadeOut') {
+            useGame.getState().resetTunnelEntryFlash()
+          }
+        }}
+        duration={flashDuration}
+        variant={flashVariant}
       />
     </>
   )
