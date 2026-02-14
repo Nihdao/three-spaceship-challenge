@@ -233,6 +233,15 @@ const usePlayer = create((set, get) => ({
     fragments: state.fragments + Math.round(amount),
   })),
 
+  healFromGem: (healAmount) => {
+    const { currentHP, maxHP } = get()
+    const actualHealed = Math.min(maxHP - currentHP, healAmount)
+    set({
+      currentHP: Math.min(maxHP, currentHP + healAmount),
+    })
+    return actualHealed
+  },
+
   applyPermanentUpgrade: (upgradeId) => {
     const upgrade = UPGRADES[upgradeId]
     if (!upgrade) return false
