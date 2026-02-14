@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import useGame from '../stores/useGame.jsx'
 import useBoss from '../stores/useBoss.jsx'
 import useAudio from '../hooks/useAudio.jsx'
@@ -72,6 +72,12 @@ export default function Interface() {
     return () => window.removeEventListener('keydown', handler)
   }, [phase])
 
+  // Stable callback ref for WarpTransition — prevents animation restart on parent re-render (H1 fix)
+  const handleWarpComplete = useCallback(() => {
+    setShowWarp(false)
+    useGame.getState().resetTunnelEntryFlash()
+  }, [])
+
   // ESC / P key toggles pause during gameplay (Story 10.6)
   useEffect(() => {
     if (phase !== 'gameplay') return
@@ -111,10 +117,7 @@ export default function Interface() {
       />
       <WarpTransition
         active={showWarp}
-        onComplete={() => {
-          setShowWarp(false)
-          useGame.getState().resetTunnelEntryFlash()
-        }}
+        onComplete={handleWarpComplete}
         duration={GAME_CONFIG.TUNNEL_ENTRY.FLASH_DURATION * 1000}
       />
     </>

@@ -88,16 +88,6 @@
   to { transform: rotate(360deg); }
 }
 
-@keyframes warpSpinReverse {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
-}
-
-@keyframes warpPulse {
-  from { opacity: 0.4; transform: translate(-50%, -50%) scale(0.9); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-}
-
 @keyframes tunnelExitFade {
   from { opacity: 1; }
   to { opacity: 0; }

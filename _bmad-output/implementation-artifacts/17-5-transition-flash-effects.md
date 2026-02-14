@@ -1,6 +1,6 @@
 # Story 17.5: Transition Flash Effects
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -191,6 +191,15 @@ Single-file modification to Interface.jsx:
 
 - src/ui/Interface.jsx
 
+## Senior Developer Review (AI)
+
+**Reviewed:** 2026-02-14
+
+**Note:** Story 17.5's phase-detection approach (adding tunnel detection to the flash useEffect in Interface.jsx) was implemented as part of Story 17.4's code review, then **entirely superseded by Story 17.6** which replaced the phase-detection approach with a flag-based system (`tunnelEntryFlashTriggered` + `WarpTransition` component). The current codebase contains no remnant of Story 17.5's described changes. All boss→tunnel flash behavior is now governed by Story 17.6's implementation.
+
+**Outcome:** Story considered done — its AC requirements (boss→tunnel flash) are fulfilled by Story 17.6's superior implementation.
+
 ## Change Log
 
 - 2026-02-14: Extended Interface.jsx flash detection to support boss→tunnel transitions alongside existing gameplay→tunnel transitions (Story 17.5)
+- 2026-02-14: [Code Review] Story 17.5 implementation superseded by Story 17.6 (flag-based WarpTransition approach replaced phase-detection approach)
