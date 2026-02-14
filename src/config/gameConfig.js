@@ -144,8 +144,15 @@ export const GAME_CONFIG = {
   BOSS_DEFEAT_TRANSITION_DELAY: 3.0,
   BOSS_FRAGMENT_REWARD: 100,
 
-  // System difficulty scaling (Story 7.3)
+  // System difficulty scaling (Story 7.3) — kept for boss scaling (useBoss.jsx)
   SYSTEM_DIFFICULTY_MULTIPLIERS: { 1: 1.0, 2: 1.3, 3: 1.6 },
+
+  // Per-stat enemy scaling per system (Story 18.3)
+  ENEMY_SCALING_PER_SYSTEM: {
+    1: { hp: 1.0, damage: 1.0, speed: 1.0, xpReward: 1.0 },
+    2: { hp: 1.6, damage: 1.5, speed: 1.3, xpReward: 1.4 },
+    3: { hp: 2.5, damage: 2.2, speed: 1.6, xpReward: 2.0 },
+  },
 
   // Tunnel (Story 7.1)
   TUNNEL_ENTRY_ANIMATION_DURATION: 0.8,
@@ -258,7 +265,6 @@ export const GAME_CONFIG = {
     PORTAL_COLOR: '#00ccff',    // portal glow color
     PORTAL_PARTICLE_COUNT: 40,  // orbiting particles around portal
     PORTAL_OFFSET_Z: 40,        // portal position below center (positive Z = bottom of screen)
-    SHIP_SLIDE_OVERSHOOT: 5,    // ship slides slightly past center then settles
   },
 
   // System names for display (Story 17.2)

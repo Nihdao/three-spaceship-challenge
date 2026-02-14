@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import useGame from '../stores/useGame.jsx'
@@ -113,13 +113,18 @@ export default function SystemEntryPortal() {
     uniforms: {
       uTime: { value: 0 },
       uOpacity: { value: 0 },
-      uColor: { value: new THREE.Color('#00ccff') },
+      uColor: { value: new THREE.Color(_cfg.PORTAL_COLOR) },
       uColor2: { value: new THREE.Color('#8844ff') },
     },
     transparent: true,
     side: THREE.DoubleSide,
     depthWrite: false,
   }), [])
+
+  // Dispose shader material on unmount to prevent GPU memory leak
+  useEffect(() => {
+    return () => riftMaterial.dispose()
+  }, [riftMaterial])
 
   // Particle positions scattered around the portal area
   const { positions: particlePositions, velocities: particleVelocities } = useMemo(() => {
@@ -163,7 +168,7 @@ export default function SystemEntryPortal() {
       activeRef.current = true
       elapsedRef.current = 0
       // Ship starts at portal position, hidden off-screen below
-      usePlayer.setState({ position: [0, 0, portalZ + 30], rotation: 0 })
+      usePlayer.getState().setCinematicPosition([0, 0, portalZ + 30])
     }
 
     const clampedDelta = Math.min(delta, 0.1)
@@ -195,7 +200,7 @@ export default function SystemEntryPortal() {
       riftMaterial.uniforms.uOpacity.value = progress
 
       // Ship parked off-screen below portal
-      usePlayer.setState({ position: [0, 0, portalZ + 30], rotation: 0 })
+      usePlayer.getState().setCinematicPosition([0, 0, portalZ + 30])
     } else if (t <= flyEnd) {
       // Phase 2: Ship slides from portal toward center (negative Z = upward on screen)
       portalRef.current.scale.setScalar(1)
@@ -205,7 +210,7 @@ export default function SystemEntryPortal() {
       const flyProgress = easeOutCubic((t - growEnd) / _cfg.SHIP_FLY_IN_TIME)
       // Slide from portal Z to center (0), ship moves upward on screen
       const shipZ = portalZ * (1 - flyProgress)
-      usePlayer.setState({ position: [0, 0, shipZ], rotation: 0 })
+      usePlayer.getState().setCinematicPosition([0, 0, shipZ])
     } else if (t <= shrinkEnd) {
       // Phase 3: Rift closes, ship already at center
       const shrinkProgress = (t - flyEnd) / _cfg.PORTAL_SHRINK_TIME
@@ -214,13 +219,13 @@ export default function SystemEntryPortal() {
       particlesRef.current.scale.setScalar(scale)
       riftMaterial.uniforms.uOpacity.value = scale
 
-      usePlayer.setState({ position: [0, 0, 0], rotation: 0 })
+      usePlayer.getState().setCinematicPosition([0, 0, 0])
     } else {
       // Animation complete
       completedRef.current = true
       portalRef.current.visible = false
       particlesRef.current.visible = false
-      usePlayer.setState({ position: [0, 0, 0], rotation: 0 })
+      usePlayer.getState().setCinematicPosition([0, 0, 0])
       useGame.getState().completeSystemEntry()
     }
 
@@ -269,7 +274,7 @@ export default function SystemEntryPortal() {
           />
         </bufferGeometry>
         <pointsMaterial
-          color="#00ccff"
+          color={_cfg.PORTAL_COLOR}
           size={2}
           transparent
           opacity={0.9}

@@ -1,6 +1,6 @@
 # Story 17.1: System Entry Portal Animation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -240,10 +240,12 @@ Claude Opus 4.6
 ### Change Log
 - 2026-02-14: Implemented full system entry portal animation (Story 17.1) — white flash, portal grow/shrink, ship fly-through, control handoff.
 - 2026-02-14: Extended to trigger on first game start (not just tunnel exits). Replaced basic ring with ShaderMaterial rift/fissure effect (fbm noise, swirl distortion, cyan→purple gradient). Ship slides from portal position (Z=+40) upward to center (Z=0) facing up. Camera fixed at center during systemEntry (no follow). Updated startGameplay() to route through systemEntry phase. Fixed tests.
+- 2026-02-14: Code review fixes — Added ShaderMaterial dispose() on unmount (memory leak fix). Replaced direct usePlayer.setState() calls with setCinematicPosition() action (architecture compliance). Used PORTAL_COLOR config instead of hardcoded colors. Removed dead systemEntryTimer field from useGame. Removed unused SHIP_SLIDE_OVERSHOOT config. Replaced setTimeout with animationend event in WhiteFlashTransition.
 
 ### File List
 - `src/config/gameConfig.js` (modified) — Added SYSTEM_ENTRY config block and SYSTEM_NAMES array
-- `src/stores/useGame.jsx` (modified) — Added systemEntryTimer, startSystemEntry(), completeSystemEntry(), updated reset()
+- `src/stores/useGame.jsx` (modified) — Added startSystemEntry(), completeSystemEntry(), updated reset()
+- `src/stores/usePlayer.jsx` (modified) — Added setCinematicPosition() action for portal animation
 - `src/Experience.jsx` (modified) — Added 'systemEntry' to showGameplay condition
 - `src/GameLoop.jsx` (modified) — Updated tunnel reset condition to include systemEntry, excluded systemEntry from new-game reset
 - `src/ui/WhiteFlashTransition.jsx` (created) — Reusable white flash overlay component

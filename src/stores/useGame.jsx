@@ -15,7 +15,6 @@ const useGame = create(
     highScore: 0,
     isNewHighScore: false,
     _debugGrid: false,
-    systemEntryTimer: 0,
 
     setPhase: (phase) => set({ phase }),
     setPaused: (isPaused) => set({ isPaused }),
@@ -40,14 +39,13 @@ const useGame = create(
     startGameplay: () => set((s) => ({
       phase: 'systemEntry', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
       score: 0, kills: 0, prevCombatPhase: 'gameplay', highScore: s.highScore, isNewHighScore: false,
-      systemEntryTimer: 0,
     })),
     triggerLevelUp: () => set((s) => ({ phase: 'levelUp', isPaused: true, prevCombatPhase: s.phase === 'levelUp' ? s.prevCombatPhase : s.phase })),
     triggerPlanetReward: (tier) => set({ phase: 'planetReward', isPaused: true, rewardTier: tier }),
     resumeGameplay: () => set((s) => ({ phase: s.prevCombatPhase, isPaused: false, rewardTier: null })),
     triggerGameOver: () => set({ phase: 'gameOver', isPaused: true }),
     triggerVictory: () => set({ phase: 'victory', isPaused: true }),
-    startSystemEntry: () => set({ phase: 'systemEntry', systemEntryTimer: 0, isPaused: false }),
+    startSystemEntry: () => set({ phase: 'systemEntry', isPaused: false }),
     completeSystemEntry: () => set({ phase: 'gameplay' }),
     // Store resets happen in GameLoop on gameplay transition, not here
     returnToMenu: () => set({ phase: 'menu', isPaused: false }),
@@ -55,7 +53,7 @@ const useGame = create(
     reset: () => set({
       phase: 'menu', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
       score: 0, kills: 0, rewardTier: null, prevCombatPhase: 'gameplay', highScore: 0, isNewHighScore: false,
-      _debugGrid: false, systemEntryTimer: 0,
+      _debugGrid: false,
     }),
   }))
 )

@@ -378,6 +378,9 @@ const usePlayer = create((set, get) => ({
     })
   },
 
+  // Cinematic position override (used by SystemEntryPortal during systemEntry phase)
+  setCinematicPosition: (pos) => set({ position: pos, rotation: 0 }),
+
   resetForNewSystem: () => set({
     position: [0, 0, 0],
     velocity: [0, 0, 0],
@@ -395,19 +398,13 @@ const usePlayer = create((set, get) => ({
     damageFlashTimer: 0,
     cameraShakeTimer: 0,
     cameraShakeIntensity: 0,
-    currentXP: 0,
-    currentLevel: 1,
-    xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
-    pendingLevelUps: 0,
-    levelsGainedThisBatch: 0,
-    // _appliedMaxHPBonus intentionally preserved across system transitions (boons persist)
-    // INTENTIONALLY PRESERVED across system transitions (within same run):
+    // INTENTIONALLY PRESERVED across system transitions (Story 18.1):
+    // - XP/Level: currentXP, currentLevel, xpToNextLevel, pendingLevelUps, levelsGainedThisBatch
+    //   → Player's progression carries through all systems in a run
     // - Ship selection (Epic 9): currentShipId, shipBaseSpeed, shipBaseDamageMultiplier
-    //   → Player's ship choice persists for entire run (tunnel → system → tunnel → system)
     // - Permanent progression (Epic 7): fragments, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats
-    //   → Meta-progression carries through all systems in a run
     // - HP state: currentHP, maxHP
-    //   → Player's health carries forward (unless they sacrifice HP for fragments in tunnel)
+    // - Boon HP bonus: _appliedMaxHPBonus
   }),
 
   reset: () => {

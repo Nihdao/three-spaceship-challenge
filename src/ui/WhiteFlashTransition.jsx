@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 
 export default function WhiteFlashTransition({ active, onComplete, duration = 200 }) {
   const [visible, setVisible] = useState(false)
+  const divRef = useRef(null)
+
+  const handleAnimationEnd = useCallback(() => {
+    setVisible(false)
+    onComplete?.()
+  }, [onComplete])
 
   useEffect(() => {
     if (!active) {
@@ -9,18 +15,15 @@ export default function WhiteFlashTransition({ active, onComplete, duration = 20
       return
     }
     setVisible(true)
-    const timer = setTimeout(() => {
-      setVisible(false)
-      onComplete?.()
-    }, duration)
-    return () => clearTimeout(timer)
-  }, [active, duration, onComplete])
+  }, [active])
 
   if (!visible) return null
 
   return (
     <div
+      ref={divRef}
       className="white-flash-overlay"
+      onAnimationEnd={handleAnimationEnd}
       style={{
         position: 'fixed',
         inset: 0,
