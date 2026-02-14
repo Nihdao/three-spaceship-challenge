@@ -14,9 +14,10 @@ import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { playSFX } from './audio/audioManager.js'
-import { spawnOrb, updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount, resetOrbs } from './systems/xpOrbSystem.js'
-import { spawnHealGem, updateHealGemMagnetization, collectHealGem, getHealGems, getActiveHealGemCount, resetHealGems } from './systems/healGemSystem.js'
-import { spawnGem, updateMagnetization as updateFragmentGemMagnetization, collectGem, getActiveGems, getActiveCount as getFragmentGemCount, reset as resetFragmentGems } from './systems/fragmentGemSystem.js'
+import { updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount } from './systems/xpOrbSystem.js'
+import { updateHealGemMagnetization, collectHealGem, getHealGems, getActiveHealGemCount } from './systems/healGemSystem.js'
+import { updateMagnetization as updateFragmentGemMagnetization, collectGem, getActiveGems, getActiveCount as getFragmentGemCount } from './systems/fragmentGemSystem.js'
+import { rollDrops, resetAll as resetLoot } from './systems/lootSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 import { WEAPONS } from './entities/weaponDefs.js'
 
@@ -107,9 +108,7 @@ export default function GameLoop() {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       resetParticles()
-      resetOrbs()
-      resetHealGems() // Story 19.2
-      resetFragmentGems() // Story 19.3
+      resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       // Accumulate elapsed time before resetting (for total run time display)
       const prevSystemTime = useGame.getState().systemTimer
       if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
@@ -127,9 +126,7 @@ export default function GameLoop() {
       useWeapons.getState().initializeWeapons()
       useBoons.getState().reset()
       resetParticles()
-      resetOrbs()
-      resetHealGems() // Story 19.2
-      resetFragmentGems() // Story 19.3
+      resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       usePlayer.getState().reset()
       useEnemies.getState().reset()
       useLevel.getState().reset()
@@ -332,24 +329,8 @@ export default function GameLoop() {
         if (event.killed) {
           addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
           playSFX('explosion')
-          const xpReward = event.enemy.xpReward ?? ENEMIES[event.enemy.typeId]?.xpReward ?? 0
-          if (xpReward > 0) {
-            // Story 19.1: Roll for rare XP gem drop
-            const isRare = Math.random() < GAME_CONFIG.RARE_XP_GEM_DROP_CHANCE
-            if (isRare) {
-              spawnOrb(event.enemy.x, event.enemy.z, xpReward * GAME_CONFIG.RARE_XP_GEM_MULTIPLIER, true)
-            } else {
-              spawnOrb(event.enemy.x, event.enemy.z, xpReward, false)
-            }
-          }
-          // Story 19.2: Roll for heal gem drop
-          if (Math.random() < GAME_CONFIG.HEAL_GEM_DROP_CHANCE) {
-            spawnHealGem(event.enemy.x, event.enemy.z, GAME_CONFIG.HEAL_GEM_RESTORE_AMOUNT)
-          }
-          // Story 19.3: Roll for fragment gem drop
-          if (Math.random() < GAME_CONFIG.FRAGMENT_DROP_CHANCE) {
-            spawnGem(event.enemy.x, event.enemy.z, GAME_CONFIG.FRAGMENT_DROP_AMOUNT)
-          }
+          // Story 19.4: Centralized loot drop system
+          rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z)
           useGame.getState().incrementKills()
           useGame.getState().addScore(GAME_CONFIG.SCORE_PER_KILL)
         }

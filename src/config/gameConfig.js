@@ -22,13 +22,25 @@ export const GAME_CONFIG = {
   SPATIAL_HASH_CELL_SIZE: 2, // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
 
+  // ==================================================================================
+  // LOOT SYSTEM (Story 19.4: Consolidated loot configuration)
+  // ==================================================================================
+  // COLOR LEGEND:
+  //   Standard XP orb:  #00ffcc (cyan-green)
+  //   Rare XP gem:      #ffdd00 (golden-yellow) — 1.3x scale, pulse
+  //   Heal gem:         #ff3366 (red-pink) — pulse animation
+  //   Fragment gem:     #cc66ff (purple) — pulse animation
+  //   Fragment HUD icon: #cc66ff (purple) — must match gem color
+  // ==================================================================================
+
   // XP Orbs (Story 3.1, extended Story 11.1, Story 19.1)
   XP_ORB_PICKUP_RADIUS: 2.0,
   XP_MAGNET_RADIUS: 15.0, // Magnetization activation radius (> pickup radius)
   XP_MAGNET_SPEED: 120, // Orb movement speed when magnetized (units/sec)
   XP_MAGNET_ACCELERATION_CURVE: 2.0, // Ease-in exponent: 1.0=linear, 2.0=quadratic
   XP_ORB_MESH_SCALE: [0.8, 0.8, 0.8],
-  XP_ORB_COLOR: "#00ffcc",
+  XP_ORB_COLOR: "#00ffcc", // Cyan-green for standard orbs
+
   // Rare XP Gems (Story 19.1)
   RARE_XP_GEM_DROP_CHANCE: 0.05, // 5% chance for rare gem instead of standard orb
   RARE_XP_GEM_MULTIPLIER: 3, // Rare gems worth 3x base XP
@@ -335,7 +347,7 @@ export const GAME_CONFIG = {
 
   // Tunnel Entry Transition (Story 17.6)
   TUNNEL_ENTRY: {
-    FLASH_DURATION: 1.0,        // seconds — long flash for dramatic boss→tunnel transition (increased from 0.5)
+    FLASH_DURATION: 1.8,        // seconds — very long flash for dramatic boss→tunnel transition (increased for maximum coverage)
     WORMHOLE_CLEAR_FLASH_DURATION: 0.6, // seconds — impressive flash when first touching wormhole after map clear
   },
 

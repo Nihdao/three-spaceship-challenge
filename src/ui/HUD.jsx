@@ -371,7 +371,7 @@ export default function HUD() {
           <div className="flex items-center gap-3">
             <AnimatedStat value={kills} icon="💀" colorClass="text-game-danger" label="kills" />
             {/* Story 19.3: Fragment icon color set to purple (#cc66ff) to match fragment gems */}
-            <AnimatedStat value={fragments} icon="◆" colorClass="text-purple-400" label="fragments" style={{ color: '#cc66ff' }} />
+            <AnimatedStat value={fragments} icon="◆" label="fragments" style={{ color: '#cc66ff' }} />
             <AnimatedStat value={score} icon="⭐" colorClass="text-yellow-400" label="score" />
           </div>
 

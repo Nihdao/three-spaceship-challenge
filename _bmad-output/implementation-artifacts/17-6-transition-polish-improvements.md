@@ -148,4 +148,4 @@ Multi-file changes to improve transition visual feedback and HUD layout:
 
 ## Change Log
 
-- 2026-02-14: Implemented transition polish improvements - longer flash durations for boss→tunnel (1000ms with fadeOut-only animation starting at full opacity), impressive wormhole clear flash (600ms, first touch only), continuous boss timer, repositioned boss HUD to avoid timer overlap, faster wormhole/boss activation timings, and delayed phase transition (850ms) to allow flash to complete covering the transition (Story 17.6)
+- 2026-02-14: Implemented transition polish improvements - longer flash durations for boss→tunnel (1400ms with fadeOut-only animation starting at full opacity), impressive wormhole clear flash (600ms, first touch only), continuous boss timer, repositioned boss HUD to avoid timer overlap, faster wormhole/boss activation timings, quick phase transition (150ms) with flash covering scene loading, and robust flash flag resets for retry scenarios (Story 17.6)

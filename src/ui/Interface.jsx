@@ -14,6 +14,7 @@ import ShipSelect from './ShipSelect.jsx'
 import PauseMenu from './PauseMenu.jsx'
 import DebugConsole from './DebugConsole.jsx'
 import WhiteFlashTransition from './WhiteFlashTransition.jsx'
+import WarpTransition from './WarpTransition.jsx'
 import SystemNameBanner from './SystemNameBanner.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
@@ -37,14 +38,13 @@ export default function Interface() {
     prevPhaseRef.current = phase
   }, [phase])
 
-  // Story 17.6: Tunnel entry flash (triggered independently of phase change)
+  // Story 17.6: Warp vortex transition for boss→tunnel (triggered independently of phase change)
+  const [showWarp, setShowWarp] = useState(false)
   const tunnelEntryFlashTriggered = useGame((s) => s.tunnelEntryFlashTriggered)
   const prevTunnelEntryFlashRef = useRef(tunnelEntryFlashTriggered)
   useEffect(() => {
     if (tunnelEntryFlashTriggered && !prevTunnelEntryFlashRef.current) {
-      setFlashDuration(GAME_CONFIG.TUNNEL_ENTRY.FLASH_DURATION * 1000)
-      setFlashVariant('fadeOut') // Start at full opacity, fade out only
-      setShowFlash(true)
+      setShowWarp(true)
     }
     prevTunnelEntryFlashRef.current = tunnelEntryFlashTriggered
   }, [tunnelEntryFlashTriggered])
@@ -105,15 +105,17 @@ export default function Interface() {
       {GAME_CONFIG.DEBUG_CONSOLE_ENABLED && (phase === 'gameplay' || phase === 'boss') && <DebugConsole />}
       <WhiteFlashTransition
         active={showFlash}
-        onComplete={() => {
-          setShowFlash(false)
-          // Reset tunnel entry flash flag after completion
-          if (flashVariant === 'fadeOut') {
-            useGame.getState().resetTunnelEntryFlash()
-          }
-        }}
+        onComplete={() => setShowFlash(false)}
         duration={flashDuration}
         variant={flashVariant}
+      />
+      <WarpTransition
+        active={showWarp}
+        onComplete={() => {
+          setShowWarp(false)
+          useGame.getState().resetTunnelEntryFlash()
+        }}
+        duration={GAME_CONFIG.TUNNEL_ENTRY.FLASH_DURATION * 1000}
       />
     </>
   )
