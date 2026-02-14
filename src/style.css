@@ -75,9 +75,27 @@
 }
 
 /* Story 17.6: Fade-out only animation for boss→tunnel transition */
+/* Flash stays at 100% for most of the duration, then fades out at the end */
 @keyframes whiteFlashFadeOut {
   0% { opacity: 1; }
-  100% { opacity: 0; }
+  70% { opacity: 1; }   /* Stay at 100% for 70% of duration */
+  100% { opacity: 0; }  /* Fade out during last 30% */
+}
+
+/* Story 17.6: Warp/Vortex transition effect */
+@keyframes warpSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes warpSpinReverse {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes warpPulse {
+  from { opacity: 0.4; transform: translate(-50%, -50%) scale(0.9); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
 }
 
 @keyframes tunnelExitFade {

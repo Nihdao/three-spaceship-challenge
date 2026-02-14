@@ -46,6 +46,8 @@ const useGame = create(
     startGameplay: () => set((s) => ({
       phase: 'systemEntry', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
       score: 0, kills: 0, prevCombatPhase: 'gameplay', highScore: s.highScore, isNewHighScore: false,
+      // Story 17.6: Reset flash flags on new game/retry
+      wormholeFirstTouch: false, tunnelTransitionPending: false, tunnelEntryFlashTriggered: false,
     })),
     triggerLevelUp: () => set((s) => ({ phase: 'levelUp', isPaused: true, prevCombatPhase: s.phase === 'levelUp' ? s.prevCombatPhase : s.phase })),
     triggerPlanetReward: (tier) => set({ phase: 'planetReward', isPaused: true, rewardTier: tier }),
@@ -55,7 +57,14 @@ const useGame = create(
     startSystemEntry: () => set({ phase: 'systemEntry', isPaused: false }),
     completeSystemEntry: () => set({ phase: 'gameplay' }),
     // Store resets happen in GameLoop on gameplay transition, not here
-    returnToMenu: () => set({ phase: 'menu', isPaused: false }),
+    returnToMenu: () => set({
+      phase: 'menu',
+      isPaused: false,
+      // Story 17.6: Reset flash flags when returning to menu
+      wormholeFirstTouch: false,
+      tunnelTransitionPending: false,
+      tunnelEntryFlashTriggered: false,
+    }),
 
     reset: () => set({
       phase: 'menu', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
