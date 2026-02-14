@@ -1,6 +1,8 @@
 import PlayerShip from '../renderers/PlayerShip.jsx'
 import ProjectileRenderer from '../renderers/ProjectileRenderer.jsx'
 import EnemyRenderer from '../renderers/EnemyRenderer.jsx'
+import EnemyProjectileRenderer from '../renderers/EnemyProjectileRenderer.jsx'
+import ShockwaveRenderer from '../renderers/ShockwaveRenderer.jsx'
 import ParticleRenderer from '../renderers/ParticleRenderer.jsx'
 import XPOrbRenderer from '../renderers/XPOrbRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
@@ -52,6 +54,8 @@ export default function GameplayScene() {
 
       {/* Enemies */}
       <EnemyRenderer />
+      <EnemyProjectileRenderer />
+      <ShockwaveRenderer />
 
       {/* XP orbs */}
       <XPOrbRenderer />

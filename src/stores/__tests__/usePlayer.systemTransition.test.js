@@ -52,12 +52,45 @@ describe('usePlayer — resetForNewSystem cross-system preservation (Story 7.3)'
     expect(usePlayer.getState().position).toEqual([0, 0, 0])
   })
 
-  it('resets XP and level', () => {
-    usePlayer.setState({ currentXP: 500, currentLevel: 5, xpToNextLevel: 1000 })
+  it('preserves XP and level across system transition (Story 18.1)', () => {
+    usePlayer.setState({ currentXP: 450, currentLevel: 8, xpToNextLevel: 1200 })
     usePlayer.getState().resetForNewSystem()
+    expect(usePlayer.getState().currentXP).toBe(450)
+    expect(usePlayer.getState().currentLevel).toBe(8)
+    expect(usePlayer.getState().xpToNextLevel).toBe(1200)
+  })
+
+  it('preserves pendingLevelUps across system transition (Story 18.1)', () => {
+    usePlayer.setState({ pendingLevelUps: 2, levelsGainedThisBatch: 2 })
+    usePlayer.getState().resetForNewSystem()
+    expect(usePlayer.getState().pendingLevelUps).toBe(2)
+    expect(usePlayer.getState().levelsGainedThisBatch).toBe(2)
+  })
+
+  it('preserves _appliedMaxHPBonus across system transition (Story 18.1)', () => {
+    usePlayer.setState({ _appliedMaxHPBonus: 15 })
+    usePlayer.getState().resetForNewSystem()
+    expect(usePlayer.getState()._appliedMaxHPBonus).toBe(15)
+  })
+
+  it('full reset() still clears XP and level to defaults (Story 18.1)', () => {
+    usePlayer.setState({ currentXP: 450, currentLevel: 8, xpToNextLevel: 1200, pendingLevelUps: 2 })
+    usePlayer.getState().reset()
     expect(usePlayer.getState().currentXP).toBe(0)
     expect(usePlayer.getState().currentLevel).toBe(1)
     expect(usePlayer.getState().xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[0])
+    expect(usePlayer.getState().pendingLevelUps).toBe(0)
+  })
+
+  it('full transition flow: XP continues accumulating from preserved state (Story 18.1)', () => {
+    // Simulate System 1: player earns XP and reaches level 5
+    usePlayer.setState({ currentXP: 300, currentLevel: 5, xpToNextLevel: 800 })
+    // System transition
+    usePlayer.getState().resetForNewSystem()
+    // In System 2, player collects more XP
+    usePlayer.getState().addXP(200)
+    expect(usePlayer.getState().currentXP).toBe(500)
+    expect(usePlayer.getState().currentLevel).toBe(5)
   })
 
   it('resets dash state', () => {

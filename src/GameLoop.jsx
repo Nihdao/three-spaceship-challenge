@@ -8,7 +8,7 @@ import useLevel from './stores/useLevel.jsx'
 import useWeapons from './stores/useWeapons.jsx'
 import useBoons from './stores/useBoons.jsx'
 import useBoss from './stores/useBoss.jsx'
-import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE } from './systems/collisionSystem.js'
+import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
@@ -388,13 +388,17 @@ export default function GameLoop() {
     const wormholeStatePre = useLevel.getState().wormholeState
     if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && !useGame.getState()._debugSpawnPaused) {
       const currentSystem = useLevel.getState().currentSystem
-      const difficultyMult = GAME_CONFIG.SYSTEM_DIFFICULTY_MULTIPLIERS[currentSystem] || 1.0
-      const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], difficultyMult)
+      const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
+      const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], scaling)
       if (spawnInstructions.length > 0) {
         useEnemies.getState().spawnEnemies(spawnInstructions)
       }
     }
     useEnemies.getState().tick(clampedDelta, playerPos)
+
+    // 5b. Shockwave expansion + enemy projectile movement
+    useEnemies.getState().tickShockwaves(clampedDelta)
+    useEnemies.getState().tickEnemyProjectiles(clampedDelta)
 
     // 6. Collision detection
     const cs = collisionSystemRef.current
@@ -424,6 +428,26 @@ export default function GameLoop() {
       if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
       const p = projectiles[i]
       assignEntity(pool[idx], p.id, p.x, p.z, p.radius, CATEGORY_PROJECTILE)
+      cs.registerEntity(pool[idx++])
+    }
+
+    // Register active shockwaves
+    const shockwaves = useEnemies.getState().shockwaves
+    for (let i = 0; i < shockwaves.length; i++) {
+      if (!shockwaves[i].active) continue
+      const sw = shockwaves[i]
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      assignEntity(pool[idx], sw.id, sw.x, sw.z, sw.radius, CATEGORY_SHOCKWAVE)
+      cs.registerEntity(pool[idx++])
+    }
+
+    // Register active enemy projectiles
+    const enemyProj = useEnemies.getState().enemyProjectiles
+    for (let i = 0; i < enemyProj.length; i++) {
+      if (!enemyProj[i].active) continue
+      const ep = enemyProj[i]
+      if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
+      assignEntity(pool[idx], ep.id, ep.x, ep.z, ep.radius, CATEGORY_ENEMY_PROJECTILE)
       cs.registerEntity(pool[idx++])
     }
 
@@ -479,7 +503,7 @@ export default function GameLoop() {
         if (event.killed) {
           addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
           playSFX('explosion')
-          const xpReward = ENEMIES[event.enemy.typeId]?.xpReward ?? 0
+          const xpReward = event.enemy.xpReward ?? ENEMIES[event.enemy.typeId]?.xpReward ?? 0
           if (xpReward > 0) {
             spawnOrb(event.enemy.x, event.enemy.z, xpReward)
           }
@@ -504,6 +528,43 @@ export default function GameLoop() {
         }
         if (totalDamage > 0) {
           usePlayer.getState().takeDamage(totalDamage, boonModifiers.damageReduction ?? 0)
+          playSFX('damage-taken')
+        }
+      }
+    }
+
+    // 7d-bis. Shockwave vs player damage
+    const swHits = cs.queryCollisions(pool[0], CATEGORY_SHOCKWAVE)
+    if (swHits.length > 0) {
+      const pState = usePlayer.getState()
+      if (pState.contactDamageCooldown <= 0 && !pState.isInvulnerable) {
+        let totalSwDamage = 0
+        for (let i = 0; i < swHits.length; i++) {
+          const sw = shockwaves.find(s => s.id === swHits[i].id)
+          if (sw) totalSwDamage += sw.damage
+        }
+        if (totalSwDamage > 0) {
+          usePlayer.getState().takeDamage(totalSwDamage, boonModifiers.damageReduction ?? 0)
+          playSFX('damage-taken')
+        }
+      }
+    }
+
+    // 7d-ter. Enemy projectile vs player damage
+    const epHits = cs.queryCollisions(pool[0], CATEGORY_ENEMY_PROJECTILE)
+    if (epHits.length > 0) {
+      const pState = usePlayer.getState()
+      if (pState.contactDamageCooldown <= 0 && !pState.isInvulnerable) {
+        let totalEpDamage = 0
+        for (let i = 0; i < epHits.length; i++) {
+          const ep = enemyProj.find(p => p.id === epHits[i].id)
+          if (ep) {
+            totalEpDamage += ep.damage
+            ep.active = false // Despawn on hit
+          }
+        }
+        if (totalEpDamage > 0) {
+          usePlayer.getState().takeDamage(totalEpDamage, boonModifiers.damageReduction ?? 0)
           playSFX('damage-taken')
         }
       }

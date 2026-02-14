@@ -180,6 +180,15 @@ const useWeapons = create((set, get) => ({
     }
   },
 
+  clearProjectiles: () => {
+    nextProjectileId = 0
+    const { activeWeapons } = get()
+    set({
+      projectiles: [],
+      activeWeapons: activeWeapons.map(w => ({ ...w, cooldownTimer: 0 })),
+    })
+  },
+
   reset: () => {
     nextProjectileId = 0
     set({ activeWeapons: [], projectiles: [] })

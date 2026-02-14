@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createSpawnSystem } from '../spawnSystem.js'
 import { GAME_CONFIG } from '../../config/gameConfig.js'
+import { ENEMIES } from '../../entities/enemyDefs.js'
 
 describe('spawnSystem', () => {
   let ss
@@ -74,9 +75,10 @@ describe('spawnSystem', () => {
   })
 
   it('should pick valid enemy types from weighted random', () => {
+    const validTypeIds = Object.keys(ENEMIES).filter(k => ENEMIES[k].spawnWeight > 0)
     const result = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0)
     for (const inst of result) {
-      expect(['FODDER_BASIC', 'FODDER_FAST']).toContain(inst.typeId)
+      expect(validTypeIds).toContain(inst.typeId)
     }
   })
 
@@ -140,5 +142,52 @@ describe('spawnSystem', () => {
     // After reset, should behave like fresh system
     const result = ss.tick(0.5, 0, 0)
     expect(result).toEqual([])
+  })
+
+  // Story 18.3: scaling object pass-through
+  it('should pass scaling object through to spawn instructions', () => {
+    const scaling = { hp: 1.6, damage: 1.5, speed: 1.3, xpReward: 1.4 }
+    const result = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0, scaling)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    for (const inst of result) {
+      expect(inst.scaling).toBe(scaling)
+    }
+  })
+
+  it('should pass null scaling when no scaling argument provided', () => {
+    const result = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0)
+    expect(result.length).toBeGreaterThanOrEqual(1)
+    expect(result[0].scaling).toBeNull()
+  })
+
+  // Story 16.2: Sweep group spawning
+  describe('sweep group spawning', () => {
+    it('should spawn sweep enemies with shared sweepDirection', () => {
+      // Spawn many batches to ensure we hit a sweep type
+      let sweepInstructions = []
+      for (let attempt = 0; attempt < 200; attempt++) {
+        ss.reset()
+        const result = ss.tick(GAME_CONFIG.SPAWN_INTERVAL_BASE + 0.01, 0, 0)
+        const sweeps = result.filter(r => r.typeId === 'FODDER_SWARM')
+        if (sweeps.length > 0) {
+          sweepInstructions = sweeps
+          break
+        }
+      }
+
+      if (sweepInstructions.length > 0) {
+        // All sweep enemies in a group share the same sweepDirection
+        const dir = sweepInstructions[0].sweepDirection
+        expect(dir).toBeDefined()
+        expect(dir).toHaveProperty('x')
+        expect(dir).toHaveProperty('z')
+        for (const inst of sweepInstructions) {
+          expect(inst.sweepDirection).toBe(dir)
+        }
+        // Group size 3-5
+        expect(sweepInstructions.length).toBeGreaterThanOrEqual(3)
+        expect(sweepInstructions.length).toBeLessThanOrEqual(5)
+      }
+    })
   })
 })

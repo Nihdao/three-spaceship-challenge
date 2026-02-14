@@ -7,6 +7,7 @@ import BossProjectileRenderer from '../renderers/BossProjectileRenderer.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import useGame from '../stores/useGame.jsx'
 import StarfieldLayer from '../renderers/StarfieldLayer.jsx'
 
 function CameraRig() {
@@ -54,8 +55,9 @@ function ArenaBoundary() {
 }
 
 function ArenaFloor() {
+  const debugGrid = useGame((s) => !!s._debugGrid)
   const gridSize = ARENA_SIZE * 2.2
-  const gridConfig = GRID_VISIBILITY.BOSS
+  const gridConfig = debugGrid ? GRID_VISIBILITY.DEBUG : GRID_VISIBILITY.BOSS
 
   return (
     <group>
@@ -63,9 +65,9 @@ function ArenaFloor() {
         <planeGeometry args={[gridSize, gridSize]} />
         <meshBasicMaterial color="#0a0015" transparent opacity={0.3} depthWrite={false} />
       </mesh>
-      {/* Story 15.3: reduced visibility grid */}
-      {gridConfig.enabled && (
-        <gridHelper args={[gridSize, gridConfig.divisions, gridConfig.colorCenterLine, gridConfig.colorGrid]} position={[0, 0, 0]} />
+      {/* Story 15.3: reduced visibility grid, debug toggle support */}
+      {(debugGrid || GRID_VISIBILITY.BOSS.enabled) && (
+        <gridHelper args={[gridSize, GRID_VISIBILITY.BOSS.divisions, gridConfig.colorCenterLine, gridConfig.colorGrid]} position={[0, 0, 0]} />
       )}
     </group>
   )
