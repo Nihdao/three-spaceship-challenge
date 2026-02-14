@@ -1,6 +1,6 @@
 # Story 16.3: Time-Based Enemy Spawn System
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -28,33 +28,33 @@ So that difficulty ramps up naturally and each phase of the run feels distinct.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add TIME_GATED_SPAWN_SCHEDULE to gameConfig.js (AC: #1-#6)
-  - [ ] 1.1: Define spawn schedule array with `{ minTime, typeId }` entries for each unlock threshold
-  - [ ] 1.2: Include all 7 spawnable enemy types (excluding BOSS_SENTINEL) with their time gates
+- [x] Task 1: Add TIME_GATED_SPAWN_SCHEDULE to gameConfig.js (AC: #1-#6)
+  - [x] 1.1: Define spawn schedule array with `{ minTime, typeId }` entries for each unlock threshold
+  - [x] 1.2: Include all 7 spawnable enemy types (excluding BOSS_SENTINEL) with their time gates
 
-- [ ] Task 2: Refactor spawnSystem.js pickEnemyType() for time-gated selection (AC: #1-#7)
-  - [ ] 2.1: Replace static `enemyTypes` / `totalWeight` pre-computation with dynamic filtering based on `elapsedTime`
-  - [ ] 2.2: Create `getAvailableEnemyTypes(elapsedTime)` function that filters ENEMIES by the spawn schedule
-  - [ ] 2.3: Compute `totalWeight` dynamically from the available types at current time
-  - [ ] 2.4: Update `pickEnemyType()` to accept `elapsedTime` parameter and use filtered list
+- [x] Task 2: Refactor spawnSystem.js pickEnemyType() for time-gated selection (AC: #1-#7)
+  - [x] 2.1: Replace static `enemyTypes` / `totalWeight` pre-computation with dynamic filtering based on `elapsedTime`
+  - [x] 2.2: Create `getAvailableEnemyTypes(elapsedTime)` function that filters ENEMIES by the spawn schedule
+  - [x] 2.3: Compute `totalWeight` dynamically from the available types at current time
+  - [x] 2.4: Update `pickEnemyType()` to accept `elapsedTime` parameter and use filtered list
 
-- [ ] Task 3: Handle FODDER_SWARM group spawning (AC: #2)
-  - [ ] 3.1: When pickEnemyType() selects FODDER_SWARM, spawn 3-5 enemies in a tight cluster instead of 1
-  - [ ] 3.2: Cluster spawn positions offset from base position by small random amounts (within ~10-15 unit radius)
+- [x] Task 3: Handle FODDER_SWARM group spawning (AC: #2)
+  - [x] 3.1: When pickEnemyType() selects FODDER_SWARM, spawn 3-5 enemies in a tight cluster instead of 1
+  - [x] 3.2: Cluster spawn positions offset from base position by small random amounts (within ~10-15 unit radius)
 
-- [ ] Task 4: Write unit tests for time-gated spawn logic
-  - [ ] 4.1: Test that only FODDER_BASIC and FODDER_FAST spawn at elapsedTime=0
-  - [ ] 4.2: Test that FODDER_SWARM becomes available at elapsedTime=60
-  - [ ] 4.3: Test that SHOCKWAVE_BLOB becomes available at elapsedTime=120
-  - [ ] 4.4: Test that SNIPER_MOBILE becomes available at elapsedTime=180
-  - [ ] 4.5: Test that SNIPER_FIXED becomes available at elapsedTime=300
-  - [ ] 4.6: Test that TELEPORTER becomes available at elapsedTime=360
-  - [ ] 4.7: Test that all types remain available once unlocked (no type is ever removed)
-  - [ ] 4.8: Test weighted random selection distributes proportionally among available types
+- [x] Task 4: Write unit tests for time-gated spawn logic
+  - [x] 4.1: Test that only FODDER_BASIC and FODDER_FAST spawn at elapsedTime=0
+  - [x] 4.2: Test that FODDER_SWARM becomes available at elapsedTime=60
+  - [x] 4.3: Test that SHOCKWAVE_BLOB becomes available at elapsedTime=120
+  - [x] 4.4: Test that SNIPER_MOBILE becomes available at elapsedTime=180
+  - [x] 4.5: Test that SNIPER_FIXED becomes available at elapsedTime=300
+  - [x] 4.6: Test that TELEPORTER becomes available at elapsedTime=360
+  - [x] 4.7: Test that all types remain available once unlocked (no type is ever removed)
+  - [x] 4.8: Test weighted random selection distributes proportionally among available types
 
-- [ ] Task 5: Update debug commands if needed (AC: #7)
-  - [ ] 5.1: Verify `spawn <type>` debug command still works with new enemy types (bypasses time gate)
-  - [ ] 5.2: Verify `spawnwave` debug command still works (bypasses time gate)
+- [x] Task 5: Update debug commands if needed (AC: #7)
+  - [x] 5.1: Verify `spawn <type>` debug command still works with new enemy types (bypasses time gate)
+  - [x] 5.2: Verify `spawnwave` debug command still works (bypasses time gate)
 
 ## Dev Notes
 
@@ -243,10 +243,47 @@ The `spawnwave` command has inline enemy type selection logic. Check if it needs
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### Debug Log References
 
+N/A - All tests passed on first implementation after fixes
+
 ### Completion Notes List
 
+✅ **Task 1 - TIME_GATED_SPAWN_SCHEDULE Configuration (2026-02-14)**
+- Added TIME_GATED_SPAWN_SCHEDULE to `gameConfig.js` with 7 enemy types and their time gates
+- Schedule: FODDER_BASIC/TANK (0s), FODDER_SWARM (60s), SHOCKWAVE_BLOB (120s), SNIPER_MOBILE (180s), SNIPER_FIXED (300s), TELEPORTER (360s)
+
+✅ **Task 2 - Time-Gated Spawn System Refactor (2026-02-14)**
+- Created `getAvailableEnemyTypes(elapsedTime)` function to filter enemies based on TIME_GATED_SPAWN_SCHEDULE
+- Refactored `pickEnemyType()` to use dynamic filtering instead of static pre-computation
+- Weighted random selection now works only on time-unlocked enemy types
+- Reset functionality properly returns to t=0 spawn behavior
+
+✅ **Task 3 - FODDER_SWARM Group Spawning (2026-02-14)**
+- Group spawning for FODDER_SWARM was already implemented in Story 16.2
+- No changes needed - existing code handles 3-5 enemy clusters with shared sweep direction
+
+✅ **Task 4 - Comprehensive Unit Tests (2026-02-14)**
+- Added 13 new test cases covering all time thresholds (0s, 60s, 120s, 180s, 300s, 360s)
+- Tests verify correct enemy availability at each time gate
+- Tests confirm earlier enemy types remain available after later types unlock
+- Tests validate weighted random distribution and reset behavior
+- All 26 spawnSystem tests pass (13 new + 13 existing)
+
+✅ **Task 5 - Debug Command Verification (2026-02-14)**
+- Verified `spawn <type>` command bypasses time gates and works with all 8 enemy types
+- Verified `spawnwave <level>` command uses weighted spawning without time-gating (intended behavior for debug)
+- Both commands intentionally bypass spawnSystem for testing flexibility
+
+**Test Results:**
+- spawnSystem.test.js: 26/26 tests passing
+- Full test suite: 1254/1254 tests passing
+- No regressions introduced
+
 ### File List
+
+- `src/config/gameConfig.js` - Added TIME_GATED_SPAWN_SCHEDULE config
+- `src/systems/spawnSystem.js` - Refactored with getAvailableEnemyTypes() and dynamic pickEnemyType()
+- `src/systems/__tests__/spawnSystem.test.js` - Added 13 new test cases for time-gated spawning

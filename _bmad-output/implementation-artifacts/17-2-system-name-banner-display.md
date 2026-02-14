@@ -1,6 +1,6 @@
 # Story 17.2: System Name Banner Display
 
-Status: review
+Status: done
 
 ## Story
 
@@ -236,12 +236,54 @@ N/A - No debugging required. Implementation was straightforward following existi
 - ✅ AC#4: SYSTEM_NAMES array with 3 unique system names in gameConfig.js
 - ✅ AC#5: HTML overlay with CSS animations, no JavaScript animation libraries - enhanced with local state management for graceful unmounting
 
+### Code Review Fixes (2026-02-14)
+
+**Issues Found:** 1 High, 4 Medium, 5 Low (10 total)
+
+**Fixes Applied (5 issues fixed):**
+
+1. **[HIGH] File List Documentation Inaccuracy** — FIXED
+   - Removed `gameConfig.js` from Modified list
+   - Added note clarifying that SYSTEM_BANNER config was added in Story 17.1 code review commit (028fe43), not this story
+
+2. **[MEDIUM] Zero Test Coverage** — FIXED
+   - Created `src/ui/__tests__/SystemNameBanner.test.jsx` with 20 tests covering:
+     - SYSTEM_NAMES array validation (3 systems, non-empty strings)
+     - 1-indexed to 0-indexed mapping logic
+     - Out-of-bounds fallback behavior
+     - SYSTEM_BANNER config timing validation
+     - Phase transition integration with useGame store
+     - currentSystem integration with useLevel store
+
+3. **[MEDIUM] CSS Animation Timing Not Driven by Config** — FIXED
+   - Updated `SystemNameBanner.jsx` to calculate total duration from `GAME_CONFIG.SYSTEM_BANNER` and apply via CSS custom properties
+   - Updated `src/style.css` to use `var(--animation-duration)` and `var(--animation-delay)` instead of hardcoded values
+   - Animation timing now respects config changes without CSS edits
+
+4. **[MEDIUM] No Array Bounds Validation** — FIXED
+   - Added `console.warn` in dev mode when `SYSTEM_NAMES[currentSystem - 1]` is undefined
+   - Fallback to `"SYSTEM ${currentSystem}"` remains unchanged
+   - Helps catch config/data issues during development
+
+5. **[MEDIUM] Potential Memory Leak with onAnimationEnd** — FIXED
+   - Added `useEffect` cleanup on unmount to reset `isVisible` state
+   - Prevents potential stale state if component unmounts mid-animation
+
+**Low-Severity Issues Not Fixed (design decisions documented in Dev Notes):**
+- Position deviation (bottom → top): Documented as refined for better visibility
+- Font size deviation (48-64px → 24px): Documented as refined for subtlety
+- Color theme deviation (cyan → magenta): Documented as matching main menu
+- Redundant local state: Kept for graceful animation completion on phase change
+- Missing visual regression tests: Manual testing documented in Tasks 5.1-5.5
+
 ### File List
 
 **Created:**
 - `src/ui/SystemNameBanner.jsx`
+- `src/ui/__tests__/SystemNameBanner.test.jsx` (added in code review)
 
 **Modified:**
-- `src/config/gameConfig.js` (updated SYSTEM_NAMES, added SYSTEM_BANNER config)
 - `src/ui/Interface.jsx` (imported and rendered SystemNameBanner)
-- `src/style.css` (added @keyframes systemBanner animation and banner styles)
+- `src/style.css` (added @keyframes systemBanner animation and banner styles, updated to use CSS custom properties for config-driven timing)
+
+**Note:** `src/config/gameConfig.js` was NOT modified in this story's commit (47e7df6). The `SYSTEM_NAMES` array and `SYSTEM_BANNER` config block were added in Story 17.1's code review commit (028fe43).
