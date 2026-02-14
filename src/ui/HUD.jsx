@@ -316,7 +316,26 @@ export default function HUD() {
   const activeScanPlanetId = useLevel((s) => s.activeScanPlanetId)
   const wormholeState = useLevel((s) => s.wormholeState)
   const wormhole = useLevel((s) => s.wormhole)
-  const sniperFixedEnemies = useEnemies((s) => s.enemies.filter(e => e.behavior === 'sniper_fixed'))
+  // Poll sniper_fixed enemies imperatively (they have speed=0, so positions are stable).
+  // Using a reactive Zustand selector here causes infinite re-renders because
+  // set() is called inside tick() for shockwave/projectile spawning.
+  const [sniperFixedEnemies, setSniperFixedEnemies] = useState([])
+  useEffect(() => {
+    const id = setInterval(() => {
+      const enemies = useEnemies.getState().enemies
+      const snipers = []
+      for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i]
+        if (e.behavior === 'sniper_fixed') snipers.push({ id: e.id, x: e.x, z: e.z })
+      }
+      setSniperFixedEnemies(prev =>
+        prev.length === snipers.length && prev.every((p, j) => p.id === snipers[j].id)
+          ? prev
+          : snipers
+      )
+    }, 500)
+    return () => clearInterval(id)
+  }, [])
 
   const remaining = GAME_CONFIG.SYSTEM_TIMER - systemTimer
   const timerDisplay = formatTimer(remaining)
