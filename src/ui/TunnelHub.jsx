@@ -102,12 +102,12 @@ export default function TunnelHub() {
       useLevel.getState().advanceSystem()
       usePlayer.getState().resetForNewSystem()
       setExitAnimationActive(false)
-      useGame.getState().setPhase('gameplay')
+      useGame.getState().startSystemEntry()
     } catch (err) {
       console.error('Tunnel exit transition failed:', err)
       setExitAnimationActive(false)
       try {
-        useGame.getState().setPhase('gameplay')
+        useGame.getState().startSystemEntry()
       } catch (fallbackErr) {
         console.error('Tunnel exit fallback also failed:', fallbackErr)
       }

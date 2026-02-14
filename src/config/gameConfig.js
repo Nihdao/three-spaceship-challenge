@@ -248,6 +248,22 @@ export const GAME_CONFIG = {
     },
   },
 
+  // System Entry Cinematic (Story 17.1)
+  SYSTEM_ENTRY: {
+    FLASH_DURATION: 0.2,        // seconds — white flash total duration
+    PORTAL_GROW_TIME: 0.9,      // seconds — portal scale 0→1 (ease-out)
+    SHIP_FLY_IN_TIME: 1.2,      // seconds — ship flies through portal to center
+    PORTAL_SHRINK_TIME: 0.5,    // seconds — portal disappears after ship arrival
+    PORTAL_RADIUS: 12,          // world units — portal disc radius
+    PORTAL_COLOR: '#00ccff',    // portal glow color
+    PORTAL_PARTICLE_COUNT: 40,  // orbiting particles around portal
+    PORTAL_OFFSET_Z: 40,        // portal position below center (positive Z = bottom of screen)
+    SHIP_SLIDE_OVERSHOOT: 5,    // ship slides slightly past center then settles
+  },
+
+  // System names for display (Story 17.2)
+  SYSTEM_NAMES: ['ALPHA', 'BETA', 'GAMMA'],
+
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
     EMISSIVE_INTENSITY: 0, // Hull emissive — not needed with strong point/fill lights

@@ -21,7 +21,7 @@ describe('Ship selection integration flow (Story 9.1 - Task 9)', () => {
     // Select ship and start gameplay
     usePlayer.getState().setCurrentShipId('BALANCED')
     useGame.getState().startGameplay()
-    expect(useGame.getState().phase).toBe('gameplay')
+    expect(useGame.getState().phase).toBe('systemEntry')
   })
 
   it('9.2: BACK button returns to MainMenu without breaking state', () => {

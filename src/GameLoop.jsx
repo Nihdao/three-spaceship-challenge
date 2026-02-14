@@ -72,9 +72,9 @@ export default function GameLoop() {
     // Clear residual entities when entering from tunnel (new system)
     // advanceSystem + resetForNewSystem are called by TunnelHub BEFORE phase change
     // GameLoop only clears entity pools and resets per-system systems
-    if (phase === 'gameplay' && prevPhaseRef.current === 'tunnel') {
+    if ((phase === 'gameplay' || phase === 'systemEntry') && prevPhaseRef.current === 'tunnel') {
       useEnemies.getState().reset()
-      useWeapons.getState().initializeWeapons()
+      useWeapons.getState().clearProjectiles()
       useBoss.getState().reset()
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
@@ -90,8 +90,8 @@ export default function GameLoop() {
       useLevel.getState().initializePlanets()
     }
 
-    // Reset systems only when starting a new game (from menu), not when resuming from levelUp, planetReward, or tunnel
-    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward' && prevPhaseRef.current !== 'tunnel') {
+    // Reset systems only when starting a new game (from menu), not when resuming from levelUp, planetReward, tunnel, or systemEntry→gameplay
+    if ((phase === 'gameplay' || phase === 'systemEntry') && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward' && prevPhaseRef.current !== 'tunnel' && prevPhaseRef.current !== 'systemEntry') {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       useWeapons.getState().initializeWeapons()

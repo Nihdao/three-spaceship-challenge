@@ -163,6 +163,40 @@ development_status:
   epic-15: in-progress
   15-1-unified-player-lighting-all-scenes: done
   15-2-multi-layer-starfield-parallax: done
-  15-3-grid-visibility-reduction-ambient-fog: in-progress
-  15-4-ambient-light-zones-nebula-effects: ready-for-dev
+  15-3-grid-visibility-reduction-ambient-fog: done
+  15-4-ambient-light-zones-nebula-effects: ready-for-dev # not to do
   epic-15-retrospective: optional
+
+  # Epic 16: Enemy System Expansion
+  epic-16: in-progress
+  16-1-enemy-definitions-model-integration: done
+  16-2-enemy-behavior-system-implementation: ready-for-dev
+  16-3-time-based-enemy-spawn-system: ready-for-dev
+  16-4-enemy-difficulty-scaling-across-systems: ready-for-dev
+  epic-16-retrospective: optional
+
+  # Epic 17: Cinematic Transitions & Wormhole Overhaul
+  epic-17: in-progress
+  17-1-system-entry-portal-animation: review
+  17-2-system-name-banner-display: ready-for-dev
+  17-3-wormhole-visual-overhaul: ready-for-dev
+  17-4-boss-arrival-in-gameplay-scene: ready-for-dev
+  17-5-transition-flash-effects: ready-for-dev
+  epic-17-retrospective: optional
+
+  # Epic 18: Cross-System Progression Persistence
+  epic-18: in-progress
+  18-1-progression-state-persistence-across-systems: done
+  18-2-system-specific-state-reset: review
+  18-3-enemy-difficulty-scaling-systems-2-3: ready-for-dev
+  18-4-run-continuity-state-management: ready-for-dev
+  epic-18-retrospective: optional
+
+  # Epic 19: Enemy Loot System
+  epic-19: in-progress
+  19-1-rare-xp-gem-drops: ready-for-dev
+  19-2-heal-gem-drops: ready-for-dev
+  19-3-fragment-drops: ready-for-dev
+  19-4-loot-visual-consistency-drop-pool-management: backlog
+  19-5-loot-system-extensibility-future-chest-preparation: backlog
+  epic-19-retrospective: optional

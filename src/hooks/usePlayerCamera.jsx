@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useControls } from "leva";
 import usePlayer from "../stores/usePlayer.jsx";
+import useGame from "../stores/useGame.jsx";
 import { GAME_CONFIG } from "../config/gameConfig.js";
 
 const _targetPos = new THREE.Vector3();
@@ -47,6 +48,14 @@ export function usePlayerCamera() {
   const smoothedPosition = useRef(new THREE.Vector3(0, 120, 0));
 
   useFrame((state, delta) => {
+    const { phase } = useGame.getState();
+    // During systemEntry, fix camera at center so ship slides into frame
+    if (phase === 'systemEntry') {
+      smoothedPosition.current.set(0, offsetY, 0);
+      state.camera.position.copy(smoothedPosition.current);
+      state.camera.rotation.set(-Math.PI / 2, 0, 0);
+      return;
+    }
     const playerState = usePlayer.getState();
     computeCameraFrame(state.camera, smoothedPosition.current, playerState, delta, offsetY, posSmooth, state.clock.elapsedTime);
   });
