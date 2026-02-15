@@ -129,6 +129,7 @@ function UpgradeCard({ upgradeId }) {
 
 export default function UpgradesScreen({ onClose }) {
   const fragments = usePlayer(s => s.fragments)
+  const totalFragmentsSpent = useUpgrades(s => s.getTotalFragmentsSpent())
 
   // Keyboard: Escape to close
   useEffect(() => {
@@ -163,10 +164,27 @@ export default function UpgradesScreen({ onClose }) {
             PERMANENT UPGRADES
           </h1>
 
-          {/* Fragment balance */}
-          <div className="flex items-center gap-2 select-none">
-            <span className="text-[#cc66ff] text-lg">◆</span>
-            <span className="text-game-text font-semibold text-lg tabular-nums">{fragments}</span>
+          <div className="flex items-center gap-4">
+            {/* Fragment balance */}
+            <div className="flex items-center gap-2 select-none">
+              <span className="text-[#cc66ff] text-lg">◆</span>
+              <span className="text-game-text font-semibold text-lg tabular-nums">{fragments}</span>
+            </div>
+
+            {/* REFUND ALL button */}
+            {totalFragmentsSpent > 0 && (
+              <button
+                onClick={() => {
+                  playSFX('button-click')
+                  useUpgrades.getState().refundAll()
+                }}
+                onMouseEnter={() => playSFX('button-hover')}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold tracking-wider rounded transition-colors select-none"
+                aria-label="Refund all upgrades"
+              >
+                REFUND ALL
+              </button>
+            )}
           </div>
         </div>
 
