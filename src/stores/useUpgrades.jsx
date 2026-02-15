@@ -77,6 +77,21 @@ const useUpgrades = create((set, get) => ({
     return bonuses
   },
 
+  /**
+   * Refunds all spent Fragments and resets all upgrades to level 0.
+   * Persists changes immediately to localStorage.
+   * @returns {void}
+   */
+  refundAll: () => {
+    const state = get()
+    const totalSpent = state.getTotalFragmentsSpent()
+
+    set({ upgradeLevels: {} })
+    setPersistedUpgrades({})
+
+    usePlayer.getState().addFragments(totalSpent)
+  },
+
   reset: () => {
     set({ upgradeLevels: {} })
     setPersistedUpgrades({})
