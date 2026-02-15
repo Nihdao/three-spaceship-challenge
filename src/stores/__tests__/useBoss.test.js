@@ -26,8 +26,8 @@ describe('useBoss store', () => {
       expect(state.boss).not.toBeNull()
       expect(state.boss.x).toBe(0)
       expect(state.boss.z).toBe(0)
-      expect(state.boss.hp).toBe(GAME_CONFIG.BOSS_HP)
-      expect(state.boss.maxHp).toBe(GAME_CONFIG.BOSS_HP)
+      expect(state.boss.hp).toBe(GAME_CONFIG.BOSS_BASE_HP)
+      expect(state.boss.maxHp).toBe(GAME_CONFIG.BOSS_BASE_HP)
       expect(state.boss.phase).toBe(0)
       expect(state.boss.attackCooldown).toBe(GAME_CONFIG.BOSS_ATTACK_COOLDOWN)
       expect(state.boss.telegraphTimer).toBe(0)
@@ -44,13 +44,13 @@ describe('useBoss store', () => {
     it('reduces boss HP by damage amount', () => {
       useBoss.getState().spawnBoss()
       const result = useBoss.getState().damageBoss(50)
-      expect(useBoss.getState().boss.hp).toBe(GAME_CONFIG.BOSS_HP - 50)
+      expect(useBoss.getState().boss.hp).toBe(GAME_CONFIG.BOSS_BASE_HP - 50)
       expect(result.killed).toBe(false)
     })
 
     it('returns killed: true when HP reaches 0', () => {
       useBoss.getState().spawnBoss()
-      const result = useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      const result = useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       expect(useBoss.getState().boss.hp).toBe(0)
       expect(result.killed).toBe(true)
       expect(useBoss.getState().bossDefeated).toBe(true)
@@ -58,7 +58,7 @@ describe('useBoss store', () => {
 
     it('does not reduce HP below 0', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP + 100)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP + 100)
       expect(useBoss.getState().boss.hp).toBe(0)
     })
 
@@ -117,17 +117,17 @@ describe('useBoss store', () => {
     it('updates boss phase at HP thresholds', () => {
       useBoss.getState().spawnBoss()
       // Damage to below 75%
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP * 0.26)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP * 0.26)
       useBoss.getState().tick(0.016, [100, 0, 100])
       expect(useBoss.getState().boss.phase).toBe(1)
 
       // Damage to below 50%
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP * 0.25)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP * 0.25)
       useBoss.getState().tick(0.016, [100, 0, 100])
       expect(useBoss.getState().boss.phase).toBe(2)
 
       // Damage to below 25%
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP * 0.25)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP * 0.25)
       useBoss.getState().tick(0.016, [100, 0, 100])
       expect(useBoss.getState().boss.phase).toBe(3)
     })
@@ -166,7 +166,7 @@ describe('useBoss store', () => {
   describe('damageBoss() defeat flow (Story 6.3)', () => {
     it('starts defeat animation timer when boss is killed', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       const state = useBoss.getState()
       expect(state.bossDefeated).toBe(true)
       expect(state.defeatAnimationTimer).toBe(GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY)
@@ -180,7 +180,7 @@ describe('useBoss store', () => {
       useBoss.getState().tick(GAME_CONFIG.BOSS_TELEGRAPH_DURATION, [100, 0, 100])
       expect(useBoss.getState().bossProjectiles.length).toBeGreaterThan(0)
       // Kill boss
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       expect(useBoss.getState().bossProjectiles).toEqual([])
     })
   })
@@ -195,14 +195,14 @@ describe('useBoss store', () => {
 
     it('decrements defeatAnimationTimer', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       useBoss.getState().defeatTick(0.5)
       expect(useBoss.getState().defeatAnimationTimer).toBe(GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY - 0.5)
     })
 
     it('triggers first explosion immediately', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       const result = useBoss.getState().defeatTick(0.01)
       expect(result.explosions.length).toBe(1)
       expect(result.explosions[0].isFinal).toBe(false)
@@ -211,7 +211,7 @@ describe('useBoss store', () => {
 
     it('triggers explosions at intervals', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       // First tick triggers explosion 1
       const r1 = useBoss.getState().defeatTick(0.01)
       expect(r1.explosions.length).toBe(1)
@@ -224,7 +224,7 @@ describe('useBoss store', () => {
 
     it('does not exceed max explosion count', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       // Tick past all explosion intervals
       const totalExplosionTime = GAME_CONFIG.BOSS_DEATH_EXPLOSION_COUNT * GAME_CONFIG.BOSS_DEATH_EXPLOSION_INTERVAL
       useBoss.getState().defeatTick(totalExplosionTime + 1)
@@ -233,7 +233,7 @@ describe('useBoss store', () => {
 
     it('returns animationComplete when timer reaches 0', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       const result = useBoss.getState().defeatTick(GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY)
       expect(result.animationComplete).toBe(true)
       expect(useBoss.getState().defeatAnimationTimer).toBe(0)
@@ -244,7 +244,7 @@ describe('useBoss store', () => {
       // Move boss to a known position
       useBoss.getState().tick(0.5, [100, 0, 100])
       const bossPos = useBoss.getState().boss
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       const result = useBoss.getState().defeatTick(0.01)
       expect(result.explosions.length).toBe(1)
       // Explosion should be within 5 units of boss position
@@ -254,7 +254,7 @@ describe('useBoss store', () => {
 
     it('returns no explosion after animation is already complete', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       useBoss.getState().defeatTick(GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY)
       const result = useBoss.getState().defeatTick(1)
       expect(result.explosions).toEqual([])
@@ -263,7 +263,7 @@ describe('useBoss store', () => {
 
     it('returns multiple explosions when large delta skips intervals', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       // Large delta that covers multiple explosion intervals
       const bigDelta = GAME_CONFIG.BOSS_DEATH_EXPLOSION_INTERVAL * 3
       const result = useBoss.getState().defeatTick(bigDelta)
@@ -274,7 +274,7 @@ describe('useBoss store', () => {
 
     it('marks the last explosion as isFinal', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       // Tick past all explosion intervals at once
       const totalExplosionTime = GAME_CONFIG.BOSS_DEATH_EXPLOSION_COUNT * GAME_CONFIG.BOSS_DEATH_EXPLOSION_INTERVAL
       const result = useBoss.getState().defeatTick(totalExplosionTime + 1)
@@ -300,7 +300,7 @@ describe('useBoss store', () => {
     it('prevents duplicate boss rewards when animationComplete is true across multiple frames', () => {
       // This test simulates the bug where animationComplete stays true after timer reaches 0
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
 
       // Tick to complete animation
       const result1 = useBoss.getState().defeatTick(GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY)
@@ -337,7 +337,7 @@ describe('useBoss store', () => {
 
     it('clears defeat animation state', () => {
       useBoss.getState().spawnBoss()
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_HP)
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
       useBoss.getState().defeatTick(0.5)
 
       useBoss.getState().reset()

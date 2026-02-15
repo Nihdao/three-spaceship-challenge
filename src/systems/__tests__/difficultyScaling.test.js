@@ -215,14 +215,14 @@ describe('Difficulty scaling', () => {
     it('spawns boss at base HP for system 1', () => {
       useBoss.getState().spawnBoss(1)
       const boss = useBoss.getState().boss
-      expect(boss.hp).toBe(GAME_CONFIG.BOSS_HP)
-      expect(boss.maxHp).toBe(GAME_CONFIG.BOSS_HP)
+      expect(boss.hp).toBe(GAME_CONFIG.BOSS_BASE_HP)
+      expect(boss.maxHp).toBe(GAME_CONFIG.BOSS_BASE_HP)
     })
 
     it('spawns boss with System 2 hp scaling (1.5x HP)', () => {
       useBoss.getState().spawnBoss(2)
       const boss = useBoss.getState().boss
-      const expectedHP = Math.round(GAME_CONFIG.BOSS_HP * 1.5)
+      const expectedHP = Math.round(GAME_CONFIG.BOSS_BASE_HP * 1.5)
       expect(boss.hp).toBe(expectedHP)
       expect(boss.maxHp).toBe(expectedHP)
     })
@@ -230,7 +230,7 @@ describe('Difficulty scaling', () => {
     it('spawns boss with System 3 hp scaling (2.2x HP)', () => {
       useBoss.getState().spawnBoss(3)
       const boss = useBoss.getState().boss
-      const expectedHP = Math.round(GAME_CONFIG.BOSS_HP * 2.2)
+      const expectedHP = Math.round(GAME_CONFIG.BOSS_BASE_HP * 2.2)
       expect(boss.hp).toBe(expectedHP)
       expect(boss.maxHp).toBe(expectedHP)
     })

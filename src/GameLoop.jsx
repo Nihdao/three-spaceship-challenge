@@ -16,7 +16,7 @@ import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { emitTrailParticle, updateTrailParticles, resetTrailParticles } from './systems/particleTrailSystem.js'
 import { playSFX, playScanLoop, stopScanLoop } from './audio/audioManager.js'
-import { updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount } from './systems/xpOrbSystem.js'
+import { updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount, spawnOrb } from './systems/xpOrbSystem.js'
 import { updateHealGemMagnetization, collectHealGem, getHealGems, getActiveHealGemCount } from './systems/healGemSystem.js'
 import { updateMagnetization as updateFragmentGemMagnetization, collectGem, getActiveGems, getActiveCount as getFragmentGemCount } from './systems/fragmentGemSystem.js'
 import { rollDrops, resetAll as resetLoot } from './systems/lootSystem.js'
@@ -255,10 +255,10 @@ export default function GameLoop() {
     projectileSystemRef.current.tick(useWeapons.getState().projectiles, clampedDelta, enemiesForHoming)
     useWeapons.getState().cleanupInactive()
 
-    // 5. Enemy spawning + movement (skip during wormhole activation/active/boss fight — Story 17.4)
+    // 5. Enemy spawning + movement (skip during wormhole activation/active — Story 17.4, Story 22.4: waves continue during boss)
     const wormholeStatePre = useLevel.getState().wormholeState
     const bossActive = useBoss.getState().isActive
-    if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && wormholeStatePre !== 'inactive' && !bossActive && !useGame.getState()._debugSpawnPaused) {
+    if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && !useGame.getState()._debugSpawnPaused) {
       const currentSystem = useLevel.getState().currentSystem
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
       const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], scaling)
@@ -505,7 +505,7 @@ export default function GameLoop() {
       const dist = Math.sqrt(dx * dx + dz * dz)
       if (dist <= GAME_CONFIG.WORMHOLE_ACTIVATION_RADIUS) {
         useLevel.getState().activateWormhole()
-        useEnemies.getState().reset()
+        // Story 22.4: Don't clear enemies — boss spawns alongside existing waves
         playSFX('wormhole-activate')
         // Story 17.6: Trigger impressive flash on first wormhole touch (map clear celebration)
         useGame.getState().triggerWormholeFirstTouch()
@@ -559,7 +559,19 @@ export default function GameLoop() {
         if (defeatResult.animationComplete && !bossState.rewardGiven) {
           playSFX('boss-defeat')
           const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult
-          usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_FRAGMENT_REWARD * fragMult))
+          usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_LOOT_FRAGMENTS * fragMult))
+          // Story 22.4: Drop large XP reward on boss defeat
+          const bossXpReward = 5000 * GAME_CONFIG.BOSS_LOOT_XP_MULTIPLIER
+          const orbCount = 10
+          const xpPerOrb = bossXpReward / orbCount
+          const bossPos = useBoss.getState().boss
+          if (bossPos) {
+            for (let i = 0; i < orbCount; i++) {
+              const angle = (i / orbCount) * Math.PI * 2
+              const spread = 3
+              spawnOrb(bossPos.x + Math.cos(angle) * spread, bossPos.z + Math.sin(angle) * spread, xpPerOrb)
+            }
+          }
           useLevel.getState().reactivateWormhole()
           useBoss.getState().setRewardGiven(true)
         }

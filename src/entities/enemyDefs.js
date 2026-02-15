@@ -167,4 +167,25 @@ export const ENEMIES = {
     color: '#cc66ff',
     meshScale: [8, 8, 8],
   },
+
+  // Story 22.4: Tough Boss Overhaul - HP Sponge with Wave Persistence
+  BOSS_SPACESHIP: {
+    id: 'BOSS_SPACESHIP',
+    name: 'Titan Cruiser',
+    type: 0,
+    hp: GAME_CONFIG.BOSS_BASE_HP, // Base HP, scaled by system difficulty at spawn
+    speed: 10, // Slow and menacing
+    damage: 20, // High contact damage
+    radius: 3.0, // Large collision radius
+    xpReward: 5000, // Base XP (multiplied by BOSS_LOOT_XP_MULTIPLIER on defeat)
+    behavior: 'chase', // Uses existing chase behavior
+    spawnWeight: 0, // Never spawns via normal wave system
+    modelPath: '/models/enemies/SpaceshipBoss.glb',
+    color: '#ff3333', // Red accent
+    meshScale: [12, 12, 12], // 4x regular enemy size (FODDER_BASIC is [3,3,3])
+    isBoss: true, // Flag to identify boss entity
+    emissiveColor: '#ff0000', // Red glow
+    emissiveIntensity: 0.8, // Strong glow
+    particleTrail: true, // Enable particle trail effect
+  },
 }
