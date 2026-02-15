@@ -303,4 +303,118 @@ describe('progressionSystem', () => {
       expect(planetKeys).toEqual(levelUpKeys)
     })
   })
+
+  describe('generatePlanetReward — banish filtering (Story 22.2)', () => {
+    it('excludes banished weapons from planet reward choices', () => {
+      const banishedItems = [{ itemId: 'LASER_FRONT', type: 'weapon' }]
+      const choices = generatePlanetReward('gold', [], [], [], banishedItems)
+      const hasLaser = choices.some(c => c.type === 'new_weapon' && c.id === 'LASER_FRONT')
+      expect(hasLaser).toBe(false)
+    })
+
+    it('excludes banished boons from planet reward choices', () => {
+      const banishedItems = [{ itemId: 'DAMAGE_AMP', type: 'boon' }]
+      const choices = generatePlanetReward('platinum', [], [], [], banishedItems)
+      const hasDamageAmp = choices.some(c => c.type === 'new_boon' && c.id === 'DAMAGE_AMP')
+      expect(hasDamageAmp).toBe(false)
+    })
+
+    it('works with empty banishedItems (default)', () => {
+      const choices = generatePlanetReward('silver', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      expect(choices).toHaveLength(3)
+    })
+  })
+
+  describe('banish system (Story 22.2, Task 2)', () => {
+    it('accepts banishedItems parameter', () => {
+      const banishedItems = [{ itemId: 'LASER_FRONT', type: 'weapon' }]
+      const choices = generateChoices(2, [], [], [], banishedItems)
+      expect(Array.isArray(choices)).toBe(true)
+    })
+
+    it('excludes banished weapon from new_weapon choices', () => {
+      const banishedItems = [{ itemId: 'LASER_FRONT', type: 'weapon' }]
+      const choices = generateChoices(2, [], [], [], banishedItems)
+      const hasLaser = choices.some(c => c.type === 'new_weapon' && c.id === 'LASER_FRONT')
+      expect(hasLaser).toBe(false)
+    })
+
+    it('excludes banished boon from new_boon choices', () => {
+      const banishedItems = [{ itemId: 'DAMAGE_AMP', type: 'boon' }]
+      const choices = generateChoices(2, [], [], [], banishedItems)
+      const hasDamageAmp = choices.some(c => c.type === 'new_boon' && c.id === 'DAMAGE_AMP')
+      expect(hasDamageAmp).toBe(false)
+    })
+
+    it('still offers weapon upgrades for banished weapon if already equipped', () => {
+      const banishedItems = [{ itemId: 'LASER_FRONT', type: 'weapon' }]
+      const equippedWeapons = [{ weaponId: 'LASER_FRONT', level: 1 }]
+      // Run multiple times since choices are random
+      let foundUpgrade = false
+      for (let i = 0; i < 20; i++) {
+        const choices = generateChoices(2, equippedWeapons, [], [], banishedItems)
+        if (choices.some(c => c.type === 'weapon_upgrade' && c.id === 'LASER_FRONT')) {
+          foundUpgrade = true
+          break
+        }
+      }
+      expect(foundUpgrade).toBe(true)
+    })
+
+    it('excludes multiple banished items', () => {
+      const banishedItems = [
+        { itemId: 'LASER_FRONT', type: 'weapon' },
+        { itemId: 'SHOTGUN', type: 'weapon' },
+        { itemId: 'DAMAGE_AMP', type: 'boon' },
+      ]
+      const choices = generateChoices(2, [], [], [], banishedItems)
+      const hasLaser = choices.some(c => c.type === 'new_weapon' && c.id === 'LASER_FRONT')
+      const hasShotgun = choices.some(c => c.type === 'new_weapon' && c.id === 'SHOTGUN')
+      const hasDamageAmp = choices.some(c => c.type === 'new_boon' && c.id === 'DAMAGE_AMP')
+      expect(hasLaser).toBe(false)
+      expect(hasShotgun).toBe(false)
+      expect(hasDamageAmp).toBe(false)
+    })
+
+    it('works with empty banishedItems array (default behavior)', () => {
+      const choices = generateChoices(2, [], [], [], [])
+      expect(choices.length).toBeGreaterThanOrEqual(3)
+    })
+
+    it('banish list applies across weapon and boon pools independently', () => {
+      // Banning a weapon doesn't affect boons, and vice versa
+      const banishedItems = [{ itemId: 'LASER_FRONT', type: 'weapon' }]
+      const choices = generateChoices(2, [], [], [], banishedItems)
+      const hasBoons = choices.some(c => c.type === 'new_boon')
+      expect(hasBoons).toBe(true) // Boons should still be available
+    })
+
+    it('falls back to stat_boost when all weapons and boons are banished', () => {
+      // Banish every weapon and boon in the game
+      const allWeaponIds = Object.keys(WEAPONS)
+      const allBoonIds = Object.keys(BOONS)
+      const banishedItems = [
+        ...allWeaponIds.map(id => ({ itemId: id, type: 'weapon' })),
+        ...allBoonIds.map(id => ({ itemId: id, type: 'boon' })),
+      ]
+      const choices = generateChoices(2, [], [], [], banishedItems)
+      expect(choices.length).toBeGreaterThanOrEqual(3)
+      // With everything banished and nothing equipped, only stat_boost fallbacks remain
+      const statBoosts = choices.filter(c => c.type === 'stat_boost')
+      expect(statBoosts.length).toBe(choices.length)
+    })
+
+    it('reroll produces valid choices after banish (simulated sequence)', () => {
+      // First call: normal choices
+      const choices1 = generateChoices(2, [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      expect(choices1.length).toBeGreaterThanOrEqual(3)
+
+      // Banish an item, then "reroll" (second call with banish list)
+      const banishedItems = [{ itemId: 'SHOTGUN', type: 'weapon' }]
+      const choices2 = generateChoices(2, [{ weaponId: 'LASER_FRONT', level: 1 }], [], [], banishedItems)
+      expect(choices2.length).toBeGreaterThanOrEqual(3)
+      const hasShotgun = choices2.some(c => c.type === 'new_weapon' && c.id === 'SHOTGUN')
+      expect(hasShotgun).toBe(false)
+    })
+  })
 })

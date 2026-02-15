@@ -25,10 +25,11 @@ function shuffle(arr) {
  * @param {Array<{weaponId: string, level: number}>} equippedWeapons - Equipped weapons with current levels
  * @param {string[]} equippedBoonIds - IDs of equipped boons
  * @param {Array<{boonId: string, level: number}>} [equippedBoons] - Equipped boons with levels (for upgrade choices)
+ * @param {Array<{itemId: string, type: 'weapon'|'boon'}>} [banishedItems] - Items to exclude from new selections (Story 22.2)
  * @returns {Array<{type: string, id: string, name: string, description: string, level: number|null, icon: string|null, statPreview: string|null}>}
  */
-export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = []) {
-  const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons)
+export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = []) {
+  const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
 
   shuffle(pool)
 
@@ -85,9 +86,13 @@ export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, 
 /**
  * Build the full reward pool from equipped state (shared logic with generateChoices).
  */
-function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons) {
+function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems = []) {
   const pool = []
   const equippedWeaponIds = equippedWeapons.map(w => w.weaponId)
+
+  // Extract banished weapon and boon IDs for filtering (Story 22.2)
+  const banishedWeaponIds = banishedItems.filter(item => item.type === 'weapon').map(item => item.itemId)
+  const banishedBoonIds = banishedItems.filter(item => item.type === 'boon').map(item => item.itemId)
 
   // Weapon upgrades
   for (const weapon of equippedWeapons) {
@@ -112,6 +117,7 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons) {
   if (equippedWeaponIds.length < MAX_WEAPON_SLOTS) {
     for (const weaponId of Object.keys(WEAPONS)) {
       if (equippedWeaponIds.includes(weaponId)) continue
+      if (banishedWeaponIds.includes(weaponId)) continue // Story 22.2: Exclude banished weapons
       const def = WEAPONS[weaponId]
       pool.push({
         type: 'new_weapon',
@@ -129,6 +135,7 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons) {
   if (equippedBoonIds.length < MAX_BOON_SLOTS) {
     for (const boonId of Object.keys(BOONS)) {
       if (equippedBoonIds.includes(boonId)) continue
+      if (banishedBoonIds.includes(boonId)) continue // Story 22.2: Exclude banished boons
       const def = BOONS[boonId]
       pool.push({
         type: 'new_boon',
@@ -167,8 +174,8 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons) {
  * Generate planet scan reward choices filtered by tier quality.
  * Returns same format as generateChoices() for UI compatibility.
  */
-export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = []) {
-  const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons)
+export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = []) {
+  const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
   const count = GAME_CONFIG.PLANET_SCAN_REWARD_CHOICES
 
   let filtered

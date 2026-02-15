@@ -225,9 +225,9 @@ development_status:
   # Epic 22: Combat Depth (Strategic Systems)
   epic-22: in-progress
   22-1-revival-respawn-system: done
-  22-2-reroll-banish-skip-mechanics: review
+  22-2-reroll-banish-skip-mechanics: in-progress
   22-3-boon-weapon-rarity-system: ready-for-dev
-  22-4-tough-boss-overhaul: in-progress
+  22-4-tough-boss-overhaul: review
   epic-22-retrospective: optional
 
   # Epic 23: Wave & Enemy Systems (Dynamic Pressure)
