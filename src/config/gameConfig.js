@@ -13,6 +13,15 @@ export const GAME_CONFIG = {
   DASH_DURATION: 0.3, // seconds
   DASH_TRAIL_COLOR: "#ff00ff", // magenta trail during dash
 
+  // Crosshair (Story 21.2)
+  CROSSHAIR_SIZE: 20, // px - crosshair outer dimension
+  CROSSHAIR_LINE_THICKNESS: 2, // px - line width
+  CROSSHAIR_CENTER_DOT_SIZE: 1, // px - center dot diameter
+  CROSSHAIR_COLOR: "#d8a7ff", // Neon purple for visibility
+  CROSSHAIR_OPACITY: 0.95, // Line opacity
+  CROSSHAIR_GLOW_RADIUS: 3, // px - drop-shadow blur radius
+  CROSSHAIR_GLOW_OPACITY: 0.8, // Glow effect opacity
+
   // Entities
   MAX_ENEMIES_ON_SCREEN: 100,
   MAX_PROJECTILES: 200,
@@ -394,6 +403,13 @@ export const GAME_CONFIG = {
     DISPLAY_DURATION: 2.5,  // seconds
     FADE_OUT_DURATION: 0.5, // seconds
   },
+
+  // Revival System (Story 22.1)
+  REVIVAL_INVINCIBILITY_DURATION: 2.5, // seconds of invincibility after revive
+  REVIVAL_HP_PERCENT: 0.5, // 50% of max HP restored on revive
+  REVIVAL_ENEMY_PUSHBACK_RADIUS: 5, // world units
+  REVIVAL_ENEMY_PUSHBACK_FORCE: 3, // impulse strength
+  REVIVAL_FLASH_RATE: 8, // flashes per second for visual feedback
 
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {

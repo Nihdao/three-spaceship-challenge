@@ -217,14 +217,14 @@ development_status:
   # Epic 21: Dual-Stick Controls (Gameplay Foundation)
   epic-21: in-progress
   21-1-dual-stick-controls-movement-aiming: done
-  21-2-crosshair-display: review
+  21-2-crosshair-display: done
   21-3-ship-inertia-physics: ready-for-dev
   21-4-vortex-purple-tint: ready-for-dev
   epic-21-retrospective: optional
 
   # Epic 22: Combat Depth (Strategic Systems)
   epic-22: in-progress
-  22-1-revival-respawn-system: in-progress
+  22-1-revival-respawn-system: review
   22-2-reroll-banish-skip-mechanics: ready-for-dev
   22-3-boon-weapon-rarity-system: ready-for-dev
   22-4-tough-boss-overhaul: ready-for-dev
@@ -258,7 +258,7 @@ development_status:
   epic-26: in-progress
   26-1-random-gameplay-music-per-system: done
   26-2-main-menu-tunnel-music-integration: done
-  26-3-scan-sound-looping-system: backlog
+  26-3-scan-sound-looping-system: in-progress
   26-4-complete-sfx-placeholder-mapping: ready-for-dev
   26-5-graceful-audio-error-handling: ready-for-dev
   epic-26-retrospective: optional
