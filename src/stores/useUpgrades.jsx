@@ -49,7 +49,7 @@ const useUpgrades = create((set, get) => ({
 
   getComputedBonuses: () => {
     const state = get()
-    const bonuses = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0.0, expBonus: 1.0, curse: 0.0 }
+    const bonuses = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0.0, expBonus: 1.0, curse: 0.0, revival: 0, reroll: 0, skip: 0, banish: 0 }
 
     for (const [upgradeId, level] of Object.entries(state.upgradeLevels)) {
       const upgradeDef = PERMANENT_UPGRADES[upgradeId]
@@ -67,6 +67,10 @@ const useUpgrades = create((set, get) => ({
         else if (upgradeId === 'LUCK') bonuses.luck += levelDef.bonus
         else if (upgradeId === 'EXP_BONUS') bonuses.expBonus += levelDef.bonus
         else if (upgradeId === 'CURSE') bonuses.curse += levelDef.bonus
+        else if (upgradeId === 'REVIVAL') bonuses.revival += levelDef.bonus
+        else if (upgradeId === 'REROLL') bonuses.reroll += levelDef.bonus
+        else if (upgradeId === 'SKIP') bonuses.skip += levelDef.bonus
+        else if (upgradeId === 'BANISH') bonuses.banish += levelDef.bonus
       }
     }
 

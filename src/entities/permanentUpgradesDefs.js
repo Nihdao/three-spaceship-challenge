@@ -131,6 +131,54 @@ export const PERMANENT_UPGRADES = {
       { level: 5, cost: 500, bonus: 0.10 },
     ],
   },
+  // Story 20.5: Meta stat upgrades (charges tracked, consumed by Epic 22)
+  REVIVAL: {
+    id: 'REVIVAL',
+    name: 'Revival',
+    description: 'Extra lives per run',
+    icon: '\uD83D\uDC97',
+    maxLevel: 2,
+    levels: [
+      { level: 1, cost: 500, bonus: 1 },
+      { level: 2, cost: 1000, bonus: 1 },
+    ],
+  },
+  REROLL: {
+    id: 'REROLL',
+    name: 'Reroll',
+    description: 'Re-roll level-up choices per run',
+    icon: '\uD83D\uDD04',
+    maxLevel: 3,
+    levels: [
+      { level: 1, cost: 300, bonus: 1 },
+      { level: 2, cost: 600, bonus: 1 },
+      { level: 3, cost: 1200, bonus: 1 },
+    ],
+  },
+  SKIP: {
+    id: 'SKIP',
+    name: 'Skip',
+    description: 'Skip unwanted level-up choices per run',
+    icon: '\u23ED\uFE0F',
+    maxLevel: 3,
+    levels: [
+      { level: 1, cost: 250, bonus: 1 },
+      { level: 2, cost: 500, bonus: 1 },
+      { level: 3, cost: 1000, bonus: 1 },
+    ],
+  },
+  BANISH: {
+    id: 'BANISH',
+    name: 'Banish',
+    description: 'Permanently remove choices from the run',
+    icon: '\uD83D\uDEAB',
+    maxLevel: 3,
+    levels: [
+      { level: 1, cost: 400, bonus: 1 },
+      { level: 2, cost: 800, bonus: 1 },
+      { level: 3, cost: 1600, bonus: 1 },
+    ],
+  },
 }
 
 export function getNextLevelCost(upgradeId, currentLevel) {

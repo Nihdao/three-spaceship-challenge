@@ -4,10 +4,10 @@ import { PERMANENT_UPGRADES, getNextLevelCost, getTotalBonus } from '../permanen
 describe('permanentUpgradesDefs', () => {
   const upgradeIds = Object.keys(PERMANENT_UPGRADES)
 
-  it('defines exactly 10 upgrades (6 combat + 4 utility)', () => {
-    expect(upgradeIds).toHaveLength(10)
+  it('defines exactly 14 upgrades (6 combat + 4 utility + 4 meta)', () => {
+    expect(upgradeIds).toHaveLength(14)
     expect(upgradeIds).toEqual(
-      expect.arrayContaining(['ATTACK_POWER', 'ARMOR', 'MAX_HP', 'REGEN', 'ATTACK_SPEED', 'ZONE', 'MAGNET', 'LUCK', 'EXP_BONUS', 'CURSE'])
+      expect.arrayContaining(['ATTACK_POWER', 'ARMOR', 'MAX_HP', 'REGEN', 'ATTACK_SPEED', 'ZONE', 'MAGNET', 'LUCK', 'EXP_BONUS', 'CURSE', 'REVIVAL', 'REROLL', 'SKIP', 'BANISH'])
     )
   })
 
