@@ -49,31 +49,17 @@ describe('StatLine', () => {
     expect(texts).toContain('❤️')
   })
 
-  it('renders tooltip title attribute when tooltip provided', () => {
-    const vdom = renderStatLine({ label: 'HP', value: 100, tooltip: 'Health points' })
-    const tooltipNode = findByTitle(vdom, 'Health points')
-    expect(tooltipNode).toBeTruthy()
-  })
-
-  it('tooltip info icon is keyboard-accessible', () => {
-    const vdom = renderStatLine({ label: 'HP', value: 100, tooltip: 'Health points' })
-    const tooltipNode = findByTitle(vdom, 'Health points')
-    expect(tooltipNode.props.tabIndex).toBe(0)
-    expect(tooltipNode.props.role).toBe('img')
-    expect(tooltipNode.props['aria-label']).toBe('Health points')
-  })
-
-  it('does not render tooltip when not provided', () => {
-    const vdom = renderStatLine({ label: 'HP', value: 100 })
-    const tooltipNode = findByTitle(vdom, 'Health points')
-    expect(tooltipNode).toBeFalsy()
-  })
+  // Tooltip tests removed - tooltips no longer displayed in UI (Story 20.7)
 
   it('includes tabular-nums in value element className', () => {
     const vdom = renderStatLine({ label: 'Speed', value: 50 })
-    // The value span is the second child of the outer div
+    // The value container is the second child of the outer div
     const children = vdom.props.children
-    const valueSpan = Array.isArray(children) ? children[children.length - 1] : children
+    const valueContainer = Array.isArray(children) ? children[children.length - 1] : children
+    // The value span is the first child of the value container
+    const valueSpan = Array.isArray(valueContainer.props.children)
+      ? valueContainer.props.children[0]
+      : valueContainer.props.children
     expect(valueSpan.props.className).toContain('tabular-nums')
   })
 })
