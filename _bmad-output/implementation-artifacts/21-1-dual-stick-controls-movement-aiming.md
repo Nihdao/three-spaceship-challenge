@@ -1,9 +1,10 @@
 # Story 21.1: Dual-Stick Controls (Movement + Aiming)
 
-Status: review
+Status: done
 
 ## Change Log
 
+- **2026-02-15 (Code Review Refinement):** Code review identified that banking was completely disabled in dual-stick mode (bank = 0), removing visual feedback. Applied comprehensive fix: implemented true velocity-based banking for BOTH control modes with mode-specific sensitivity (dual-stick 0.3x, keyboard-only 0.5x). This addresses "tilte trop maladif" without removing banking entirely. Refactored banking logic to eliminate duplication. Updated Dev Notes Risk 4 with complete solution documentation.
 - **2026-02-15 (Post-Implementation):** Fixed excessive ship banking issue ("tilte trop maladif"). Changed banking calculation from rotation-based (yaw delta) to velocity-direction-based. Now banking only occurs when movement trajectory changes, not when aiming with mouse. Updated test suite to reflect new intentional behavior (26 tests total for dual-stick). Full test suite: 1615/1617 tests passing (2 failures in unrelated story 20.7).
 - **2026-02-15:** Implemented dual-stick controls with mouse aiming. All 4 tasks complete (16 subtasks). Created 3 new test files (24 tests). Full test suite passing (1577/1577 tests). Ready for code review.
 
@@ -203,11 +204,17 @@ This is a **foundational gameplay refactor** with high impact (5/5) and high com
 - Mitigation: Spawn at ship center position, apply offset along aim direction (same as current, just different vector)
 - Alternative: Spawn slightly behind ship center for all directions (avoid emissive glow overlap)
 
-**Risk 4: Banking animation looks weird when movement ≠ aim**
-- Banking currently driven by yaw delta (rotation change rate)
-- If ship rotates to track mouse but moves straight → banking active while moving straight (looks odd?)
-- Mitigation: Test first, may need to derive banking from movement direction change instead of aim direction change
-- Alternative: Reduce PLAYER_BANK_SPEED or PLAYER_MAX_BANK_ANGLE for dual-stick mode
+**Risk 4: Banking animation looks weird when movement ≠ aim** ✅ RESOLVED
+- **Initial Problem**: Banking driven by rotation (yaw delta) caused excessive visual tilt when aiming with mouse while moving straight
+- **User Feedback**: "tilte trop maladif" (excessive sickening tilt) when using dual-stick controls
+- **Root Cause**: Rotation-based banking triggered constantly during mouse aiming, creating visual misalignment between ship tilt and actual movement trajectory
+- **Solution Applied**:
+  1. Changed banking from rotation-based to velocity-based (tracks movement direction change, not aim direction change)
+  2. Banking now only occurs when the ship's movement trajectory actually changes (turning while moving)
+  3. Reduced banking sensitivity for dual-stick mode (0.3) vs keyboard-only (0.5) to prevent excessive tilt
+  4. Ship no longer tilts when stationary and aiming - tilt only reflects actual movement turning
+- **Code Impact**: Added `_prevVelAngle` field to track velocity angle between frames, refactored banking calculation to use velocity angular velocity instead of rotation angular velocity
+- **Note**: This was discovered during implementation and refined based on user feedback. Banking behavior is now part of Story 21.1's implementation, even though it's formally specified in Story 21.3 (Ship Inertia Physics). The velocity-based banking approach will carry forward to Story 21.3.
 
 ### References
 
@@ -275,6 +282,18 @@ No debug issues encountered. Full test suite (1577 tests) passed on first implem
 - Test updates: Modified banking test to verify new intentional behavior (no banking when stationary + aiming, banking when movement direction changes)
 - This addressed Dev Notes Risk 4 which anticipated banking issues with dual-stick controls
 
+**Code Review Refinement (2026-02-15):**
+- **Issue Found**: Initial banking fix disabled banking entirely in dual-stick mode (bank = 0 when aimDirection set), removing all visual feedback during turns
+- **Deeper Analysis**: The velocity-based banking described in Change Log was not fully implemented - code still used rotation-based (yawDelta) for keyboard-only mode
+- **Applied Fix**:
+  1. Implemented true velocity-based banking for BOTH control modes (dual-stick AND keyboard-only)
+  2. Banking now uses velocity angular velocity (rate of change of movement direction) for all cases
+  3. Different sensitivity per mode: dual-stick 0.3x, keyboard-only 0.5x (addresses "tilte trop maladif" without removing banking)
+  4. Unified banking logic eliminates code duplication
+- **Result**: Ship tilts appropriately during actual turns in both control modes, but with reduced sensitivity in dual-stick to prevent excessive visual misalignment
+- **Code Changes**: usePlayer.jsx lines 176-197 refactored to apply velocity-based banking universally with mode-specific sensitivity
+- **Documentation**: Updated Dev Notes Risk 4 to document the complete solution and rationale
+
 ### File List
 
 **Created:**
@@ -287,6 +306,7 @@ No debug issues encountered. Full test suite (1577 tests) passed on first implem
 - src/stores/useControlsStore.jsx (added mouseWorldPos, mouseActive, setMouseWorldPos)
 - src/hooks/useHybridControls.jsx (integrated useMouseWorldPosition hook)
 - src/stores/usePlayer.jsx (added aimDirection, setAimDirection, updated tick() rotation logic, changed banking to velocity-based, added _prevVelAngle field, updated reset() and resetForNewSystem())
+  - *Code Review Update (2026-02-15)*: Refactored banking to apply velocity-based calculation to BOTH control modes (dual-stick 0.3x sensitivity, keyboard-only 0.5x) instead of disabling banking in dual-stick mode
 - src/stores/useWeapons.jsx (added aimDirection parameter to tick(), use fireDirection for projectile spawn)
 - src/GameLoop.jsx (calculate aimDirection from mouseWorldPos, pass to usePlayer and useWeapons)
 - src/stores/__tests__/usePlayer.dualStick.test.js (updated banking test to reflect new velocity-based behavior)
