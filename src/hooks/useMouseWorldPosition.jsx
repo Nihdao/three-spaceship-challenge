@@ -50,6 +50,9 @@ export function useMouseWorldPosition() {
 
       // Store NDC coords - world coords will be recalculated every frame
       useControlsStore.getState().setMouseNDC([ndcX, ndcY])
+
+      // Story 21.2: Also store screen pixel coordinates for crosshair display
+      useControlsStore.getState().setMouseScreenPos(event.clientX, event.clientY)
     }
 
     gl.domElement.addEventListener('pointermove', handlePointerMove)

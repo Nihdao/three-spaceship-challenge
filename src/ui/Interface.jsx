@@ -5,6 +5,7 @@ import useAudio from '../hooks/useAudio.jsx'
 import MainMenu from './MainMenu.jsx'
 import LevelUpModal from './LevelUpModal.jsx'
 import PlanetRewardModal from './PlanetRewardModal.jsx'
+import RevivePrompt from './RevivePrompt.jsx'
 import HUD from './HUD.jsx'
 import BossHPBar from './BossHPBar.jsx'
 import GameOverScreen from './GameOverScreen.jsx'
@@ -16,6 +17,7 @@ import DebugConsole from './DebugConsole.jsx'
 import WhiteFlashTransition from './WhiteFlashTransition.jsx'
 import WarpTransition from './WarpTransition.jsx'
 import SystemNameBanner from './SystemNameBanner.jsx'
+import Crosshair from './Crosshair.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 export default function Interface() {
@@ -102,6 +104,7 @@ export default function Interface() {
       {phase === 'gameplay' && <PauseMenu />}
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}
+      {phase === 'revive' && <RevivePrompt />}
       {/* Story 17.4: BossHPBar renders when boss is active, regardless of phase */}
       {isBossActive && <BossHPBar />}
       {phase === 'gameOver' && <GameOverScreen />}
@@ -109,6 +112,8 @@ export default function Interface() {
       {phase === 'tunnel' && <TunnelHub />}
       {phase === 'systemEntry' && <SystemNameBanner />}
       {GAME_CONFIG.DEBUG_CONSOLE_ENABLED && (phase === 'gameplay' || phase === 'boss') && <DebugConsole />}
+      {/* Story 21.2: Crosshair overlay during gameplay/boss */}
+      <Crosshair />
       <WhiteFlashTransition
         active={showFlash}
         onComplete={() => setShowFlash(false)}
