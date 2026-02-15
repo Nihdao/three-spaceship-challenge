@@ -619,11 +619,14 @@ export default function GameLoop() {
     // 8. XP + progression
     // 8a. Update orb timers + magnetization (Story 11.1)
     updateOrbs(clampedDelta)
-    updateMagnetization(playerPos[0], playerPos[2], clampedDelta, boonModifiers.pickupRadiusMultiplier ?? 1.0)
+    // Story 20.4: Combine boon pickup radius with permanent magnet upgrade (multiplicative stacking)
+    // Stacking: boon pickupRadius × permanent magnet → e.g., 1.5 × 1.3 = 1.95
+    const composedPickupRadius = (boonModifiers.pickupRadiusMultiplier ?? 1.0) * permanentUpgradeBonuses.magnet
+    updateMagnetization(playerPos[0], playerPos[2], clampedDelta, composedPickupRadius)
     // Story 19.2: Update heal gem magnetization (uses same radius/speed as XP orbs)
-    updateHealGemMagnetization(playerPos[0], playerPos[2], clampedDelta, boonModifiers.pickupRadiusMultiplier ?? 1.0)
+    updateHealGemMagnetization(playerPos[0], playerPos[2], clampedDelta, composedPickupRadius)
     // Story 19.3: Update fragment gem magnetization (uses same radius/speed as XP orbs)
-    updateFragmentGemMagnetization(playerPos[0], playerPos[2], clampedDelta)
+    updateFragmentGemMagnetization(playerPos[0], playerPos[2], clampedDelta, composedPickupRadius)
 
     // 8b. Register XP orbs in spatial hash
     const orbArray = getOrbs()
@@ -662,13 +665,15 @@ export default function GameLoop() {
         if (orbIndex < getOrbCount()) indices.push(orbIndex)
       }
       indices.sort((a, b) => b - a)
-      const xpMult = boonModifiers.xpMultiplier ?? 1.0
+      // Story 20.4: Combine boon XP multiplier with permanent expBonus (multiplicative stacking)
+      // Stacking: boon xpMult × permanent expBonus → e.g., 1.5 × 1.25 = 1.875
+      const xpMult = (boonModifiers.xpMultiplier ?? 1.0) * permanentUpgradeBonuses.expBonus
       for (let i = 0; i < indices.length; i++) {
         const orbIndex = indices[i]
         // Story 19.1: Check if orb is rare before collecting (to play appropriate SFX)
         const isRare = orbArray[orbIndex].isRare
         const xpValue = collectOrb(orbIndex)
-        usePlayer.getState().addXP(xpValue * xpMult)
+        usePlayer.getState().addXP(Math.floor(xpValue * xpMult))
         // Story 19.1: Play distinct SFX for rare XP gem collection
         if (isRare) {
           playSFX('xp_rare_pickup')
