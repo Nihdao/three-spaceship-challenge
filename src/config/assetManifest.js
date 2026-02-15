@@ -49,6 +49,8 @@ export const ASSET_MANIFEST = {
       droneFire: 'audio/sfx/drone-fire.wav',
       beamFire: 'audio/sfx/beam-fire.wav',
       explosiveFire: 'audio/sfx/explosive-fire.wav',
+      // Story 26.4: UI notification sound (reserved for future use)
+      uiMessage: 'audio/sfx/UI-Message.wav',
     },
   },
 
