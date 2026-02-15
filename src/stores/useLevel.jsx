@@ -13,6 +13,9 @@ const useLevel = create((set, get) => ({
   wormholeActivationTimer: 0,
   activeScanPlanetId: null,
 
+  // --- Banish Tracking (Story 22.2) ---
+  banishedItems: [], // Array of { itemId: 'laser', type: 'weapon' | 'boon' }
+
   // --- Tick (called by GameLoop each frame) ---
   tick: (delta) => {
     // Frame update logic — to be implemented in future stories
@@ -74,6 +77,17 @@ const useLevel = create((set, get) => ({
   },
 
   // --- Actions ---
+
+  // --- Banish Tracking (Story 22.2) ---
+  addBanishedItem: (itemId, type) => {
+    const { banishedItems } = get()
+    if (!banishedItems.find(item => item.itemId === itemId && item.type === type)) {
+      set({ banishedItems: [...banishedItems, { itemId, type }] })
+    }
+  },
+
+  clearBanishedItems: () => set({ banishedItems: [] }),
+
   initializePlanets: () => {
     const planets = []
     const margin = GAME_CONFIG.PLANET_PLACEMENT_MARGIN
@@ -195,6 +209,7 @@ const useLevel = create((set, get) => ({
     wormhole: null,
     wormholeActivationTimer: 0,
     activeScanPlanetId: null,
+    banishedItems: [], // Story 22.2: Clear banish list on new run
   }),
 }))
 

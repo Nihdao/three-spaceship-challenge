@@ -98,7 +98,7 @@ export const GAME_CONFIG = {
   PLAYER_ACCELERATION: 400, // units/sec² — how fast ship reaches full speed (Story 21.3: tuned to 400 for longer, progressive acceleration ramp, targets ~0.9-1.0s to max speed)
   PLAYER_FRICTION: 0.73, // per-frame velocity decay when no input (0-1, lower = more drag; Story 21.3: reduced from 0.87 for tighter dual-stick control, targets 0.3-0.5s stop time)
   PLAYER_ROTATION_SPEED: 20, // radians/sec interpolation speed for yaw (Story 2.8: doubled for snappy rotation, < 0.2s for 90° turn)
-  PLAYER_MAX_BANK_ANGLE: 0.4, // radians (~23°) — max visual tilt during turns
+  PLAYER_MAX_BANK_ANGLE: 0.25, // radians (~14°) — max visual tilt during turns (Story 21.3: reduced from 0.4 for subtler banking)
   PLAYER_BANK_SPEED: 8, // how fast bank angle responds
 
   // Minimap (Story 24.1)
