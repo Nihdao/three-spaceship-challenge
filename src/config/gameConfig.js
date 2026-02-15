@@ -92,6 +92,9 @@ export const GAME_CONFIG = {
   PLAYER_MAX_BANK_ANGLE: 0.4, // radians (~23°) — max visual tilt during turns
   PLAYER_BANK_SPEED: 8, // how fast bank angle responds
 
+  // Minimap (Story 24.1)
+  MINIMAP_VISIBLE_RADIUS: 500, // world units visible around player on minimap (1000x1000 window = 25% of play area)
+
   // Play area
   PLAY_AREA_SIZE: 2000, // half-width of square play area (updated from 200 in Story 1.3)
   BOUNDARY_WARNING_DISTANCE: 100, // updated from 20 in Story 1.3

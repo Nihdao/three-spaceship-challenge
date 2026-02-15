@@ -28,15 +28,32 @@ export const MINIMAP = {
   wormholeColor: '#bb88ff', // Bright purple matching portal rift
   wormholeGlowActive: '0 0 12px rgba(187, 136, 255, 1.0)', // Purple glow when active
   wormholeGlowBase: '0 0 8px rgba(85, 24, 170, 0.9)', // Deep purple glow
+  enemyDotSize: '4px',
+  enemyDotColor: '#ff4444',
+  enemyPollInterval: 250,
   dotTransition: 'left 40ms ease-out, top 40ms ease-out',
   boundaryInset: '5%',
   boundaryBorder: '1px solid rgba(255,255,255,0.1)',
 }
 
-export function minimapDotPosition(worldX, worldZ, playAreaSize) {
-  const left = `${50 + (worldX / playAreaSize) * 50}%`
-  const top = `${50 + (worldZ / playAreaSize) * 50}%`
+export function minimapDotPosition(worldX, worldZ, playerX, playerZ, visibleRadius) {
+  const relativeX = worldX - playerX
+  const relativeZ = worldZ - playerZ
+  const left = `${50 + (relativeX / visibleRadius) * 50}%`
+  const top = `${50 + (relativeZ / visibleRadius) * 50}%`
   return { left, top }
+}
+
+export function minimapBoundaryEdgePct(playerCoord, areaSize, visibleRadius) {
+  const posEdge = 50 + ((areaSize - playerCoord) / visibleRadius) * 50
+  const negEdge = 50 + ((-areaSize - playerCoord) / visibleRadius) * 50
+  return { posEdge, negEdge }
+}
+
+export function isWithinMinimapRadius(entityX, entityZ, playerX, playerZ, visibleRadius) {
+  const dx = entityX - playerX
+  const dz = entityZ - playerZ
+  return dx * dx + dz * dz <= visibleRadius * visibleRadius
 }
 
 // --- Exported logic helpers (testable without DOM) ---
@@ -316,24 +333,28 @@ export default function HUD() {
   const activeScanPlanetId = useLevel((s) => s.activeScanPlanetId)
   const wormholeState = useLevel((s) => s.wormholeState)
   const wormhole = useLevel((s) => s.wormhole)
-  // Poll sniper_fixed enemies imperatively (they have speed=0, so positions are stable).
-  // Using a reactive Zustand selector here causes infinite re-renders because
+  // Poll all enemies imperatively for minimap (Story 24.1, replaces sniper_fixed-only poll).
+  // Using a reactive Zustand selector causes infinite re-renders because
   // set() is called inside tick() for shockwave/projectile spawning.
-  const [sniperFixedEnemies, setSniperFixedEnemies] = useState([])
+  const [minimapEnemies, setMinimapEnemies] = useState([])
   useEffect(() => {
     const id = setInterval(() => {
       const enemies = useEnemies.getState().enemies
-      const snipers = []
+      const [px, , pz] = usePlayer.getState().position
+      const radius = GAME_CONFIG.MINIMAP_VISIBLE_RADIUS
+      const nearby = []
       for (let i = 0; i < enemies.length; i++) {
         const e = enemies[i]
-        if (e.behavior === 'sniper_fixed') snipers.push({ id: e.id, x: e.x, z: e.z })
+        const dx = e.x - px
+        const dz = e.z - pz
+        if (dx * dx + dz * dz <= radius * radius) {
+          nearby.push({ id: e.id, x: e.x, z: e.z })
+        }
       }
-      setSniperFixedEnemies(prev =>
-        prev.length === snipers.length && prev.every((p, j) => p.id === snipers[j].id)
-          ? prev
-          : snipers
+      setMinimapEnemies(prev =>
+        nearby.length === 0 && prev.length === 0 ? prev : nearby
       )
-    }, 500)
+    }, MINIMAP.enemyPollInterval)
     return () => clearInterval(id)
   }, [])
 
@@ -417,14 +438,19 @@ export default function HUD() {
             overflow: 'hidden',
             position: 'relative',
           }}>
-            {/* Play area boundary indicator */}
-            <div style={{
-              position: 'absolute',
-              inset: MINIMAP.boundaryInset,
-              borderRadius: MINIMAP.borderRadius,
-              border: MINIMAP.boundaryBorder,
-              pointerEvents: 'none',
-            }} />
+            {/* Play area boundary edges — show when within visible radius (Story 24.1) */}
+            {(() => {
+              const area = GAME_CONFIG.PLAY_AREA_SIZE
+              const radius = GAME_CONFIG.MINIMAP_VISIBLE_RADIUS
+              const { posEdge: rightPct, negEdge: leftPct } = minimapBoundaryEdgePct(playerPosition[0], area, radius)
+              const { posEdge: bottomPct, negEdge: topPct } = minimapBoundaryEdgePct(playerPosition[2], area, radius)
+              const edges = []
+              if (rightPct > 0 && rightPct < 100) edges.push({ key: 'right', style: { position: 'absolute', left: `${rightPct}%`, top: 0, bottom: 0, width: '1px', backgroundColor: 'rgba(255,255,255,0.15)', pointerEvents: 'none' } })
+              if (leftPct > 0 && leftPct < 100) edges.push({ key: 'left', style: { position: 'absolute', left: `${leftPct}%`, top: 0, bottom: 0, width: '1px', backgroundColor: 'rgba(255,255,255,0.15)', pointerEvents: 'none' } })
+              if (bottomPct > 0 && bottomPct < 100) edges.push({ key: 'bottom', style: { position: 'absolute', top: `${bottomPct}%`, left: 0, right: 0, height: '1px', backgroundColor: 'rgba(255,255,255,0.15)', pointerEvents: 'none' } })
+              if (topPct > 0 && topPct < 100) edges.push({ key: 'top', style: { position: 'absolute', top: `${topPct}%`, left: 0, right: 0, height: '1px', backgroundColor: 'rgba(255,255,255,0.15)', pointerEvents: 'none' } })
+              return edges.map(({ key, style }) => <div key={key} style={style} />)
+            })()}
             {/* Player dot */}
             <div style={{
               position: 'absolute',
@@ -432,12 +458,12 @@ export default function HUD() {
               borderRadius: '50%',
               backgroundColor: MINIMAP.playerDotColor,
               boxShadow: MINIMAP.playerDotGlow,
-              ...minimapDotPosition(playerPosition[0], playerPosition[2], GAME_CONFIG.PLAY_AREA_SIZE),
+              left: '50%', top: '50%',
               transform: 'translate(-50%, -50%)',
               transition: MINIMAP.dotTransition,
             }} />
-            {/* Planet dots */}
-            {planets.map((p) => {
+            {/* Planet dots — only render within visible radius */}
+            {planets.filter((p) => isWithinMinimapRadius(p.x, p.z, playerPosition[0], playerPosition[2], GAME_CONFIG.MINIMAP_VISIBLE_RADIUS)).map((p) => {
               const planetColor = PLANETS[p.typeId]?.color || '#ffffff'
               return (
                 <div key={p.id} style={{
@@ -446,7 +472,7 @@ export default function HUD() {
                   borderRadius: '50%',
                   backgroundColor: planetColor,
                   boxShadow: `0 0 4px ${planetColor}60`,
-                  ...minimapDotPosition(p.x, p.z, GAME_CONFIG.PLAY_AREA_SIZE),
+                  ...minimapDotPosition(p.x, p.z, playerPosition[0], playerPosition[2], GAME_CONFIG.MINIMAP_VISIBLE_RADIUS),
                   transform: 'translate(-50%, -50%)',
                   opacity: p.scanned ? 0.3 : 1,
                   animation: activeScanPlanetId === p.id ? 'scanPulse 800ms ease-in-out infinite alternate' : 'none',
@@ -454,31 +480,32 @@ export default function HUD() {
                 }} />
               )
             })}
-            {/* Wormhole dot */}
-            {wormhole && wormholeState !== 'hidden' && (
+            {/* Wormhole dot — only render within visible radius */}
+            {wormhole && wormholeState !== 'hidden' && isWithinMinimapRadius(wormhole.x, wormhole.z, playerPosition[0], playerPosition[2], GAME_CONFIG.MINIMAP_VISIBLE_RADIUS) && (
               <div style={{
                 position: 'absolute',
                 width: wormholeState === 'visible' ? MINIMAP.wormholeBaseSize : MINIMAP.wormholeActiveSize,
                 height: wormholeState === 'visible' ? MINIMAP.wormholeBaseSize : MINIMAP.wormholeActiveSize,
                 borderRadius: '50%',
                 backgroundColor: MINIMAP.wormholeColor,
-                ...minimapDotPosition(wormhole.x, wormhole.z, GAME_CONFIG.PLAY_AREA_SIZE),
+                ...minimapDotPosition(wormhole.x, wormhole.z, playerPosition[0], playerPosition[2], GAME_CONFIG.MINIMAP_VISIBLE_RADIUS),
                 transform: 'translate(-50%, -50%)',
                 boxShadow: wormholeState !== 'visible' ? MINIMAP.wormholeGlowActive : MINIMAP.wormholeGlowBase,
                 animation: 'scanPulse 800ms ease-in-out infinite alternate',
                 transition: 'width 200ms ease-out, height 200ms ease-out',
               }} />
             )}
-            {/* Sniper fixed enemy dots (Story 16.2) */}
-            {sniperFixedEnemies.map((e) => (
+            {/* Enemy dots — all enemies within visible radius (Story 24.1) */}
+            {minimapEnemies.map((e) => (
               <div key={e.id} style={{
                 position: 'absolute',
-                width: '4px', height: '4px',
+                width: MINIMAP.enemyDotSize, height: MINIMAP.enemyDotSize,
                 borderRadius: '50%',
-                backgroundColor: '#ff0000',
-                boxShadow: '0 0 4px #ff000080',
-                ...minimapDotPosition(e.x, e.z, GAME_CONFIG.PLAY_AREA_SIZE),
+                backgroundColor: MINIMAP.enemyDotColor,
+                boxShadow: `0 0 4px ${MINIMAP.enemyDotColor}80`,
+                ...minimapDotPosition(e.x, e.z, playerPosition[0], playerPosition[2], GAME_CONFIG.MINIMAP_VISIBLE_RADIUS),
                 transform: 'translate(-50%, -50%)',
+                transition: MINIMAP.dotTransition,
               }} />
             ))}
             {/* Compass labels (z-10 to stay above dots) */}
