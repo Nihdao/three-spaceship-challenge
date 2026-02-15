@@ -1,6 +1,7 @@
 import { useKeyboardControls } from "@react-three/drei";
 import { useControlsStore } from "../stores/useControlsStore.jsx";
 import { useEffect } from "react";
+import { useMouseWorldPosition } from "./useMouseWorldPosition.jsx";
 
 export function useHybridControls() {
   // Keyboard controls states
@@ -11,6 +12,9 @@ export function useHybridControls() {
   const keyboardDash = useKeyboardControls((state) => state.dash);
 
   const setControl = useControlsStore((s) => s.setControl);
+
+  // Mouse position tracking (Story 21.1)
+  useMouseWorldPosition();
 
   // Synchronize keyboard controls to the store
   useEffect(() => {

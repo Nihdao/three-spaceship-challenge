@@ -19,10 +19,14 @@ const useWeapons = create((set, get) => ({
     })
   },
 
-  tick: (delta, playerPosition, playerRotation, boonModifiers = {}) => {
+  tick: (delta, playerPosition, playerRotation, boonModifiers = {}, aimDirection = null) => {
     const { activeWeapons, projectiles } = get()
     const newProjectiles = []
     const { damageMultiplier = 1, cooldownMultiplier = 1, critChance = 0, critMultiplier = 2.0, projectileSpeedMultiplier = 1.0, zoneMultiplier = 1.0 } = boonModifiers
+
+    // Story 21.1: Use aimDirection for dual-stick firing, fallback to playerRotation
+    const fireDirection = aimDirection ? aimDirection : [Math.sin(playerRotation), -Math.cos(playerRotation)]
+    const fireAngle = Math.atan2(fireDirection[0], -fireDirection[1])
 
     for (let i = 0; i < activeWeapons.length; i++) {
       const weapon = activeWeapons[i]
@@ -51,25 +55,27 @@ const useWeapons = create((set, get) => ({
         const meshScale = weapon.overrides?.upgradeVisuals?.meshScale ?? def.projectileMeshScale
 
         // Determine firing angles based on projectile pattern
+        // Story 21.1: Use fireAngle (based on aimDirection or rotation)
         let angles
         if (def.projectilePattern === 'spread') {
           const spreadAngle = def.spreadAngle || 0.26
-          angles = [playerRotation - spreadAngle, playerRotation, playerRotation + spreadAngle]
+          angles = [fireAngle - spreadAngle, fireAngle, fireAngle + spreadAngle]
         } else if (def.projectilePattern === 'pellet') {
           // Shotgun: multiple pellets with randomized angles within cone
           const pelletCount = def.pelletCount || 7
           const spreadAngle = def.spreadAngle || 0.45
           angles = []
           for (let p = 0; p < pelletCount; p++) {
-            angles.push(playerRotation + (Math.random() * 2 - 1) * spreadAngle)
+            angles.push(fireAngle + (Math.random() * 2 - 1) * spreadAngle)
           }
         } else {
-          angles = [playerRotation]
+          angles = [fireAngle]
         }
 
         // Determine spawn position (drone fires from offset)
-        let spawnX = playerPosition[0] + Math.sin(playerRotation) * fwd
-        let spawnZ = playerPosition[2] + (-Math.cos(playerRotation)) * fwd
+        // Story 21.1: Use fireDirection for spawn offset
+        let spawnX = playerPosition[0] + fireDirection[0] * fwd
+        let spawnZ = playerPosition[2] + fireDirection[1] * fwd
         if (def.projectilePattern === 'drone' && def.followOffset) {
           spawnX = playerPosition[0] + def.followOffset[0]
           spawnZ = playerPosition[2] + def.followOffset[2]
