@@ -50,6 +50,7 @@ const SFX_CATEGORY_MAP = {
 }
 
 let currentMusic = null
+let currentGameplayTrack = null // Store last selected gameplay track for debugging
 let masterVolume = 1.0
 let musicVolume = VOLUME_CATEGORIES.music
 let sfxVolume = 1.0 // master SFX multiplier
@@ -236,4 +237,23 @@ export function unlockAudioContext() {
   } catch {
     // AudioContext not available
   }
+}
+
+// Story 26.1: Select random gameplay music from array of tracks
+export function selectRandomGameplayMusic(tracks) {
+  if (!Array.isArray(tracks)) {
+    console.warn('selectRandomGameplayMusic: tracks must be an array, got', typeof tracks)
+    return null
+  }
+  if (tracks.length === 0) {
+    console.warn('selectRandomGameplayMusic: tracks array is empty')
+    return null
+  }
+  const randomIndex = Math.floor(Math.random() * tracks.length)
+  currentGameplayTrack = tracks[randomIndex]
+  return currentGameplayTrack
+}
+
+export function getCurrentGameplayTrack() {
+  return currentGameplayTrack
 }
