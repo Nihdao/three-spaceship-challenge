@@ -19,31 +19,36 @@ export const ASSET_MANIFEST = {
       scout: 'models/enemies/robot-enemy-flying-gun.glb',
     },
     audio: {
-      gameplayMusic: 'audio/music/Creo - Rock Thing.mp3',
-      laserFire: 'audio/sfx/laser-fire.mp3',
-      explosion: 'audio/sfx/explosion.mp3',
-      levelUp: 'audio/sfx/level-up.mp3',
-      damageTaken: 'audio/sfx/damage-taken.mp3',
-      buttonHover: 'audio/sfx/button-hover.mp3',
-      buttonClick: 'audio/sfx/button-click.mp3',
-      gameOverImpact: 'audio/sfx/game-over-impact.mp3',
-      highScore: 'audio/sfx/high-score.mp3',
-      dashWhoosh: 'audio/sfx/dash-whoosh.mp3',
-      dashReady: 'audio/sfx/dash-ready.mp3',
-      scanStart: 'audio/sfx/scan-start.mp3',
-      scanComplete: 'audio/sfx/scan-complete.mp3',
+      // Story 26.1: Array of 3 gameplay tracks for random selection
+      gameplayMusic: [
+        'audio/music/Creo - Rock Thing.mp3',
+        'audio/music/Guifrog - Frog Punch.mp3',
+        'audio/music/Michett - Snackmix.mp3',
+      ],
+      laserFire: 'audio/sfx/laser-fire.wav',
+      explosion: 'audio/sfx/explosion.wav',
+      levelUp: 'audio/sfx/level-up.wav', // Missing file - will fail gracefully
+      damageTaken: 'audio/sfx/damage-taken.wav',
+      buttonHover: 'audio/sfx/button-hover.wav',
+      buttonClick: 'audio/sfx/button-click.wav',
+      gameOverImpact: 'audio/sfx/game-over-impact.wav',
+      highScore: 'audio/sfx/high-score.wav', // Missing file - will fail gracefully
+      dashWhoosh: 'audio/sfx/dash-whoosh.wav',
+      dashReady: 'audio/sfx/dash-ready.wav',
+      scanStart: 'audio/sfx/scan-start.wav',
+      scanComplete: 'audio/sfx/scan-complete.wav',
       // Story 19.1: Rare XP gem pickup SFX
-      xpRarePickup: 'audio/sfx/xp-rare-pickup.mp3',
+      xpRarePickup: 'audio/sfx/xp-rare-pickup.wav',
       // Story 19.3: Fragment gem pickup SFX
-      fragmentPickup: 'audio/sfx/fragment-pickup.mp3',
+      fragmentPickup: 'audio/sfx/fragment-pickup.wav',
       // Story 11.3: New weapon SFX
-      railgunFire: 'audio/sfx/railgun-fire.mp3',
-      trishotFire: 'audio/sfx/trishot-fire.mp3',
-      shotgunFire: 'audio/sfx/shotgun-fire.mp3',
-      satelliteFire: 'audio/sfx/satellite-fire.mp3',
-      droneFire: 'audio/sfx/drone-fire.mp3',
-      beamFire: 'audio/sfx/beam-fire.mp3',
-      explosiveFire: 'audio/sfx/explosive-fire.mp3',
+      railgunFire: 'audio/sfx/railgun-fire.wav',
+      trishotFire: 'audio/sfx/trishot-fire.wav',
+      shotgunFire: 'audio/sfx/shotgun-fire.wav',
+      satelliteFire: 'audio/sfx/satellite-fire.wav',
+      droneFire: 'audio/sfx/drone-fire.wav',
+      beamFire: 'audio/sfx/beam-fire.wav',
+      explosiveFire: 'audio/sfx/explosive-fire.wav',
     },
   },
 
@@ -57,19 +62,19 @@ export const ASSET_MANIFEST = {
       wormhole: 'models/environment/wormhole.glb',
     },
     audio: {
-      bossMusic: 'audio/music/boss-theme.mp3',
-      tunnelMusic: 'audio/music/tunnel-theme.mp3',
-      wormholeSpawn: 'audio/sfx/wormhole-spawn.mp3',
-      wormholeActivate: 'audio/sfx/wormhole-activate.mp3',
-      bossAttack: 'audio/sfx/boss-attack.mp3',
-      bossHit: 'audio/sfx/boss-hit.mp3',
-      bossPhase: 'audio/sfx/boss-phase.mp3',
-      bossDefeat: 'audio/sfx/boss-defeat.mp3',
-      upgradePurchase: 'audio/sfx/upgrade-purchase.mp3',
-      dilemmaAccept: 'audio/sfx/dilemma-accept.mp3',
-      dilemmaRefuse: 'audio/sfx/dilemma-refuse.mp3',
-      tunnelExit: 'audio/sfx/tunnel-exit.mp3',
-      hpRecover: 'audio/sfx/hp-recover.mp3',
+      bossMusic: 'audio/music/boss-theme.mp3', // Missing file - will fail gracefully
+      tunnelMusic: 'audio/music/tunnel-theme.mp3', // Missing file - will fail gracefully
+      wormholeSpawn: 'audio/sfx/wormhole-spawn.wav',
+      wormholeActivate: 'audio/sfx/wormhole-activate.wav',
+      bossAttack: 'audio/sfx/boss-attack.wav', // Missing file - will fail gracefully
+      bossHit: 'audio/sfx/boss-hit.wav', // Missing file - will fail gracefully
+      bossPhase: 'audio/sfx/boss_phase.wav', // Note: underscore in actual filename
+      bossDefeat: 'audio/sfx/boss-defeat.wav',
+      upgradePurchase: 'audio/sfx/upgrade-purchase.wav',
+      dilemmaAccept: 'audio/sfx/dilemma-accept.wav',
+      dilemmaRefuse: 'audio/sfx/dilemma-refuse.wav',
+      tunnelExit: 'audio/sfx/tunnel_exit.wav', // Note: underscore in actual filename
+      hpRecover: 'audio/sfx/hp-recover.wav', // Missing file - will fail gracefully
     },
   },
 }

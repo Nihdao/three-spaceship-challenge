@@ -1,6 +1,14 @@
 import { useEffect } from 'react'
 import useGame from '../stores/useGame.jsx'
-import { playMusic, crossfadeMusic, fadeOutMusic, preloadSounds, loadAudioSettings, unlockAudioContext } from '../audio/audioManager.js'
+import {
+  playMusic,
+  crossfadeMusic,
+  fadeOutMusic,
+  preloadSounds,
+  loadAudioSettings,
+  unlockAudioContext,
+  selectRandomGameplayMusic,
+} from '../audio/audioManager.js'
 import { ASSET_MANIFEST } from '../config/assetManifest.js'
 
 // SFX key → asset manifest path mapping for preloading
@@ -71,15 +79,39 @@ export default function useAudio() {
             playMusic(ASSET_MANIFEST.critical.audio.menuMusic)
           }
         } else if (phase === 'gameplay') {
+          // Story 26.1: Randomly select gameplay music for each system
+          const tracks = ASSET_MANIFEST.gameplay.audio.gameplayMusic
+
+          // Defensive check: ensure gameplayMusic is an array
+          if (!Array.isArray(tracks)) {
+            console.warn('gameplayMusic is not an array, using fallback track')
+            const fallbackTrack =
+              typeof tracks === 'string' ? tracks : 'audio/music/Creo - Rock Thing.mp3'
+            if (prevPhase === 'menu') {
+              crossfadeMusic(fallbackTrack, 1000)
+            } else {
+              playMusic(fallbackTrack)
+            }
+            return
+          }
+
+          const selectedTrack = selectRandomGameplayMusic(tracks)
+
+          // Defensive check: ensure random selection succeeded
+          if (!selectedTrack) {
+            console.warn('Failed to select gameplay music, skipping music transition')
+            return
+          }
+
           if (prevPhase === 'menu') {
-            // Menu → gameplay: crossfade
-            crossfadeMusic(ASSET_MANIFEST.gameplay.audio.gameplayMusic, 1000)
+            // Menu → gameplay: crossfade to randomly selected track
+            crossfadeMusic(selectedTrack, 1000)
           } else if (prevPhase === 'gameOver' || prevPhase === 'victory') {
-            // Retry from end screen — play gameplay music fresh
-            playMusic(ASSET_MANIFEST.gameplay.audio.gameplayMusic)
+            // Retry from end screen — play new random track
+            playMusic(selectedTrack)
           } else if (prevPhase === 'tunnel') {
-            // Tunnel → gameplay: crossfade to gameplay music for new system
-            crossfadeMusic(ASSET_MANIFEST.gameplay.audio.gameplayMusic, 1000)
+            // Tunnel → gameplay: crossfade to new random track for new system
+            crossfadeMusic(selectedTrack, 1000)
           }
           // levelUp → gameplay: music continues, no change
         } else if (phase === 'boss') {
