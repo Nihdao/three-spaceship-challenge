@@ -383,4 +383,174 @@ describe('audioManager', () => {
       expect(audioManager.isUnlocked()).toBe(true)
     })
   })
+
+  // Story 26.5: Graceful Audio Error Handling
+  describe('Error Handling (Story 26.5)', () => {
+    describe('playMusic error handling', () => {
+      it('handles onloaderror gracefully without crashing', () => {
+        // Trigger onloaderror synchronously to simulate immediate 404
+        const originalHowl = require('howler').Howl
+        vi.spyOn(require('howler'), 'Howl').mockImplementationOnce(function(options) {
+          const instance = new originalHowl(options)
+          // Simulate synchronous onloaderror (e.g., immediate 404)
+          if (options.onloaderror) {
+            options.onloaderror(null, new Error('404 Not Found'))
+          }
+          return instance
+        })
+
+        // Should not throw even if onloaderror sets currentMusic to null
+        expect(() => audioManager.playMusic('missing.mp3')).not.toThrow()
+      })
+
+      it('continues without error even if onloaderror is triggered', () => {
+        const originalHowl = require('howler').Howl
+        vi.spyOn(require('howler'), 'Howl').mockImplementationOnce(function(options) {
+          const instance = new originalHowl(options)
+          // Trigger onloaderror callback (simulates file not found)
+          if (options.onloaderror) {
+            options.onloaderror(null, new Error('Failed to load'))
+          }
+          return instance
+        })
+
+        // Should complete without throwing
+        audioManager.playMusic('missing.mp3')
+        // If we got here without throwing, the graceful error handling worked
+        expect(true).toBe(true)
+      })
+
+      it('does not crash if play() throws after null check', () => {
+        const originalHowl = require('howler').Howl
+        vi.spyOn(require('howler'), 'Howl').mockImplementationOnce(function(options) {
+          const instance = new originalHowl(options)
+          instance.play = () => { throw new Error('Play failed') }
+          return instance
+        })
+
+        expect(() => audioManager.playMusic('test.mp3')).not.toThrow()
+      })
+    })
+
+    describe('crossfadeMusic error handling', () => {
+      it('handles onloaderror gracefully without crashing', () => {
+        const originalHowl = require('howler').Howl
+        let callCount = 0
+        vi.spyOn(require('howler'), 'Howl').mockImplementation(function(options) {
+          const instance = new originalHowl(options)
+          callCount++
+          // Only trigger error on second call (the new music)
+          if (callCount === 2 && options.onloaderror) {
+            options.onloaderror(null, new Error('404 Not Found'))
+          }
+          return instance
+        })
+
+        audioManager.playMusic('old.mp3')
+        expect(() => audioManager.crossfadeMusic('missing.mp3', 1000)).not.toThrow()
+      })
+
+      it('continues without error even if crossfade onloaderror is triggered', () => {
+        const originalHowl = require('howler').Howl
+        let callCount = 0
+        vi.spyOn(require('howler'), 'Howl').mockImplementation(function(options) {
+          const instance = new originalHowl(options)
+          callCount++
+          // Trigger onloaderror on the second Howl (new music)
+          if (callCount === 2 && options.onloaderror) {
+            options.onloaderror(null, new Error('Failed to load'))
+          }
+          return instance
+        })
+
+        audioManager.playMusic('old.mp3')
+        audioManager.crossfadeMusic('missing.mp3', 1000)
+
+        // If we got here without throwing, the graceful error handling worked
+        expect(true).toBe(true)
+      })
+
+      it('does not crash if play()/fade() throws after null check', () => {
+        const originalHowl = require('howler').Howl
+        let callCount = 0
+        vi.spyOn(require('howler'), 'Howl').mockImplementation(function(options) {
+          const instance = new originalHowl(options)
+          callCount++
+          if (callCount === 2) {
+            instance.play = () => { throw new Error('Play failed') }
+            instance.fade = () => { throw new Error('Fade failed') }
+          }
+          return instance
+        })
+
+        audioManager.playMusic('old.mp3')
+        expect(() => audioManager.crossfadeMusic('new.mp3', 1000)).not.toThrow()
+      })
+    })
+
+    describe('preloadSounds error handling', () => {
+      it('continues preloading even if onloaderror is triggered for a sound', () => {
+        const originalHowl = require('howler').Howl
+        vi.spyOn(require('howler'), 'Howl').mockImplementation(function(options) {
+          const instance = new originalHowl(options)
+          // Trigger onloaderror for all sounds
+          if (options.onloaderror) {
+            options.onloaderror(null, new Error('404 Not Found'))
+          }
+          return instance
+        })
+
+        expect(() => audioManager.preloadSounds({
+          'missing-sfx': 'sfx/missing.wav'
+        })).not.toThrow()
+
+        // Verify the Howl instance was still created despite error
+        expect(mockData.instances.length).toBeGreaterThan(0)
+      })
+
+      it('continues loading other sounds even if one fails', () => {
+        const originalHowl = require('howler').Howl
+        let callCount = 0
+        vi.spyOn(require('howler'), 'Howl').mockImplementation(function(options) {
+          const instance = new originalHowl(options)
+          callCount++
+          // Fail the first sound, succeed the second
+          if (callCount === 1 && options.onloaderror) {
+            options.onloaderror(null, new Error('404'))
+          }
+          return instance
+        })
+
+        audioManager.preloadSounds({
+          'missing': 'sfx/missing.wav',
+          'existing': 'sfx/laser.wav'
+        })
+
+        // Both Howl instances should be created
+        expect(mockData.instances).toHaveLength(2)
+      })
+    })
+
+    describe('playSFX graceful degradation', () => {
+      it('returns early for missing sound key without crashing', () => {
+        expect(() => audioManager.playSFX('nonexistent-key')).not.toThrow()
+      })
+
+      it('returns early for sound that failed to load', () => {
+        const originalHowl = require('howler').Howl
+        vi.spyOn(require('howler'), 'Howl').mockImplementationOnce(function(options) {
+          const instance = new originalHowl(options)
+          if (options.onloaderror) {
+            options.onloaderror(null, new Error('404'))
+          }
+          return instance
+        })
+
+        audioManager.preloadSounds({ 'missing': 'sfx/missing.wav' })
+
+        // playSFX should handle gracefully even if Howl creation "succeeded" but load failed
+        expect(() => audioManager.playSFX('missing')).not.toThrow()
+      })
+    })
+  })
 })

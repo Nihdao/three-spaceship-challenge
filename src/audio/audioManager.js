@@ -1,5 +1,23 @@
 import { Howl, Howler } from 'howler'
 
+/**
+ * Audio Manager - Graceful Error Handling (Story 26.5)
+ *
+ * This module handles missing audio files gracefully:
+ * - SFX: onloaderror logs warnings, playSFX() returns early if sound not loaded
+ * - Music: onloaderror logs warnings, prevents play()/fade() on failed loads
+ *
+ * Expected Missing Placeholders (as of Story 26.5):
+ * - boss-theme.mp3 → fallback: gameplay music continues during boss phase
+ * - level-up.mp3 → fallback: silent (no level-up sound)
+ * - boss-attack.mp3, boss-hit.mp3, hp-recover.mp3 → fallback: silent
+ *
+ * Actual files (.wav) vs. Manifest paths (.mp3):
+ * - Many SFX files in public/audio/sfx/ are .wav but assetManifest.js references .mp3
+ * - This was fixed in Story 26.4 (Complete SFX Placeholder Mapping)
+ * - Howler.js handles this gracefully: onloaderror warns, game continues
+ */
+
 // Volume categories per UX audio patterns
 // music 100%, sfx actions 80%, sfx feedback+ 90%, sfx feedback- 100%, ui 50%, events 120%
 export const VOLUME_CATEGORIES = {
@@ -74,9 +92,20 @@ export function playMusic(src, options = {}) {
     src: [src],
     loop: true,
     volume: options.volume ?? musicVolume,
+    onloaderror: (id, err) => {
+      console.warn(`Audio: failed to load music "${src}":`, err)
+      currentMusic = null // Defensive: prevent play() on failed Howl
+    },
     ...options,
   })
-  currentMusic.play()
+  // Defensive: check if Howl creation succeeded before calling play()
+  if (currentMusic) {
+    try {
+      currentMusic.play()
+    } catch (err) {
+      console.warn(`Audio: failed to play music "${src}":`, err)
+    }
+  }
 }
 
 export function stopMusic() {
@@ -118,10 +147,21 @@ export function crossfadeMusic(newSrc, duration = 1000, options = {}) {
     src: [newSrc],
     loop: true,
     volume: 0,
+    onloaderror: (id, err) => {
+      console.warn(`Audio: failed to load music "${newSrc}":`, err)
+      currentMusic = null // Defensive: prevent fade() on failed Howl
+    },
     ...options,
   })
-  currentMusic.play()
-  currentMusic.fade(0, options.volume ?? musicVolume, duration)
+  // Defensive: check if Howl creation succeeded before calling play()/fade()
+  if (currentMusic) {
+    try {
+      currentMusic.play()
+      currentMusic.fade(0, options.volume ?? musicVolume, duration)
+    } catch (err) {
+      console.warn(`Audio: failed to play/fade music "${newSrc}":`, err)
+    }
+  }
 }
 
 export function setMusicVolume(vol) {
