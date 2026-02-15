@@ -30,6 +30,9 @@ const usePlayer = create((set, get) => ({
   lastDamageTime: 0,
   contactDamageCooldown: 0,
 
+  // --- Dual-Stick Controls (Story 21.1) ---
+  aimDirection: null,
+
   // --- Dash (Story 5.1) ---
   isDashing: false,
   dashTimer: 0,
@@ -69,7 +72,7 @@ const usePlayer = create((set, get) => ({
   levelsGainedThisBatch: 0,
 
   // --- Tick (called by GameLoop each frame) ---
-  tick: (delta, input, speedMultiplier = 1, arenaSize = GAME_CONFIG.PLAY_AREA_SIZE, hpRegenRate = 0) => {
+  tick: (delta, input, speedMultiplier = 1, arenaSize = GAME_CONFIG.PLAY_AREA_SIZE, hpRegenRate = 0, mouseWorldPos = null, mouseActive = false) => {
     const state = get()
     const {
       PLAYER_BASE_SPEED,
@@ -125,12 +128,44 @@ const usePlayer = create((set, get) => ({
     if (Math.abs(px) >= PLAY_AREA_SIZE) vx = 0
     if (Math.abs(pz) >= PLAY_AREA_SIZE) vz = 0
 
+    // --- Speed scalar (for UI/debug and banking logic) ---
+    const speed = Math.sqrt(vx * vx + vz * vz)
+
+    // --- Dual-stick aim direction (Story 21.1) ---
+    // Calculate aimDirection AFTER position update for frame-accurate aiming
+    // Use a LOCAL variable so rotation and banking use the current frame's value (not stale state)
+    let currentAimDirection = state.aimDirection
+    if (mouseWorldPos !== null) {
+      if (mouseActive) {
+        const dx = mouseWorldPos[0] - px
+        const dz = mouseWorldPos[1] - pz
+        const aimLen = Math.sqrt(dx * dx + dz * dz)
+        if (aimLen > 0.01) {
+          currentAimDirection = [dx / aimLen, dz / aimLen]
+        }
+      } else {
+        currentAimDirection = null
+      }
+    }
+
     // --- Rotation (yaw) ---
     let yaw = state.rotation
     const prevYaw = yaw
 
-    if (hasInput) {
-      const targetYaw = Math.atan2(dirX, -dirZ)
+    let shouldRotate = false
+    let targetYaw = 0
+
+    if (currentAimDirection) {
+      // Rotate toward mouse aim direction (dual-stick mode)
+      targetYaw = Math.atan2(currentAimDirection[0], -currentAimDirection[1])
+      shouldRotate = true
+    } else if (hasInput) {
+      // Fallback: Rotate toward movement direction (legacy keyboard-only mode)
+      targetYaw = Math.atan2(dirX, -dirZ)
+      shouldRotate = true
+    }
+
+    if (shouldRotate) {
       let diff = targetYaw - yaw
       while (diff > Math.PI) diff -= Math.PI * 2
       while (diff < -Math.PI) diff += Math.PI * 2
@@ -139,21 +174,24 @@ const usePlayer = create((set, get) => ({
     }
 
     // --- Banking ---
-    let yawDelta = yaw - prevYaw
-    // Normalize yaw delta
-    while (yawDelta > Math.PI) yawDelta -= Math.PI * 2
-    while (yawDelta < -Math.PI) yawDelta += Math.PI * 2
-    const angularVelocity = delta > 0 ? yawDelta / delta : 0
-    const targetBank = -Math.min(Math.max(angularVelocity * 0.5, -PLAYER_MAX_BANK_ANGLE), PLAYER_MAX_BANK_ANGLE)
+    // Disabled in dual-stick mode (banking causes visual misalignment with cursor)
+    let bank = 0
     const bankLerp = 1 - Math.exp(-PLAYER_BANK_SPEED * delta)
-    let bank = state.bankAngle + (targetBank - state.bankAngle) * bankLerp
-    // Return to 0 when not turning
-    if (!hasInput && Math.abs(yawDelta) < 0.001) {
-      bank += (0 - bank) * bankLerp
-    }
 
-    // --- Speed scalar (for UI/debug) ---
-    const speed = Math.sqrt(vx * vx + vz * vz)
+    if (!currentAimDirection) {
+      // Keyboard-only mode: banking based on yaw (rotation) change
+      let yawDelta = yaw - prevYaw
+      while (yawDelta > Math.PI) yawDelta -= Math.PI * 2
+      while (yawDelta < -Math.PI) yawDelta += Math.PI * 2
+      const angularVelocity = delta > 0 ? yawDelta / delta : 0
+
+      const targetBank = -Math.min(Math.max(angularVelocity * 0.5, -PLAYER_MAX_BANK_ANGLE), PLAYER_MAX_BANK_ANGLE)
+      bank = state.bankAngle + (targetBank - state.bankAngle) * bankLerp
+
+      if (!hasInput) {
+        bank += (0 - bank) * bankLerp
+      }
+    }
 
     // --- Contact damage cooldown ---
     let contactDamageCooldown = state.contactDamageCooldown - delta
@@ -208,6 +246,7 @@ const usePlayer = create((set, get) => ({
       velocity: [vx, 0, vz],
       rotation: yaw,
       bankAngle: bank,
+      aimDirection: currentAimDirection,
       speed,
       contactDamageCooldown,
       isInvulnerable,
@@ -226,6 +265,9 @@ const usePlayer = create((set, get) => ({
     if (!SHIPS[shipId]) return
     set({ currentShipId: shipId })
   },
+
+  // --- Dual-Stick Controls (Story 21.1) ---
+  setAimDirection: (dir) => set({ aimDirection: dir }),
 
   // --- Actions ---
   sacrificeFragmentsForHP: () => {
@@ -434,6 +476,7 @@ const usePlayer = create((set, get) => ({
     damageFlashTimer: 0,
     cameraShakeTimer: 0,
     cameraShakeIntensity: 0,
+    aimDirection: null,
     // INTENTIONALLY PRESERVED across system transitions (Story 18.1):
     // - XP/Level: currentXP, currentLevel, xpToNextLevel, pendingLevelUps, levelsGainedThisBatch
     //   → Player's progression carries through all systems in a run
@@ -468,6 +511,7 @@ const usePlayer = create((set, get) => ({
       damageFlashTimer: 0,
       cameraShakeTimer: 0,
       cameraShakeIntensity: 0,
+      aimDirection: null,
       currentXP: 0,
       currentLevel: 1,
       xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],

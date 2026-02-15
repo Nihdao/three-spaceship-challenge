@@ -167,11 +167,13 @@ export default function GameLoop() {
     const input = useControlsStore.getState()
 
     // 2. Player movement — compose boon + upgrade + dilemma speed modifiers
+    // Story 21.1: Pass mouseWorldPos and mouseActive to tick() for frame-accurate aim direction calculation
     const boonModifiers = useBoons.getState().modifiers
     const { upgradeStats, dilemmaStats, permanentUpgradeBonuses } = usePlayer.getState()
     const composedSpeedMult = (boonModifiers.speedMultiplier ?? 1) * upgradeStats.speedMult * dilemmaStats.speedMult
+    const { mouseWorldPos, mouseActive } = input
     // Story 20.1: Add permanent regen bonus to boon regen rate
-    usePlayer.getState().tick(clampedDelta, input, composedSpeedMult, GAME_CONFIG.PLAY_AREA_SIZE, (boonModifiers.hpRegenRate ?? 0) + permanentUpgradeBonuses.regen)
+    usePlayer.getState().tick(clampedDelta, input, composedSpeedMult, GAME_CONFIG.PLAY_AREA_SIZE, (boonModifiers.hpRegenRate ?? 0) + permanentUpgradeBonuses.regen, mouseWorldPos, mouseActive)
 
     // 2b. Dash input (edge detection: trigger only on press, not hold)
     const prevCooldown = prevDashCooldownRef.current
@@ -233,7 +235,8 @@ export default function GameLoop() {
       zoneMultiplier: playerState.permanentUpgradeBonuses.zone,
     }
     const projCountBefore = useWeapons.getState().projectiles.length
-    useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, composedWeaponMods)
+    // Story 21.1: Pass aimDirection for dual-stick firing
+    useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, composedWeaponMods, playerState.aimDirection)
     // Story 11.3: Play per-weapon SFX for newly fired projectiles
     const allProjs = useWeapons.getState().projectiles
     if (allProjs.length > projCountBefore) {

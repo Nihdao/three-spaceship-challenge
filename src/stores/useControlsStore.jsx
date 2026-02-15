@@ -7,16 +7,18 @@ export const useControlsStore = create((set) => ({
   moveRight: false,
   dash: false,
   mouseWorldPos: null,
+  mouseNDC: null, // Store raw NDC coords for per-frame recalculation
   mouseActive: false,
 
   setControl: (controlName, value) => set({ [controlName]: value }),
-  setMouseWorldPos: (pos) => set(state => ({
-    mouseWorldPos: pos,
-    mouseActive: pos !== null || state.mouseActive
+  setMouseNDC: (ndc) => set(state => ({
+    mouseNDC: ndc,
+    mouseActive: ndc !== null || state.mouseActive,
   })),
+  setMouseWorldPos: (pos) => set({ mouseWorldPos: pos }),
   resetControls: () => set({
     moveForward: false, moveBackward: false,
     moveLeft: false, moveRight: false, dash: false,
-    mouseWorldPos: null, mouseActive: false,
+    mouseWorldPos: null, mouseNDC: null, mouseActive: false,
   }),
 }))
