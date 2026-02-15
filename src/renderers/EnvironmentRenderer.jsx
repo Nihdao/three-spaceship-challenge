@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import usePlayer from '../stores/usePlayer.jsx'
@@ -15,7 +15,7 @@ const {
   BOUNDARY_WALL_COLOR,
 } = GAME_CONFIG
 
-const { STARFIELD_LAYERS, GRID_VISIBILITY } = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS
+const { STARFIELD_LAYERS, GRID_VISIBILITY, BACKGROUND } = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS
 
 // Wall definitions: position, rotation, and player position axis index (0=X, 2=Z)
 const WALLS = [
@@ -24,6 +24,37 @@ const WALLS = [
   { position: [0, BOUNDARY_WALL_HEIGHT / 2, PLAY_AREA_SIZE], rotation: [0, Math.PI, 0], axis: 2 },
   { position: [0, BOUNDARY_WALL_HEIGHT / 2, -PLAY_AREA_SIZE], rotation: [0, 0, 0], axis: 2 },
 ]
+
+function NebulaBackground({ tint = BACKGROUND.DEFAULT.nebulaTint, opacity = BACKGROUND.DEFAULT.nebulaOpacity }) {
+  const texture = useMemo(() => {
+    const size = 128
+    const canvas = document.createElement('canvas')
+    canvas.width = size
+    canvas.height = size
+    const ctx = canvas.getContext('2d')
+    const half = size / 2
+    const gradient = ctx.createRadialGradient(half, half, 0, half, half, half)
+    gradient.addColorStop(0, tint)
+    gradient.addColorStop(0.5, tint)
+    gradient.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, size, size)
+    return new THREE.CanvasTexture(canvas)
+  }, [tint])
+
+  return (
+    <mesh>
+      <sphereGeometry args={[6000, 16, 16]} />
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        opacity={opacity}
+        side={THREE.BackSide}
+        depthWrite={false}
+      />
+    </mesh>
+  )
+}
 
 function Starfield() {
   return (
@@ -79,7 +110,7 @@ function GroundPlane() {
       {/* Semi-transparent dark base plane — lets stars show through */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
         <planeGeometry args={[gridSize, gridSize]} />
-        <meshBasicMaterial color="#0a0a0f" transparent opacity={0.2} depthWrite={false} />
+        <meshBasicMaterial color={BACKGROUND.DEFAULT.color} transparent opacity={0.2} depthWrite={false} />
       </mesh>
       {/* Subtle grid for spatial orientation (Story 15.3: reduced visibility) */}
       {(debugGrid || GRID_VISIBILITY.GAMEPLAY.enabled) && (
@@ -95,6 +126,7 @@ function GroundPlane() {
 export default function EnvironmentRenderer() {
   return (
     <group>
+      {BACKGROUND.DEFAULT.nebulaEnabled && <NebulaBackground />}
       <Starfield />
       <BoundaryRenderer />
       <GroundPlane />

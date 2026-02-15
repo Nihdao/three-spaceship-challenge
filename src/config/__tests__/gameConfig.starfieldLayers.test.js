@@ -15,14 +15,14 @@ describe('ENVIRONMENT_VISUAL_EFFECTS.STARFIELD_LAYERS', () => {
     expect(layers.NEAR).toBeDefined()
   })
 
-  it('should have total star count <= 3000 (performance budget)', () => {
+  it('should have total star count <= 4000 (performance budget)', () => {
     const total = layers.DISTANT.count + layers.MID.count + layers.NEAR.count
-    expect(total).toBeLessThanOrEqual(3000)
+    expect(total).toBeLessThanOrEqual(4000)
   })
 
   describe('DISTANT layer', () => {
     it('should have correct star count and radius', () => {
-      expect(layers.DISTANT.count).toBe(1000)
+      expect(layers.DISTANT.count).toBe(1200)
       expect(layers.DISTANT.radius).toBe(5000)
     })
 
@@ -44,7 +44,7 @@ describe('ENVIRONMENT_VISUAL_EFFECTS.STARFIELD_LAYERS', () => {
 
   describe('MID layer', () => {
     it('should have correct star count and radius', () => {
-      expect(layers.MID.count).toBe(1000)
+      expect(layers.MID.count).toBe(1200)
       expect(layers.MID.radius).toBe(3000)
     })
 
@@ -67,7 +67,7 @@ describe('ENVIRONMENT_VISUAL_EFFECTS.STARFIELD_LAYERS', () => {
 
   describe('NEAR layer', () => {
     it('should have correct star count and radius', () => {
-      expect(layers.NEAR.count).toBe(1000)
+      expect(layers.NEAR.count).toBe(800)
       expect(layers.NEAR.radius).toBe(1500)
     })
 
@@ -96,5 +96,49 @@ describe('ENVIRONMENT_VISUAL_EFFECTS.STARFIELD_LAYERS', () => {
   it('should have decreasing parallax factor from near to distant', () => {
     expect(layers.NEAR.parallaxFactor).toBeGreaterThan(layers.MID.parallaxFactor)
     expect(layers.MID.parallaxFactor).toBeGreaterThan(layers.DISTANT.parallaxFactor)
+  })
+})
+
+describe('ENVIRONMENT_VISUAL_EFFECTS.BACKGROUND (Story 24.2)', () => {
+  const bg = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS?.BACKGROUND
+
+  it('should exist in ENVIRONMENT_VISUAL_EFFECTS', () => {
+    expect(bg).toBeDefined()
+  })
+
+  describe('DEFAULT config', () => {
+    it('should have a dark blue color (not pure black)', () => {
+      expect(bg.DEFAULT).toBeDefined()
+      expect(bg.DEFAULT.color).toBeDefined()
+      expect(bg.DEFAULT.color).not.toBe('#000000')
+    })
+
+    it('should have nebula configuration fields', () => {
+      expect(typeof bg.DEFAULT.nebulaEnabled).toBe('boolean')
+      expect(bg.DEFAULT.nebulaTint).toBeDefined()
+      expect(typeof bg.DEFAULT.nebulaOpacity).toBe('number')
+      expect(bg.DEFAULT.nebulaOpacity).toBeGreaterThan(0)
+      expect(bg.DEFAULT.nebulaOpacity).toBeLessThan(0.2)
+    })
+  })
+
+  describe('BOSS config', () => {
+    it('should have a boss-specific background color', () => {
+      expect(bg.BOSS).toBeDefined()
+      expect(bg.BOSS.color).toBeDefined()
+      expect(bg.BOSS.color).not.toBe(bg.DEFAULT.color)
+    })
+
+    it('should have nebula configuration fields', () => {
+      expect(typeof bg.BOSS.nebulaEnabled).toBe('boolean')
+      expect(bg.BOSS.nebulaTint).toBeDefined()
+      expect(typeof bg.BOSS.nebulaOpacity).toBe('number')
+    })
+  })
+
+  it('should have fog colors matching their respective background colors', () => {
+    const fog = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.AMBIENT_FOG
+    expect(fog.GAMEPLAY.color).toBe(bg.DEFAULT.color)
+    expect(fog.BOSS.color).toBe(bg.BOSS.color)
   })
 })

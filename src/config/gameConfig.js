@@ -294,23 +294,39 @@ export const GAME_CONFIG = {
       },
     },
 
-    // Ambient fog (Story 15.3)
+    // Background color & nebula (Story 24.2)
+    BACKGROUND: {
+      DEFAULT: {
+        color: '#060614',
+        nebulaEnabled: true,
+        nebulaTint: '#120a30',
+        nebulaOpacity: 0.05,
+      },
+      BOSS: {
+        color: '#06030f',
+        nebulaEnabled: false,
+        nebulaTint: '#1a0830',
+        nebulaOpacity: 0.06,
+      },
+    },
+
+    // Ambient fog (Story 15.3, Story 24.2: harmonized with background color)
     AMBIENT_FOG: {
       GAMEPLAY: {
         enabled: true,
-        color: '#050510',
+        color: '#060614',
         density: 0.0003,
       },
       BOSS: {
         enabled: true,
-        color: '#0a0515',
+        color: '#06030f',
         density: 0.0002,
       },
     },
 
     STARFIELD_LAYERS: {
       DISTANT: {
-        count: 1000,
+        count: 1200,
         radius: 5000,
         sizeRange: [2, 3.5],
         opacityRange: [0.45, 0.65],
@@ -318,7 +334,7 @@ export const GAME_CONFIG = {
         sizeAttenuation: false,
       },
       MID: {
-        count: 1000,
+        count: 1200,
         radius: 3000,
         sizeRange: [3.5, 6],
         opacityRange: [0.65, 0.85],
@@ -326,7 +342,7 @@ export const GAME_CONFIG = {
         sizeAttenuation: false,
       },
       NEAR: {
-        count: 1000,
+        count: 800,
         radius: 1500,
         sizeRange: [5.5, 8],
         opacityRange: [0.85, 1.0],
