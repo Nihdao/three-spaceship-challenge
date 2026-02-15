@@ -210,7 +210,7 @@ development_status:
   20-4-permanent-upgrades-utility-stats: done
   20-5-permanent-upgrades-meta-stats: done
   20-6-upgrade-refund-system: done
-  20-7-enriched-ship-stats-display: in-progress
+  20-7-enriched-ship-stats-display: review
   20-8-hp-bar-redesign: ready-for-dev
   epic-20-retrospective: optional
 
@@ -257,7 +257,7 @@ development_status:
   # Epic 26: Audio Integration & Placeholder Sounds
   epic-26: in-progress
   26-1-random-gameplay-music-per-system: done
-  26-2-main-menu-tunnel-music-integration: ready-for-dev
+  26-2-main-menu-tunnel-music-integration: done
   26-3-scan-sound-looping-system: ready-for-dev
   26-4-complete-sfx-placeholder-mapping: ready-for-dev
   26-5-graceful-audio-error-handling: ready-for-dev

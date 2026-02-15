@@ -7,7 +7,7 @@ export const ASSET_MANIFEST = {
       playerShip: 'models/ships/player-ship.glb',
     },
     audio: {
-      menuMusic: 'audio/music/Michett - Snackmix.mp3',
+      menuMusic: 'audio/music/mainMenu.mp3',
     },
   },
 
@@ -63,7 +63,7 @@ export const ASSET_MANIFEST = {
     },
     audio: {
       bossMusic: 'audio/music/boss-theme.mp3', // Missing file - will fail gracefully
-      tunnelMusic: 'audio/music/tunnel-theme.mp3', // Missing file - will fail gracefully
+      tunnelMusic: 'audio/music/Wormhole_Loop.wav',
       wormholeSpawn: 'audio/sfx/wormhole-spawn.wav',
       wormholeActivate: 'audio/sfx/wormhole-activate.wav',
       bossAttack: 'audio/sfx/boss-attack.wav', // Missing file - will fail gracefully

@@ -60,6 +60,11 @@ export default function useAudio() {
     // Unlock AudioContext on first user interaction (browser autoplay policy)
     const handleInteraction = () => {
       unlockAudioContext()
+      // Restart menu music if we're on the menu phase (fixes initial autoplay block)
+      const currentPhase = useGame.getState().phase
+      if (currentPhase === 'menu') {
+        playMusic(ASSET_MANIFEST.critical.audio.menuMusic)
+      }
       document.removeEventListener('click', handleInteraction)
       document.removeEventListener('keydown', handleInteraction)
     }
@@ -78,8 +83,8 @@ export default function useAudio() {
             // Initial load or fresh menu — play directly
             playMusic(ASSET_MANIFEST.critical.audio.menuMusic)
           }
-        } else if (phase === 'gameplay') {
-          // Story 26.1: Randomly select gameplay music for each system
+        } else if (phase === 'systemEntry') {
+          // Story 26.1: Randomly select gameplay music when entering a new system
           const tracks = ASSET_MANIFEST.gameplay.audio.gameplayMusic
 
           // Defensive check: ensure gameplayMusic is an array
@@ -87,11 +92,7 @@ export default function useAudio() {
             console.warn('gameplayMusic is not an array, using fallback track')
             const fallbackTrack =
               typeof tracks === 'string' ? tracks : 'audio/music/Creo - Rock Thing.mp3'
-            if (prevPhase === 'menu') {
-              crossfadeMusic(fallbackTrack, 1000)
-            } else {
-              playMusic(fallbackTrack)
-            }
+            crossfadeMusic(fallbackTrack, 1000)
             return
           }
 
@@ -103,17 +104,16 @@ export default function useAudio() {
             return
           }
 
-          if (prevPhase === 'menu') {
-            // Menu → gameplay: crossfade to randomly selected track
+          if (prevPhase === 'menu' || prevPhase === 'shipSelect') {
+            // Menu/ShipSelect → systemEntry: crossfade to randomly selected track
             crossfadeMusic(selectedTrack, 1000)
-          } else if (prevPhase === 'gameOver' || prevPhase === 'victory') {
-            // Retry from end screen — play new random track
-            playMusic(selectedTrack)
           } else if (prevPhase === 'tunnel') {
-            // Tunnel → gameplay: crossfade to new random track for new system
+            // Tunnel → systemEntry: crossfade to new random track for new system
             crossfadeMusic(selectedTrack, 1000)
           }
-          // levelUp → gameplay: music continues, no change
+        } else if (phase === 'gameplay') {
+          // systemEntry → gameplay: music continues, no change
+          // gameOver/victory → gameplay: music already handled by systemEntry transition
         } else if (phase === 'boss') {
           // Crossfade to boss music
           crossfadeMusic(ASSET_MANIFEST.tier2.audio.bossMusic, 1500)
