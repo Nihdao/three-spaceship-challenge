@@ -325,6 +325,9 @@ export default function HUD() {
   const fragments = usePlayer((s) => s.fragments)
   const currentLevel = usePlayer((s) => s.currentLevel)
   const revivalCharges = usePlayer((s) => s.revivalCharges)
+  const rerollCharges = usePlayer((s) => s.rerollCharges)
+  const skipCharges = usePlayer((s) => s.skipCharges)
+  const banishCharges = usePlayer((s) => s.banishCharges)
   const activeWeapons = useWeapons((s) => s.activeWeapons)
   const activeBoons = useBoons((s) => s.activeBoons)
   const damageFlashTimer = usePlayer((s) => s.damageFlashTimer)
@@ -378,17 +381,30 @@ export default function HUD() {
           {/* HP Bar — top-left (Story 20.8: Rectangular HP bar with text inside) */}
           <RectangularHPBar value={currentHP} max={maxHP} pulse={hpPulse} />
 
-          {/* Stats cluster: Kills | Fragments | Score | Revival (Story 10.2, 22.1) */}
+          {/* Stats cluster: Kills | Fragments | Score (Story 10.2) */}
           <div className="flex items-center gap-3">
             <AnimatedStat value={kills} icon="💀" colorClass="text-game-danger" label="kills" />
-            {/* Story 19.3: Fragment icon color set to purple (#cc66ff) to match fragment gems */}
             <AnimatedStat value={fragments} icon="◆" label="fragments" style={{ color: '#cc66ff' }} />
             <AnimatedStat value={score} icon="⭐" colorClass="text-yellow-400" label="score" />
-            {/* Story 22.1: Revival charges — only show when > 0, cyan to distinguish from HP */}
-            {revivalCharges > 0 && (
-              <AnimatedStat value={revivalCharges} icon="♥" label="revival" style={{ color: '#33ccff' }} />
-            )}
           </div>
+
+          {/* Meta charges row: Revival | Reroll | Skip | Banish — only when any > 0 (Story 22.1, 22.2) */}
+          {(revivalCharges > 0 || rerollCharges > 0 || skipCharges > 0 || banishCharges > 0) && (
+            <div className="flex items-center gap-3">
+              {revivalCharges > 0 && (
+                <AnimatedStat value={revivalCharges} icon="♥" label="revival" style={{ color: '#33ccff' }} />
+              )}
+              {rerollCharges > 0 && (
+                <AnimatedStat value={rerollCharges} icon="↻" label="reroll" style={{ color: '#00ffcc' }} />
+              )}
+              {skipCharges > 0 && (
+                <AnimatedStat value={skipCharges} icon="⏭" label="skip" style={{ color: '#ffdd00' }} />
+              )}
+              {banishCharges > 0 && (
+                <AnimatedStat value={banishCharges} icon="✕" label="banish" style={{ color: '#ff3366' }} />
+              )}
+            </div>
+          )}
 
           {/* Weapon Slots — below stats in top-left cluster (Story 10.4) */}
           <WeaponSlots activeWeapons={activeWeapons} />
@@ -397,8 +413,8 @@ export default function HUD() {
           <BoonSlots activeBoons={activeBoons} />
         </div>
 
-        {/* Timer — top-center (Story 17.6: continues during boss fight) */}
-        <div className="flex flex-col items-center gap-0.5">
+        {/* Timer — true center, independent of left/right column widths */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-0.5">
           <span
             className={`font-bold tabular-nums ${lowTime ? 'text-game-danger animate-pulse' : 'text-game-timer'}`}
             style={{ fontSize: 'clamp(20px, 2.2vw, 32px)' }}

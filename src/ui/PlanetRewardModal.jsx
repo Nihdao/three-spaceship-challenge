@@ -3,6 +3,7 @@ import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
+import useLevel from '../stores/useLevel.jsx'
 import { generatePlanetReward } from '../systems/progressionSystem.js'
 import { playSFX } from '../audio/audioManager.js'
 import { PLANETS } from '../entities/planetDefs.js'
@@ -30,7 +31,8 @@ export default function PlanetRewardModal() {
     const equippedWeapons = useWeapons.getState().activeWeapons.map(w => ({ weaponId: w.weaponId, level: w.level }))
     const equippedBoonIds = useBoons.getState().activeBoons.map(b => b.boonId)
     const equippedBoons = useBoons.getState().getEquippedBoons()
-    setChoices(generatePlanetReward(rewardTier, equippedWeapons, equippedBoonIds, equippedBoons))
+    const banishedItems = useLevel.getState().banishedItems
+    setChoices(generatePlanetReward(rewardTier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems))
   }, [rewardTier])
 
   const applyChoice = useCallback((choice) => {
