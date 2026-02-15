@@ -102,6 +102,11 @@
   to { opacity: 0; transform: translateY(-24px); }
 }
 
+@keyframes hpPulse {
+  from { box-shadow: 0 0 8px rgba(255, 68, 102, 0.5); }
+  to { box-shadow: 0 0 16px rgba(255, 68, 102, 0.9); }
+}
+
 .hp-float-text {
   animation: hpFloatUp 800ms ease-out forwards;
   pointer-events: none;

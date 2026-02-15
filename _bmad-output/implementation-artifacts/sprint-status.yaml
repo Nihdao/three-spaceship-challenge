@@ -211,13 +211,13 @@ development_status:
   20-5-permanent-upgrades-meta-stats: done
   20-6-upgrade-refund-system: done
   20-7-enriched-ship-stats-display: done
-  20-8-hp-bar-redesign: review
+  20-8-hp-bar-redesign: done
   epic-20-retrospective: optional
 
   # Epic 21: Dual-Stick Controls (Gameplay Foundation)
   epic-21: in-progress
   21-1-dual-stick-controls-movement-aiming: done
-  21-2-crosshair-display: ready-for-dev
+  21-2-crosshair-display: in-progress
   21-3-ship-inertia-physics: ready-for-dev
   21-4-vortex-purple-tint: ready-for-dev
   epic-21-retrospective: optional
@@ -258,7 +258,7 @@ development_status:
   epic-26: in-progress
   26-1-random-gameplay-music-per-system: done
   26-2-main-menu-tunnel-music-integration: done
-  26-3-scan-sound-looping-system: review
+  26-3-scan-sound-looping-system: in-progress
   26-4-complete-sfx-placeholder-mapping: ready-for-dev
   26-5-graceful-audio-error-handling: ready-for-dev
   epic-26-retrospective: optional
