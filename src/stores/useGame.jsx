@@ -52,6 +52,8 @@ const useGame = create(
     triggerLevelUp: () => set((s) => ({ phase: 'levelUp', isPaused: true, prevCombatPhase: s.phase === 'levelUp' ? s.prevCombatPhase : s.phase })),
     triggerPlanetReward: (tier) => set({ phase: 'planetReward', isPaused: true, rewardTier: tier }),
     resumeGameplay: () => set((s) => ({ phase: s.prevCombatPhase, isPaused: false, rewardTier: null })),
+    enterRevivePhase: () => set({ phase: 'revive', isPaused: true }),
+    resumeFromRevive: () => set({ phase: 'gameplay', isPaused: false }),
     triggerGameOver: () => set({ phase: 'gameOver', isPaused: true }),
     triggerVictory: () => set({ phase: 'victory', isPaused: true }),
     startSystemEntry: () => set({ phase: 'systemEntry', isPaused: false }),

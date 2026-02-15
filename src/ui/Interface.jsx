@@ -100,7 +100,7 @@ export default function Interface() {
     <>
       {phase === 'menu' && <MainMenu />}
       {phase === 'shipSelect' && <ShipSelect />}
-      {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <HUD />}
+      {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward' || phase === 'revive') && <HUD />}
       {phase === 'gameplay' && <PauseMenu />}
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}
