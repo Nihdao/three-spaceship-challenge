@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import StarfieldLayer from '../renderers/StarfieldLayer.jsx'
 
-const { STARFIELD_LAYERS } = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS
+const { STARFIELD_LAYERS, BACKGROUND } = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS
 
 function MenuStarfield() {
   return (
@@ -114,6 +114,8 @@ export default function MenuScene() {
   return (
     <>
       <MenuCamera />
+      {/* Scene background color (Story 24.2) */}
+      <color attach="background" args={[BACKGROUND.DEFAULT.color]} />
       {/* Task 7: Lighting and atmosphere */}
       <ambientLight intensity={0.3} />
       <directionalLight position={[5, 10, 5]} intensity={0.7} color="#88ccff" />

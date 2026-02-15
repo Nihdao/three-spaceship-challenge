@@ -63,7 +63,7 @@ function ArenaFloor() {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
         <planeGeometry args={[gridSize, gridSize]} />
-        <meshBasicMaterial color="#0a0015" transparent opacity={0.3} depthWrite={false} />
+        <meshBasicMaterial color={BACKGROUND.BOSS.color} transparent opacity={0.3} depthWrite={false} />
       </mesh>
       {/* Story 15.3: reduced visibility grid, debug toggle support */}
       {(debugGrid || GRID_VISIBILITY.BOSS.enabled) && (
@@ -73,7 +73,7 @@ function ArenaFloor() {
   )
 }
 
-const { STARFIELD_LAYERS, GRID_VISIBILITY, AMBIENT_FOG } = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS
+const { STARFIELD_LAYERS, GRID_VISIBILITY, AMBIENT_FOG, BACKGROUND } = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS
 
 // Purple-tinted star color for boss arena
 const purpleColorFn = () => {
@@ -96,6 +96,9 @@ export default function BossScene() {
     <>
       <Controls />
       <CameraRig />
+
+      {/* Boss scene background color (Story 24.2) */}
+      <color attach="background" args={[BACKGROUND.BOSS.color]} />
 
       {/* Ambient fog for atmospheric depth (Story 15.3) */}
       {AMBIENT_FOG.BOSS.enabled && (

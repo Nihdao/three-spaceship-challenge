@@ -31,6 +31,7 @@ function Controls() {
 
 const _fill = GAME_CONFIG.PLAYER_SHIP_LIGHTING
 const _fog = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.AMBIENT_FOG.GAMEPLAY
+const _bgColor = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.BACKGROUND.DEFAULT.color
 
 export default function GameplayScene() {
   const { isActive, bossDefeated } = useBoss()
@@ -40,6 +41,9 @@ export default function GameplayScene() {
     <>
       <Controls />
       <CameraRig />
+
+      {/* Scene background color (Story 24.2) */}
+      <color attach="background" args={[_bgColor]} />
 
       {/* Ambient fog for atmospheric depth (Story 15.3) */}
       {_fog.enabled && <fogExp2 attach="fog" args={[_fog.color, _fog.density]} />}

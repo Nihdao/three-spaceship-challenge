@@ -71,8 +71,8 @@ describe('ENVIRONMENT_VISUAL_EFFECTS.AMBIENT_FOG', () => {
       expect(typeof fog.GAMEPLAY.enabled).toBe('boolean')
     })
 
-    it('should have deep blue-black color', () => {
-      expect(fog.GAMEPLAY.color).toBe('#050510')
+    it('should have deep blue-black color harmonized with background (Story 24.2)', () => {
+      expect(fog.GAMEPLAY.color).toBe('#060614')
     })
 
     it('should have very low density (0.0001-0.0005 range)', () => {
@@ -86,8 +86,8 @@ describe('ENVIRONMENT_VISUAL_EFFECTS.AMBIENT_FOG', () => {
       expect(typeof fog.BOSS.enabled).toBe('boolean')
     })
 
-    it('should have purple-tinted color', () => {
-      expect(fog.BOSS.color).toBe('#0a0515')
+    it('should have purple-tinted color harmonized with boss background (Story 24.2)', () => {
+      expect(fog.BOSS.color).toBe('#06030f')
     })
 
     it('should have very low density', () => {
