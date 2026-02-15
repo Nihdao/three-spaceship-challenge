@@ -10,6 +10,7 @@ import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
 import { PLANETS } from '../entities/planetDefs.js'
 import ProgressBar from './primitives/ProgressBar.jsx'
+import RectangularHPBar from './primitives/RectangularHPBar.jsx'
 import XPBarFullWidth from './XPBarFullWidth.jsx'
 
 // --- Minimap constants & helpers (Story 10.3) ---
@@ -370,23 +371,11 @@ export default function HUD() {
       {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <XPBarFullWidth />}
 
       {/* Top row: HP + Stats left, Timer center, Level + Minimap right */}
-      <div className="absolute top-0 left-0 right-0 flex items-start justify-between px-6 pt-4">
+      <div className="absolute top-0 left-0 right-0 flex items-start justify-between px-6 pt-8">
         {/* Left column: HP bar + Stats cluster */}
         <div className="flex flex-col gap-2">
-          {/* HP Bar — top-left */}
-          <div className="flex flex-col gap-1" style={{ width: 'clamp(140px, 14vw, 220px)' }}>
-            <div className="flex items-center justify-between">
-              <span className="text-game-hp font-bold" style={{ fontSize: 'clamp(11px, 1.1vw, 15px)' }}>
-                HP
-              </span>
-              <span className="text-game-text tabular-nums" style={{ fontSize: 'clamp(10px, 1vw, 14px)' }}>
-                {Math.ceil(currentHP)} / {maxHP}
-              </span>
-            </div>
-            <div style={{ height: 'clamp(6px, 0.7vw, 10px)' }}>
-              <ProgressBar value={currentHP} max={maxHP} variant="hp" pulse={hpPulse} />
-            </div>
-          </div>
+          {/* HP Bar — top-left (Story 20.8: Rectangular HP bar with text inside) */}
+          <RectangularHPBar value={currentHP} max={maxHP} pulse={hpPulse} />
 
           {/* Stats cluster: Kills | Fragments | Score (Story 10.2) */}
           <div className="flex items-center gap-3">
