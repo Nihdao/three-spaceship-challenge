@@ -44,8 +44,8 @@ export function collectGem(index) {
   return fragmentValue
 }
 
-export function updateMagnetization(px, pz, delta) {
-  const magnetRadius = GAME_CONFIG.XP_MAGNET_RADIUS
+export function updateMagnetization(px, pz, delta, pickupRadiusMultiplier = 1.0) {
+  const magnetRadius = GAME_CONFIG.XP_MAGNET_RADIUS * pickupRadiusMultiplier
   const magnetRadiusSq = magnetRadius * magnetRadius
   const magnetSpeed = GAME_CONFIG.XP_MAGNET_SPEED
   const accelCurve = GAME_CONFIG.XP_MAGNET_ACCELERATION_CURVE

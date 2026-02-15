@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
+import usePlayer from '../stores/usePlayer.jsx'
 
 // Sweep group size range
 const SWEEP_GROUP_MIN = 3
@@ -57,10 +58,14 @@ export function createSpawnSystem() {
     if (spawnTimer > 0) return []
 
     // Reset timer based on difficulty ramp
-    const interval = Math.max(
+    // Story 20.4: Curse reduces interval (increases spawn rate). Stacks multiplicatively with Epic 23 dynamic waves.
+    const curseBonus = usePlayer.getState().permanentUpgradeBonuses.curse
+    const curseMultiplier = 1.0 + curseBonus
+    const baseInterval = Math.max(
       GAME_CONFIG.SPAWN_INTERVAL_MIN,
       GAME_CONFIG.SPAWN_INTERVAL_BASE - elapsedTime * GAME_CONFIG.SPAWN_RAMP_RATE,
     )
+    const interval = baseInterval / curseMultiplier
     spawnTimer = interval
 
     // Calculate batch size

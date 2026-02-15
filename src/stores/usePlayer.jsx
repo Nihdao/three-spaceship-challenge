@@ -7,7 +7,7 @@ import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 
 const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
 const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
-const DEFAULT_PERMANENT_BONUSES = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0 }
+const DEFAULT_PERMANENT_BONUSES = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0.0, expBonus: 1.0, curse: 0.0 }
 // Cache default ship baseSpeed to avoid recomputing getDefaultShipId() every tick (60 FPS)
 const DEFAULT_SHIP_BASE_SPEED = SHIPS[getDefaultShipId()].baseSpeed
 

@@ -4,10 +4,10 @@ import { PERMANENT_UPGRADES, getNextLevelCost, getTotalBonus } from '../permanen
 describe('permanentUpgradesDefs', () => {
   const upgradeIds = Object.keys(PERMANENT_UPGRADES)
 
-  it('defines exactly 6 combat stat upgrades', () => {
-    expect(upgradeIds).toHaveLength(6)
+  it('defines exactly 10 upgrades (6 combat + 4 utility)', () => {
+    expect(upgradeIds).toHaveLength(10)
     expect(upgradeIds).toEqual(
-      expect.arrayContaining(['ATTACK_POWER', 'ARMOR', 'MAX_HP', 'REGEN', 'ATTACK_SPEED', 'ZONE'])
+      expect.arrayContaining(['ATTACK_POWER', 'ARMOR', 'MAX_HP', 'REGEN', 'ATTACK_SPEED', 'ZONE', 'MAGNET', 'LUCK', 'EXP_BONUS', 'CURSE'])
     )
   })
 
@@ -52,6 +52,33 @@ describe('permanentUpgradesDefs', () => {
     expect(PERMANENT_UPGRADES.REGEN.maxLevel).toBe(3)
     expect(PERMANENT_UPGRADES.ATTACK_SPEED.maxLevel).toBe(3)
     expect(PERMANENT_UPGRADES.ZONE.maxLevel).toBe(3)
+  })
+
+  // Story 20.4: Utility stat upgrades
+  it('MAGNET has 2 levels', () => {
+    expect(PERMANENT_UPGRADES.MAGNET.maxLevel).toBe(2)
+    expect(PERMANENT_UPGRADES.MAGNET.levels).toHaveLength(2)
+  })
+
+  it('LUCK has 3 levels', () => {
+    expect(PERMANENT_UPGRADES.LUCK.maxLevel).toBe(3)
+    expect(PERMANENT_UPGRADES.LUCK.levels).toHaveLength(3)
+  })
+
+  it('EXP_BONUS has 5 levels', () => {
+    expect(PERMANENT_UPGRADES.EXP_BONUS.maxLevel).toBe(5)
+    expect(PERMANENT_UPGRADES.EXP_BONUS.levels).toHaveLength(5)
+  })
+
+  it('CURSE has 5 levels', () => {
+    expect(PERMANENT_UPGRADES.CURSE.maxLevel).toBe(5)
+    expect(PERMANENT_UPGRADES.CURSE.levels).toHaveLength(5)
+  })
+
+  it('has no duplicate upgrade IDs across combat and utility', () => {
+    const ids = Object.keys(PERMANENT_UPGRADES)
+    const uniqueIds = new Set(ids)
+    expect(uniqueIds.size).toBe(ids.length)
   })
 
   describe('getNextLevelCost', () => {

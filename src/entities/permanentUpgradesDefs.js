@@ -79,6 +79,58 @@ export const PERMANENT_UPGRADES = {
       { level: 3, cost: 160, bonus: 0.10 },
     ],
   },
+  // Story 20.4: Utility stat upgrades
+  MAGNET: {
+    id: 'MAGNET',
+    name: 'Magnet',
+    description: 'Increases pickup radius for XP and loot',
+    icon: '\uD83E\uDDF2',
+    maxLevel: 2,
+    levels: [
+      { level: 1, cost: 80, bonus: 0.15 },
+      { level: 2, cost: 160, bonus: 0.15 },
+    ],
+  },
+  LUCK: {
+    id: 'LUCK',
+    name: 'Luck',
+    description: 'Increases loot drop chances',
+    icon: '\uD83C\uDF40',
+    maxLevel: 3,
+    levels: [
+      { level: 1, cost: 100, bonus: 0.05 },
+      { level: 2, cost: 200, bonus: 0.05 },
+      { level: 3, cost: 400, bonus: 0.05 },
+    ],
+  },
+  EXP_BONUS: {
+    id: 'EXP_BONUS',
+    name: 'Exp Bonus',
+    description: 'Increases XP gain from all sources',
+    icon: '\u2B50',
+    maxLevel: 5,
+    levels: [
+      { level: 1, cost: 60, bonus: 0.05 },
+      { level: 2, cost: 120, bonus: 0.05 },
+      { level: 3, cost: 240, bonus: 0.05 },
+      { level: 4, cost: 420, bonus: 0.05 },
+      { level: 5, cost: 600, bonus: 0.05 },
+    ],
+  },
+  CURSE: {
+    id: 'CURSE',
+    name: 'Curse',
+    description: 'Increases enemy spawn rate for more combat and loot',
+    icon: '\uD83D\uDC80',
+    maxLevel: 5,
+    levels: [
+      { level: 1, cost: 50, bonus: 0.10 },
+      { level: 2, cost: 100, bonus: 0.10 },
+      { level: 3, cost: 200, bonus: 0.10 },
+      { level: 4, cost: 350, bonus: 0.10 },
+      { level: 5, cost: 500, bonus: 0.10 },
+    ],
+  },
 }
 
 export function getNextLevelCost(upgradeId, currentLevel) {

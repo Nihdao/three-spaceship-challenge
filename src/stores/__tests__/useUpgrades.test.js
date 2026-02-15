@@ -166,6 +166,49 @@ describe('useUpgrades', () => {
       const bonuses = useUpgrades.getState().getComputedBonuses()
       expect(bonuses.regen).toBeCloseTo(0.2)
     })
+
+    // Story 20.4: Utility stat bonuses
+    it('returns utility defaults with no upgrades', () => {
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.magnet).toBe(1.0)
+      expect(bonuses.luck).toBe(0.0)
+      expect(bonuses.expBonus).toBe(1.0)
+      expect(bonuses.curse).toBe(0.0)
+    })
+
+    it('computes correct magnet bonus (multiplier)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('MAGNET')
+      useUpgrades.getState().purchaseUpgrade('MAGNET')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.magnet).toBeCloseTo(1.30)
+    })
+
+    it('computes correct luck bonus (additive)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('LUCK')
+      useUpgrades.getState().purchaseUpgrade('LUCK')
+      useUpgrades.getState().purchaseUpgrade('LUCK')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.luck).toBeCloseTo(0.15)
+    })
+
+    it('computes correct expBonus bonus (multiplier)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('EXP_BONUS')
+      useUpgrades.getState().purchaseUpgrade('EXP_BONUS')
+      useUpgrades.getState().purchaseUpgrade('EXP_BONUS')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.expBonus).toBeCloseTo(1.15)
+    })
+
+    it('computes correct curse bonus (additive)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('CURSE')
+      useUpgrades.getState().purchaseUpgrade('CURSE')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.curse).toBeCloseTo(0.20)
+    })
   })
 
   describe('persistence', () => {

@@ -3,6 +3,7 @@ import { spawnHealGem, resetHealGems } from './healGemSystem.js'
 import { spawnGem, reset as resetFragmentGems } from './fragmentGemSystem.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
+import usePlayer from '../stores/usePlayer.jsx'
 
 /**
  * Story 19.5: Registry Pattern for Extensible Loot System
@@ -39,10 +40,13 @@ export function rollDrops(enemyTypeId, x, z, enemyInstance = null) {
   const enemyDef = ENEMIES[enemyTypeId]
   const xpReward = enemyDef?.xpReward ?? 0
 
+  // Story 20.4: Read luck bonus for drop chance increases (additive)
+  const luckBonus = usePlayer.getState().permanentUpgradeBonuses.luck
+
   // XP Orb drop (rare or standard) - handled separately, not in registry
   // Rationale: XP is always guaranteed drop (not random), just rare vs standard
   if (xpReward > 0) {
-    const isRare = Math.random() < GAME_CONFIG.RARE_XP_GEM_DROP_CHANCE
+    const isRare = Math.random() < Math.min(1.0, GAME_CONFIG.RARE_XP_GEM_DROP_CHANCE + luckBonus)
     if (isRare) {
       // Rare XP gem: 3x value, replaces standard orb
       spawnOrb(x, z, xpReward * GAME_CONFIG.RARE_XP_GEM_MULTIPLIER, true)
@@ -55,7 +59,9 @@ export function rollDrops(enemyTypeId, x, z, enemyInstance = null) {
   // Registry-based loot drops (heal gem, fragment gem, future loot types)
   for (const [lootId, config] of _registry) {
     // Check per-enemy override first, fallback to global config
-    const dropChance = enemyInstance?.dropOverrides?.[lootId] ?? GAME_CONFIG[config.dropChanceKey]
+    // Story 20.4: Add luck bonus to all registry-based drop chances (additive, capped at 1.0)
+    const baseDropChance = enemyInstance?.dropOverrides?.[lootId] ?? GAME_CONFIG[config.dropChanceKey]
+    const dropChance = Math.min(1.0, baseDropChance + luckBonus)
 
     if (Math.random() < dropChance) {
       config.spawnFn(x, z)
