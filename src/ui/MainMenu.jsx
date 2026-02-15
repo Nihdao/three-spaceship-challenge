@@ -3,9 +3,11 @@ import useGame from "../stores/useGame.jsx";
 import { playSFX } from "../audio/audioManager.js";
 import OptionsModal from "./modals/OptionsModal.jsx";
 import CreditsModal from "./modals/CreditsModal.jsx";
+import UpgradesScreen from "./UpgradesScreen.jsx";
 
-const MENU_ITEMS = [
+export const MENU_ITEMS = [
   { id: "play", label: "PLAY" },
+  { id: "upgrades", label: "UPGRADES" },
   { id: "options", label: "OPTIONS" },
   { id: "credits", label: "CREDITS" },
 ];
@@ -15,6 +17,7 @@ export default function MainMenu() {
   const [fading, setFading] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
+  const [isUpgradesOpen, setIsUpgradesOpen] = useState(false);
   const playButtonRef = useRef(null);
   const creditsButtonRef = useRef(null);
 
@@ -45,6 +48,9 @@ export default function MainMenu() {
       if (fading) return;
       if (item.id === "play") {
         handlePlay();
+      } else if (item.id === "upgrades") {
+        playSFX("button-click");
+        setIsUpgradesOpen(true);
       } else if (item.id === "options") {
         playSFX("button-click");
         setIsOptionsOpen(true);
@@ -62,7 +68,7 @@ export default function MainMenu() {
       if (fading) return;
 
       // Don't navigate menu while any modal is open
-      if (isCreditsOpen || isOptionsOpen) return;
+      if (isCreditsOpen || isOptionsOpen || isUpgradesOpen) return;
 
       if (e.code === "ArrowUp") {
         e.preventDefault();
@@ -81,7 +87,7 @@ export default function MainMenu() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, handleMenuSelect]);
+  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, isUpgradesOpen, handleMenuSelect]);
 
   return (
     <>
@@ -91,8 +97,8 @@ export default function MainMenu() {
         style={{ opacity: fading ? 1 : 0 }}
       />
 
-      {/* Menu overlay */}
-      <div
+      {/* Menu overlay — hidden when upgrades screen is open */}
+      {!isUpgradesOpen && <div
         className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
         inert={isCreditsOpen || isOptionsOpen ? "" : undefined}
       >
@@ -140,7 +146,7 @@ export default function MainMenu() {
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* Options modal */}
       {isOptionsOpen && (
@@ -159,6 +165,11 @@ export default function MainMenu() {
           setIsCreditsOpen(false);
           setTimeout(() => creditsButtonRef.current?.focus(), 0);
         }} />
+      )}
+
+      {/* Upgrades screen overlay */}
+      {isUpgradesOpen && (
+        <UpgradesScreen onClose={() => setIsUpgradesOpen(false)} />
       )}
     </>
   );

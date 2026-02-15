@@ -205,13 +205,13 @@ development_status:
   # Epic 20: Permanent Upgrades System (Meta-Game Foundation)
   epic-20: in-progress
   20-1-permanent-upgrades-combat-stats: done
-  20-2-upgrades-menu-screen: ready-for-dev
+  20-2-upgrades-menu-screen: done
   20-3-fragment-display-menu: ready-for-dev
   20-4-permanent-upgrades-utility-stats: ready-for-dev
   20-5-permanent-upgrades-meta-stats: ready-for-dev
   20-6-upgrade-refund-system: ready-for-dev
   20-7-enriched-ship-stats-display: ready-for-dev
-  20-8-hp-bar-redesign: backlog
+  20-8-hp-bar-redesign: ready-for-dev
   epic-20-retrospective: optional
 
   # Epic 21: Dual-Stick Controls (Gameplay Foundation)
@@ -227,26 +227,26 @@ development_status:
   22-1-revival-respawn-system: ready-for-dev
   22-2-reroll-banish-skip-mechanics: ready-for-dev
   22-3-boon-weapon-rarity-system: ready-for-dev
-  22-4-tough-boss-overhaul: backlog
+  22-4-tough-boss-overhaul: ready-for-dev
   epic-22-retrospective: optional
 
   # Epic 23: Wave & Enemy Systems (Dynamic Pressure)
-  epic-23: backlog
-  23-1-dynamic-wave-system: backlog
-  23-2-enemy-collision-physics: backlog
+  epic-23: in-progress
+  23-1-dynamic-wave-system: ready-for-dev
+  23-2-enemy-collision-physics: ready-for-dev
   23-3-cumulative-timer-across-systems: backlog
   epic-23-retrospective: optional
 
   # Epic 24: Visual Polish & Quality of Life
-  epic-24: backlog
-  24-1-minimap-follow-player-zoom: backlog
-  24-2-universe-background-enhancement: backlog
-  24-3-ship-particle-trail: backlog
+  epic-24: in-progress
+  24-1-minimap-follow-player-zoom: in-progress
+  24-2-universe-background-enhancement: ready-for-dev
+  24-3-ship-particle-trail: ready-for-dev
   epic-24-retrospective: optional
 
   # Epic 25: Meta & Content
-  epic-25: backlog
-  25-1-ship-level-progression: backlog
+  epic-25: in-progress
+  25-1-ship-level-progression: ready-for-dev
   25-2-level-based-ship-skins: backlog
   25-3-galaxy-choice-screen: backlog
   25-4-armory-catalog-screen: backlog
