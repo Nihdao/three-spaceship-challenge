@@ -324,6 +324,21 @@ export const GAME_CONFIG = {
       },
     },
 
+    // Ship particle trail (Story 24.3)
+    SHIP_TRAIL: {
+      MAX_PARTICLES: 50,
+      PARTICLE_LIFETIME: 0.7,
+      EMISSION_RATE: 20,
+      PARTICLE_SIZE: 0.3,
+      PARTICLE_ELONGATION: 2.2,
+      COLOR: '#ffffff',
+      DASH_EMISSION_MULTIPLIER: 2.5,
+      DASH_BRIGHTNESS_MULTIPLIER: 1.5,
+      MIN_SPEED_THRESHOLD: 5,
+      SPAWN_OFFSET_BEHIND: 3, // Distance behind ship to spawn particles
+      SPAWN_SCATTER: 0.3, // Random scatter radius for organic look
+    },
+
     STARFIELD_LAYERS: {
       DISTANT: {
         count: 1200,
