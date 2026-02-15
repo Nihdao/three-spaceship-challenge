@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import useGame from "../stores/useGame.jsx";
+import usePlayer from "../stores/usePlayer.jsx";
 import { playSFX } from "../audio/audioManager.js";
 import OptionsModal from "./modals/OptionsModal.jsx";
 import CreditsModal from "./modals/CreditsModal.jsx";
@@ -23,6 +24,8 @@ export default function MainMenu() {
 
   // High score from store (loaded from localStorage)
   const highScore = useGame((s) => s.highScore);
+  // Fragment count from player store (in-memory, earned during runs)
+  const fragments = usePlayer((s) => s.fragments);
 
   // Load high score from localStorage on mount
   useEffect(() => {
@@ -102,14 +105,24 @@ export default function MainMenu() {
         className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
         inert={isCreditsOpen || isOptionsOpen ? "" : undefined}
       >
-        {/* High score display */}
-        <div className="absolute top-8 right-8 text-right select-none">
-          <p className="text-game-text-muted text-xs tracking-[0.3em]">
-            BEST RUN
-          </p>
-          <p className="text-2xl font-bold tabular-nums text-game-text">
-            {highScore > 0 ? highScore.toLocaleString() : "---"}
-          </p>
+        {/* High score & Fragment display */}
+        <div className="absolute top-8 right-8 text-right select-none space-y-6">
+          <div>
+            <p className="text-game-text-muted text-xs tracking-[0.3em]">
+              BEST RUN
+            </p>
+            <p className="text-2xl font-bold tabular-nums text-game-text">
+              {highScore > 0 ? highScore.toLocaleString() : "---"}
+            </p>
+          </div>
+          <div>
+            <p className="text-game-text-muted text-xs tracking-[0.3em]">
+              FRAGMENTS
+            </p>
+            <p className="text-2xl font-bold tabular-nums text-[#cc66ff]">
+              ◆ {fragments.toLocaleString()}
+            </p>
+          </div>
         </div>
 
         {/* Title */}
