@@ -7,7 +7,7 @@ import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 
 const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
 const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
-const DEFAULT_PERMANENT_BONUSES = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0.0, expBonus: 1.0, curse: 0.0 }
+const DEFAULT_PERMANENT_BONUSES = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0.0, expBonus: 1.0, curse: 0.0, revival: 0, reroll: 0, skip: 0, banish: 0 }
 // Cache default ship baseSpeed to avoid recomputing getDefaultShipId() every tick (60 FPS)
 const DEFAULT_SHIP_BASE_SPEED = SHIPS[getDefaultShipId()].baseSpeed
 
@@ -54,6 +54,12 @@ const usePlayer = create((set, get) => ({
 
   // --- Permanent Upgrade Bonuses (Story 20.1) — computed once at run start ---
   permanentUpgradeBonuses: { ...DEFAULT_PERMANENT_BONUSES },
+
+  // --- Meta stat charges (Story 20.5) — initialized at run start, consumed by Epic 22 ---
+  revivalCharges: 0,
+  rerollCharges: 0,
+  skipCharges: 0,
+  banishCharges: 0,
 
   // --- XP & Level ---
   currentXP: 0,
@@ -397,11 +403,17 @@ const usePlayer = create((set, get) => ({
   // Story 20.1: Apply permanent upgrade bonuses at run start (called by GameLoop after reset)
   initializeRunStats: (bonuses) => {
     const state = get()
+    const ship = SHIPS[state.currentShipId] || SHIPS[getDefaultShipId()]
     const effectiveMaxHP = state.maxHP + bonuses.maxHP
     set({
       maxHP: effectiveMaxHP,
       currentHP: effectiveMaxHP,
       permanentUpgradeBonuses: bonuses,
+      // Story 20.5: Meta stat charges = ship base + permanent upgrades
+      revivalCharges: (ship.revival || 0) + (bonuses.revival || 0),
+      rerollCharges: (ship.reroll || 0) + (bonuses.reroll || 0),
+      skipCharges: (ship.skip || 0) + (bonuses.skip || 0),
+      banishCharges: (ship.banish || 0) + (bonuses.banish || 0),
     })
   },
 
@@ -468,6 +480,11 @@ const usePlayer = create((set, get) => ({
       dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
       permanentUpgradeBonuses: { ...DEFAULT_PERMANENT_BONUSES },
       _appliedMaxHPBonus: 0,
+      // Story 20.5: Meta stat charges
+      revivalCharges: 0,
+      rerollCharges: 0,
+      skipCharges: 0,
+      banishCharges: 0,
     })
   },
 }))

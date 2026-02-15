@@ -1,4 +1,4 @@
-# generated: 2026-02-15 (updated with Epics 20-25)
+# generated: 2026-02-15 (updated with Epics 20-27)
 # project: three-spaceship-challenge
 # project_key: NOKEY
 # tracking_system: file-system
@@ -33,7 +33,7 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2026-02-15 (updated with Epics 20-25)
+generated: 2026-02-15 (updated with Epics 20-27)
 project: three-spaceship-challenge
 project_key: NOKEY
 tracking_system: file-system
@@ -208,7 +208,7 @@ development_status:
   20-2-upgrades-menu-screen: done
   20-3-fragment-display-menu: done
   20-4-permanent-upgrades-utility-stats: done
-  20-5-permanent-upgrades-meta-stats: ready-for-dev
+  20-5-permanent-upgrades-meta-stats: done
   20-6-upgrade-refund-system: ready-for-dev
   20-7-enriched-ship-stats-display: ready-for-dev
   20-8-hp-bar-redesign: ready-for-dev
@@ -241,7 +241,7 @@ development_status:
   epic-24: in-progress
   24-1-minimap-follow-player-zoom: done
   24-2-universe-background-enhancement: done
-  24-3-ship-particle-trail: ready-for-dev
+  24-3-ship-particle-trail: review
   epic-24-retrospective: optional
 
   # Epic 25: Meta & Content
@@ -253,3 +253,21 @@ development_status:
   25-5-persistent-global-stats: ready-for-dev
   25-6-stats-display-screen: ready-for-dev
   epic-25-retrospective: optional
+
+  # Epic 26: Audio Integration & Placeholder Sounds
+  epic-26: in-progress
+  26-1-random-gameplay-music-per-system: ready-for-dev
+  26-2-main-menu-tunnel-music-integration: ready-for-dev
+  26-3-scan-sound-looping-system: backlog
+  26-4-complete-sfx-placeholder-mapping: backlog
+  26-5-graceful-audio-error-handling: backlog
+  epic-26-retrospective: optional
+
+  # Epic 27: Combat Feedback System (Arcade Feel)
+  epic-27: backlog
+  27-1-player-damage-numbers-basic-display: backlog
+  27-2-critical-hit-numbers-golden-display: backlog
+  27-3-enemy-hit-flash-visual-impact-feedback: backlog
+  27-4-enemy-knockback-physics-impact: backlog
+  27-5-player-damage-numbers-red-display: backlog
+  epic-27-retrospective: optional

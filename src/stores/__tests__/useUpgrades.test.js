@@ -209,6 +209,55 @@ describe('useUpgrades', () => {
       const bonuses = useUpgrades.getState().getComputedBonuses()
       expect(bonuses.curse).toBeCloseTo(0.20)
     })
+
+    // Story 20.5: Meta stat bonuses
+    it('returns meta defaults with no upgrades', () => {
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.revival).toBe(0)
+      expect(bonuses.reroll).toBe(0)
+      expect(bonuses.skip).toBe(0)
+      expect(bonuses.banish).toBe(0)
+    })
+
+    it('returns all 14 bonus keys', () => {
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      const keys = Object.keys(bonuses)
+      expect(keys).toHaveLength(14)
+      expect(keys).toEqual(expect.arrayContaining(['revival', 'reroll', 'skip', 'banish']))
+    })
+
+    it('computes correct revival bonus (flat count)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('REVIVAL')
+      useUpgrades.getState().purchaseUpgrade('REVIVAL')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.revival).toBe(2)
+    })
+
+    it('computes correct reroll bonus (flat count)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('REROLL')
+      useUpgrades.getState().purchaseUpgrade('REROLL')
+      useUpgrades.getState().purchaseUpgrade('REROLL')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.reroll).toBe(3)
+    })
+
+    it('computes correct skip bonus (flat count)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('SKIP')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.skip).toBe(1)
+    })
+
+    it('computes correct banish bonus (flat count)', () => {
+      usePlayer.setState({ fragments: 5000 })
+      useUpgrades.getState().purchaseUpgrade('BANISH')
+      useUpgrades.getState().purchaseUpgrade('BANISH')
+      useUpgrades.getState().purchaseUpgrade('BANISH')
+      const bonuses = useUpgrades.getState().getComputedBonuses()
+      expect(bonuses.banish).toBe(3)
+    })
   })
 
   describe('persistence', () => {
