@@ -324,6 +324,7 @@ export default function HUD() {
   const maxHP = usePlayer((s) => s.maxHP)
   const fragments = usePlayer((s) => s.fragments)
   const currentLevel = usePlayer((s) => s.currentLevel)
+  const revivalCharges = usePlayer((s) => s.revivalCharges)
   const activeWeapons = useWeapons((s) => s.activeWeapons)
   const activeBoons = useBoons((s) => s.activeBoons)
   const damageFlashTimer = usePlayer((s) => s.damageFlashTimer)
@@ -377,12 +378,16 @@ export default function HUD() {
           {/* HP Bar — top-left (Story 20.8: Rectangular HP bar with text inside) */}
           <RectangularHPBar value={currentHP} max={maxHP} pulse={hpPulse} />
 
-          {/* Stats cluster: Kills | Fragments | Score (Story 10.2) */}
+          {/* Stats cluster: Kills | Fragments | Score | Revival (Story 10.2, 22.1) */}
           <div className="flex items-center gap-3">
             <AnimatedStat value={kills} icon="💀" colorClass="text-game-danger" label="kills" />
             {/* Story 19.3: Fragment icon color set to purple (#cc66ff) to match fragment gems */}
             <AnimatedStat value={fragments} icon="◆" label="fragments" style={{ color: '#cc66ff' }} />
             <AnimatedStat value={score} icon="⭐" colorClass="text-yellow-400" label="score" />
+            {/* Story 22.1: Revival charges — only show when > 0, cyan to distinguish from HP */}
+            {revivalCharges > 0 && (
+              <AnimatedStat value={revivalCharges} icon="♥" label="revival" style={{ color: '#33ccff' }} />
+            )}
           </div>
 
           {/* Weapon Slots — below stats in top-left cluster (Story 10.4) */}

@@ -281,6 +281,16 @@ const usePlayer = create((set, get) => ({
   // --- Dual-Stick Controls (Story 21.1) ---
   setAimDirection: (dir) => set({ aimDirection: dir }),
 
+  // --- Revival System (Story 22.1) ---
+  consumeRevival: () => set(state => ({
+    revivalCharges: Math.max(0, state.revivalCharges - 1),
+  })),
+
+  activateRevivalInvincibility: (duration) => set({
+    isInvulnerable: true,
+    invulnerabilityTimer: duration,
+  }),
+
   // --- Actions ---
   sacrificeFragmentsForHP: () => {
     const { fragments, currentHP, maxHP } = get()

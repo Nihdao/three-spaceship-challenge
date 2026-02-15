@@ -46,7 +46,7 @@ export default function PlayerShip() {
   useFrame(() => {
     if (!groupRef.current || !bankRef.current) return
 
-    const { position, rotation, bankAngle, isDashing, dashTimer } = usePlayer.getState()
+    const { position, rotation, bankAngle, isDashing, dashTimer, isInvulnerable, invulnerabilityTimer } = usePlayer.getState()
 
     groupRef.current.position.set(position[0], position[1], position[2])
     groupRef.current.rotation.set(0, Math.PI - rotation, 0)
@@ -77,6 +77,25 @@ export default function PlayerShip() {
       }
     }
     wasDashingRef.current = isDashing
+
+    // Invincibility visual feedback (Story 22.1) — flashing effect
+    if (isInvulnerable && !isDashing) {
+      // Flash at REVIVAL_FLASH_RATE Hz using timer to drive oscillation
+      const flashFrequency = GAME_CONFIG.REVIVAL_FLASH_RATE * Math.PI * 2 // radians per second
+      const flashPhase = invulnerabilityTimer * flashFrequency
+      const flashOpacity = 0.3 + 0.7 * ((Math.sin(flashPhase) + 1) / 2) // Oscillate between 0.3 and 1.0
+
+      for (let i = 0; i < allMaterials.length; i++) {
+        allMaterials[i].opacity = flashOpacity
+        allMaterials[i].transparent = true
+      }
+    } else if (!isDashing) {
+      // Restore full opacity when not invincible (and not dashing)
+      for (let i = 0; i < allMaterials.length; i++) {
+        allMaterials[i].opacity = 1.0
+        allMaterials[i].transparent = false
+      }
+    }
 
     // Trail visibility + fade
     if (trailRef.current) {

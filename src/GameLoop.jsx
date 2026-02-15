@@ -127,8 +127,8 @@ export default function GameLoop() {
       useLevel.getState().initializePlanets()
     }
 
-    // Reset systems only when starting a new game (from menu), not when resuming from levelUp, planetReward, tunnel, or systemEntry→gameplay
-    if ((phase === 'gameplay' || phase === 'systemEntry') && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward' && prevPhaseRef.current !== 'tunnel' && prevPhaseRef.current !== 'systemEntry') {
+    // Reset systems only when starting a new game (from menu), not when resuming from levelUp, planetReward, tunnel, revive, or systemEntry→gameplay
+    if ((phase === 'gameplay' || phase === 'systemEntry') && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward' && prevPhaseRef.current !== 'tunnel' && prevPhaseRef.current !== 'systemEntry' && prevPhaseRef.current !== 'revive') {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       useWeapons.getState().initializeWeapons()
@@ -454,13 +454,20 @@ export default function GameLoop() {
       }
     }
 
-    // 7e. Death check
+    // 7e. Death check with revival system (Story 22.1)
     if (usePlayer.getState().currentHP <= 0) {
-      playSFX('game-over-impact')
-      useGame.getState().updateHighScore()
-      useGame.getState().triggerGameOver()
-      useWeapons.getState().cleanupInactive()
-      return // Stop processing — no XP/level-up after death
+      const { revivalCharges } = usePlayer.getState()
+      if (revivalCharges > 0) {
+        // Player has revival charges — show revive prompt
+        useGame.getState().enterRevivePhase()
+      } else {
+        // No revival charges — game over
+        playSFX('game-over-impact')
+        useGame.getState().updateHighScore()
+        useGame.getState().triggerGameOver()
+        useWeapons.getState().cleanupInactive()
+      }
+      return // Stop processing after death/revive prompt
     }
 
     // 7f. System timer — increment and check timeout (pause during boss fight — Story 17.4)
