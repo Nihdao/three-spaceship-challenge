@@ -22,7 +22,7 @@ const useWeapons = create((set, get) => ({
   tick: (delta, playerPosition, playerRotation, boonModifiers = {}) => {
     const { activeWeapons, projectiles } = get()
     const newProjectiles = []
-    const { damageMultiplier = 1, cooldownMultiplier = 1, critChance = 0, critMultiplier = 2.0, projectileSpeedMultiplier = 1.0 } = boonModifiers
+    const { damageMultiplier = 1, cooldownMultiplier = 1, critChance = 0, critMultiplier = 2.0, projectileSpeedMultiplier = 1.0, zoneMultiplier = 1.0 } = boonModifiers
 
     for (let i = 0; i < activeWeapons.length; i++) {
       const weapon = activeWeapons[i]
@@ -95,7 +95,7 @@ const useWeapons = create((set, get) => ({
             dirZ,
             speed: def.baseSpeed * projectileSpeedMultiplier,
             damage: projDamage,
-            radius: def.projectileRadius,
+            radius: def.projectileRadius * zoneMultiplier,
             lifetime: def.projectileLifetime,
             elapsedTime: 0,
             color,

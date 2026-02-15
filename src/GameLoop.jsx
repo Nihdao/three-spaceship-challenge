@@ -8,6 +8,7 @@ import useLevel from './stores/useLevel.jsx'
 import useWeapons from './stores/useWeapons.jsx'
 import useBoons from './stores/useBoons.jsx'
 import useBoss from './stores/useBoss.jsx'
+import useUpgrades from './stores/useUpgrades.jsx'
 import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM, CATEGORY_FRAGMENT_GEM } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
@@ -44,13 +45,14 @@ function assignEntity(e, id, x, z, radius, category) {
   e.id = id; e.x = x; e.z = z; e.radius = radius; e.category = category
 }
 
-// Composes all damage multiplier sources (boons + upgrades + dilemmas + ship) into final multiplier
+// Composes all damage multiplier sources (boons + upgrades + dilemmas + ship + permanent) into final multiplier
 // Centralizes damage composition to ensure consistency across gameplay and boss phases
 function composeDamageMultiplier(playerState, boonModifiers, upgradeStats, dilemmaStats) {
   return (boonModifiers.damageMultiplier ?? 1)
     * upgradeStats.damageMult
     * dilemmaStats.damageMult
     * playerState.shipBaseDamageMultiplier
+    * playerState.permanentUpgradeBonuses.attackPower
 }
 
 export default function GameLoop() {
@@ -129,6 +131,8 @@ export default function GameLoop() {
       resetParticles()
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       usePlayer.getState().reset()
+      // Story 20.1: Apply permanent upgrade bonuses after reset (meta-progression)
+      usePlayer.getState().initializeRunStats(useUpgrades.getState().getComputedBonuses())
       useEnemies.getState().reset()
       useLevel.getState().reset()
       useLevel.getState().initializePlanets()
@@ -158,9 +162,10 @@ export default function GameLoop() {
 
     // 2. Player movement — compose boon + upgrade + dilemma speed modifiers
     const boonModifiers = useBoons.getState().modifiers
-    const { upgradeStats, dilemmaStats } = usePlayer.getState()
+    const { upgradeStats, dilemmaStats, permanentUpgradeBonuses } = usePlayer.getState()
     const composedSpeedMult = (boonModifiers.speedMultiplier ?? 1) * upgradeStats.speedMult * dilemmaStats.speedMult
-    usePlayer.getState().tick(clampedDelta, input, composedSpeedMult, GAME_CONFIG.PLAY_AREA_SIZE, boonModifiers.hpRegenRate ?? 0)
+    // Story 20.1: Add permanent regen bonus to boon regen rate
+    usePlayer.getState().tick(clampedDelta, input, composedSpeedMult, GAME_CONFIG.PLAY_AREA_SIZE, (boonModifiers.hpRegenRate ?? 0) + permanentUpgradeBonuses.regen)
 
     // 2b. Dash input (edge detection: trigger only on press, not hold)
     const prevCooldown = prevDashCooldownRef.current
@@ -183,10 +188,11 @@ export default function GameLoop() {
     const playerPos = playerState.position
     const composedWeaponMods = {
       damageMultiplier: composeDamageMultiplier(playerState, boonModifiers, upgradeStats, dilemmaStats),
-      cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * upgradeStats.cooldownMult * dilemmaStats.cooldownMult,
+      cooldownMultiplier: (boonModifiers.cooldownMultiplier ?? 1) * upgradeStats.cooldownMult * dilemmaStats.cooldownMult * playerState.permanentUpgradeBonuses.attackSpeed,
       critChance: boonModifiers.critChance ?? 0,
       critMultiplier: boonModifiers.critMultiplier ?? 2.0,
       projectileSpeedMultiplier: boonModifiers.projectileSpeedMultiplier ?? 1.0,
+      zoneMultiplier: playerState.permanentUpgradeBonuses.zone,
     }
     const projCountBefore = useWeapons.getState().projectiles.length
     useWeapons.getState().tick(clampedDelta, playerPos, playerState.rotation, composedWeaponMods)
@@ -348,6 +354,8 @@ export default function GameLoop() {
     // 7d. Player-enemy contact damage
     // Pre-check mirrors takeDamage() guards to skip enemy iteration when player can't take damage
     const playerHits = cs.queryCollisions(pool[0], CATEGORY_ENEMY)
+    // Story 20.1: Read armor once for all damage sites this frame
+    const permanentArmor = playerState.permanentUpgradeBonuses.armor
     if (playerHits.length > 0) {
       const pState = usePlayer.getState()
       if (pState.contactDamageCooldown <= 0 && !pState.isInvulnerable) {
@@ -359,7 +367,8 @@ export default function GameLoop() {
           if (enemy) totalDamage += enemy.damage
         }
         if (totalDamage > 0) {
-          usePlayer.getState().takeDamage(totalDamage, boonModifiers.damageReduction ?? 0)
+          const armorReduced = Math.max(1, totalDamage - permanentArmor)
+          usePlayer.getState().takeDamage(armorReduced, boonModifiers.damageReduction ?? 0)
           playSFX('damage-taken')
         }
       }
@@ -376,7 +385,8 @@ export default function GameLoop() {
           if (sw) totalSwDamage += sw.damage
         }
         if (totalSwDamage > 0) {
-          usePlayer.getState().takeDamage(totalSwDamage, boonModifiers.damageReduction ?? 0)
+          const armorReduced = Math.max(1, totalSwDamage - permanentArmor)
+          usePlayer.getState().takeDamage(armorReduced, boonModifiers.damageReduction ?? 0)
           playSFX('damage-taken')
         }
       }
@@ -396,7 +406,8 @@ export default function GameLoop() {
           }
         }
         if (totalEpDamage > 0) {
-          usePlayer.getState().takeDamage(totalEpDamage, boonModifiers.damageReduction ?? 0)
+          const armorReduced = Math.max(1, totalEpDamage - permanentArmor)
+          usePlayer.getState().takeDamage(armorReduced, boonModifiers.damageReduction ?? 0)
           playSFX('damage-taken')
         }
       }
@@ -570,7 +581,8 @@ export default function GameLoop() {
               hitIds.add(bpHits[i].id)
             }
             if (totalDamage > 0) {
-              usePlayer.getState().takeDamage(totalDamage, boonModifiers.damageReduction ?? 0)
+              const armorReduced = Math.max(1, totalDamage - permanentArmor)
+              usePlayer.getState().takeDamage(armorReduced, boonModifiers.damageReduction ?? 0)
               playSFX('damage-taken')
             }
             useBoss.setState({ bossProjectiles: bossProjectiles.filter(bp => !hitIds.has(bp.id)) })
@@ -583,7 +595,8 @@ export default function GameLoop() {
           if (contactHits.length > 0) {
             const pState = usePlayer.getState()
             if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
-              usePlayer.getState().takeDamage(Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.damageMultiplier || 1)), boonModifiers.damageReduction ?? 0)
+              const bossDmg = Math.max(1, Math.round(GAME_CONFIG.BOSS_CONTACT_DAMAGE * (boss.damageMultiplier || 1)) - permanentArmor)
+              usePlayer.getState().takeDamage(bossDmg, boonModifiers.damageReduction ?? 0)
               playSFX('damage-taken')
             }
           }

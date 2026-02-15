@@ -203,30 +203,30 @@ development_status:
   epic-19-retrospective: optional
 
   # Epic 20: Permanent Upgrades System (Meta-Game Foundation)
-  epic-20: backlog
-  20-1-permanent-upgrades-combat-stats: backlog
-  20-2-upgrades-menu-screen: backlog
-  20-3-fragment-display-menu: backlog
-  20-4-permanent-upgrades-utility-stats: backlog
-  20-5-permanent-upgrades-meta-stats: backlog
-  20-6-upgrade-refund-system: backlog
-  20-7-enriched-ship-stats-display: backlog
+  epic-20: in-progress
+  20-1-permanent-upgrades-combat-stats: done
+  20-2-upgrades-menu-screen: ready-for-dev
+  20-3-fragment-display-menu: ready-for-dev
+  20-4-permanent-upgrades-utility-stats: ready-for-dev
+  20-5-permanent-upgrades-meta-stats: ready-for-dev
+  20-6-upgrade-refund-system: ready-for-dev
+  20-7-enriched-ship-stats-display: ready-for-dev
   20-8-hp-bar-redesign: backlog
   epic-20-retrospective: optional
 
   # Epic 21: Dual-Stick Controls (Gameplay Foundation)
-  epic-21: backlog
-  21-1-dual-stick-controls-movement-aiming: backlog
-  21-2-crosshair-display: backlog
-  21-3-ship-inertia-physics: backlog
-  21-4-vortex-purple-tint: backlog
+  epic-21: in-progress
+  21-1-dual-stick-controls-movement-aiming: ready-for-dev
+  21-2-crosshair-display: ready-for-dev
+  21-3-ship-inertia-physics: ready-for-dev
+  21-4-vortex-purple-tint: ready-for-dev
   epic-21-retrospective: optional
 
   # Epic 22: Combat Depth (Strategic Systems)
-  epic-22: backlog
-  22-1-revival-respawn-system: backlog
-  22-2-reroll-banish-skip-mechanics: backlog
-  22-3-boon-weapon-rarity-system: backlog
+  epic-22: in-progress
+  22-1-revival-respawn-system: ready-for-dev
+  22-2-reroll-banish-skip-mechanics: ready-for-dev
+  22-3-boon-weapon-rarity-system: ready-for-dev
   22-4-tough-boss-overhaul: backlog
   epic-22-retrospective: optional
 
