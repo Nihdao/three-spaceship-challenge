@@ -291,6 +291,19 @@ const usePlayer = create((set, get) => ({
     invulnerabilityTimer: duration,
   }),
 
+  // --- Strategic Charge Consumption (Story 22.2) ---
+  consumeReroll: () => set(state => ({
+    rerollCharges: Math.max(0, state.rerollCharges - 1),
+  })),
+
+  consumeSkip: () => set(state => ({
+    skipCharges: Math.max(0, state.skipCharges - 1),
+  })),
+
+  consumeBanish: () => set(state => ({
+    banishCharges: Math.max(0, state.banishCharges - 1),
+  })),
+
   // --- Actions ---
   sacrificeFragmentsForHP: () => {
     const { fragments, currentHP, maxHP } = get()
