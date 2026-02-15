@@ -200,6 +200,9 @@ const useLevel = create((set, get) => ({
     activeScanPlanetId: null,
   })),
 
+  // Story 22.4: Helper for testing boss HP scaling across systems
+  setSystemNumber: (systemNumber) => set({ currentSystem: systemNumber }),
+
   reset: () => set({
     currentSystem: 1,
     systemTimer: 0,

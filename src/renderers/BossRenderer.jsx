@@ -1,28 +1,47 @@
 import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 import useBoss from '../stores/useBoss.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { addExplosion } from '../systems/particleSystem.js'
 
-const BOSS_COLOR = new THREE.Color('#cc66ff')
 const BOSS_HIT_COLOR = new THREE.Color('#ffffff')
+const BOSS_EMISSIVE = new THREE.Color('#ff0000')
 const TELEGRAPH_COLOR = new THREE.Color('#ff6600')
 const HIT_FLASH_MS = GAME_CONFIG.HIT_FLASH_DURATION_MS
+const BOSS_MODEL_SCALE = GAME_CONFIG.BOSS_SCALE_MULTIPLIER
 
 export default function BossRenderer() {
   const meshRef = useRef()
   const telegraphRef = useRef()
-  const spawnTimeRef = useRef(null) // Story 17.4: Track boss spawn time for spawn animation
-  const spawnBurstTriggeredRef = useRef(false) // Story 17.4: Track if spawn burst was triggered
+  const spawnTimeRef = useRef(null)
+  const spawnBurstTriggeredRef = useRef(false)
+  const materialsRef = useRef([])
 
-  const bodyMaterial = useMemo(() => new THREE.MeshStandardMaterial({
-    color: '#220033',
-    emissive: BOSS_COLOR,
-    emissiveIntensity: 0.6,
-    transparent: true,
-    opacity: 0.95,
-  }), [])
+  const { scene } = useGLTF('/models/enemies/SpaceshipBoss.glb')
+
+  // Clone scene and extract materials for hit-flash manipulation
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone(true)
+    const mats = []
+    clone.traverse((child) => {
+      if (child.isMesh) {
+        // Clone material so we can modify emissive without affecting cache
+        child.material = child.material.clone()
+        mats.push(child.material)
+      }
+    })
+    materialsRef.current = mats
+    return clone
+  }, [scene])
+
+  useEffect(() => {
+    return () => {
+      // Dispose cloned materials
+      materialsRef.current.forEach((m) => m.dispose())
+    }
+  }, [])
 
   const telegraphMaterial = useMemo(() => new THREE.MeshBasicMaterial({
     color: TELEGRAPH_COLOR,
@@ -34,10 +53,9 @@ export default function BossRenderer() {
 
   useEffect(() => {
     return () => {
-      bodyMaterial.dispose()
       telegraphMaterial.dispose()
     }
-  }, [bodyMaterial, telegraphMaterial])
+  }, [telegraphMaterial])
 
   useFrame((state) => {
     const bossState = useBoss.getState()
@@ -46,7 +64,7 @@ export default function BossRenderer() {
 
     const clock = state.clock.elapsedTime
 
-    // Story 17.4: Initialize spawn time on first frame
+    // Initialize spawn time on first frame
     if (spawnTimeRef.current === null) {
       spawnTimeRef.current = clock
       spawnBurstTriggeredRef.current = false
@@ -55,16 +73,16 @@ export default function BossRenderer() {
     // Defeat animation: flicker and hide after animation completes
     if (bossState.bossDefeated) {
       if (bossState.defeatAnimationTimer <= 0) {
-        // Animation complete — hide boss
         meshRef.current.visible = false
         if (telegraphRef.current) telegraphRef.current.visible = false
         return
       }
-      // Rapid flicker during death animation
       meshRef.current.position.set(boss.x, 4, boss.z)
       meshRef.current.visible = Math.sin(clock * 30) > 0
-      bodyMaterial.emissive.copy(BOSS_HIT_COLOR)
-      bodyMaterial.emissiveIntensity = 2.0
+      materialsRef.current.forEach((m) => {
+        m.emissive?.copy(BOSS_HIT_COLOR)
+        if (m.emissiveIntensity !== undefined) m.emissiveIntensity = 2.0
+      })
       if (telegraphRef.current) telegraphRef.current.visible = false
       return
     }
@@ -73,20 +91,18 @@ export default function BossRenderer() {
     meshRef.current.position.set(boss.x, 4, boss.z)
     meshRef.current.visible = true
 
-    // Story 17.4: Spawn animation — scale from 0.1 to 1.0
+    // Spawn animation — scale from 0.1 to full
     const spawnElapsed = clock - spawnTimeRef.current
     const spawnDuration = GAME_CONFIG.BOSS_SPAWN.SPAWN_SCALE_DURATION
-    let baseScale = 1.0
+    let baseScale = BOSS_MODEL_SCALE
 
     if (spawnElapsed < spawnDuration) {
-      // Spawn animation in progress — ease-out from 0.1 to 1.0
       const progress = spawnElapsed / spawnDuration
-      const easeOut = 1 - Math.pow(1 - progress, 3) // cubic ease-out
-      baseScale = 0.1 + easeOut * 0.9
+      const easeOut = 1 - Math.pow(1 - progress, 3)
+      baseScale = BOSS_MODEL_SCALE * (0.1 + easeOut * 0.9)
 
-      // Story 17.4: Trigger particle burst on first frame only
       if (!spawnBurstTriggeredRef.current) {
-        addExplosion(boss.x, boss.z, '#cc66ff', 1.5)
+        addExplosion(boss.x, boss.z, '#ff3333', 1.5)
         spawnBurstTriggeredRef.current = true
       }
     }
@@ -96,16 +112,19 @@ export default function BossRenderer() {
     const pulse = baseScale * (1 + Math.sin(clock * 2) * 0.03)
     meshRef.current.scale.setScalar(pulse)
 
-    // Hit feedback: white flash
+    // Hit feedback: white flash on all materials
     const timeSinceHit = Date.now() - boss.lastHitTime
     if (timeSinceHit < HIT_FLASH_MS) {
-      bodyMaterial.emissive.copy(BOSS_HIT_COLOR)
-      bodyMaterial.emissiveIntensity = 2.0
+      materialsRef.current.forEach((m) => {
+        m.emissive?.copy(BOSS_HIT_COLOR)
+        if (m.emissiveIntensity !== undefined) m.emissiveIntensity = 2.0
+      })
     } else {
-      // Phase-based color shift
-      const phaseIntensity = 0.6 + boss.phase * 0.2
-      bodyMaterial.emissive.copy(BOSS_COLOR)
-      bodyMaterial.emissiveIntensity = phaseIntensity
+      const phaseIntensity = 0.8 + boss.phase * 0.2
+      materialsRef.current.forEach((m) => {
+        m.emissive?.copy(BOSS_EMISSIVE)
+        if (m.emissiveIntensity !== undefined) m.emissiveIntensity = phaseIntensity
+      })
     }
 
     // Telegraph visual
@@ -127,7 +146,7 @@ export default function BossRenderer() {
   const boss = useBoss((s) => s.boss)
   const isActive = useBoss((s) => s.isActive)
 
-  // Story 17.4: Reset spawn time when boss becomes inactive
+  // Reset spawn time when boss becomes inactive
   useEffect(() => {
     if (!isActive) {
       spawnTimeRef.current = null
@@ -139,19 +158,9 @@ export default function BossRenderer() {
 
   return (
     <group>
-      {/* Boss body — large torus + sphere combo */}
+      {/* Story 22.4: Boss body — SpaceshipBoss.glb model */}
       <group ref={meshRef}>
-        <mesh material={bodyMaterial}>
-          <torusGeometry args={[3, 1.2, 16, 32]} />
-        </mesh>
-        <mesh material={bodyMaterial}>
-          <sphereGeometry args={[2, 16, 16]} />
-        </mesh>
-        {/* Inner glow core */}
-        <mesh>
-          <sphereGeometry args={[1.5, 12, 12]} />
-          <meshBasicMaterial color="#cc66ff" transparent opacity={0.4} />
-        </mesh>
+        <primitive object={clonedScene} />
       </group>
 
       {/* Telegraph ring (ground-level) */}
@@ -161,3 +170,5 @@ export default function BossRenderer() {
     </group>
   )
 }
+
+useGLTF.preload('/models/enemies/SpaceshipBoss.glb')

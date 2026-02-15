@@ -199,15 +199,15 @@ export const GAME_CONFIG = {
     ACTIVATION_SCALE: 1.4,
   },
 
-  // Boss (Story 6.2)
-  BOSS_HP: 500,
+  // Boss (Story 6.2, Story 22.4: HP Sponge Overhaul)
+  BOSS_HP: 500, // DEPRECATED: Legacy boss HP (Story 6.2), replaced by BOSS_BASE_HP
   BOSS_ARENA_SIZE: 400,
   BOSS_MOVE_SPEED: 30,
   BOSS_COLLISION_RADIUS: 5,
   BOSS_CONTACT_DAMAGE: 15,
   BOSS_PROJECTILE_SPEED: 120,
   BOSS_PROJECTILE_DAMAGE: 10,
-  BOSS_PROJECTILE_RADIUS: 0.8,
+  BOSS_PROJECTILE_RADIUS: 1.5,
   BOSS_ATTACK_COOLDOWN: 2.5,
   BOSS_TELEGRAPH_DURATION: 0.8,
   BOSS_BURST_COUNT: 3,
@@ -215,10 +215,17 @@ export const GAME_CONFIG = {
   BOSS_PHASE_THRESHOLDS: [0.75, 0.5, 0.25],
   BOSS_NAME: "VOID SENTINEL",
 
+  // Boss Overhaul (Story 22.4)
+  BOSS_BASE_HP: 20000, // Base HP for boss in System 1 (scales with system difficulty)
+  BOSS_SCALE_MULTIPLIER: 4, // Boss model size multiplier (4x regular enemy)
+  BOSS_LOOT_FRAGMENTS: 50, // Guaranteed Fragment drop count on boss defeat
+  BOSS_LOOT_XP_MULTIPLIER: 10, // XP reward multiplier on boss defeat (10x base XP)
+  BOSS_EXPLOSION_SCALE: 5, // Large explosion VFX scale on boss death
+
   // Boss defeat (Story 6.3)
   BOSS_DEATH_EXPLOSION_COUNT: 5,
   BOSS_DEATH_EXPLOSION_INTERVAL: 0.2,
-  BOSS_DEATH_FINAL_EXPLOSION_SCALE: 3.0,
+  BOSS_DEATH_FINAL_EXPLOSION_SCALE: 5.0, // Story 22.4: Larger explosion for tough boss
   BOSS_DEFEAT_TRANSITION_DELAY: 3.0,
   BOSS_FRAGMENT_REWARD: 100,
 
