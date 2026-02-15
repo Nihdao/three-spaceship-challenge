@@ -32,6 +32,7 @@ const usePlayer = create((set, get) => ({
 
   // --- Dual-Stick Controls (Story 21.1) ---
   aimDirection: null,
+  _prevVelAngle: 0, // Track previous velocity angle for velocity-based banking
 
   // --- Dash (Story 5.1) ---
   isDashing: false,
@@ -174,23 +175,30 @@ const usePlayer = create((set, get) => ({
     }
 
     // --- Banking ---
-    // Disabled in dual-stick mode (banking causes visual misalignment with cursor)
-    let bank = 0
+    // Velocity-based banking: bank when movement trajectory changes, not when aiming changes
+    // Story 21.1 Code Review Fix: Apply banking to both control modes with appropriate sensitivity
+    let bank = state.bankAngle
     const bankLerp = 1 - Math.exp(-PLAYER_BANK_SPEED * delta)
 
-    if (!currentAimDirection) {
-      // Keyboard-only mode: banking based on yaw (rotation) change
-      let yawDelta = yaw - prevYaw
-      while (yawDelta > Math.PI) yawDelta -= Math.PI * 2
-      while (yawDelta < -Math.PI) yawDelta += Math.PI * 2
-      const angularVelocity = delta > 0 ? yawDelta / delta : 0
+    if (speed > 0.1) {
+      // Calculate current velocity angle (direction ship is actually moving)
+      const velAngle = Math.atan2(vx, -vz)
 
-      const targetBank = -Math.min(Math.max(angularVelocity * 0.5, -PLAYER_MAX_BANK_ANGLE), PLAYER_MAX_BANK_ANGLE)
-      bank = state.bankAngle + (targetBank - state.bankAngle) * bankLerp
+      // Calculate velocity angular velocity (how fast the movement direction is changing)
+      let velAngleDelta = velAngle - state._prevVelAngle
+      while (velAngleDelta > Math.PI) velAngleDelta -= Math.PI * 2
+      while (velAngleDelta < -Math.PI) velAngleDelta += Math.PI * 2
+      const velAngularVelocity = delta > 0 ? velAngleDelta / delta : 0
 
-      if (!hasInput) {
-        bank += (0 - bank) * bankLerp
-      }
+      // Banking sensitivity: reduced for dual-stick (0.3) vs keyboard-only (0.5)
+      // Dual-stick gets less banking to avoid "tilte trop maladif" (excessive sickening tilt)
+      const bankingSensitivity = currentAimDirection ? 0.3 : 0.5
+      const targetBank = -Math.min(Math.max(velAngularVelocity * bankingSensitivity, -PLAYER_MAX_BANK_ANGLE), PLAYER_MAX_BANK_ANGLE)
+
+      bank = bank + (targetBank - bank) * bankLerp
+    } else {
+      // Return to neutral when not moving
+      bank = bank + (0 - bank) * bankLerp
     }
 
     // --- Contact damage cooldown ---
@@ -240,6 +248,9 @@ const usePlayer = create((set, get) => ({
       currentHP = Math.min(currentHP + hpRegenRate * delta, maxHP)
     }
 
+    // Update previous velocity angle for next frame's banking calculation
+    const newPrevVelAngle = speed > 0.1 ? Math.atan2(vx, -vz) : state._prevVelAngle
+
     set({
       currentHP,
       position: [px, 0, pz],
@@ -247,6 +258,7 @@ const usePlayer = create((set, get) => ({
       rotation: yaw,
       bankAngle: bank,
       aimDirection: currentAimDirection,
+      _prevVelAngle: newPrevVelAngle,
       speed,
       contactDamageCooldown,
       isInvulnerable,
@@ -477,6 +489,7 @@ const usePlayer = create((set, get) => ({
     cameraShakeTimer: 0,
     cameraShakeIntensity: 0,
     aimDirection: null,
+    _prevVelAngle: 0,
     // INTENTIONALLY PRESERVED across system transitions (Story 18.1):
     // - XP/Level: currentXP, currentLevel, xpToNextLevel, pendingLevelUps, levelsGainedThisBatch
     //   → Player's progression carries through all systems in a run
@@ -512,6 +525,7 @@ const usePlayer = create((set, get) => ({
       cameraShakeTimer: 0,
       cameraShakeIntensity: 0,
       aimDirection: null,
+      _prevVelAngle: 0,
       currentXP: 0,
       currentLevel: 1,
       xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
