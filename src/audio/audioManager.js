@@ -56,6 +56,7 @@ let musicVolume = VOLUME_CATEGORIES.music
 let sfxVolume = 1.0 // master SFX multiplier
 const sfxPool = {} // { key: Howl instance }
 let fadingOutTracks = []
+let scanLoopSound = null // Separate from sfxPool — special looping sound
 
 // Force-stop any tracks still fading out to prevent audio overlap
 function cleanupFadingTracks() {
@@ -256,4 +257,35 @@ export function selectRandomGameplayMusic(tracks) {
 
 export function getCurrentGameplayTrack() {
   return currentGameplayTrack
+}
+
+// Story 26.3: Scan sound looping system
+export function playScanLoop() {
+  if (scanLoopSound) {
+    scanLoopSound.stop()
+    scanLoopSound.unload()
+  }
+  const category = SFX_CATEGORY_MAP['scan-start'] || 'ui'
+  const categoryVol = VOLUME_CATEGORIES[category] ?? 1.0
+  scanLoopSound = new Howl({
+    src: ['audio/sfx/scan-start.wav'],
+    loop: true,
+    volume: categoryVol * sfxVolume,
+    onloaderror: (id, err) => {
+      console.warn('Audio: failed to load scan loop "scan-start":', err)
+    },
+  })
+  try {
+    scanLoopSound.play()
+  } catch (err) {
+    console.warn('Audio: failed to play scan loop:', err)
+  }
+}
+
+export function stopScanLoop() {
+  if (scanLoopSound) {
+    scanLoopSound.stop()
+    scanLoopSound.unload()
+    scanLoopSound = null
+  }
 }
