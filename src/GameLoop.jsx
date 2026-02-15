@@ -15,7 +15,7 @@ import { createProjectileSystem } from './systems/projectileSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { emitTrailParticle, updateTrailParticles, resetTrailParticles } from './systems/particleTrailSystem.js'
-import { playSFX } from './audio/audioManager.js'
+import { playSFX, playScanLoop, stopScanLoop } from './audio/audioManager.js'
 import { updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount } from './systems/xpOrbSystem.js'
 import { updateHealGemMagnetization, collectHealGem, getHealGems, getActiveHealGemCount } from './systems/healGemSystem.js'
 import { updateMagnetization as updateFragmentGemMagnetization, collectGem, getActiveGems, getActiveCount as getFragmentGemCount } from './systems/fragmentGemSystem.js'
@@ -648,11 +648,22 @@ export default function GameLoop() {
     // 7g. Planet scanning
     const scanResult = useLevel.getState().scanningTick(clampedDelta, playerPos[0], playerPos[2])
     const currentScanId = scanResult.activeScanPlanetId
+
+    // Scan started (entered zone)
     if (currentScanId && !prevScanPlanetRef.current) {
-      playSFX('scan-start')
+      playScanLoop()
     }
+
+    // Scan interrupted (left zone before completion)
+    if (!currentScanId && prevScanPlanetRef.current) {
+      stopScanLoop()
+    }
+
     prevScanPlanetRef.current = currentScanId
+
+    // Scan completed successfully
     if (scanResult.completed) {
+      stopScanLoop()
       playSFX('scan-complete')
       useGame.getState().triggerPlanetReward(scanResult.tier)
     }
