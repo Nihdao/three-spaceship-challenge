@@ -7,6 +7,7 @@ import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 
 const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
 const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
+const DEFAULT_PERMANENT_BONUSES = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0 }
 // Cache default ship baseSpeed to avoid recomputing getDefaultShipId() every tick (60 FPS)
 const DEFAULT_SHIP_BASE_SPEED = SHIPS[getDefaultShipId()].baseSpeed
 
@@ -50,6 +51,9 @@ const usePlayer = create((set, get) => ({
   acceptedDilemmas: [],
   upgradeStats: { ...DEFAULT_UPGRADE_STATS },
   dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
+
+  // --- Permanent Upgrade Bonuses (Story 20.1) — computed once at run start ---
+  permanentUpgradeBonuses: { ...DEFAULT_PERMANENT_BONUSES },
 
   // --- XP & Level ---
   currentXP: 0,
@@ -390,6 +394,17 @@ const usePlayer = create((set, get) => ({
   // Cinematic position override (used by SystemEntryPortal during systemEntry phase)
   setCinematicPosition: (pos) => set({ position: pos, rotation: 0 }),
 
+  // Story 20.1: Apply permanent upgrade bonuses at run start (called by GameLoop after reset)
+  initializeRunStats: (bonuses) => {
+    const state = get()
+    const effectiveMaxHP = state.maxHP + bonuses.maxHP
+    set({
+      maxHP: effectiveMaxHP,
+      currentHP: effectiveMaxHP,
+      permanentUpgradeBonuses: bonuses,
+    })
+  },
+
   resetForNewSystem: () => set({
     position: [0, 0, 0],
     velocity: [0, 0, 0],
@@ -412,6 +427,7 @@ const usePlayer = create((set, get) => ({
     //   → Player's progression carries through all systems in a run
     // - Ship selection (Epic 9): currentShipId, shipBaseSpeed, shipBaseDamageMultiplier
     // - Permanent progression (Epic 7): fragments, permanentUpgrades, acceptedDilemmas, upgradeStats, dilemmaStats
+    // - Permanent upgrade bonuses (Story 20.1): permanentUpgradeBonuses — computed once at run start
     // - HP state: currentHP, maxHP
     // - Boon HP bonus: _appliedMaxHPBonus
   }),
@@ -450,6 +466,7 @@ const usePlayer = create((set, get) => ({
       acceptedDilemmas: [],
       upgradeStats: { ...DEFAULT_UPGRADE_STATS },
       dilemmaStats: { ...DEFAULT_DILEMMA_STATS },
+      permanentUpgradeBonuses: { ...DEFAULT_PERMANENT_BONUSES },
       _appliedMaxHPBonus: 0,
     })
   },

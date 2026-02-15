@@ -2,6 +2,7 @@ import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import useWeapons from '../stores/useWeapons.jsx'
+import usePlayer from '../stores/usePlayer.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 const MAX = GAME_CONFIG.MAX_PROJECTILES
@@ -38,6 +39,8 @@ export default function ProjectileRenderer() {
     const dummy = dummyRef.current
     const tempColor = tempColorRef.current
     const visuals = GAME_CONFIG.PROJECTILE_VISUALS
+    // Story 20.1: Zone bonus scales projectile visuals
+    const zoneScale = usePlayer.getState().permanentUpgradeBonuses.zone
 
     let count = 0
     for (let i = 0; i < projectiles.length; i++) {
@@ -54,7 +57,7 @@ export default function ProjectileRenderer() {
         const speedMult = Math.min(1.0 + speed * visuals.SPEED_SCALE_MULT, visuals.SPEED_SCALE_MAX)
         scaleZ *= speedMult
       }
-      dummy.scale.set(p.meshScale[0], p.meshScale[1], scaleZ)
+      dummy.scale.set(p.meshScale[0] * zoneScale, p.meshScale[1] * zoneScale, scaleZ * zoneScale)
 
       dummy.updateMatrix()
       mesh.setMatrixAt(count, dummy.matrix)
