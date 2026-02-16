@@ -1,10 +1,6 @@
 import { create } from 'zustand'
 import { ENEMIES } from '../entities/enemyDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
-import useLevel from './useLevel.jsx' // Story 22.4: For boss HP scaling
-import useGame from './useGame.jsx' // Story 22.4: For boss HP bar
-import { spawnOrb } from '../systems/xpOrbSystem.js' // Story 22.4: Boss loot
-import { spawnGem } from '../systems/fragmentGemSystem.js' // Story 22.4: Boss loot
 
 // Shockwave lifetime constant (seconds for ring to expand and fade)
 const SHOCKWAVE_LIFETIME = 0.5
@@ -499,90 +495,8 @@ const useEnemies = create((set, get) => ({
     return results
   },
 
-  // Story 22.4: Spawn boss without clearing existing enemies
-  spawnBoss: () => {
-    const state = get()
-    if (state.enemies.length >= GAME_CONFIG.MAX_ENEMIES_ON_SCREEN) return
-
-    const def = ENEMIES.BOSS_SPACESHIP
-    if (!def) return
-
-    // Get system scaling from useLevel
-    const currentSystem = useLevel.getState().currentSystem
-    const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
-
-    // Apply system difficulty scaling to boss HP
-    const scaledHP = Math.round(GAME_CONFIG.BOSS_BASE_HP * scaling.hp)
-
-    const id = `enemy_${state.nextId}`
-    const boss = {
-      id,
-      typeId: def.id,
-      x: 0, // Center of arena
-      z: 0,
-      hp: scaledHP,
-      maxHp: scaledHP,
-      speed: def.speed * scaling.speed,
-      damage: Math.round(def.damage * scaling.damage),
-      radius: def.radius,
-      behavior: def.behavior,
-      color: def.color,
-      meshScale: def.meshScale,
-      xpReward: Math.round(def.xpReward * scaling.xpReward),
-      lastHitTime: -Infinity,
-      isBoss: true, // Flag to identify boss
-      emissiveColor: def.emissiveColor,
-      emissiveIntensity: def.emissiveIntensity,
-      particleTrail: def.particleTrail,
-    }
-
-    // DO NOT clear existing enemies (per AC)
-    set({
-      enemies: [...state.enemies, boss],
-      nextId: state.nextId + 1,
-    })
-  },
-
   killEnemy: (id) => {
     const { enemies } = get()
-    const enemy = enemies.find((e) => e.id === id)
-
-    // Story 22.4: Check if this is a boss before removing
-    const isBoss = enemy?.isBoss === true
-
-    if (isBoss) {
-      // Boss defeat logic
-      // Spawn guaranteed Fragments
-      for (let i = 0; i < GAME_CONFIG.BOSS_LOOT_FRAGMENTS; i++) {
-        // Scatter fragments around boss position
-        const offsetX = (Math.random() - 0.5) * 10
-        const offsetZ = (Math.random() - 0.5) * 10
-        spawnGem(enemy.x + offsetX, enemy.z + offsetZ)
-      }
-
-      // Spawn large XP reward
-      const xpAmount = enemy.xpReward * GAME_CONFIG.BOSS_LOOT_XP_MULTIPLIER
-      for (let i = 0; i < 10; i++) {
-        // Spawn multiple XP orbs for visual effect
-        const offsetX = (Math.random() - 0.5) * 15
-        const offsetZ = (Math.random() - 0.5) * 15
-        spawnOrb(enemy.x + offsetX, enemy.z + offsetZ, xpAmount / 10, true)
-      }
-
-      // Reactivate wormhole
-      useLevel.getState().reactivateWormhole()
-
-      // Hide boss HP bar (if exists)
-      if (useGame.getState().setBossActive) {
-        useGame.getState().setBossActive(false)
-      }
-
-      // TODO: Large explosion VFX (Story 22.4 Task 5)
-      // TODO: Play boss-defeat SFX
-
-      // DO NOT clear remaining wave enemies (per AC)
-    }
-
     const filtered = enemies.filter((e) => e.id !== id)
     set({ enemies: filtered })
   },

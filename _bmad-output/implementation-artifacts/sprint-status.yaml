@@ -122,7 +122,7 @@ development_status:
   10-1-xp-bar-redesign-full-width-top: done
   10-2-top-stats-display-score-fragments-level-kills: done
   10-3-enhanced-minimap-styling: done
-  10-4-hp-item-slots-reorganization-top-left-cluster: review
+  10-4-hp-item-slots-reorganization-top-left-cluster: done
   10-5-boon-slots-visibility-display: done
   10-6-pause-menu-with-detailed-inventory: done
   epic-10-retrospective: optional
@@ -215,7 +215,7 @@ development_status:
   epic-20-retrospective: optional
 
   # Epic 21: Dual-Stick Controls (Gameplay Foundation)
-  epic-21: in-progress
+  epic-21: in-progress # A reprendre
   21-1-dual-stick-controls-movement-aiming: done
   21-2-crosshair-display: done
   21-3-ship-inertia-physics: done
@@ -223,15 +223,15 @@ development_status:
   epic-21-retrospective: optional
 
   # Epic 22: Combat Depth (Strategic Systems)
-  epic-22: in-progress
+  epic-22: in-progress # A reprendre
   22-1-revival-respawn-system: done
   22-2-reroll-banish-skip-mechanics: in-progress
   22-3-boon-weapon-rarity-system: ready-for-dev
-  22-4-tough-boss-overhaul: review
+  22-4-tough-boss-overhaul: done
   epic-22-retrospective: optional
 
   # Epic 23: Wave & Enemy Systems (Dynamic Pressure)
-  epic-23: in-progress
+  epic-23: in-progress # A reprendre
   23-1-dynamic-wave-system: ready-for-dev
   23-2-enemy-collision-physics: ready-for-dev
   23-3-cumulative-timer-across-systems: ready-for-dev
@@ -245,7 +245,7 @@ development_status:
   epic-24-retrospective: optional
 
   # Epic 25: Meta & Content
-  epic-25: in-progress
+  epic-25: in-progress # A reprendre
   25-1-ship-level-progression: ready-for-dev
   25-2-level-based-ship-skins: ready-for-dev
   25-3-galaxy-choice-screen: ready-for-dev
@@ -264,7 +264,7 @@ development_status:
   epic-26-retrospective: optional
 
   # Epic 27: Combat Feedback System (Arcade Feel)
-  epic-27: in-progress
+  epic-27: in-progress # A reprendre
   27-1-player-damage-numbers-basic-display: ready-for-dev
   27-2-critical-hit-numbers-golden-display: ready-for-dev
   27-3-enemy-hit-flash-visual-impact-feedback: ready-for-dev

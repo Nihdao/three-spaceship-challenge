@@ -552,8 +552,8 @@ export default function GameLoop() {
         const defeatResult = bossState.defeatTick(clampedDelta)
         for (let i = 0; i < defeatResult.explosions.length; i++) {
           const exp = defeatResult.explosions[i]
-          const scale = exp.isFinal ? GAME_CONFIG.BOSS_DEATH_FINAL_EXPLOSION_SCALE : 1
-          addExplosion(exp.x, exp.z, '#cc66ff', scale)
+          const scale = exp.isFinal ? GAME_CONFIG.BOSS_DEATH_FINAL_EXPLOSION_SCALE : GAME_CONFIG.BOSS_SCALE_MULTIPLIER
+          addExplosion(exp.x, exp.z, '#ff3333', scale)
           playSFX('boss-hit')
         }
         if (defeatResult.animationComplete && !bossState.rewardGiven) {
@@ -620,7 +620,7 @@ export default function GameLoop() {
               const result = bossState.damageBoss(proj.damage)
               playSFX('boss-hit')
               if (result.killed) {
-                addExplosion(boss.x, boss.z, '#cc66ff')
+                addExplosion(boss.x, boss.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
               }
             }
           }
