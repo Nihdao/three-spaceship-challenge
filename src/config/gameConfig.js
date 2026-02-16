@@ -213,7 +213,7 @@ export const GAME_CONFIG = {
   BOSS_BURST_COUNT: 3,
   BOSS_BURST_SPREAD: 0.4,
   BOSS_PHASE_THRESHOLDS: [0.75, 0.5, 0.25],
-  BOSS_NAME: "VOID SENTINEL",
+  BOSS_NAME: "TITAN CRUISER",
 
   // Boss Overhaul (Story 22.4)
   BOSS_BASE_HP: 20000, // Base HP for boss in System 1 (scales with system difficulty)

@@ -22,7 +22,7 @@ export default function BossHPBar() {
             className="font-bold tracking-[0.3em] text-game-text"
             style={{ fontSize: 'clamp(14px, 1.4vw, 20px)' }}
           >
-            TITAN CRUISER
+            {GAME_CONFIG.BOSS_NAME}
           </span>
 
           {/* HP bar */}
