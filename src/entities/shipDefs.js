@@ -16,6 +16,7 @@ export const SHIPS = {
     baseHP: 100,
     baseSpeed: 50,
     baseDamageMultiplier: 1.0,
+    levelScaling: 0.03, // +3% per level above 1 (Story 25.1)
     revival: 0,
     reroll: 0,
     skip: 0,
@@ -33,6 +34,7 @@ export const SHIPS = {
     baseHP: 70,
     baseSpeed: 55,
     baseDamageMultiplier: 1.4,
+    levelScaling: 0.03, // +3% per level above 1 (Story 25.1)
     revival: 0,
     reroll: 0,
     skip: 0,
@@ -50,6 +52,7 @@ export const SHIPS = {
     baseHP: 150,
     baseSpeed: 42,
     baseDamageMultiplier: 0.85,
+    levelScaling: 0.03, // +3% per level above 1 (Story 25.1)
     revival: 0,
     reroll: 0,
     skip: 0,

@@ -2,7 +2,9 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useUpgrades from '../stores/useUpgrades.jsx'
+import useShipProgression from '../stores/useShipProgression.jsx'
 import { SHIPS, TRAIT_INFO, getDefaultShipId } from '../entities/shipDefs.js'
+import { SHIP_LEVEL_SCALING, MAX_SHIP_LEVEL } from '../entities/shipProgressionDefs.js'
 import { playSFX } from '../audio/audioManager.js'
 import StatLine from './primitives/StatLine.jsx'
 import ShipModelPreview from './ShipModelPreview.jsx'
@@ -33,6 +35,15 @@ export default function ShipSelect() {
 
   const selectedShip = SHIPS[selectedShipId]
 
+  // Subscribe to ship progression and player fragments for level-up UI reactivity
+  const shipLevels = useShipProgression(state => state.shipLevels)
+  const fragments = usePlayer(state => state.fragments)
+
+  const shipLevel = shipLevels[selectedShipId] || 1
+  const isMaxLevel = shipLevel >= MAX_SHIP_LEVEL
+  const nextLevelCost = isMaxLevel ? null : useShipProgression.getState().getNextLevelCost(selectedShipId)
+  const canAffordLevelUp = nextLevelCost !== null && fragments >= nextLevelCost
+
   // Compute effective stats by combining ship base stats + permanent upgrade bonuses
   // Subscribe to upgradeLevels to trigger recomputation when upgrades change
   // Fallback to default bonuses if useUpgrades returns null/undefined
@@ -48,10 +59,17 @@ export default function ShipSelect() {
     }
   }, [upgradeLevels])
 
+  // Ship level multiplier applied to core base stats (Story 25.1)
+  // Uses per-ship levelScaling from shipDefs.js, falling back to the global constant.
+  const shipLevelMult = useMemo(
+    () => 1 + (shipLevel - 1) * (selectedShip.levelScaling ?? SHIP_LEVEL_SCALING),
+    [shipLevel, selectedShip],
+  )
+
   const shipBaseStats = useMemo(() => ({
-    maxHP: selectedShip.baseHP,
-    speed: selectedShip.baseSpeed,
-    damageMultiplier: selectedShip.baseDamageMultiplier,
+    maxHP: selectedShip.baseHP * shipLevelMult,
+    speed: selectedShip.baseSpeed * shipLevelMult,
+    damageMultiplier: selectedShip.baseDamageMultiplier * shipLevelMult,
     regen: selectedShip.baseRegen ?? 0,
     armor: selectedShip.baseArmor ?? 0,
     attackSpeed: selectedShip.baseAttackSpeed ?? 0,
@@ -64,7 +82,7 @@ export default function ShipSelect() {
     reroll: selectedShip.baseReroll ?? 0,
     skip: selectedShip.baseSkip ?? 0,
     banish: selectedShip.baseBanish ?? 0,
-  }), [selectedShip])
+  }), [selectedShip, shipLevelMult])
 
   const effectiveStats = useMemo(() => ({
     maxHP: shipBaseStats.maxHP + (bonuses.maxHP ?? 0),
@@ -114,6 +132,14 @@ export default function ShipSelect() {
   const handleBack = () => {
     playSFX('button-click')
     useGame.getState().setPhase('menu')
+  }
+
+  const handleLevelUp = () => {
+    if (!canAffordLevelUp) return
+    const success = useShipProgression.getState().levelUpShip(selectedShipId)
+    if (success) {
+      playSFX('upgrade-purchase')
+    }
   }
 
   // Keyboard navigation — stable listener using refs
@@ -233,13 +259,25 @@ export default function ShipSelect() {
             <ShipModelPreview modelPath={selectedShip.modelPath} rotate />
           </div>
 
-          {/* Ship Name & Description */}
-          <h3
-            className="text-xl font-bold tracking-[0.1em] text-game-text mb-2"
-            style={{ textShadow: `0 0 20px ${selectedShip.colorTheme}40` }}
-          >
-            {selectedShip.name}
-          </h3>
+          {/* Ship Name, Level Badge & Description */}
+          <div className="flex items-baseline justify-between mb-2">
+            <h3
+              className="text-xl font-bold tracking-[0.1em] text-game-text"
+              style={{ textShadow: `0 0 20px ${selectedShip.colorTheme}40` }}
+            >
+              {selectedShip.name}
+            </h3>
+            <span
+              className="text-xs font-bold tracking-widest px-2 py-0.5 rounded"
+              style={{
+                color: isMaxLevel ? '#ffd700' : selectedShip.colorTheme,
+                border: `1px solid ${isMaxLevel ? '#ffd70060' : selectedShip.colorTheme + '60'}`,
+                backgroundColor: isMaxLevel ? '#ffd70015' : selectedShip.colorTheme + '15',
+              }}
+            >
+              {isMaxLevel ? 'MAX' : `LV.${shipLevel}`}
+            </span>
+          </div>
           <p className="text-sm text-game-text-muted mb-4 leading-relaxed">
             {selectedShip.description}
           </p>
@@ -366,11 +404,33 @@ export default function ShipSelect() {
           {/* Spacer */}
           <div className="flex-1" />
 
+          {/* LEVEL UP button or MAX LEVEL badge */}
+          {isMaxLevel ? (
+            <div className="w-full py-2 mb-2 text-center text-xs font-bold tracking-widest text-yellow-400 border border-yellow-400/30 rounded-lg bg-yellow-400/10 select-none">
+              ★ MAX LEVEL
+            </div>
+          ) : (
+            <button
+              onClick={handleLevelUp}
+              disabled={!canAffordLevelUp}
+              className={`
+                w-full py-2 mb-2 text-sm font-bold tracking-widest rounded-lg
+                border transition-all duration-150 select-none
+                ${canAffordLevelUp
+                  ? 'border-cyan-400/60 text-cyan-300 bg-cyan-400/10 hover:bg-cyan-400/20 hover:scale-105 cursor-pointer'
+                  : 'border-game-border/30 text-game-text-muted bg-white/[0.03] cursor-not-allowed opacity-50'
+                }
+              `}
+            >
+              LEVEL UP ({nextLevelCost?.toLocaleString()} <span style={{ color: '#cc66ff' }}>◆</span>)
+            </button>
+          )}
+
           {/* START button */}
           <button
             onClick={handleStart}
             className="
-              w-full py-3 mt-4 text-lg font-bold tracking-widest
+              w-full py-3 text-lg font-bold tracking-widest
               border border-game-accent text-game-text
               bg-game-accent/10 rounded-lg
               hover:bg-game-accent/20 hover:scale-105

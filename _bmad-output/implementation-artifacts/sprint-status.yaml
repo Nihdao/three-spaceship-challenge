@@ -226,13 +226,13 @@ development_status:
   epic-22: in-progress # A reprendre
   22-1-revival-respawn-system: done
   22-2-reroll-banish-skip-mechanics: done
-  22-3-boon-weapon-rarity-system: ready-for-dev
+  22-3-boon-weapon-rarity-system: review
   22-4-tough-boss-overhaul: done
   epic-22-retrospective: optional
 
   # Epic 23: Wave & Enemy Systems (Dynamic Pressure)
   epic-23: in-progress # A reprendre
-  23-1-dynamic-wave-system: in-progress
+  23-1-dynamic-wave-system: review
   23-2-enemy-collision-physics: ready-for-dev
   23-3-cumulative-timer-across-systems: ready-for-dev
   epic-23-retrospective: optional
@@ -246,7 +246,7 @@ development_status:
 
   # Epic 25: Meta & Content
   epic-25: in-progress # A reprendre
-  25-1-ship-level-progression: ready-for-dev
+  25-1-ship-level-progression: done
   25-2-level-based-ship-skins: ready-for-dev
   25-3-galaxy-choice-screen: ready-for-dev
   25-4-armory-catalog-screen: ready-for-dev
