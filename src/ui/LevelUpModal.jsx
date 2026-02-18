@@ -5,6 +5,7 @@ import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { generateChoices } from '../systems/progressionSystem.js'
+import { getRarityTier } from '../systems/raritySystem.js'
 import { playSFX } from '../audio/audioManager.js'
 
 export default function LevelUpModal() {
@@ -21,7 +22,9 @@ export default function LevelUpModal() {
     const equippedWeapons = useWeapons.getState().activeWeapons.map(w => ({ weaponId: w.weaponId, level: w.level }))
     const equippedBoonIds = useBoons.getState().activeBoons.map(b => b.boonId)
     const equippedBoons = useBoons.getState().getEquippedBoons()
-    return generateChoices(level, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
+    // Story 22.3: Include luck stat for rarity roll (boon luckBonus + ship + permanent)
+    const luckStat = (usePlayer.getState().getLuckStat?.() ?? 0) + (useBoons.getState().modifiers.luckBonus ?? 0)
+    return generateChoices(level, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat)
   }, [])
 
   // Generate choices on mount
@@ -32,15 +35,16 @@ export default function LevelUpModal() {
 
   const applyChoice = useCallback((choice) => {
     playSFX('button-click')
+    const rarity = choice.rarity || 'COMMON'
     if (choice.type === 'weapon_upgrade') {
-      useWeapons.getState().upgradeWeapon(choice.id)
+      useWeapons.getState().upgradeWeapon(choice.id, rarity)
     } else if (choice.type === 'new_weapon') {
-      useWeapons.getState().addWeapon(choice.id)
+      useWeapons.getState().addWeapon(choice.id, rarity)
     } else if (choice.type === 'new_boon') {
-      useBoons.getState().addBoon(choice.id)
+      useBoons.getState().addBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     } else if (choice.type === 'boon_upgrade') {
-      useBoons.getState().upgradeBoon(choice.id)
+      useBoons.getState().upgradeBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     }
     useGame.getState().resumeGameplay()
@@ -128,59 +132,79 @@ export default function LevelUpModal() {
         LEVEL UP!
       </h1>
       <div className="flex gap-4">
-        {choices.map((choice, i) => (
-          <div
-            key={`${choice.type}_${choice.id}_${i}`}
-            className="relative w-52 p-4 bg-game-bg-medium border border-game-border rounded-lg
-                       hover:border-game-accent cursor-pointer transition-all animate-fade-in"
-            style={{
-              animationDelay: `${i * 50}ms`,
-              animationFillMode: 'backwards',
-              opacity: banishingIndex === i ? 0.2 : 1,
-              transform: banishingIndex === i ? 'scale(0.95)' : undefined,
-              transition: 'opacity 200ms ease-out, transform 200ms ease-out, border-color 150ms',
-            }}
-            onClick={() => applyChoice(choice)}
-          >
-            {/* Banish X button — top-right of each card (Story 22.2 Task 5) */}
-            {banishCharges > 0 && (
-              <button
-                className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center
-                           rounded-full text-white text-xs font-bold
-                           hover:scale-110 transition-transform cursor-pointer"
-                style={{
-                  backgroundColor: '#ff3366',
-                  boxShadow: '0 0 6px rgba(255, 51, 102, 0.5)',
-                  zIndex: 10,
-                }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleBanish(choice, i)
-                }}
-                aria-label={`banish ${choice.name}`}
-              >
-                ✕
-              </button>
-            )}
+        {choices.map((choice, i) => {
+          const rarityTier = getRarityTier(choice.rarity || 'COMMON')
+          const isCommon = !choice.rarity || choice.rarity === 'COMMON'
+          const glowPx = rarityTier.glowIntensity * 8
 
-            <span
-              className={
-                choice.level
-                  ? 'text-game-text-muted text-xs'
-                  : 'text-game-accent text-xs font-bold'
-              }
+          return (
+            <div
+              key={`${choice.type}_${choice.id}_${i}`}
+              className="relative w-52 p-4 bg-game-bg-medium rounded-lg cursor-pointer transition-all animate-fade-in"
+              style={{
+                animationDelay: `${i * 50}ms`,
+                animationFillMode: 'backwards',
+                opacity: banishingIndex === i ? 0.2 : 1,
+                transform: banishingIndex === i ? 'scale(0.95)' : undefined,
+                transition: 'opacity 200ms ease-out, transform 200ms ease-out, border-color 150ms, box-shadow 150ms',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                borderColor: rarityTier.color,
+                boxShadow: isCommon ? 'none' : `0 0 ${glowPx}px ${rarityTier.color}`,
+              }}
+              onClick={() => applyChoice(choice)}
             >
-              {choice.level ? `Lvl ${choice.level}` : 'NEW'}
-            </span>
-            <h3 className="text-game-text font-semibold mt-1">{choice.name}</h3>
-            {choice.statPreview ? (
-              <p className="text-game-text-muted text-sm mt-1">{choice.statPreview}</p>
-            ) : (
-              <p className="text-game-text-muted text-sm mt-1">{choice.description}</p>
-            )}
-            <span className="text-game-text-muted text-xs mt-2 block">[{i + 1}]</span>
-          </div>
-        ))}
+              {/* Banish X button — top-right of each card (Story 22.2 Task 5) */}
+              {banishCharges > 0 && (
+                <button
+                  className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center
+                             rounded-full text-white text-xs font-bold
+                             hover:scale-110 transition-transform cursor-pointer"
+                  style={{
+                    backgroundColor: '#ff3366',
+                    boxShadow: '0 0 6px rgba(255, 51, 102, 0.5)',
+                    zIndex: 10,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleBanish(choice, i)
+                  }}
+                  aria-label={`banish ${choice.name}`}
+                >
+                  ✕
+                </button>
+              )}
+
+              {/* Top row: rarity badge (if not Common) + level/NEW indicator */}
+              <div className="flex items-center gap-2">
+                {!isCommon && (
+                  <div
+                    className="px-2 py-0.5 text-xs font-bold rounded"
+                    style={{ backgroundColor: rarityTier.color, color: '#000' }}
+                  >
+                    {rarityTier.name.toUpperCase()}
+                  </div>
+                )}
+                <span
+                  className={
+                    choice.level
+                      ? 'text-game-text-muted text-xs'
+                      : 'text-game-accent text-xs font-bold'
+                  }
+                >
+                  {choice.level ? `Lvl ${choice.level}` : 'NEW'}
+                </span>
+              </div>
+              <h3 className="text-game-text font-semibold mt-1">{choice.name}</h3>
+              {choice.statPreview ? (
+                <p className="text-game-text-muted text-sm mt-1">{choice.statPreview}</p>
+              ) : (
+                <p className="text-game-text-muted text-sm mt-1">{choice.description}</p>
+              )}
+              <span className="text-game-text-muted text-xs mt-2 block">[{i + 1}]</span>
+            </div>
+          )
+        })}
       </div>
 
       {/* Strategic buttons — below choice cards (Story 22.2 Tasks 3-4) */}

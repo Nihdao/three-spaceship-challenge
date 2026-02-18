@@ -133,14 +133,21 @@ const useWeapons = create((set, get) => ({
     }
   },
 
-  addWeapon: (weaponId) => {
+  addWeapon: (weaponId, rarity = 'COMMON') => {
     const { activeWeapons } = get()
     if (activeWeapons.length >= 4) return // Max 4 weapon slots
     if (activeWeapons.some(w => w.weaponId === weaponId)) return // Already equipped
-    set({ activeWeapons: [...activeWeapons, { weaponId, level: 1, cooldownTimer: 0 }] })
+    const def = WEAPONS[weaponId]
+    // Story 22.3: Apply rarity damage multiplier to baseDamage at add time
+    const rarityMultiplier = def?.rarityDamageMultipliers?.[rarity] ?? 1.0
+    const weapon = { weaponId, level: 1, cooldownTimer: 0, rarity }
+    if (rarityMultiplier !== 1.0 && def?.baseDamage) {
+      weapon.overrides = { damage: Math.round(def.baseDamage * rarityMultiplier) }
+    }
+    set({ activeWeapons: [...activeWeapons, weapon] })
   },
 
-  upgradeWeapon: (weaponId) => {
+  upgradeWeapon: (weaponId, rarity = 'COMMON') => {
     const { activeWeapons } = get()
     const idx = activeWeapons.findIndex(w => w.weaponId === weaponId)
     if (idx === -1) return
@@ -149,10 +156,16 @@ const useWeapons = create((set, get) => ({
     const def = WEAPONS[weaponId]
     const upgrade = def?.upgrades?.[weapon.level - 1]
     const updated = [...activeWeapons]
-    updated[idx] = { ...weapon, level: weapon.level + 1, cooldownTimer: weapon.cooldownTimer }
+    // Each upgrade's rarity is independent — use the passed rarity for this upgrade's damage scaling
+    updated[idx] = { ...weapon, level: weapon.level + 1, cooldownTimer: weapon.cooldownTimer, rarity }
     // Apply gameplay-relevant overrides only; carry forward upgradeVisuals from previous threshold
     if (upgrade) {
-      const newOverrides = { damage: upgrade.damage, cooldown: upgrade.cooldown }
+      // Story 22.3: Apply rarity damage multiplier to upgrade damage
+      const rarityMultiplier = def?.rarityDamageMultipliers?.[rarity] ?? 1.0
+      const newOverrides = {
+        damage: Math.round(upgrade.damage * rarityMultiplier),
+        cooldown: upgrade.cooldown,
+      }
       if (upgrade.upgradeVisuals) {
         newOverrides.upgradeVisuals = upgrade.upgradeVisuals
       } else if (weapon.overrides?.upgradeVisuals) {

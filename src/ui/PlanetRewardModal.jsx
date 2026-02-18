@@ -5,6 +5,7 @@ import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { generatePlanetReward } from '../systems/progressionSystem.js'
+import { getRarityTier } from '../systems/raritySystem.js'
 import { playSFX } from '../audio/audioManager.js'
 import { PLANETS } from '../entities/planetDefs.js'
 
@@ -37,15 +38,16 @@ export default function PlanetRewardModal() {
 
   const applyChoice = useCallback((choice) => {
     playSFX('button-click')
+    const rarity = choice.rarity || 'COMMON'
     if (choice.type === 'weapon_upgrade') {
-      useWeapons.getState().upgradeWeapon(choice.id)
+      useWeapons.getState().upgradeWeapon(choice.id, rarity)
     } else if (choice.type === 'new_weapon') {
-      useWeapons.getState().addWeapon(choice.id)
+      useWeapons.getState().addWeapon(choice.id, rarity)
     } else if (choice.type === 'new_boon') {
-      useBoons.getState().addBoon(choice.id)
+      useBoons.getState().addBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     } else if (choice.type === 'boon_upgrade') {
-      useBoons.getState().upgradeBoon(choice.id)
+      useBoons.getState().upgradeBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
     }
     // stat_boost: intentional no-op fallback (all slots maxed edge case)
@@ -79,41 +81,54 @@ export default function PlanetRewardModal() {
       </h1>
       <p className="text-game-text-muted text-sm mb-8 animate-fade-in">{tierLabel} Planet Reward</p>
       <div className="flex gap-4">
-        {choices.map((choice, i) => (
-          <div
-            key={`${choice.type}_${choice.id}`}
-            className="w-52 p-4 bg-game-bg-medium rounded-lg
-                       hover:cursor-pointer transition-all animate-fade-in"
-            style={{
-              animationDelay: `${i * 50}ms`,
-              animationFillMode: 'backwards',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: `${tierColor}66`,
-              boxShadow: `0 0 12px ${tierColor}30`,
-            }}
-            onClick={() => applyChoice(choice)}
-            onMouseEnter={() => playSFX('button-hover')}
-          >
-            <span
-              className={
-                choice.level
-                  ? 'text-game-text-muted text-xs'
-                  : 'text-xs font-bold'
-              }
-              style={!choice.level ? { color: tierColor } : undefined}
+        {choices.map((choice, i) => {
+          const rarityTier = getRarityTier(choice.rarity || 'COMMON')
+          const isCommon = !choice.rarity || choice.rarity === 'COMMON'
+          const glowPx = rarityTier.glowIntensity * 8
+
+          return (
+            <div
+              key={`${choice.type}_${choice.id}`}
+              className="w-52 p-4 bg-game-bg-medium rounded-lg
+                         hover:cursor-pointer transition-all animate-fade-in"
+              style={{
+                animationDelay: `${i * 50}ms`,
+                animationFillMode: 'backwards',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                borderColor: isCommon ? `${tierColor}66` : rarityTier.color,
+                boxShadow: isCommon ? `0 0 12px ${tierColor}30` : `0 0 ${glowPx}px ${rarityTier.color}`,
+              }}
+              onClick={() => applyChoice(choice)}
+              onMouseEnter={() => playSFX('button-hover')}
             >
-              {choice.level ? `Lvl ${choice.level}` : 'NEW'}
-            </span>
-            <h3 className="text-game-text font-semibold mt-1">{choice.name}</h3>
-            {choice.statPreview ? (
-              <p className="text-game-text-muted text-sm mt-1">{choice.statPreview}</p>
-            ) : (
-              <p className="text-game-text-muted text-sm mt-1">{choice.description}</p>
-            )}
-            <span className="text-game-text-muted text-xs mt-2 block">[{i + 1}]</span>
-          </div>
-        ))}
+              {/* Top row: rarity badge (if not Common) + level/NEW indicator */}
+              <div className="flex items-center gap-2">
+                {!isCommon && (
+                  <div
+                    className="px-2 py-0.5 text-xs font-bold rounded"
+                    style={{ backgroundColor: rarityTier.color, color: '#000' }}
+                  >
+                    {rarityTier.name.toUpperCase()}
+                  </div>
+                )}
+                <span
+                  className={choice.level ? 'text-game-text-muted text-xs' : 'text-xs font-bold'}
+                  style={!choice.level && isCommon ? { color: tierColor } : undefined}
+                >
+                  {choice.level ? `Lvl ${choice.level}` : 'NEW'}
+                </span>
+              </div>
+              <h3 className="text-game-text font-semibold mt-1">{choice.name}</h3>
+              {choice.statPreview ? (
+                <p className="text-game-text-muted text-sm mt-1">{choice.statPreview}</p>
+              ) : (
+                <p className="text-game-text-muted text-sm mt-1">{choice.description}</p>
+              )}
+              <span className="text-game-text-muted text-xs mt-2 block">[{i + 1}]</span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
