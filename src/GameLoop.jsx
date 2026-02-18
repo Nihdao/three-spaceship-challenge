@@ -131,6 +131,8 @@ export default function GameLoop() {
       // Note: useGame.systemTimer is the authoritative game timer (not useLevel.systemTimer)
       // kills/score intentionally persist across systems (run-total for roguelite scoring)
       useGame.getState().setSystemTimer(0)
+      // Story 23.3: Initialize actual system duration (base + carried time from previous system)
+      useLevel.getState().initializeSystemDuration()
       // Initialize planets for the new system (advanceSystem clears them, GameLoop re-populates)
       useLevel.getState().initializePlanets()
     }
@@ -271,9 +273,10 @@ export default function GameLoop() {
       const currentSystem = useLevel.getState().currentSystem
       const systemScaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
       // Story 23.1: Pass wave system parameters — systemNum + systemTimer drive phase-based spawning
+      // Story 23.3: Use actualSystemDuration so wave phases scale to extended time
       const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], {
         systemNum: currentSystem,
-        systemTimer: GAME_CONFIG.SYSTEM_TIMER,
+        systemTimer: useLevel.getState().actualSystemDuration,
         systemScaling,
       })
       if (spawnInstructions.length > 0) {
@@ -397,13 +400,14 @@ export default function GameLoop() {
 
     // 7b. Apply enemy damage (batch)
     if (projectileHits.length > 0) {
-      // Story 27.1: Spawn damage numbers before damage resolution (enemy positions still valid)
-      const dnStore = useDamageNumbers.getState()
+      // Story 27.1: Spawn damage numbers before damage resolution (enemy positions still valid).
+      // Build the full spawn list first, then call spawnDamageNumbers once (single set()).
+      const dnEntries = []
       for (let i = 0; i < projectileHits.length; i++) {
         const hit = projectileHits[i]
         for (let j = 0; j < enemies.length; j++) {
           if (enemies[j].id === hit.enemyId) {
-            dnStore.spawnDamageNumber({
+            dnEntries.push({
               damage: Math.round(hit.damage),
               worldX: enemies[j].x,
               worldZ: enemies[j].z,
@@ -412,6 +416,7 @@ export default function GameLoop() {
           }
         }
       }
+      if (dnEntries.length > 0) useDamageNumbers.getState().spawnDamageNumbers(dnEntries)
 
       const deathEvents = useEnemies.getState().damageEnemiesBatch(projectileHits)
 
@@ -514,7 +519,7 @@ export default function GameLoop() {
     if (!bossActive) {
       newTimer = gameState.systemTimer + clampedDelta
       gameState.setSystemTimer(newTimer)
-      if (newTimer >= GAME_CONFIG.SYSTEM_TIMER) {
+      if (newTimer >= useLevel.getState().actualSystemDuration) { // Story 23.3: use actual duration
         // Don't trigger game over if wormhole is activating/active (player found it)
         if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
           playSFX('game-over-impact')
@@ -532,7 +537,7 @@ export default function GameLoop() {
     // 7f-bis. Wormhole spawn + activation check
     const levelState = useLevel.getState()
     if (levelState.wormholeState === 'hidden') {
-      if (newTimer >= GAME_CONFIG.SYSTEM_TIMER * GAME_CONFIG.WORMHOLE_SPAWN_TIMER_THRESHOLD) {
+      if (newTimer >= levelState.actualSystemDuration * GAME_CONFIG.WORMHOLE_SPAWN_TIMER_THRESHOLD) { // Story 23.3
         useLevel.getState().spawnWormhole(playerPos[0], playerPos[2])
         playSFX('wormhole-spawn')
       }
@@ -610,6 +615,11 @@ export default function GameLoop() {
               spawnOrb(bossPos.x + Math.cos(angle) * spread, bossPos.z + Math.sin(angle) * spread, xpPerOrb)
             }
           }
+          // Story 23.3: Store remaining time as carryover for the next system
+          // Calculated at boss defeat (not wormhole entry) so tunnel time is excluded
+          const currentTimerAtDefeat = useGame.getState().systemTimer
+          const actualDurationAtDefeat = useLevel.getState().actualSystemDuration
+          useLevel.getState().setCarriedTime(Math.max(0, actualDurationAtDefeat - currentTimerAtDefeat))
           useLevel.getState().reactivateWormhole()
           useBoss.getState().setRewardGiven(true)
         }
