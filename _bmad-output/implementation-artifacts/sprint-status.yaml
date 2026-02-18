@@ -219,20 +219,20 @@ development_status:
   21-1-dual-stick-controls-movement-aiming: done
   21-2-crosshair-display: done
   21-3-ship-inertia-physics: done
-  21-4-vortex-purple-tint: ready-for-dev
+  21-4-vortex-purple-tint: done
   epic-21-retrospective: optional
 
   # Epic 22: Combat Depth (Strategic Systems)
   epic-22: in-progress # A reprendre
   22-1-revival-respawn-system: done
-  22-2-reroll-banish-skip-mechanics: in-progress
+  22-2-reroll-banish-skip-mechanics: done
   22-3-boon-weapon-rarity-system: ready-for-dev
   22-4-tough-boss-overhaul: done
   epic-22-retrospective: optional
 
   # Epic 23: Wave & Enemy Systems (Dynamic Pressure)
   epic-23: in-progress # A reprendre
-  23-1-dynamic-wave-system: ready-for-dev
+  23-1-dynamic-wave-system: in-progress
   23-2-enemy-collision-physics: ready-for-dev
   23-3-cumulative-timer-across-systems: ready-for-dev
   epic-23-retrospective: optional
