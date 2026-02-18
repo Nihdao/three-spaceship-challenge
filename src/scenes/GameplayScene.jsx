@@ -1,4 +1,5 @@
 import PlayerShip from '../renderers/PlayerShip.jsx'
+import DamageNumberRenderer from '../ui/DamageNumberRenderer.jsx'
 import ProjectileRenderer from '../renderers/ProjectileRenderer.jsx'
 import EnemyRenderer from '../renderers/EnemyRenderer.jsx'
 import EnemyProjectileRenderer from '../renderers/EnemyProjectileRenderer.jsx'
@@ -105,6 +106,9 @@ export default function GameplayScene() {
 
       {/* System entry portal animation (Story 17.1) */}
       <SystemEntryPortal />
+
+      {/* Damage number overlay (Story 27.1) */}
+      <DamageNumberRenderer />
     </>
   )
 }
