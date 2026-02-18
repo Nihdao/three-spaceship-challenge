@@ -13,6 +13,10 @@ const useLevel = create((set, get) => ({
   wormholeActivationTimer: 0,
   activeScanPlanetId: null,
 
+  // --- Cumulative Timer (Story 23.3) ---
+  carriedTime: 0, // Time remaining from previous system (seconds); added to next system's duration
+  actualSystemDuration: GAME_CONFIG.SYSTEM_TIMER, // Effective duration for current system (base + carried)
+
   // --- Banish Tracking (Story 22.2) ---
   banishedItems: [], // Array of { itemId: 'laser', type: 'weapon' | 'boon' }
 
@@ -87,6 +91,16 @@ const useLevel = create((set, get) => ({
   },
 
   clearBanishedItems: () => set({ banishedItems: [] }),
+
+  // --- Cumulative Timer (Story 23.3) ---
+  setCarriedTime: (time) => set({ carriedTime: Math.max(0, time) }),
+
+  // Consumes carriedTime to initialize actualSystemDuration for the new system.
+  // Called on system entry from tunnel. Clears carriedTime after consuming it.
+  initializeSystemDuration: () => {
+    const carried = get().carriedTime
+    set({ actualSystemDuration: GAME_CONFIG.SYSTEM_TIMER + carried, carriedTime: 0 })
+  },
 
   initializePlanets: () => {
     const planets = []
@@ -213,6 +227,8 @@ const useLevel = create((set, get) => ({
     wormholeActivationTimer: 0,
     activeScanPlanetId: null,
     banishedItems: [], // Story 22.2: Clear banish list on new run
+    carriedTime: 0, // Story 23.3: Reset carryover on new game
+    actualSystemDuration: GAME_CONFIG.SYSTEM_TIMER, // Story 23.3: Reset to base duration
   }),
 }))
 

@@ -317,6 +317,7 @@ function BoonSlots({ activeBoons }) {
 export default function HUD() {
   // Individual selectors for performance (avoid unnecessary re-renders)
   const systemTimer = useGame((s) => s.systemTimer)
+  const actualSystemDuration = useLevel((s) => s.actualSystemDuration) // Story 23.3
   const kills = useGame((s) => s.kills)
   const score = useGame((s) => s.score)
   const phase = useGame((s) => s.phase)
@@ -363,7 +364,7 @@ export default function HUD() {
     return () => clearInterval(id)
   }, [])
 
-  const remaining = GAME_CONFIG.SYSTEM_TIMER - systemTimer
+  const remaining = Math.max(0, actualSystemDuration - systemTimer) // Story 23.3: cumulative duration
   const timerDisplay = formatTimer(remaining)
   const hpPulse = shouldPulseHP(currentHP, maxHP)
   const isLowHP = hpPulse

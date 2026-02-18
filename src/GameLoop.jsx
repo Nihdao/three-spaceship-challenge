@@ -152,6 +152,7 @@ export default function GameLoop() {
       usePlayer.getState().initializeRunStats(useUpgrades.getState().getComputedBonuses())
       useEnemies.getState().reset()
       useLevel.getState().reset()
+      useLevel.getState().initializeSystemDuration() // Story 23.3: Mirrors tunnel→gameplay init; makes system 1 duration explicit
       useLevel.getState().initializePlanets()
       useBoss.getState().reset()
     }
@@ -400,6 +401,21 @@ export default function GameLoop() {
 
     // 7b. Apply enemy damage (batch)
     if (projectileHits.length > 0) {
+      // Story 27.2: Roll crit for each hit before damage resolution.
+      // composedWeaponMods is computed in section 3 (same frame scope).
+      const critChance = composedWeaponMods.critChance ?? 0
+      const critMult = composedWeaponMods.critMultiplier ?? 2.0
+      for (let i = 0; i < projectileHits.length; i++) {
+        const hit = projectileHits[i]
+        const isCrit = critChance > 0 && Math.random() < critChance
+        if (isCrit) {
+          hit.damage = Math.floor(hit.damage * critMult)
+          hit.isCrit = true
+        } else {
+          hit.isCrit = false
+        }
+      }
+
       // Story 27.1: Spawn damage numbers before damage resolution (enemy positions still valid).
       // Build the full spawn list first, then call spawnDamageNumbers once (single set()).
       const dnEntries = []
@@ -411,6 +427,7 @@ export default function GameLoop() {
               damage: Math.round(hit.damage),
               worldX: enemies[j].x,
               worldZ: enemies[j].z,
+              isCrit: hit.isCrit,
             })
             break
           }
