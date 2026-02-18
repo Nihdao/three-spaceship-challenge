@@ -390,7 +390,7 @@ export const GAME_CONFIG = {
     SHIP_FLY_IN_TIME: 1.2,      // seconds — ship flies through portal to center
     PORTAL_SHRINK_TIME: 0.5,    // seconds — portal disappears after ship arrival
     PORTAL_RADIUS: 12,          // world units — portal disc radius
-    PORTAL_COLOR: '#00ccff',    // portal glow color
+    PORTAL_COLOR: '#bb88ff',    // portal glow color — matches WormholeRenderer WORMHOLE_COLOR2 (Story 21.4)
     PORTAL_PARTICLE_COUNT: 40,  // orbiting particles around portal
     PORTAL_OFFSET_Z: 40,        // portal position below center (positive Z = bottom of screen)
   },

@@ -114,7 +114,7 @@ export default function SystemEntryPortal() {
       uTime: { value: 0 },
       uOpacity: { value: 0 },
       uColor: { value: new THREE.Color(_cfg.PORTAL_COLOR) },
-      uColor2: { value: new THREE.Color('#8844ff') },
+      uColor2: { value: new THREE.Color('#5518aa') }, // matches WormholeRenderer WORMHOLE_COLOR (Story 21.4)
     },
     transparent: true,
     side: THREE.DoubleSide,
