@@ -1,14 +1,19 @@
 import { create } from 'zustand'
-import { getPersistedShipLevels, setPersistedShipLevels } from '../utils/shipProgressionStorage.js'
+import { getPersistedShipProgression, setPersistedShipProgression } from '../utils/shipProgressionStorage.js'
 import { SHIP_LEVEL_COSTS, SHIP_LEVEL_SCALING, MAX_SHIP_LEVEL } from '../entities/shipProgressionDefs.js'
 import { SHIPS } from '../entities/shipDefs.js'
+import { SHIP_SKINS } from '../entities/shipSkinDefs.js'
 import usePlayer from './usePlayer.jsx'
 
 const DEFAULT_SHIP_LEVELS = { BALANCED: 1, GLASS_CANNON: 1, TANK: 1 }
+const DEFAULT_SELECTED_SKINS = { BALANCED: 'default', GLASS_CANNON: 'default', TANK: 'default' }
+
+const _persisted = getPersistedShipProgression()
 
 const useShipProgression = create((set, get) => ({
   // --- State ---
-  shipLevels: getPersistedShipLevels(),
+  shipLevels: _persisted.shipLevels,
+  selectedSkins: _persisted.selectedSkins, // { BALANCED: 'default', ... }
 
   // --- Actions ---
 
@@ -30,7 +35,8 @@ const useShipProgression = create((set, get) => ({
 
     const newLevels = { ...state.shipLevels, [shipId]: currentLevel + 1 }
     set({ shipLevels: newLevels })
-    setPersistedShipLevels(newLevels)
+    // Persist BOTH shipLevels AND selectedSkins to avoid data loss
+    setPersistedShipProgression({ shipLevels: newLevels, selectedSkins: state.selectedSkins })
     return true
   },
 
@@ -54,11 +60,45 @@ const useShipProgression = create((set, get) => ({
     return 1 + (shipLevel - 1) * scaling
   },
 
-  // Resets all ship levels to 1 and clears localStorage (debugging only).
+  // --- Skin Selection Actions (Story 25.2) ---
+
+  // Set the selected skin for a ship. Returns false if skin is locked.
+  setSelectedSkin: (shipId, skinId) => {
+    const state = get()
+    const availableSkins = state.getAvailableSkins(shipId)
+    const skin = availableSkins.find(s => s.id === skinId)
+
+    if (!skin || skin.locked) return false
+
+    const newSelectedSkins = { ...state.selectedSkins, [shipId]: skinId }
+    set({ selectedSkins: newSelectedSkins })
+    setPersistedShipProgression({ shipLevels: state.shipLevels, selectedSkins: newSelectedSkins })
+    return true
+  },
+
+  // Returns the selected skin ID for a ship (defaults to 'default').
+  getSelectedSkin: (shipId) => {
+    return get().selectedSkins[shipId] || 'default'
+  },
+
+  // Returns all skins for a ship with locked/unlocked status based on current ship level.
+  getAvailableSkins: (shipId) => {
+    const state = get()
+    const currentLevel = state.shipLevels[shipId] || 1
+    const skins = SHIP_SKINS[shipId] || []
+
+    return skins.map(skin => ({
+      ...skin,
+      locked: skin.requiredLevel > currentLevel,
+    }))
+  },
+
+  // Resets all ship levels to 1 and skin selections to default. Clears localStorage.
   reset: () => {
     const defaultLevels = { ...DEFAULT_SHIP_LEVELS }
-    set({ shipLevels: defaultLevels })
-    setPersistedShipLevels(defaultLevels)
+    const defaultSkins = { ...DEFAULT_SELECTED_SKINS }
+    set({ shipLevels: defaultLevels, selectedSkins: defaultSkins })
+    setPersistedShipProgression({ shipLevels: defaultLevels, selectedSkins: defaultSkins })
   },
 }))
 

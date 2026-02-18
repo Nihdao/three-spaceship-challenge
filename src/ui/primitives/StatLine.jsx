@@ -1,4 +1,4 @@
-export default function StatLine({ label, value, icon, bonusValue }) {
+export default function StatLine({ label, value, icon, bonusValue, compact = false }) {
   // Determine if bonus badge should be shown
   const hasBonus = bonusValue !== undefined && bonusValue > 0
 
@@ -12,17 +12,17 @@ export default function StatLine({ label, value, icon, bonusValue }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-game-text-muted text-xs tracking-widest flex items-center gap-1.5">
+    <div className="flex items-center justify-between gap-2">
+      <span className={`text-game-text-muted ${compact ? 'text-[10px]' : 'text-xs'} tracking-widest flex items-center gap-1`}>
         {icon && <span className="flex-shrink-0">{icon}</span>}
         {label}
       </span>
       <div className="flex items-center gap-1">
-        <span className="text-game-text font-bold tabular-nums" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)' }}>
+        <span className="text-game-text font-bold tabular-nums" style={{ fontSize: compact ? '11px' : 'clamp(12px, 1.2vw, 16px)' }}>
           {String(value)}
         </span>
         {hasBonus && (
-          <span className="text-[10px] text-green-400 bg-green-400/10 px-1 rounded">
+          <span className="text-[9px] text-green-400 bg-green-400/10 px-1 rounded">
             {formatBonus(bonusValue)}
           </span>
         )}

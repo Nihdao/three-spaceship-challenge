@@ -3,6 +3,9 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import usePlayer from '../stores/usePlayer.jsx'
+import useShipProgression from '../stores/useShipProgression.jsx'
+import { getSkinForShip } from '../entities/shipSkinDefs.js'
 
 const TUNNEL_RADIUS = 8
 const TUNNEL_LENGTH = 200
@@ -82,8 +85,20 @@ function TunnelShip() {
 
   const shipMaterials = useMemo(() => {
     const all = []
+
+    // Apply skin tint (Story 25.2) — same logic as PlayerShip.jsx
+    const currentShipId = usePlayer.getState().currentShipId || 'BALANCED'
+    const selectedSkinId = useShipProgression.getState().getSelectedSkin(currentShipId)
+    const skinData = getSkinForShip(currentShipId, selectedSkinId)
+
     clonedScene.traverse((child) => {
       if (child.isMesh && child.material) {
+        // Clone materials to avoid mutating the shared GLB cache (Story 25.2 fix)
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map(m => m.clone())
+        } else {
+          child.material = child.material.clone()
+        }
         const materials = Array.isArray(child.material) ? child.material : [child.material]
         const isEngine = child.name.toLowerCase().includes('engine') ||
                          child.name.toLowerCase().includes('thruster')
@@ -94,8 +109,14 @@ function TunnelShip() {
               mat.emissive.copy(_engineEmissive)
               mat.emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
             } else {
+              // Hull materials: zero emissive, replace color on non-black parts only (Story 25.2)
+              // emissiveTint intentionally not applied — creates undesirable color filter
               mat.emissive.setScalar(0)
               mat.emissiveIntensity = 0
+              if (skinData && skinData.tintColor) {
+                const isColored = Math.max(mat.color.r, mat.color.g, mat.color.b) > 0.15
+                if (isColored) mat.color.set(skinData.tintColor)
+              }
             }
             mat.needsUpdate = true
           }

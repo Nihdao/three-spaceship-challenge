@@ -15,7 +15,7 @@ function ModelFallback() {
   )
 }
 
-function ShipModel({ modelPath, rotate }) {
+function ShipModel({ modelPath, rotate, skinData }) {
   const groupRef = useRef()
 
   // useGLTF can throw on 404 or malformed GLB — let Suspense/ErrorBoundary catch it
@@ -28,7 +28,39 @@ function ShipModel({ modelPath, rotate }) {
     return <ModelFallback />
   }
 
-  const clonedScene = useMemo(() => scene.clone(), [scene])
+  // Re-clone when scene or skin changes; clone materials to avoid mutating shared GLB cache.
+  // skinData is a stable object reference from SHIP_SKINS constant, so useMemo fires only
+  // on actual skin changes (different object reference).
+  const clonedScene = useMemo(() => {
+    const cloned = scene.clone()
+    cloned.traverse((child) => {
+      if (child.isMesh && child.material) {
+        // Clone materials so we never mutate the shared GLB cache (Story 25.2 fix)
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map(m => m.clone())
+        } else {
+          child.material = child.material.clone()
+        }
+        const materials = Array.isArray(child.material) ? child.material : [child.material]
+        const isEngine = child.name.toLowerCase().includes('engine') ||
+                         child.name.toLowerCase().includes('thruster')
+        for (const mat of materials) {
+          if (!isEngine && mat.emissive !== undefined) {
+            // Always zero emissive first (GLB may have baked emissive)
+            mat.emissive.setScalar(0)
+            mat.emissiveIntensity = 0
+            // emissiveTint intentionally not applied — creates undesirable color filter
+            if (skinData?.tintColor && mat.color !== undefined) {
+              const isColored = Math.max(mat.color.r, mat.color.g, mat.color.b) > 0.15
+              if (isColored) mat.color.set(skinData.tintColor)
+            }
+            mat.needsUpdate = true
+          }
+        }
+      }
+    })
+    return cloned
+  }, [scene, skinData])
 
   useFrame((state) => {
     if (!groupRef.current || !rotate) return
@@ -42,7 +74,7 @@ function ShipModel({ modelPath, rotate }) {
   )
 }
 
-export default function ShipModelPreview({ modelPath, rotate = false }) {
+export default function ShipModelPreview({ modelPath, rotate = false, skinData = null }) {
   // TECHNICAL DEBT (Code Review HIGH-3):
   // Each ShipModelPreview creates a separate WebGL context (expensive on GPU).
   // For 3 ship cards in grid = 3 concurrent contexts.
@@ -57,7 +89,7 @@ export default function ShipModelPreview({ modelPath, rotate = false }) {
       <directionalLight position={[5, 8, 5]} intensity={1.0} />
       <directionalLight position={[-4, 3, -2]} intensity={0.4} />
       <Suspense fallback={<ModelFallback />}>
-        <ShipModel modelPath={modelPath} rotate={rotate} />
+        <ShipModel modelPath={modelPath} rotate={rotate} skinData={skinData} />
       </Suspense>
     </Canvas>
   )
