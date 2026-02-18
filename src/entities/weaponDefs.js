@@ -1,3 +1,7 @@
+// Default rarity damage multipliers — Story 22.3
+// Per-weapon customization: override any tier for weapons that scale more/less dramatically
+const DEFAULT_RARITY_DMG = { COMMON: 1.0, RARE: 1.15, EPIC: 1.30, LEGENDARY: 1.50 }
+
 export const WEAPONS = {
   LASER_FRONT: {
     id: 'LASER_FRONT',
@@ -12,6 +16,7 @@ export const WEAPONS = {
     projectileColor: '#00ffff',     // cyan beam per UX neon palette
     projectileMeshScale: [0.75, 0.75, 3.0], // elongated beam shape (Story 2.9)
     sfxKey: 'laser-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',            // 'fixed' for slot 1, 'any' for slots 2-4
     upgrades: [
       { level: 2, damage: 12, cooldown: 0.48, statPreview: 'Damage: 10 → 12' },
@@ -40,6 +45,7 @@ export const WEAPONS = {
     projectileColor: '#ffcc00',     // Story 12.2: brighter yellow (was #ff8800 orange)
     projectileMeshScale: [0.5, 0.5, 1.5],
     sfxKey: 'laser-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 8, cooldown: 0.65, statPreview: 'Damage: 6 → 8' },
@@ -67,6 +73,7 @@ export const WEAPONS = {
     projectileColor: '#ff5555',     // Story 12.2: brighter red (was #ff3333)
     projectileMeshScale: [0.6, 0.6, 2.0],
     sfxKey: 'laser-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 30, cooldown: 1.8, statPreview: 'Damage: 25 → 30' },
@@ -93,6 +100,7 @@ export const WEAPONS = {
     projectileColor: '#ff00ff',     // Story 12.2: bright magenta (was #aa00ff)
     projectileMeshScale: [0.7, 0.7, 2.0],
     sfxKey: 'laser-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 25, cooldown: 1.1, statPreview: 'Damage: 20 → 25' },
@@ -123,6 +131,7 @@ export const WEAPONS = {
     projectileColor: '#4488ff',
     projectileMeshScale: [0.3, 0.3, 6.0],
     sfxKey: 'railgun-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 42, cooldown: 1.44, statPreview: 'Damage: 35 → 42' },
@@ -151,6 +160,7 @@ export const WEAPONS = {
     projectileColor: '#88ff00',     // Story 12.2: lime green (was #ff6600, conflicted with boss orange)
     projectileMeshScale: [0.4, 0.4, 1.2],
     sfxKey: 'trishot-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 10, cooldown: 0.58, statPreview: 'Damage: 8 → 10' },
@@ -180,6 +190,7 @@ export const WEAPONS = {
     projectileColor: '#ffff00',
     projectileMeshScale: [0.3, 0.3, 0.5],
     sfxKey: 'shotgun-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 5, cooldown: 0.96, statPreview: 'Damage: 4 → 5' },
@@ -209,6 +220,7 @@ export const WEAPONS = {
     projectileColor: '#bb66ff',     // Story 12.2 review: purple (was #ffaa00 orange, too close to boss #ff6600)
     projectileMeshScale: [0.6, 0.6, 0.6],
     sfxKey: 'satellite-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 15, cooldown: 0.77, statPreview: 'Damage: 12 → 15' },
@@ -237,6 +249,7 @@ export const WEAPONS = {
     projectileColor: '#00ffaa',
     projectileMeshScale: [0.4, 0.4, 1.0],
     sfxKey: 'drone-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 12, cooldown: 0.67, statPreview: 'Damage: 10 → 12' },
@@ -266,6 +279,7 @@ export const WEAPONS = {
     projectileColor: '#ff0088',
     projectileMeshScale: [0.5, 0.5, 8.0],
     sfxKey: 'beam-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 10, cooldown: 0.096, statPreview: 'DPS: 80 → 104' },
@@ -295,6 +309,7 @@ export const WEAPONS = {
     projectileColor: '#ff2244',     // Story 12.2 review: crimson (was #ff4400 red-orange, too close to boss #ff6600)
     projectileMeshScale: [1.2, 1.2, 1.2],
     sfxKey: 'explosive-fire',
+    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
       { level: 2, damage: 18, cooldown: 1.44, statPreview: 'Damage: 15 → 18' },

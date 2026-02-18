@@ -1,6 +1,7 @@
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import { rollRarity, getRarityTier } from './raritySystem.js'
 
 const MAX_WEAPON_SLOTS = 4
 const MAX_BOON_SLOTS = 3
@@ -26,9 +27,10 @@ function shuffle(arr) {
  * @param {string[]} equippedBoonIds - IDs of equipped boons
  * @param {Array<{boonId: string, level: number}>} [equippedBoons] - Equipped boons with levels (for upgrade choices)
  * @param {Array<{itemId: string, type: 'weapon'|'boon'}>} [banishedItems] - Items to exclude from new selections (Story 22.2)
- * @returns {Array<{type: string, id: string, name: string, description: string, level: number|null, icon: string|null, statPreview: string|null}>}
+ * @param {number} [luckStat] - Combined luck stat for rarity roll (Story 22.3)
+ * @returns {Array<{type: string, id: string, name: string, description: string, level: number|null, icon: string|null, statPreview: string|null, rarity: string, rarityColor: string, rarityName: string, rarityMultiplier: number}>}
  */
-export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = []) {
+export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0) {
   const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
 
   shuffle(pool)
@@ -37,7 +39,7 @@ export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, 
   const count = Math.min(4, Math.max(3, pool.length))
 
   if (pool.length >= count) {
-    return pool.slice(0, count)
+    return applyRarityToChoices(pool.slice(0, count), luckStat)
   }
 
   // Fallback: pad with additional upgrade tiers for equipped weapons
@@ -80,7 +82,7 @@ export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, 
     })
   }
 
-  return choices.slice(0, Math.min(4, Math.max(3, choices.length)))
+  return applyRarityToChoices(choices.slice(0, Math.min(4, Math.max(3, choices.length))), luckStat)
 }
 
 /**
@@ -171,6 +173,88 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banished
 }
 
 /**
+ * Roll and apply rarity to a slice of choices (Story 22.3).
+ * Each choice gets exactly one rarity — same item cannot appear at multiple rarities.
+ */
+function applyRarityToChoices(choices, luckStat) {
+  return choices.map(choice => {
+    // stat_boost choices don't get rarity (no meaningful scaling)
+    if (choice.type === 'stat_boost') {
+      return { ...choice, rarity: 'COMMON', rarityColor: '#ffffff', rarityName: 'Common', rarityMultiplier: 1.0 }
+    }
+
+    const rarityId = rollRarity(luckStat)
+    const rarityTier = getRarityTier(rarityId)
+
+    let scaledStatPreview = choice.statPreview
+    if (choice.type === 'new_weapon' || choice.type === 'weapon_upgrade') {
+      scaledStatPreview = applyRarityToWeaponPreview(choice, rarityId, rarityTier)
+    } else if (choice.type === 'new_boon' || choice.type === 'boon_upgrade') {
+      scaledStatPreview = applyRarityToBoonPreview(choice, rarityTier)
+    }
+
+    return {
+      ...choice,
+      rarity: rarityId,
+      rarityColor: rarityTier.color,
+      rarityName: rarityTier.name,
+      rarityMultiplier: rarityTier.bonusMultiplier,
+      statPreview: scaledStatPreview,
+    }
+  })
+}
+
+function applyRarityToWeaponPreview(choice, rarityId, rarityTier) {
+  const def = WEAPONS[choice.id]
+  if (!def) return choice.statPreview
+
+  const multiplier = def.rarityDamageMultipliers?.[rarityId] ?? rarityTier.bonusMultiplier
+
+  if (choice.type === 'new_weapon') {
+    const scaledDamage = Math.round(def.baseDamage * multiplier)
+    return `Damage: ${scaledDamage}`
+  } else {
+    // weapon_upgrade: scale the next upgrade's damage
+    const upgrade = def.upgrades?.find(u => u.level === choice.level)
+    if (!upgrade) return choice.statPreview
+    const prevUpgrade = def.upgrades?.find(u => u.level === choice.level - 1)
+    const baseDamage = prevUpgrade?.damage ?? def.baseDamage
+    const scaledDamage = Math.round(upgrade.damage * multiplier)
+    return `Damage: ${baseDamage} → ${scaledDamage}`
+  }
+}
+
+function applyRarityToBoonPreview(choice, rarityTier) {
+  if (!choice.statPreview) return choice.statPreview
+
+  // For upgrade previews ("15% → 30%"), scale only the LAST percentage (the new value).
+  // For new-boon previews ("+15%"), the last is also the only — same logic applies.
+  const pctMatches = [...choice.statPreview.matchAll(/([+-]?\d+)%/g)]
+  if (pctMatches.length > 0) {
+    const last = pctMatches[pctMatches.length - 1]
+    const basePercent = parseInt(last[1])
+    const scaledPercent = Math.round(basePercent * rarityTier.bonusMultiplier)
+    const sign = scaledPercent >= 0 && String(last[1]).startsWith('+') ? '+' : ''
+    const lastIdx = choice.statPreview.lastIndexOf(last[0])
+    return (
+      choice.statPreview.slice(0, lastIdx) +
+      `${sign}${scaledPercent}%` +
+      choice.statPreview.slice(lastIdx + last[0].length)
+    )
+  }
+
+  // Try to scale absolute values: "+20" → "+23"
+  const absMatch = choice.statPreview.match(/([+-]?\d+)(?!%)/)
+  if (absMatch) {
+    const baseVal = parseInt(absMatch[1])
+    const scaledVal = Math.round(baseVal * rarityTier.bonusMultiplier)
+    return choice.statPreview.replace(absMatch[0], `${scaledVal >= 0 && absMatch[1].startsWith('+') ? '+' : ''}${scaledVal}`)
+  }
+
+  return choice.statPreview
+}
+
+/**
  * Generate planet scan reward choices filtered by tier quality.
  * Returns same format as generateChoices() for UI compatibility.
  */
@@ -220,5 +304,6 @@ export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equ
     })
   }
 
-  return filtered.slice(0, count)
+  // Story 22.3: Apply rarity to planet reward choices (luckStat=0 — no luck for scan rewards)
+  return applyRarityToChoices(filtered.slice(0, count), 0)
 }
