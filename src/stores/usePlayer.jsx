@@ -4,6 +4,7 @@ import { getXPForLevel } from '../utils/xpScaling.js'
 import { UPGRADES } from '../entities/upgradeDefs.js'
 import { DILEMMAS } from '../entities/dilemmaDefs.js'
 import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
+import useShipProgression from './useShipProgression.jsx'
 
 const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
 const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
@@ -64,6 +65,9 @@ const usePlayer = create((set, get) => ({
   rerollCharges: 0,
   skipCharges: 0,
   banishCharges: 0,
+
+  // --- Luck stat (Story 22.3) ---
+  luckBonus: 0, // In-run luck bonus (from boons that grant luck)
 
   // --- XP & Level ---
   currentXP: 0,
@@ -270,6 +274,16 @@ const usePlayer = create((set, get) => ({
       cameraShakeTimer,
       cameraShakeIntensity,
     })
+  },
+
+  // --- Luck Stat (Story 22.3) ---
+  // Returns total luck: ship base (0 by default) + permanent upgrades + in-run boon bonuses
+  getLuckStat: () => {
+    const state = get()
+    const ship = SHIPS[state.currentShipId] || SHIPS[getDefaultShipId()]
+    const shipBaseLuck = ship.baseLuck || 0
+    const permanentLuck = state.permanentUpgradeBonuses.luck || 0
+    return shipBaseLuck + permanentLuck + state.luckBonus
   },
 
   // --- Ship Selection (Story 9.1) ---
@@ -481,13 +495,21 @@ const usePlayer = create((set, get) => ({
   setCinematicPosition: (pos) => set({ position: pos, rotation: 0 }),
 
   // Story 20.1: Apply permanent upgrade bonuses at run start (called by GameLoop after reset)
+  // Story 25.1: Also applies ship level multiplier (3% per level above 1) to base stats
   initializeRunStats: (bonuses) => {
     const state = get()
     const ship = SHIPS[state.currentShipId] || SHIPS[getDefaultShipId()]
-    const effectiveMaxHP = state.maxHP + bonuses.maxHP
+
+    // Ship level multiplier: 1.0 at level 1, +3% per additional level (Story 25.1)
+    const shipLevelMult = useShipProgression.getState().getShipStatMultiplier(state.currentShipId)
+
+    // Apply level multiplier to base stats first, then add permanent upgrade bonuses
+    const effectiveMaxHP = ship.baseHP * shipLevelMult + bonuses.maxHP
     set({
       maxHP: effectiveMaxHP,
       currentHP: effectiveMaxHP,
+      shipBaseSpeed: ship.baseSpeed * shipLevelMult,
+      shipBaseDamageMultiplier: ship.baseDamageMultiplier * shipLevelMult,
       permanentUpgradeBonuses: bonuses,
       // Story 20.5: Meta stat charges = ship base + permanent upgrades
       revivalCharges: (ship.revival || 0) + (bonuses.revival || 0),
@@ -569,6 +591,8 @@ const usePlayer = create((set, get) => ({
       rerollCharges: 0,
       skipCharges: 0,
       banishCharges: 0,
+      // Story 22.3: Luck stat
+      luckBonus: 0,
     })
   },
 }))
