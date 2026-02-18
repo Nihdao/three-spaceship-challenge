@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
+import { getPhaseForProgress } from '../entities/waveDefs.js'
 import usePlayer from '../stores/usePlayer.jsx'
 
 // Sweep group size range
@@ -11,70 +12,111 @@ const SWEEP_LINE_SPACING = 5
 const SNIPER_FIXED_SPAWN_DISTANCE_MIN = 150
 const SNIPER_FIXED_SPAWN_DISTANCE_MAX = 200
 
-// Story 16.3: Get enemy types available at current elapsed time
-function getAvailableEnemyTypes(elapsedTime) {
-  const schedule = GAME_CONFIG.TIME_GATED_SPAWN_SCHEDULE
-  const availableIds = new Set()
+// Story 23.1: Infer enemy tier from ID prefix when no explicit tier field exists
+function inferTierFromId(enemyId) {
+  if (enemyId.startsWith('FODDER_')) return 'FODDER'
+  if (enemyId.startsWith('SKIRMISHER_')) return 'SKIRMISHER'
+  if (enemyId.startsWith('ASSAULT_')) return 'ASSAULT'
+  if (enemyId.startsWith('ELITE_')) return 'ELITE'
+  return 'FODDER' // Default fallback for unclassified enemies
+}
 
-  for (const entry of schedule) {
-    if (elapsedTime >= entry.minTime) {
-      availableIds.add(entry.typeId)
-    }
+// Story 23.1: Get enemy types available for the given wave phase using tier weights.
+// Returns enemies with an adjustedWeight = spawnWeight * tierWeight for weighted random selection.
+function getAvailableEnemyTypes(phase) {
+  const tierWeights = phase.enemyTierWeights
+  const available = []
+
+  for (const enemy of Object.values(ENEMIES)) {
+    if (enemy.spawnWeight <= 0) continue
+    const tier = enemy.tier || inferTierFromId(enemy.id)
+    const tierWeight = tierWeights[tier]
+    if (!tierWeight || tierWeight <= 0) continue
+    available.push({ ...enemy, adjustedWeight: enemy.spawnWeight * tierWeight })
   }
 
-  return Object.values(ENEMIES).filter(
-    e => e.spawnWeight > 0 && availableIds.has(e.id)
-  )
+  return available
 }
 
 export function createSpawnSystem() {
-  let spawnTimer = GAME_CONFIG.SPAWN_INTERVAL_BASE
+  let spawnTimer = null // Initialized on first tick using wave-phase interval (MED-3 fix)
   let elapsedTime = 0
 
-  // Story 16.3 Task 2.4: Accept elapsedTime parameter for testability and clarity
-  function pickEnemyType(currentElapsedTime) {
-    const available = getAvailableEnemyTypes(currentElapsedTime)
+  // Story 23.1: Pick an enemy type from a pre-computed available pool (MED-1: called once per batch).
+  // `available` is the result of getAvailableEnemyTypes(phase), hoisted out of the batch loop.
+  function pickEnemyType(available) {
     if (available.length === 0) {
-      // Fallback to basic enemy if schedule is empty (shouldn't happen in normal gameplay)
       const fallback = Object.values(ENEMIES).find(e => e.spawnWeight > 0)
       return fallback ? fallback.id : 'FODDER_BASIC'
     }
 
-    const totalWeight = available.reduce((sum, e) => sum + e.spawnWeight, 0)
+    const totalWeight = available.reduce((sum, e) => sum + e.adjustedWeight, 0)
     let roll = Math.random() * totalWeight
 
     for (const enemy of available) {
-      roll -= enemy.spawnWeight
+      roll -= enemy.adjustedWeight
       if (roll <= 0) return enemy.id
     }
 
     return available[available.length - 1].id
   }
 
-  function tick(delta, playerX, playerZ, scaling = null) {
+  // Story 23.1: tick now accepts an options object for wave system parameters.
+  //   options.systemNum      — 1-indexed system number (default: 1)
+  //   options.systemTimer    — total system duration in seconds (default: SPAWN_INTERVAL_BASE * …)
+  //   options.systemScaling  — per-stat difficulty scaling object passed to spawn instructions
+  //
+  // Curse multiplier is read internally from usePlayer.permanentUpgradeBonuses.curse (Story 20.4).
+  function tick(delta, playerX, playerZ, options = {}) {
+    const {
+      systemNum = 1,
+      systemTimer = GAME_CONFIG.SYSTEM_TIMER,
+      systemScaling = null,
+    } = options
+
     elapsedTime += delta
+
+    // MED-3 fix: Initialize spawnTimer on first call (after create or reset) using the wave-phase
+    // interval rather than SPAWN_INTERVAL_BASE, so the very first spawn respects the active phase.
+    if (spawnTimer === null) {
+      const initProgress = Math.min(elapsedTime / systemTimer, 1.0)
+      const initPhase = getPhaseForProgress(systemNum, initProgress)
+      const initCurseBonus = usePlayer.getState().permanentUpgradeBonuses?.curse ?? 0
+      spawnTimer = Math.max(
+        GAME_CONFIG.SPAWN_INTERVAL_MIN,
+        GAME_CONFIG.SPAWN_INTERVAL_BASE / (initPhase.spawnRateMultiplier * (1.0 + initCurseBonus)),
+      )
+    }
+
     spawnTimer -= delta
 
     if (spawnTimer > 0) return []
 
-    // Reset timer based on difficulty ramp
-    // Story 20.4: Curse reduces interval (increases spawn rate). Stacks multiplicatively with Epic 23 dynamic waves.
-    const curseBonus = usePlayer.getState().permanentUpgradeBonuses.curse
+    // Compute time progress (0.0–1.0) and resolve active wave phase
+    const timeProgress = Math.min(elapsedTime / systemTimer, 1.0)
+    const phase = getPhaseForProgress(systemNum, timeProgress)
+
+    // Story 20.4: Curse reduces spawn interval (increases spawn rate), stacks with wave multiplier
+    // MED-2 fix: null-guard prevents NaN propagation if curse field is not yet initialized.
+    const curseBonus = usePlayer.getState().permanentUpgradeBonuses?.curse ?? 0
     const curseMultiplier = 1.0 + curseBonus
-    const baseInterval = Math.max(
+
+    // Story 23.1: Phase-based interval — higher spawnRateMultiplier = shorter interval = more enemies
+    const interval = Math.max(
       GAME_CONFIG.SPAWN_INTERVAL_MIN,
-      GAME_CONFIG.SPAWN_INTERVAL_BASE - elapsedTime * GAME_CONFIG.SPAWN_RAMP_RATE,
+      GAME_CONFIG.SPAWN_INTERVAL_BASE / (phase.spawnRateMultiplier * curseMultiplier),
     )
-    const interval = baseInterval / curseMultiplier
     spawnTimer = interval
 
-    // Calculate batch size
+    // Batch size ramp is unchanged (linear over elapsed time)
     const batchSize = GAME_CONFIG.SPAWN_BATCH_SIZE_BASE + Math.floor(elapsedTime / GAME_CONFIG.SPAWN_BATCH_RAMP_INTERVAL)
+
+    // MED-1 fix: Build available enemy pool ONCE per batch, not once per individual pick.
+    const available = getAvailableEnemyTypes(phase)
 
     const instructions = []
     for (let i = 0; i < batchSize; i++) {
-      // Story 16.3 HIGH-1 fix: Pass elapsedTime to pickEnemyType (avoids redundant filtering in loop)
-      const typeId = pickEnemyType(elapsedTime)
+      const typeId = pickEnemyType(available)
       const def = ENEMIES[typeId]
 
       if (def && def.behavior === 'sweep') {
@@ -99,7 +141,7 @@ export function createSpawnSystem() {
           const bound = GAME_CONFIG.PLAY_AREA_SIZE
           const x = Math.max(-bound, Math.min(bound, baseX + perpX * offset))
           const z = Math.max(-bound, Math.min(bound, baseZ + perpZ * offset))
-          instructions.push({ typeId, x, z, scaling, sweepDirection })
+          instructions.push({ typeId, x, z, scaling: systemScaling, sweepDirection })
         }
         // Count sweep group toward batch size
         i += groupSize - 1
@@ -120,7 +162,7 @@ export function createSpawnSystem() {
         x = Math.max(-bound, Math.min(bound, x))
         z = Math.max(-bound, Math.min(bound, z))
 
-        instructions.push({ typeId, x, z, scaling })
+        instructions.push({ typeId, x, z, scaling: systemScaling })
       }
     }
 
@@ -128,7 +170,7 @@ export function createSpawnSystem() {
   }
 
   function reset() {
-    spawnTimer = GAME_CONFIG.SPAWN_INTERVAL_BASE
+    spawnTimer = null // Recomputed on next tick using wave-phase interval
     elapsedTime = 0
   }
 

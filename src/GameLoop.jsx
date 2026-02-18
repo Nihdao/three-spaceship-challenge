@@ -260,8 +260,13 @@ export default function GameLoop() {
     const bossActive = useBoss.getState().isActive
     if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && !useGame.getState()._debugSpawnPaused) {
       const currentSystem = useLevel.getState().currentSystem
-      const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
-      const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], scaling)
+      const systemScaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
+      // Story 23.1: Pass wave system parameters — systemNum + systemTimer drive phase-based spawning
+      const spawnInstructions = spawnSystemRef.current.tick(clampedDelta, playerPos[0], playerPos[2], {
+        systemNum: currentSystem,
+        systemTimer: GAME_CONFIG.SYSTEM_TIMER,
+        systemScaling,
+      })
       if (spawnInstructions.length > 0) {
         useEnemies.getState().spawnEnemies(spawnInstructions)
       }

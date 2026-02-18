@@ -15,6 +15,7 @@ export const ENEMIES = {
   // Type 1: Basic Chaser
   FODDER_BASIC: {
     id: 'FODDER_BASIC',
+    tier: 'FODDER',
     name: 'Drone',
     type: 1,
     hp: 20,
@@ -32,6 +33,7 @@ export const ENEMIES = {
   // Type 2: Tank Chaser
   FODDER_TANK: {
     id: 'FODDER_TANK',
+    tier: 'FODDER',
     name: 'Tank Drone',
     type: 2,
     hp: 40,
@@ -49,6 +51,7 @@ export const ENEMIES = {
   // Type 3: Swarm Fast Sweep
   FODDER_SWARM: {
     id: 'FODDER_SWARM',
+    tier: 'FODDER',
     name: 'Swarm Scout',
     type: 3,
     hp: 8,
@@ -66,6 +69,7 @@ export const ENEMIES = {
   // Type 4: Shockwave Blob
   SHOCKWAVE_BLOB: {
     id: 'SHOCKWAVE_BLOB',
+    tier: 'SKIRMISHER',
     name: 'Shockwave Blob',
     type: 4,
     hp: 15,
@@ -86,6 +90,7 @@ export const ENEMIES = {
   // Type 6: Sniper Mobile
   SNIPER_MOBILE: {
     id: 'SNIPER_MOBILE',
+    tier: 'SKIRMISHER',
     name: 'Mobile Sniper',
     type: 6,
     hp: 25,
@@ -108,6 +113,7 @@ export const ENEMIES = {
   // Type 7: Sniper Fixed
   SNIPER_FIXED: {
     id: 'SNIPER_FIXED',
+    tier: 'ASSAULT',
     name: 'Fixed Turret',
     type: 7,
     hp: 10,
@@ -131,6 +137,7 @@ export const ENEMIES = {
   // Type 8: Teleporter
   TELEPORTER: {
     id: 'TELEPORTER',
+    tier: 'ASSAULT',
     name: 'Phase Shifter',
     type: 8,
     hp: 18,
