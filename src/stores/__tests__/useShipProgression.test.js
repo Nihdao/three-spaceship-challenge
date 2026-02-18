@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { STORAGE_KEY_SHIP_LEVELS } from '../../utils/shipProgressionStorage.js'
+import { STORAGE_KEY_SHIP_PROGRESSION } from '../../utils/shipProgressionStorage.js'
 
 // Mock localStorage for Node test environment
 const store = {}
@@ -38,6 +38,13 @@ describe('useShipProgression', () => {
       expect(shipLevels.BALANCED).toBe(1)
       expect(shipLevels.GLASS_CANNON).toBe(1)
       expect(shipLevels.TANK).toBe(1)
+    })
+
+    it('all ships start with default skin selected', () => {
+      const { selectedSkins } = useShipProgression.getState()
+      expect(selectedSkins.BALANCED).toBe('default')
+      expect(selectedSkins.GLASS_CANNON).toBe('default')
+      expect(selectedSkins.TANK).toBe('default')
     })
   })
 
@@ -120,6 +127,19 @@ describe('useShipProgression', () => {
       expect(useShipProgression.getState().getShipLevel('GLASS_CANNON')).toBe(2)
       expect(useShipProgression.getState().getShipLevel('TANK')).toBe(1)
     })
+
+    it('preserves selectedSkins when persisting after level up', () => {
+      useShipProgression.setState({
+        shipLevels: { BALANCED: 3, GLASS_CANNON: 1, TANK: 1 },
+        selectedSkins: { BALANCED: 'default', GLASS_CANNON: 'default', TANK: 'default' },
+      })
+      usePlayer.setState({ fragments: 5000 })
+      useShipProgression.getState().levelUpShip('BALANCED') // 3→4
+
+      const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
+      expect(stored.selectedSkins.BALANCED).toBe('default')
+      expect(stored.shipLevels.BALANCED).toBe(4)
+    })
   })
 
   describe('getNextLevelCost', () => {
@@ -162,32 +182,92 @@ describe('useShipProgression', () => {
     })
   })
 
+  describe('getAvailableSkins (Story 25.2)', () => {
+    // Colour skins (lv3/6/9) deferred — each ship has only the default skin for now.
+    it('returns 1 skin for each ship (default only)', () => {
+      const skins = useShipProgression.getState().getAvailableSkins('BALANCED')
+      expect(skins).toHaveLength(1)
+    })
+
+    it('default skin is never locked (requiredLevel 1)', () => {
+      const skins = useShipProgression.getState().getAvailableSkins('BALANCED')
+      const defaultSkin = skins.find(s => s.id === 'default')
+      expect(defaultSkin.locked).toBe(false)
+    })
+
+    it('returns empty array for unknown ship', () => {
+      const skins = useShipProgression.getState().getAvailableSkins('UNKNOWN')
+      expect(skins).toHaveLength(0)
+    })
+  })
+
+  describe('setSelectedSkin (Story 25.2)', () => {
+    it('returns false for unknown skin ID', () => {
+      const result = useShipProgression.getState().setSelectedSkin('BALANCED', 'nonexistent')
+      expect(result).toBe(false)
+      expect(useShipProgression.getState().getSelectedSkin('BALANCED')).toBe('default')
+    })
+
+    it('can always select default skin regardless of level', () => {
+      const result = useShipProgression.getState().setSelectedSkin('BALANCED', 'default')
+      expect(result).toBe(true)
+    })
+
+    it('persists selectedSkins to localStorage on successful selection', () => {
+      useShipProgression.getState().setSelectedSkin('BALANCED', 'default')
+      const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
+      expect(stored.selectedSkins.BALANCED).toBe('default')
+    })
+
+    it('does not affect other ships when selecting skin for one', () => {
+      useShipProgression.getState().setSelectedSkin('BALANCED', 'default')
+      expect(useShipProgression.getState().getSelectedSkin('GLASS_CANNON')).toBe('default')
+    })
+  })
+
+  describe('getSelectedSkin (Story 25.2)', () => {
+    it('returns "default" initially for all ships', () => {
+      expect(useShipProgression.getState().getSelectedSkin('BALANCED')).toBe('default')
+      expect(useShipProgression.getState().getSelectedSkin('GLASS_CANNON')).toBe('default')
+      expect(useShipProgression.getState().getSelectedSkin('TANK')).toBe('default')
+    })
+
+    it('returns "default" for unknown ship', () => {
+      expect(useShipProgression.getState().getSelectedSkin('UNKNOWN')).toBe('default')
+    })
+
+    it('returns updated skin after setSelectedSkin', () => {
+      useShipProgression.getState().setSelectedSkin('BALANCED', 'default')
+      expect(useShipProgression.getState().getSelectedSkin('BALANCED')).toBe('default')
+    })
+  })
+
   describe('persistence', () => {
-    it('saves ship levels to localStorage on level up', () => {
+    it('saves ship progression to localStorage on level up (new format)', () => {
       usePlayer.setState({ fragments: 500 })
       useShipProgression.getState().levelUpShip('BALANCED')
-      const stored = JSON.parse(store[STORAGE_KEY_SHIP_LEVELS])
-      expect(stored.BALANCED).toBe(2)
+      const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
+      expect(stored.shipLevels.BALANCED).toBe(2)
+      expect(stored.selectedSkins).toBeDefined()
     })
 
     it('persists independently for each ship', () => {
       usePlayer.setState({ fragments: 5000 })
       useShipProgression.getState().levelUpShip('BALANCED')
       useShipProgression.getState().levelUpShip('TANK')
-      const stored = JSON.parse(store[STORAGE_KEY_SHIP_LEVELS])
-      expect(stored.BALANCED).toBe(2)
-      expect(stored.GLASS_CANNON).toBe(1)
-      expect(stored.TANK).toBe(2)
+      const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
+      expect(stored.shipLevels.BALANCED).toBe(2)
+      expect(stored.shipLevels.GLASS_CANNON).toBe(1)
+      expect(stored.shipLevels.TANK).toBe(2)
     })
 
     it('clears localStorage on reset', () => {
       usePlayer.setState({ fragments: 500 })
       useShipProgression.getState().levelUpShip('BALANCED')
       useShipProgression.getState().reset()
-      const stored = JSON.parse(store[STORAGE_KEY_SHIP_LEVELS])
-      expect(stored.BALANCED).toBe(1)
-      expect(stored.GLASS_CANNON).toBe(1)
-      expect(stored.TANK).toBe(1)
+      const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
+      expect(stored.shipLevels.BALANCED).toBe(1)
+      expect(stored.selectedSkins.BALANCED).toBe('default')
     })
   })
 
@@ -198,6 +278,17 @@ describe('useShipProgression', () => {
       expect(useShipProgression.getState().getShipLevel('BALANCED')).toBe(1)
       expect(useShipProgression.getState().getShipLevel('GLASS_CANNON')).toBe(1)
       expect(useShipProgression.getState().getShipLevel('TANK')).toBe(1)
+    })
+
+    it('resets all selectedSkins to "default" (Story 25.2)', () => {
+      useShipProgression.setState({
+        shipLevels: { BALANCED: 9, GLASS_CANNON: 1, TANK: 1 },
+        selectedSkins: { BALANCED: 'default', GLASS_CANNON: 'default', TANK: 'default' },
+      })
+      useShipProgression.getState().reset()
+      expect(useShipProgression.getState().getSelectedSkin('BALANCED')).toBe('default')
+      expect(useShipProgression.getState().getSelectedSkin('GLASS_CANNON')).toBe('default')
+      expect(useShipProgression.getState().getSelectedSkin('TANK')).toBe('default')
     })
   })
 })
@@ -311,5 +402,33 @@ describe('ShipSelect UI integration (Story 25.1)', () => {
     expect(useShipProgression.getState().getShipLevel('BALANCED')).toBe(2)
     expect(useShipProgression.getState().getShipLevel('GLASS_CANNON')).toBe(1)
     expect(useShipProgression.getState().getShipLevel('TANK')).toBe(2)
+  })
+})
+
+describe('ShipSelect skin integration (Story 25.2)', () => {
+  // Colour skins (lv3/6/9) deferred — only default skin exists per ship.
+  beforeEach(() => {
+    useShipProgression.getState().reset()
+    usePlayer.getState().reset()
+    mockLocalStorage.clear()
+  })
+
+  it('getAvailableSkins shows 1 skin (default, unlocked) at level 1', () => {
+    const skins = useShipProgression.getState().getAvailableSkins('BALANCED')
+    expect(skins).toHaveLength(1)
+    expect(skins[0].id).toBe('default')
+    expect(skins[0].locked).toBe(false)
+  })
+
+  it('setSelectedSkin: cannot select unknown skin ID', () => {
+    const result = useShipProgression.getState().setSelectedSkin('BALANCED', 'nonexistent')
+    expect(result).toBe(false)
+    expect(useShipProgression.getState().getSelectedSkin('BALANCED')).toBe('default')
+  })
+
+  it('skin selection persists to localStorage in new format', () => {
+    useShipProgression.getState().setSelectedSkin('BALANCED', 'default')
+    const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
+    expect(stored.selectedSkins.BALANCED).toBe('default')
   })
 })

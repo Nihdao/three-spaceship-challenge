@@ -3,6 +3,8 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import usePlayer from '../stores/usePlayer.jsx'
+import useShipProgression from '../stores/useShipProgression.jsx'
+import { getSkinForShip } from '../entities/shipSkinDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 const _lighting = GAME_CONFIG.PLAYER_SHIP_LIGHTING
@@ -16,12 +18,26 @@ export default function PlayerShip() {
   const { scene } = useGLTF('/models/ships/Spaceship.glb')
   const clonedScene = useMemo(() => scene.clone(), [scene])
 
-  // Collect mesh materials and apply engine emissive glow (Story 12.1)
+  // Collect mesh materials and apply skin color tint (Story 25.2).
+  // Emissive setup is deferred to first useFrame — useMemo runs during React render but
+  // R3F may reinitialize material state before the first draw. useFrame runs immediately
+  // before renderer.render() in the same RAF, matching the timing of the post-dash restoration.
   const { allMaterials, engineMaterials } = useMemo(() => {
     const all = []
     const engines = []
+
+    const currentShipId = usePlayer.getState().currentShipId || 'BALANCED'
+    const selectedSkinId = useShipProgression.getState().getSelectedSkin(currentShipId)
+    const skinData = getSkinForShip(currentShipId, selectedSkinId)
+
     clonedScene.traverse((child) => {
       if (child.isMesh && child.material) {
+        // Clone materials to avoid mutating the shared GLB cache (Story 25.2 fix)
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map(m => m.clone())
+        } else {
+          child.material = child.material.clone()
+        }
         const materials = Array.isArray(child.material) ? child.material : [child.material]
         const isEngine = child.name.toLowerCase().includes('engine') ||
                          child.name.toLowerCase().includes('thruster')
@@ -29,10 +45,14 @@ export default function PlayerShip() {
           if (mat.emissive !== undefined && !all.includes(mat)) {
             all.push(mat)
             if (isEngine) {
-              mat.emissive.copy(_engineEmissive)
-              mat.emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
-              mat.needsUpdate = true
               engines.push(mat)
+            } else {
+              // Apply skin color tint only — emissiveTint intentionally not applied
+              // (emissive glow on hull creates undesirable color filter over the base color)
+              if (skinData && skinData.tintColor) {
+                const isColored = Math.max(mat.color.r, mat.color.g, mat.color.b) > 0.15
+                if (isColored) mat.color.set(skinData.tintColor)
+              }
             }
           }
         }
@@ -42,9 +62,23 @@ export default function PlayerShip() {
   }, [clonedScene])
 
   const wasDashingRef = useRef(false)
+  const initDoneRef = useRef(false)
 
   useFrame(() => {
     if (!groupRef.current || !bankRef.current) return
+
+    // First-frame emissive init: runs before the first draw call, same timing as post-dash
+    if (!initDoneRef.current) {
+      initDoneRef.current = true
+      for (let i = 0; i < allMaterials.length; i++) {
+        allMaterials[i].emissive.setScalar(0)
+        allMaterials[i].emissiveIntensity = 1.0
+      }
+      for (let i = 0; i < engineMaterials.length; i++) {
+        engineMaterials[i].emissive.copy(_engineEmissive)
+        engineMaterials[i].emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
+      }
+    }
 
     const { position, rotation, bankAngle, isDashing, dashTimer, isInvulnerable, invulnerabilityTimer } = usePlayer.getState()
 
@@ -80,17 +114,15 @@ export default function PlayerShip() {
 
     // Invincibility visual feedback (Story 22.1) — flashing effect
     if (isInvulnerable && !isDashing) {
-      // Flash at REVIVAL_FLASH_RATE Hz using timer to drive oscillation
-      const flashFrequency = GAME_CONFIG.REVIVAL_FLASH_RATE * Math.PI * 2 // radians per second
+      const flashFrequency = GAME_CONFIG.REVIVAL_FLASH_RATE * Math.PI * 2
       const flashPhase = invulnerabilityTimer * flashFrequency
-      const flashOpacity = 0.3 + 0.7 * ((Math.sin(flashPhase) + 1) / 2) // Oscillate between 0.3 and 1.0
+      const flashOpacity = 0.3 + 0.7 * ((Math.sin(flashPhase) + 1) / 2)
 
       for (let i = 0; i < allMaterials.length; i++) {
         allMaterials[i].opacity = flashOpacity
         allMaterials[i].transparent = true
       }
     } else if (!isDashing) {
-      // Restore full opacity when not invincible (and not dashing)
       for (let i = 0; i < allMaterials.length; i++) {
         allMaterials[i].opacity = 1.0
         allMaterials[i].transparent = false

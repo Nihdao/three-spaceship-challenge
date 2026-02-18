@@ -5,6 +5,7 @@ import useUpgrades from '../stores/useUpgrades.jsx'
 import useShipProgression from '../stores/useShipProgression.jsx'
 import { SHIPS, TRAIT_INFO, getDefaultShipId } from '../entities/shipDefs.js'
 import { SHIP_LEVEL_SCALING, MAX_SHIP_LEVEL } from '../entities/shipProgressionDefs.js'
+import { getSkinForShip } from '../entities/shipSkinDefs.js'
 import { playSFX } from '../audio/audioManager.js'
 import StatLine from './primitives/StatLine.jsx'
 import ShipModelPreview from './ShipModelPreview.jsx'
@@ -32,17 +33,28 @@ const DEFAULT_BONUSES = {
 export default function ShipSelect() {
   const [selectedShipId, setSelectedShipId] = useState(getDefaultShipId)
   const [focusIndex, setFocusIndex] = useState(0)
+  const [hoveredSkinId, setHoveredSkinId] = useState(null)
 
   const selectedShip = SHIPS[selectedShipId]
 
   // Subscribe to ship progression and player fragments for level-up UI reactivity
   const shipLevels = useShipProgression(state => state.shipLevels)
+  const selectedSkins = useShipProgression(state => state.selectedSkins)
   const fragments = usePlayer(state => state.fragments)
 
   const shipLevel = shipLevels[selectedShipId] || 1
   const isMaxLevel = shipLevel >= MAX_SHIP_LEVEL
   const nextLevelCost = isMaxLevel ? null : useShipProgression.getState().getNextLevelCost(selectedShipId)
   const canAffordLevelUp = nextLevelCost !== null && fragments >= nextLevelCost
+
+  // Skin selector state (Story 25.2)
+  const availableSkins = useMemo(
+    () => useShipProgression.getState().getAvailableSkins(selectedShipId),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedShipId, shipLevels, selectedSkins],
+  )
+  const selectedSkinId = selectedSkins[selectedShipId] || 'default'
+  const selectedSkinData = getSkinForShip(selectedShipId, selectedSkinId)
 
   // Compute effective stats by combining ship base stats + permanent upgrade bonuses
   // Subscribe to upgradeLevels to trigger recomputation when upgrades change
@@ -139,6 +151,13 @@ export default function ShipSelect() {
     const success = useShipProgression.getState().levelUpShip(selectedShipId)
     if (success) {
       playSFX('upgrade-purchase')
+    }
+  }
+
+  const handleSkinSelect = (skinId) => {
+    const success = useShipProgression.getState().setSelectedSkin(selectedShipId, skinId)
+    if (success) {
+      playSFX('button-click')
     }
   }
 
@@ -253,10 +272,10 @@ export default function ShipSelect() {
         <div className="w-80 bg-game-bg/60 border border-game-border/40 rounded-lg p-6 flex flex-col backdrop-blur-sm">
           {/* Ship 3D Preview */}
           <div
-            className="aspect-video rounded-lg mb-4 overflow-hidden"
+            className="aspect-[4/3] rounded-lg mb-3 overflow-hidden"
             style={{ backgroundColor: `${selectedShip.colorTheme}10`, borderColor: `${selectedShip.colorTheme}30`, borderWidth: 1 }}
           >
-            <ShipModelPreview modelPath={selectedShip.modelPath} rotate />
+            <ShipModelPreview modelPath={selectedShip.modelPath} rotate skinData={selectedSkinData} />
           </div>
 
           {/* Ship Name, Level Badge & Description */}
@@ -278,7 +297,7 @@ export default function ShipSelect() {
               {isMaxLevel ? 'MAX' : `LV.${shipLevel}`}
             </span>
           </div>
-          <p className="text-sm text-game-text-muted mb-4 leading-relaxed">
+          <p className="text-sm text-game-text-muted mb-2 leading-relaxed">
             {selectedShip.description}
           </p>
 
@@ -286,94 +305,94 @@ export default function ShipSelect() {
           <div className="border-t border-game-border/20 mb-4" />
 
           {/* Stats — Enriched with all 15 stats + permanent upgrade bonuses */}
-          <div className="space-y-1 mb-4 max-h-80 overflow-y-auto">
+          <div className="space-y-0.5 mb-3 max-h-52 overflow-y-auto">
             {/* Flat value stats — pass bonus from bonuses object */}
-            <StatLine
+            <StatLine compact
               label="HP"
               value={effectiveStats.maxHP}
               bonusValue={bonuses.maxHP}
               icon="❤️"
             />
-            <StatLine
+            <StatLine compact
               label="REGEN"
               value={effectiveStats.regen > 0 ? `${effectiveStats.regen.toFixed(1)}/s` : '0/s'}
               bonusValue={bonuses.regen}
               icon="🔄"
             />
-            <StatLine
+            <StatLine compact
               label="ARMOR"
               value={effectiveStats.armor > 0 ? `+${effectiveStats.armor}` : '+0'}
               bonusValue={bonuses.armor}
               icon="🛡️"
             />
             {/* Percentage stats — pass percentage delta from effectiveStats for consistency */}
-            <StatLine
+            <StatLine compact
               label="DAMAGE"
               value={effectiveStats.damageMultiplier > 1.0 ? `+${((effectiveStats.damageMultiplier - 1.0) * 100).toFixed(0)}%` : '+0%'}
               bonusValue={(bonuses.attackPower ?? 1.0) > 1.0 ? ((bonuses.attackPower - 1.0) * 100).toFixed(0) : undefined}
               icon="⚔️"
             />
-            <StatLine
+            <StatLine compact
               label="ATTACK SPEED"
               value={effectiveStats.attackSpeed > 0 ? `-${effectiveStats.attackSpeed.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.attackSpeed > 0 ? effectiveStats.attackSpeed.toFixed(0) : undefined}
               icon="⏱️"
             />
-            <StatLine
+            <StatLine compact
               label="ZONE"
               value={effectiveStats.zone > 0 ? `+${effectiveStats.zone.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.zone > 0 ? effectiveStats.zone.toFixed(0) : undefined}
               icon="💥"
             />
-            <StatLine
+            <StatLine compact
               label="SPEED"
               value={effectiveStats.speed}
               icon="⚡"
             />
-            <StatLine
+            <StatLine compact
               label="MAGNET"
               value={effectiveStats.magnet > 0 ? `+${effectiveStats.magnet.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.magnet > 0 ? effectiveStats.magnet.toFixed(0) : undefined}
               icon="🧲"
             />
-            <StatLine
+            <StatLine compact
               label="LUCK"
               value={effectiveStats.luck > 0 ? `+${effectiveStats.luck}%` : '+0%'}
               bonusValue={bonuses.luck}
               icon="🍀"
             />
-            <StatLine
+            <StatLine compact
               label="EXP BONUS"
               value={effectiveStats.expBonus > 0 ? `+${effectiveStats.expBonus.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.expBonus > 0 ? effectiveStats.expBonus.toFixed(0) : undefined}
               icon="✨"
             />
-            <StatLine
+            <StatLine compact
               label="CURSE"
               value={effectiveStats.curse > 0 ? `+${effectiveStats.curse}%` : '+0%'}
               bonusValue={bonuses.curse}
               icon="☠️"
             />
             {/* Meta stats — flat values */}
-            <StatLine
+            <StatLine compact
               label="REVIVAL"
               value={effectiveStats.revival}
               bonusValue={bonuses.revival}
               icon="💚"
             />
-            <StatLine
+            <StatLine compact
               label="REROLL"
               value={effectiveStats.reroll}
               bonusValue={bonuses.reroll}
               icon="🎲"
             />
-            <StatLine
+            <StatLine compact
               label="SKIP"
               value={effectiveStats.skip}
               bonusValue={bonuses.skip}
               icon="⏭️"
             />
-            <StatLine
+            <StatLine compact
               label="BANISH"
               value={effectiveStats.banish}
               bonusValue={bonuses.banish}
@@ -400,6 +419,57 @@ export default function ShipSelect() {
               </div>
             </>
           )}
+
+          {/* Skin selector (Story 25.2) */}
+          {(() => {
+            const displaySkinId = hoveredSkinId ?? selectedSkinId
+            const displaySkin = availableSkins.find(s => s.id === displaySkinId)
+            return (
+              <>
+                <div className="border-t border-game-border/20 mb-3" />
+                <div className="flex items-baseline justify-between mb-2">
+                  <p className="text-game-text-muted text-[10px] tracking-widest uppercase">Skin</p>
+                  {/* Fixed info line: name + lock condition */}
+                  <div className="text-right">
+                    <span className="text-game-text text-[10px]">{displaySkin?.name}</span>
+                    {displaySkin?.locked && (
+                      <span className="ml-1.5 text-game-text-muted text-[10px]">— LV.{displaySkin.requiredLevel} req.</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-3 mb-3">
+                  {availableSkins.map(skin => (
+                    <div
+                      key={skin.id}
+                      className="flex flex-col items-center gap-1"
+                      onMouseEnter={() => setHoveredSkinId(skin.id)}
+                      onMouseLeave={() => setHoveredSkinId(null)}
+                    >
+                      <button
+                        onClick={() => handleSkinSelect(skin.id)}
+                        className={`
+                          w-8 h-8 rounded-lg border-2 transition-all flex-shrink-0
+                          ${skin.locked
+                            ? 'opacity-30 cursor-not-allowed border-game-border/30'
+                            : 'cursor-pointer hover:scale-110 border-game-border/50'
+                          }
+                          ${selectedSkinId === skin.id && !skin.locked
+                            ? 'border-game-accent ring-2 ring-game-accent/40 scale-110'
+                            : ''
+                          }
+                        `}
+                        style={skin.tintColor ? { backgroundColor: skin.tintColor } : { backgroundColor: 'rgba(255,255,255,0.12)' }}
+                      />
+                      <span className="text-[9px] leading-none text-game-text-muted h-3">
+                        {skin.locked ? `LV.${skin.requiredLevel}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+              </>
+            )
+          })()}
 
           {/* Spacer */}
           <div className="flex-1" />
