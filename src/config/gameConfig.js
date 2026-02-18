@@ -31,6 +31,12 @@ export const GAME_CONFIG = {
   SPATIAL_HASH_CELL_SIZE: 2, // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
 
+  // Enemy Separation Physics (Story 23.2)
+  ENEMY_SEPARATION_RADIUS: 3.0,     // Minimum distance between enemy centers (world units)
+  SEPARATION_FORCE_STRENGTH: 50.0,  // Force multiplier (units/sec²)
+  MAX_SEPARATION_DISPLACEMENT: 5.0, // Max displacement per frame — prevents jitter/launch
+  BOSS_SEPARATION_RADIUS: 8.0,      // Boss pushes enemies away at larger radius (world units)
+
   // ==================================================================================
   // LOOT SYSTEM (Story 19.4: Consolidated loot configuration)
   // ==================================================================================
@@ -417,6 +423,14 @@ export const GAME_CONFIG = {
   REVIVAL_ENEMY_PUSHBACK_RADIUS: 5, // world units
   REVIVAL_ENEMY_PUSHBACK_FORCE: 3, // impulse strength
   REVIVAL_FLASH_RATE: 8, // flashes per second for visual feedback
+
+  // Damage Numbers (Story 27.1)
+  DAMAGE_NUMBERS: {
+    LIFETIME: 1.0,      // seconds before a damage number disappears
+    MAX_COUNT: 50,      // maximum numbers on screen simultaneously
+    DRIFT_RANGE: 30,    // pixels — max horizontal random offset from impact point
+    RISE_SPEED: 50,     // pixels/second upward movement
+  },
 
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {

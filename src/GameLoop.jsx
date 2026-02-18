@@ -12,6 +12,7 @@ import useUpgrades from './stores/useUpgrades.jsx'
 import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM, CATEGORY_FRAGMENT_GEM } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
+import { createSeparationSystem } from './systems/separationSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
 import { emitTrailParticle, updateTrailParticles, resetTrailParticles } from './systems/particleTrailSystem.js'
@@ -22,6 +23,7 @@ import { updateMagnetization as updateFragmentGemMagnetization, collectGem, getA
 import { rollDrops, resetAll as resetLoot } from './systems/lootSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 import { WEAPONS } from './entities/weaponDefs.js'
+import useDamageNumbers from './stores/useDamageNumbers.jsx'
 
 // Pre-allocated orb IDs — avoids template string allocation per frame (50 orbs × 60 FPS)
 const _orbIds = []
@@ -72,6 +74,11 @@ export default function GameLoop() {
     projectileSystemRef.current = createProjectileSystem()
   }
 
+  const separationSystemRef = useRef(null)
+  if (!separationSystemRef.current) {
+    separationSystemRef.current = createSeparationSystem()
+  }
+
   // Pre-allocated entity descriptor pool — avoids per-frame object allocation
   // during collision registration (150+ entities × 60 FPS = 9000+ allocs/s avoided)
   const entityPoolRef = useRef([])
@@ -117,6 +124,7 @@ export default function GameLoop() {
       resetParticles()
       resetTrailParticles() // Story 24.3
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
+      useDamageNumbers.getState().reset() // Story 27.1
       // Accumulate elapsed time before resetting (for total run time display)
       const prevSystemTime = useGame.getState().systemTimer
       if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
@@ -136,6 +144,7 @@ export default function GameLoop() {
       resetParticles()
       resetTrailParticles() // Story 24.3
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
+      useDamageNumbers.getState().reset() // Story 27.1
       usePlayer.getState().reset()
       // Story 20.1: Apply permanent upgrade bonuses after reset (meta-progression)
       usePlayer.getState().initializeRunStats(useUpgrades.getState().getComputedBonuses())
@@ -273,7 +282,15 @@ export default function GameLoop() {
     }
     useEnemies.getState().tick(clampedDelta, playerPos)
 
-    // 5b. Teleport particle effects (departure + arrival bursts)
+    // 5b. Enemy separation — prevent stacking, form organic walls (Story 23.2)
+    // Runs after enemy movement so positions are current; runs before collision detection
+    separationSystemRef.current.applySeparation(
+      useEnemies.getState().enemies,
+      useBoss.getState().boss,
+      clampedDelta
+    )
+
+    // 5d. Teleport particle effects (departure + arrival bursts)
     const teleportEvents = useEnemies.getState().consumeTeleportEvents()
     for (let i = 0; i < teleportEvents.length; i++) {
       const te = teleportEvents[i]
@@ -281,7 +298,7 @@ export default function GameLoop() {
       addExplosion(te.newX, te.newZ, '#cc66ff', 0.5)
     }
 
-    // 5c. Shockwave expansion + enemy projectile movement
+    // 5e. Shockwave expansion + enemy projectile movement
     useEnemies.getState().tickShockwaves(clampedDelta)
     useEnemies.getState().tickEnemyProjectiles(clampedDelta)
 
@@ -380,6 +397,22 @@ export default function GameLoop() {
 
     // 7b. Apply enemy damage (batch)
     if (projectileHits.length > 0) {
+      // Story 27.1: Spawn damage numbers before damage resolution (enemy positions still valid)
+      const dnStore = useDamageNumbers.getState()
+      for (let i = 0; i < projectileHits.length; i++) {
+        const hit = projectileHits[i]
+        for (let j = 0; j < enemies.length; j++) {
+          if (enemies[j].id === hit.enemyId) {
+            dnStore.spawnDamageNumber({
+              damage: Math.round(hit.damage),
+              worldX: enemies[j].x,
+              worldZ: enemies[j].z,
+            })
+            break
+          }
+        }
+      }
+
       const deathEvents = useEnemies.getState().damageEnemiesBatch(projectileHits)
 
       // 7c. Spawn particles + XP orbs for deaths, increment kill counter
@@ -800,6 +833,7 @@ export default function GameLoop() {
     }
 
     // 9. Cleanup dead entities
+    useDamageNumbers.getState().tick(clampedDelta) // Story 27.1: Age and remove expired numbers
   })
 
   return null // GameLoop is a logic-only component, no rendering
