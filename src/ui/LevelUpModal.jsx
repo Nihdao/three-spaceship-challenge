@@ -61,7 +61,7 @@ export default function LevelUpModal() {
     playSFX('button-click')
     usePlayer.getState().consumeSkip()
     // Clear entire level-up queue — skip discards all pending level-ups
-    usePlayer.setState({ pendingLevelUps: 0, levelsGainedThisBatch: 0 })
+    usePlayer.getState().clearPendingLevelUps()
     useGame.getState().resumeGameplay()
   }, [])
 
@@ -79,7 +79,7 @@ export default function LevelUpModal() {
     setBanishingIndex(index)
     setTimeout(() => {
       setBanishingIndex(null)
-      usePlayer.setState({ pendingLevelUps: 0, levelsGainedThisBatch: 0 })
+      usePlayer.getState().clearPendingLevelUps()
       useGame.getState().resumeGameplay()
     }, 200)
   }, [banishingIndex])

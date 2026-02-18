@@ -304,6 +304,9 @@ const usePlayer = create((set, get) => ({
     banishCharges: Math.max(0, state.banishCharges - 1),
   })),
 
+  // Clear pending level-up queue (used by SKIP and BANISH in LevelUpModal)
+  clearPendingLevelUps: () => set({ pendingLevelUps: 0, levelsGainedThisBatch: 0 }),
+
   // --- Actions ---
   sacrificeFragmentsForHP: () => {
     const { fragments, currentHP, maxHP } = get()
