@@ -138,7 +138,7 @@ export default function ShipSelect() {
   const handleStart = () => {
     playSFX('button-click')
     usePlayer.getState().setCurrentShipId(selectedShipIdRef.current)
-    useGame.getState().startGameplay()
+    useGame.getState().startGalaxyChoice() // Story 25.3: Go to galaxy choice before starting
   }
 
   const handleBack = () => {
@@ -496,7 +496,7 @@ export default function ShipSelect() {
             </button>
           )}
 
-          {/* START button */}
+          {/* SELECT button */}
           <button
             onClick={handleStart}
             className="
@@ -507,7 +507,7 @@ export default function ShipSelect() {
               transition-all duration-150 select-none
             "
           >
-            START
+            SELECT
           </button>
         </div>
       </div>
