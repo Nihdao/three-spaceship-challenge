@@ -12,6 +12,7 @@ export default function LevelUpModal() {
   const [choices, setChoices] = useState([])
   const [banishingIndex, setBanishingIndex] = useState(null)
   const banishModeRef = useRef(false)
+  const isBanishingRef = useRef(false)
   const rerollCharges = usePlayer(s => s.rerollCharges)
   const skipCharges = usePlayer(s => s.skipCharges)
   const banishCharges = usePlayer(s => s.banishCharges)
@@ -70,8 +71,9 @@ export default function LevelUpModal() {
   }, [])
 
   const handleBanish = useCallback((choice, index) => {
-    if (banishingIndex !== null) return // Guard against double-click during fade-out
+    if (isBanishingRef.current) return // Guard against double-click during fade-out (stable ref, no re-attach)
     if (usePlayer.getState().banishCharges <= 0) return
+    isBanishingRef.current = true
     playSFX('button-click')
     usePlayer.getState().consumeBanish()
 
@@ -82,11 +84,12 @@ export default function LevelUpModal() {
     // Brief visual feedback, then resolve level-up (clears entire queue)
     setBanishingIndex(index)
     setTimeout(() => {
+      isBanishingRef.current = false
       setBanishingIndex(null)
       usePlayer.getState().clearPendingLevelUps()
       useGame.getState().resumeGameplay()
     }, 200)
-  }, [banishingIndex])
+  }, [])
 
   // Keyboard selection (includes strategic shortcuts)
   useEffect(() => {
@@ -155,7 +158,8 @@ export default function LevelUpModal() {
               onClick={() => applyChoice(choice)}
             >
               {/* Banish X button — top-right of each card (Story 22.2 Task 5) */}
-              {banishCharges > 0 && (
+              {/* Hidden for stat_boost fallback choices (no meaningful item to banish) */}
+              {banishCharges > 0 && choice.type !== 'stat_boost' && (
                 <button
                   className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center
                              rounded-full text-white text-xs font-bold

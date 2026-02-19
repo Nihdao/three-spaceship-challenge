@@ -113,4 +113,38 @@ describe('usePlayer — strategic charge consumption (Story 22.2, Task 1)', () =
       expect(usePlayer.getState().banishCharges).toBe(2)
     })
   })
+
+  describe('clearPendingLevelUps action (Story 22.2: SKIP and BANISH flows)', () => {
+    it('resets pendingLevelUps to 0', () => {
+      usePlayer.setState({ pendingLevelUps: 3 })
+
+      usePlayer.getState().clearPendingLevelUps()
+
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+    })
+
+    it('resets levelsGainedThisBatch to 0', () => {
+      usePlayer.setState({ levelsGainedThisBatch: 5 })
+
+      usePlayer.getState().clearPendingLevelUps()
+
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(0)
+    })
+
+    it('resets both fields together (primary use case: skip discards full batch)', () => {
+      usePlayer.setState({ pendingLevelUps: 4, levelsGainedThisBatch: 2 })
+
+      usePlayer.getState().clearPendingLevelUps()
+
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(0)
+    })
+
+    it('is idempotent when already at 0', () => {
+      usePlayer.getState().clearPendingLevelUps()
+
+      expect(usePlayer.getState().pendingLevelUps).toBe(0)
+      expect(usePlayer.getState().levelsGainedThisBatch).toBe(0)
+    })
+  })
 })

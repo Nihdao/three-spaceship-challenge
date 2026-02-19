@@ -692,6 +692,11 @@ None
 - [M1] Added RectangularHPBar.jsx to File List (was modified for HP bar widening per AC #7 but omitted)
 - [M2] Added clearPendingLevelUps() action to usePlayer store — replaces direct usePlayer.setState() calls in LevelUpModal (skip + banish flows), restoring store encapsulation
 
+**Code Review Fixes (2026-02-19):**
+- [H1] Added 4 unit tests for clearPendingLevelUps() — coverage for critical SKIP and BANISH flows (pendingLevelUps reset, levelsGainedThisBatch reset, idempotency)
+- [M1] Added choice.type !== 'stat_boost' guard to banish button in LevelUpModal — prevents wasting banish charges on fallback placeholder choices
+- [M2] Replaced banishingIndex-based guard in handleBanish useCallback with isBanishingRef — fixes stale closure/keyboard listener re-attachment race condition during 200ms banish fade-out; handleBanish deps now []
+
 ### File List
 
 - src/stores/usePlayer.jsx — Added rerollCharges, skipCharges, banishCharges state + consumeReroll/Skip/Banish/clearPendingLevelUps actions + reset/initializeRunStats
@@ -702,6 +707,6 @@ None
 - src/ui/PlanetRewardModal.jsx — Passes banishedItems to generatePlanetReward (code review fix)
 - src/ui/primitives/RectangularHPBar.jsx — Widened HP bar: clamp(180px, 18vw, 280px) per AC #7 Task 6 (missing from file list, review fix 2)
 - src/entities/shipDefs.js — Added reroll/skip/banish fields to all ships (default 0)
-- src/stores/__tests__/usePlayer.strategicCharges.test.js — 12 tests for charge consumption
+- src/stores/__tests__/usePlayer.strategicCharges.test.js — 16 tests for charge consumption (12 original + 4 clearPendingLevelUps, code review fix 3)
 - src/stores/__tests__/useLevel.banish.test.js — 10 tests for banish tracking
 - src/systems/__tests__/progressionSystem.test.js — Added banish system tests (10) + generatePlanetReward banish tests (3, code review fix)

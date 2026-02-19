@@ -22,7 +22,7 @@ export default function RectangularHPBar({ value, max, pulse = false }) {
       data-testid="hp-bar-container"
       className="relative"
       style={{
-        width: 'clamp(140px, 14vw, 220px)',
+        width: 'clamp(180px, 18vw, 280px)',
         height: 'clamp(18px, 1.8vw, 26px)',
         backgroundColor: 'rgba(0,0,0,0.4)',
         border: '1px solid rgba(255, 68, 102, 0.4)',
