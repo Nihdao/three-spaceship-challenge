@@ -9,6 +9,7 @@ import useWeapons from './stores/useWeapons.jsx'
 import useBoons from './stores/useBoons.jsx'
 import useBoss from './stores/useBoss.jsx'
 import useUpgrades from './stores/useUpgrades.jsx'
+import useArmory from './stores/useArmory.jsx'
 import { createCollisionSystem, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM, CATEGORY_FRAGMENT_GEM } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
@@ -142,6 +143,7 @@ export default function GameLoop() {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       useWeapons.getState().initializeWeapons()
+      useArmory.getState().markDiscovered('weapons', 'LASER_FRONT') // Story 25.4: mark starter weapon discovered
       useBoons.getState().reset()
       resetParticles()
       resetTrailParticles() // Story 24.3
