@@ -29,6 +29,7 @@ const useBoss = create((set, get) => ({
       attackType: null,
       lastHitTime: -Infinity,
       damageMultiplier: scaling.damage, // Damage scaling for projectiles/contact (Story 16.4)
+      hitFlashTimer: 0, // Story 27.3: hit flash timer
     },
     isActive: true,
     bossDefeated: false,
@@ -118,7 +119,12 @@ const useBoss = create((set, get) => ({
       })
     }
 
-    // 4. Check phase transitions
+    // 4. Decay hit flash timer (Story 27.3)
+    if (boss.hitFlashTimer > 0) {
+      boss.hitFlashTimer = Math.max(0, boss.hitFlashTimer - delta)
+    }
+
+    // 5. Check phase transitions
     const hpFraction = boss.hp / boss.maxHp
     const thresholds = GAME_CONFIG.BOSS_PHASE_THRESHOLDS
     let newPhase = 0
@@ -138,7 +144,7 @@ const useBoss = create((set, get) => ({
     const newHp = Math.max(0, boss.hp - amount)
     const killed = newHp <= 0
     const update = {
-      boss: { ...boss, hp: newHp, lastHitTime: Date.now() },
+      boss: { ...boss, hp: newHp, lastHitTime: Date.now(), hitFlashTimer: GAME_CONFIG.HIT_FLASH.DURATION },
       bossDefeated: killed,
     }
     if (killed) {

@@ -143,9 +143,9 @@ export const GAME_CONFIG = {
   BOUNDARY_WALL_HEIGHT: 200,
   BOUNDARY_WALL_COLOR: "#00ffff",
 
-  // Hit feedback (Story 2.7)
-  HIT_FLASH_DURATION_MS: 100, // milliseconds of scale pulse after non-lethal hit
-  HIT_FLASH_SCALE_MULT: 1.15, // scale multiplier during hit flash (1.0 = no change)
+  // Scale pulse flash on hit (Story 2.7) — legacy scale-based feedback
+  SCALE_FLASH_DURATION_MS: 100, // milliseconds of scale pulse after non-lethal hit
+  SCALE_FLASH_MULT: 1.15, // scale multiplier during scale flash (1.0 = no change)
 
   // Projectile spawn offsets (Story 2.9)
   PROJECTILE_SPAWN_Y_OFFSET: -0.5, // negative Y to spawn below ship model
@@ -438,6 +438,14 @@ export const GAME_CONFIG = {
     SCALE_MULTIPLIER: 1.33,     // font-size multiplier vs normal (18px → ~24px)
     ANIMATION_SPEED_MULT: 1.25, // crit numbers float up 25% faster
     BOUNCE_DURATION: 0.15,      // seconds — pop-out bounce effect at spawn
+  },
+
+  // Enemy Hit Flash (Story 27.3)
+  HIT_FLASH: {
+    DURATION: 0.12,           // seconds — 120ms flash duration
+    INTENSITY: 0.8,           // emissive scalar value (0–1 scale)
+    COLOR: 0xFFFFFF,          // white flash
+    FADE_CURVE: 'linear',     // 'linear' or 'easeOut'
   },
 
   // Player Ship Lighting (Story 12.1)

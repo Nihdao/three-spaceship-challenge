@@ -5,11 +5,11 @@ import { useGLTF } from '@react-three/drei'
 import useBoss from '../stores/useBoss.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { addExplosion } from '../systems/particleSystem.js'
+import { calculateFlashIntensity } from '../systems/hitFlashSystem.js'
 
 const BOSS_HIT_COLOR = new THREE.Color('#ffffff')
 const BOSS_EMISSIVE = new THREE.Color('#ff0000')
 const TELEGRAPH_COLOR = new THREE.Color('#ff6600')
-const HIT_FLASH_MS = GAME_CONFIG.HIT_FLASH_DURATION_MS
 const BOSS_MODEL_SCALE = GAME_CONFIG.BOSS_SCALE_MULTIPLIER
 
 export default function BossRenderer() {
@@ -112,12 +112,12 @@ export default function BossRenderer() {
     const pulse = baseScale * (1 + Math.sin(clock * 2) * 0.03)
     meshRef.current.scale.setScalar(pulse)
 
-    // Hit feedback: white flash on all materials
-    const timeSinceHit = Date.now() - boss.lastHitTime
-    if (timeSinceHit < HIT_FLASH_MS) {
+    // Hit feedback: white flash with smooth fade using hitFlashTimer (Story 27.3)
+    if (boss.hitFlashTimer > 0) {
+      const t = calculateFlashIntensity(boss.hitFlashTimer, GAME_CONFIG.HIT_FLASH.DURATION, GAME_CONFIG.HIT_FLASH.FADE_CURVE)
       materialsRef.current.forEach((m) => {
         m.emissive?.copy(BOSS_HIT_COLOR)
-        if (m.emissiveIntensity !== undefined) m.emissiveIntensity = 2.0
+        if (m.emissiveIntensity !== undefined) m.emissiveIntensity = 2.0 * t
       })
     } else {
       const phaseIntensity = 0.8 + boss.phase * 0.2
