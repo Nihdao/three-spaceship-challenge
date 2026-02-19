@@ -432,6 +432,14 @@ export const GAME_CONFIG = {
     RISE_SPEED: 50,     // pixels/second upward movement
   },
 
+  // Critical Hit Visuals (Story 27.2)
+  CRIT_HIT_VISUALS: {
+    COLOR: '#FFD700',           // golden color for crit numbers
+    SCALE_MULTIPLIER: 1.33,     // font-size multiplier vs normal (18px → ~24px)
+    ANIMATION_SPEED_MULT: 1.25, // crit numbers float up 25% faster
+    BOUNCE_DURATION: 0.15,      // seconds — pop-out bounce effect at spawn
+  },
+
   // Player Ship Lighting (Story 12.1)
   PLAYER_SHIP_LIGHTING: {
     EMISSIVE_INTENSITY: 0, // Hull emissive — not needed with strong point/fill lights

@@ -12,10 +12,11 @@ const useDamageNumbers = create((set, get) => ({
    * Spawns a new floating damage number at the given world position.
    * If MAX_COUNT is reached, removes the oldest number first.
    *
-   * @param {{ damage: number, worldX: number, worldZ: number, color?: string }} params
+   * @param {{ damage: number, worldX: number, worldZ: number, isCrit?: boolean, color?: string }} params
    */
-  spawnDamageNumber: ({ damage, worldX, worldZ, color = '#ffffff' }) => {
+  spawnDamageNumber: ({ damage, worldX, worldZ, isCrit = false, color }) => {
     const cfg = GAME_CONFIG.DAMAGE_NUMBERS
+    const resolvedColor = color ?? (isCrit ? GAME_CONFIG.CRIT_HIT_VISUALS.COLOR : '#ffffff')
     const newNumber = {
       id: _nextId++,
       damage,
@@ -23,7 +24,8 @@ const useDamageNumbers = create((set, get) => ({
       worldY: 1.0, // slightly above ground plane
       worldZ,
       age: 0,
-      color,
+      isCrit,
+      color: resolvedColor,
       offsetX: calcDriftOffset(),
     }
 
@@ -43,21 +45,25 @@ const useDamageNumbers = create((set, get) => ({
    * hits arrive in the same frame (e.g. multi-projectile weapons) to avoid N
    * redundant set() calls.
    *
-   * @param {Array<{ damage: number, worldX: number, worldZ: number, color?: string }>} entries
+   * @param {Array<{ damage: number, worldX: number, worldZ: number, isCrit?: boolean, color?: string }>} entries
    */
   spawnDamageNumbers: (entries) => {
     if (entries.length === 0) return
     const cfg = GAME_CONFIG.DAMAGE_NUMBERS
-    const newNumbers = entries.map(({ damage, worldX, worldZ, color = '#ffffff' }) => ({
-      id: _nextId++,
-      damage,
-      worldX,
-      worldY: 1.0, // slightly above ground plane
-      worldZ,
-      age: 0,
-      color,
-      offsetX: calcDriftOffset(),
-    }))
+    const newNumbers = entries.map(({ damage, worldX, worldZ, isCrit = false, color }) => {
+      const resolvedColor = color ?? (isCrit ? GAME_CONFIG.CRIT_HIT_VISUALS.COLOR : '#ffffff')
+      return {
+        id: _nextId++,
+        damage,
+        worldX,
+        worldY: 1.0, // slightly above ground plane
+        worldZ,
+        age: 0,
+        isCrit,
+        color: resolvedColor,
+        offsetX: calcDriftOffset(),
+      }
+    })
 
     const { damageNumbers } = get()
     let updated = [...damageNumbers, ...newNumbers]

@@ -50,7 +50,11 @@ const useWeapons = create((set, get) => ({
         const fwd = GAME_CONFIG.PROJECTILE_SPAWN_FORWARD_OFFSET
         let baseDamage = weapon.overrides?.damage ?? def.baseDamage
         let projDamage = baseDamage * damageMultiplier
-        if (critChance > 0 && Math.random() < critChance) projDamage *= critMultiplier
+        let projIsCrit = false
+        if (critChance > 0 && Math.random() < critChance) {
+          projDamage *= critMultiplier
+          projIsCrit = true
+        }
         const color = weapon.overrides?.upgradeVisuals?.color ?? def.projectileColor
         const meshScale = weapon.overrides?.upgradeVisuals?.meshScale ?? def.projectileMeshScale
 
@@ -101,6 +105,7 @@ const useWeapons = create((set, get) => ({
             dirZ,
             speed: def.baseSpeed * projectileSpeedMultiplier,
             damage: projDamage,
+            isCrit: projIsCrit,
             radius: def.projectileRadius * zoneMultiplier,
             lifetime: def.projectileLifetime,
             elapsedTime: 0,

@@ -8,6 +8,10 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 const MAX_COUNT = GAME_CONFIG.DAMAGE_NUMBERS.MAX_COUNT
 const LIFETIME = GAME_CONFIG.DAMAGE_NUMBERS.LIFETIME
 const RISE_SPEED = GAME_CONFIG.DAMAGE_NUMBERS.RISE_SPEED
+const CRIT_SPEED_MULT = GAME_CONFIG.CRIT_HIT_VISUALS.ANIMATION_SPEED_MULT
+const CRIT_SCALE = GAME_CONFIG.CRIT_HIT_VISUALS.SCALE_MULTIPLIER
+const CRIT_BOUNCE_DUR = GAME_CONFIG.CRIT_HIT_VISUALS.BOUNCE_DURATION
+const BASE_FONT_PX = 18
 
 // Pre-allocated scratch Vector3 — passed to project3DToScreen to avoid per-frame allocations
 const _tmpV = new THREE.Vector3()
@@ -62,16 +66,26 @@ export default function DamageNumberRenderer() {
         _tmpV.set(num.worldX, num.worldY, num.worldZ)
         const { x: sx, y: sy } = project3DToScreen(_tmpV, camera, canvas)
 
-        // Upward movement + horizontal drift
-        const yOffset = num.age * RISE_SPEED
+        // Crit: faster rise speed + pop-out bounce scale on spawn
+        const riseSpeed = num.isCrit ? RISE_SPEED * CRIT_SPEED_MULT : RISE_SPEED
+        const yOffset = num.age * riseSpeed
         const alpha = Math.max(0, 1 - num.age / LIFETIME)
+
+        // Crit scale: bounces from 1.6x → CRIT_SCALE over BOUNCE_DURATION, then stays at CRIT_SCALE
+        let scale = 1.0
+        if (num.isCrit) {
+          const t = Math.min(num.age / CRIT_BOUNCE_DUR, 1.0)
+          scale = CRIT_SCALE + (1 - t) * 0.3  // 1.63 → 1.33 over bounce, then 1.33
+        }
+        const fontSize = Math.round(BASE_FONT_PX * scale)
 
         div.style.display = 'block'
         // translate3d for GPU compositing; translate(-50%,-50%) centers text on impact point
         div.style.transform = `translate3d(${sx + num.offsetX}px, ${sy - yOffset}px, 0) translate(-50%, -50%)`
         div.style.opacity = alpha.toString()
         div.style.color = num.color
-        div.textContent = String(Math.round(num.damage))
+        div.style.fontSize = `${fontSize}px`
+        div.textContent = `${Math.round(num.damage)}${num.isCrit ? '!' : ''}`
       } else {
         div.style.display = 'none'
       }
