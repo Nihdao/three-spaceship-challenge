@@ -373,14 +373,14 @@ export default function GameLoop() {
         if (proj.piercing) {
           for (let h = 0; h < hits.length; h++) {
             if (proj.pierceHits >= proj.pierceCount) break
-            projectileHits.push({ enemyId: hits[h].id, damage: proj.damage })
+            projectileHits.push({ enemyId: hits[h].id, damage: proj.damage, isCrit: proj.isCrit ?? false })
             proj.pierceHits++
           }
           if (proj.pierceHits >= proj.pierceCount) proj.active = false
         // Story 11.3: Explosive projectiles — deal direct hit + area damage
         } else if (proj.explosionRadius) {
           proj.active = false
-          projectileHits.push({ enemyId: hits[0].id, damage: proj.damage })
+          projectileHits.push({ enemyId: hits[0].id, damage: proj.damage, isCrit: proj.isCrit ?? false })
           // Area damage to all enemies within explosion radius
           for (let e = 0; e < enemies.length; e++) {
             if (enemies[e].id === hits[0].id) continue // already hit directly
@@ -388,35 +388,21 @@ export default function GameLoop() {
             const dz = enemies[e].z - proj.z
             const dist = Math.sqrt(dx * dx + dz * dz)
             if (dist <= proj.explosionRadius) {
-              projectileHits.push({ enemyId: enemies[e].id, damage: proj.explosionDamage })
+              projectileHits.push({ enemyId: enemies[e].id, damage: proj.explosionDamage, isCrit: proj.isCrit ?? false })
             }
           }
           addExplosion(proj.x, proj.z, proj.color)
         } else {
           proj.active = false
-          projectileHits.push({ enemyId: hits[0].id, damage: proj.damage })
+          projectileHits.push({ enemyId: hits[0].id, damage: proj.damage, isCrit: proj.isCrit ?? false })
         }
       }
     }
 
     // 7b. Apply enemy damage (batch)
     if (projectileHits.length > 0) {
-      // Story 27.2: Roll crit for each hit before damage resolution.
-      // composedWeaponMods is computed in section 3 (same frame scope).
-      const critChance = composedWeaponMods.critChance ?? 0
-      const critMult = composedWeaponMods.critMultiplier ?? 2.0
-      for (let i = 0; i < projectileHits.length; i++) {
-        const hit = projectileHits[i]
-        const isCrit = critChance > 0 && Math.random() < critChance
-        if (isCrit) {
-          hit.damage = Math.floor(hit.damage * critMult)
-          hit.isCrit = true
-        } else {
-          hit.isCrit = false
-        }
-      }
-
       // Story 27.1: Spawn damage numbers before damage resolution (enemy positions still valid).
+      // Story 27.2: isCrit is set at projectile spawn time (useWeapons.tick); propagated to each hit.
       // Build the full spawn list first, then call spawnDamageNumbers once (single set()).
       const dnEntries = []
       for (let i = 0; i < projectileHits.length; i++) {

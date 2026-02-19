@@ -266,7 +266,7 @@ development_status:
   # Epic 27: Combat Feedback System (Arcade Feel)
   epic-27: in-progress # A reprendre
   27-1-player-damage-numbers-basic-display: done
-  27-2-critical-hit-numbers-golden-display: in-progress
+  27-2-critical-hit-numbers-golden-display: review
   27-3-enemy-hit-flash-visual-impact-feedback: ready-for-dev
   27-4-enemy-knockback-physics-impact: ready-for-dev
   27-5-player-damage-numbers-red-display: ready-for-dev

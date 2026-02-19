@@ -151,6 +151,53 @@ describe('useDamageNumbers store (Story 27.1)', () => {
     })
   })
 
+  describe('crit hit support (Story 27.2)', () => {
+    it('spawnDamageNumber: isCrit=true stores golden color and isCrit flag', () => {
+      useDamageNumbers.getState().spawnDamageNumber({ damage: 50, worldX: 0, worldZ: 0, isCrit: true })
+      const num = useDamageNumbers.getState().damageNumbers[0]
+      expect(num.isCrit).toBe(true)
+      expect(num.color).toBe(GAME_CONFIG.CRIT_HIT_VISUALS.COLOR)
+    })
+
+    it('spawnDamageNumber: isCrit=false stores white color', () => {
+      useDamageNumbers.getState().spawnDamageNumber({ damage: 50, worldX: 0, worldZ: 0, isCrit: false })
+      const num = useDamageNumbers.getState().damageNumbers[0]
+      expect(num.isCrit).toBe(false)
+      expect(num.color).toBe('#ffffff')
+    })
+
+    it('spawnDamageNumber: isCrit defaults to false when not provided', () => {
+      useDamageNumbers.getState().spawnDamageNumber({ damage: 50, worldX: 0, worldZ: 0 })
+      const num = useDamageNumbers.getState().damageNumbers[0]
+      expect(num.isCrit).toBe(false)
+    })
+
+    it('spawnDamageNumber: explicit color overrides isCrit color', () => {
+      useDamageNumbers.getState().spawnDamageNumber({
+        damage: 50, worldX: 0, worldZ: 0, isCrit: true, color: '#ff0000',
+      })
+      expect(useDamageNumbers.getState().damageNumbers[0].color).toBe('#ff0000')
+    })
+
+    it('spawnDamageNumbers batch: isCrit=true entries get golden color', () => {
+      useDamageNumbers.getState().spawnDamageNumbers([
+        { damage: 100, worldX: 0, worldZ: 0, isCrit: true },
+        { damage: 50, worldX: 1, worldZ: 0, isCrit: false },
+      ])
+      const nums = useDamageNumbers.getState().damageNumbers
+      expect(nums[0].isCrit).toBe(true)
+      expect(nums[0].color).toBe(GAME_CONFIG.CRIT_HIT_VISUALS.COLOR)
+      expect(nums[1].isCrit).toBe(false)
+      expect(nums[1].color).toBe('#ffffff')
+    })
+
+    it('isCrit field is preserved through tick()', () => {
+      useDamageNumbers.getState().spawnDamageNumber({ damage: 50, worldX: 0, worldZ: 0, isCrit: true })
+      useDamageNumbers.getState().tick(0.3)
+      expect(useDamageNumbers.getState().damageNumbers[0].isCrit).toBe(true)
+    })
+  })
+
   describe('reset', () => {
     it('clears all damage numbers', () => {
       useDamageNumbers.getState().spawnDamageNumber({ damage: 100, worldX: 0, worldZ: 0 })
