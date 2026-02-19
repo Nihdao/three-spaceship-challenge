@@ -5,10 +5,12 @@ import { playSFX } from "../audio/audioManager.js";
 import OptionsModal from "./modals/OptionsModal.jsx";
 import CreditsModal from "./modals/CreditsModal.jsx";
 import UpgradesScreen from "./UpgradesScreen.jsx";
+import Armory from "./Armory.jsx";
 
 export const MENU_ITEMS = [
   { id: "play", label: "PLAY" },
   { id: "upgrades", label: "UPGRADES" },
+  { id: "armory", label: "ARMORY" },
   { id: "options", label: "OPTIONS" },
   { id: "credits", label: "CREDITS" },
 ];
@@ -19,6 +21,7 @@ export default function MainMenu() {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const [isUpgradesOpen, setIsUpgradesOpen] = useState(false);
+  const [isArmoryOpen, setIsArmoryOpen] = useState(false);
   const playButtonRef = useRef(null);
   const creditsButtonRef = useRef(null);
 
@@ -51,6 +54,9 @@ export default function MainMenu() {
       if (fading) return;
       if (item.id === "play") {
         handlePlay();
+      } else if (item.id === "armory") {
+        playSFX("button-click");
+        setIsArmoryOpen(true);
       } else if (item.id === "upgrades") {
         playSFX("button-click");
         setIsUpgradesOpen(true);
@@ -71,7 +77,7 @@ export default function MainMenu() {
       if (fading) return;
 
       // Don't navigate menu while any modal is open
-      if (isCreditsOpen || isOptionsOpen || isUpgradesOpen) return;
+      if (isCreditsOpen || isOptionsOpen || isUpgradesOpen || isArmoryOpen) return;
 
       if (e.code === "ArrowUp") {
         e.preventDefault();
@@ -90,7 +96,7 @@ export default function MainMenu() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, isUpgradesOpen, handleMenuSelect]);
+  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, isUpgradesOpen, isArmoryOpen, handleMenuSelect]);
 
   return (
     <>
@@ -100,8 +106,8 @@ export default function MainMenu() {
         style={{ opacity: fading ? 1 : 0 }}
       />
 
-      {/* Menu overlay — hidden when upgrades screen is open */}
-      {!isUpgradesOpen && <div
+      {/* Menu overlay — hidden when upgrades or armory screen is open */}
+      {!isUpgradesOpen && !isArmoryOpen && <div
         className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
         inert={isCreditsOpen || isOptionsOpen ? "" : undefined}
       >
@@ -183,6 +189,11 @@ export default function MainMenu() {
       {/* Upgrades screen overlay */}
       {isUpgradesOpen && (
         <UpgradesScreen onClose={() => setIsUpgradesOpen(false)} />
+      )}
+
+      {/* Armory screen overlay */}
+      {isArmoryOpen && (
+        <Armory onClose={() => setIsArmoryOpen(false)} />
       )}
     </>
   );

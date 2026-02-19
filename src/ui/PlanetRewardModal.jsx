@@ -3,6 +3,7 @@ import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
+import useArmory from '../stores/useArmory.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { generatePlanetReward } from '../systems/progressionSystem.js'
 import { getRarityTier } from '../systems/raritySystem.js'
@@ -43,9 +44,11 @@ export default function PlanetRewardModal() {
       useWeapons.getState().upgradeWeapon(choice.id, rarity)
     } else if (choice.type === 'new_weapon') {
       useWeapons.getState().addWeapon(choice.id, rarity)
+      useArmory.getState().markDiscovered('weapons', choice.id)
     } else if (choice.type === 'new_boon') {
       useBoons.getState().addBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
+      useArmory.getState().markDiscovered('boons', choice.id)
     } else if (choice.type === 'boon_upgrade') {
       useBoons.getState().upgradeBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
