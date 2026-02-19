@@ -12,6 +12,7 @@ import GameOverScreen from './GameOverScreen.jsx'
 import VictoryScreen from './VictoryScreen.jsx'
 import TunnelHub from './TunnelHub.jsx'
 import ShipSelect from './ShipSelect.jsx'
+import GalaxyChoice from './GalaxyChoice.jsx'
 import PauseMenu from './PauseMenu.jsx'
 import DebugConsole from './DebugConsole.jsx'
 import WhiteFlashTransition from './WhiteFlashTransition.jsx'
@@ -100,6 +101,7 @@ export default function Interface() {
     <>
       {phase === 'menu' && <MainMenu />}
       {phase === 'shipSelect' && <ShipSelect />}
+      {phase === 'galaxyChoice' && <GalaxyChoice />}
       {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward' || phase === 'revive') && <HUD />}
       {phase === 'gameplay' && <PauseMenu />}
       {phase === 'levelUp' && <LevelUpModal />}

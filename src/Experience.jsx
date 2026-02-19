@@ -25,7 +25,7 @@ export default function Experience() {
 
       <GameLoop />
 
-      {(phase === 'menu' || phase === 'shipSelect') && <MenuScene />}
+      {(phase === 'menu' || phase === 'shipSelect' || phase === 'galaxyChoice') && <MenuScene />}
       {showGameplay && <GameplayScene />}
       {phase === 'tunnel' && <TunnelScene />}
       {/* GameplayScene stays mounted during gameOver (frozen, GameLoop paused) for visual continuity behind the overlay */}

@@ -346,3 +346,73 @@ describe('useGame — high score clear save integration (Story 8.4, Task 4)', ()
     expect(useGame.getState().highScore).toBe(0)
   })
 })
+
+describe('useGame — galaxy selection (Story 25.3)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('selectedGalaxyId defaults to null', () => {
+    expect(useGame.getState().selectedGalaxyId).toBeNull()
+  })
+
+  it('setSelectedGalaxy() updates selectedGalaxyId', () => {
+    useGame.getState().setSelectedGalaxy('andromeda_reach')
+    expect(useGame.getState().selectedGalaxyId).toBe('andromeda_reach')
+  })
+
+  it('setSelectedGalaxy() can be called with any string id', () => {
+    useGame.getState().setSelectedGalaxy('cygnus_expanse')
+    expect(useGame.getState().selectedGalaxyId).toBe('cygnus_expanse')
+  })
+
+  it('startGalaxyChoice() sets phase to galaxyChoice', () => {
+    useGame.getState().startGalaxyChoice()
+    expect(useGame.getState().phase).toBe('galaxyChoice')
+  })
+
+  it('startGalaxyChoice() sets isPaused to false', () => {
+    useGame.setState({ isPaused: true })
+    useGame.getState().startGalaxyChoice()
+    expect(useGame.getState().isPaused).toBe(false)
+  })
+
+  it('startGalaxyChoice() pre-selects the default galaxy (andromeda_reach)', () => {
+    useGame.getState().startGalaxyChoice()
+    expect(useGame.getState().selectedGalaxyId).toBe('andromeda_reach')
+  })
+
+  it('startGameplay() preserves selectedGalaxyId (does NOT reset it)', () => {
+    useGame.getState().setSelectedGalaxy('andromeda_reach')
+    useGame.getState().startGameplay()
+    expect(useGame.getState().selectedGalaxyId).toBe('andromeda_reach')
+  })
+
+  it('startGameplay() sets phase to systemEntry (existing behavior unchanged)', () => {
+    useGame.getState().startGameplay()
+    expect(useGame.getState().phase).toBe('systemEntry')
+  })
+
+  it('selectedGalaxyId persists through systemEntry → gameplay phases', () => {
+    useGame.getState().setSelectedGalaxy('andromeda_reach')
+    useGame.getState().startGameplay()
+    expect(useGame.getState().phase).toBe('systemEntry')
+    expect(useGame.getState().selectedGalaxyId).toBe('andromeda_reach')
+
+    useGame.getState().completeSystemEntry()
+    expect(useGame.getState().phase).toBe('gameplay')
+    expect(useGame.getState().selectedGalaxyId).toBe('andromeda_reach')
+  })
+
+  it('reset() clears selectedGalaxyId to null', () => {
+    useGame.getState().setSelectedGalaxy('andromeda_reach')
+    useGame.getState().reset()
+    expect(useGame.getState().selectedGalaxyId).toBeNull()
+  })
+
+  it('returnToMenu() clears selectedGalaxyId to null (M1 fix)', () => {
+    useGame.getState().setSelectedGalaxy('andromeda_reach')
+    useGame.getState().returnToMenu()
+    expect(useGame.getState().selectedGalaxyId).toBeNull()
+  })
+})

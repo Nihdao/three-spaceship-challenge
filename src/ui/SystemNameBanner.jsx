@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import useGame from '../stores/useGame.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import { getGalaxyById } from '../entities/galaxyDefs.js'
 
 export default function SystemNameBanner() {
   const phase = useGame((s) => s.phase)
   const currentSystem = useLevel((s) => s.currentSystem)
+  const selectedGalaxyId = useGame((s) => s.selectedGalaxyId) // Story 25.3
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -32,7 +34,12 @@ export default function SystemNameBanner() {
   if (!systemName && import.meta.env.DEV) {
     console.warn(`[SystemNameBanner] No system name configured for system ${currentSystem}. Using fallback.`)
   }
-  const displayName = systemName || `SYSTEM ${currentSystem}`
+  const rawSystemName = systemName || `SYSTEM ${currentSystem}`
+
+  // Story 25.3: Build display text with galaxy name prefix if available
+  const galaxy = selectedGalaxyId ? getGalaxyById(selectedGalaxyId) : null
+  const galaxyName = galaxy ? galaxy.name.toUpperCase() : null
+  const displayName = galaxyName ? `${galaxyName} — ${rawSystemName}` : rawSystemName
 
   // Calculate animation duration from config
   const { FADE_IN_DURATION, DISPLAY_DURATION, FADE_OUT_DURATION } = GAME_CONFIG.SYSTEM_BANNER
@@ -49,7 +56,7 @@ export default function SystemNameBanner() {
       }}
     >
       <div className="system-name-banner-text">
-        {displayName} SYSTEM
+        {displayName}
       </div>
     </div>
   )

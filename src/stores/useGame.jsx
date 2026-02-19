@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { getHighScore, setHighScore as saveHighScore } from '../utils/highScoreStorage.js'
+import { getDefaultGalaxy } from '../entities/galaxyDefs.js'
 
 const useGame = create(
   subscribeWithSelector((set, get) => ({
@@ -18,6 +19,7 @@ const useGame = create(
     tunnelTransitionPending: false, // Story 17.6: Track if tunnel transition is already scheduled
     tunnelEntryFlashTriggered: false, // Story 17.6: Track tunnel entry flash trigger (separate from phase change)
     _debugGrid: false,
+    selectedGalaxyId: null, // Story 25.3: Galaxy ID for current/upcoming run
 
     setPhase: (phase) => set({ phase, tunnelTransitionPending: false }),
     setPaused: (isPaused) => set({ isPaused }),
@@ -43,11 +45,19 @@ const useGame = create(
       return false
     },
 
+    setSelectedGalaxy: (galaxyId) => set({ selectedGalaxyId: galaxyId }), // Story 25.3
+
+    startGalaxyChoice: () => { // Story 25.3
+      const defaultGalaxy = getDefaultGalaxy()
+      set({ phase: 'galaxyChoice', isPaused: false, selectedGalaxyId: defaultGalaxy.id })
+    },
+
     startGameplay: () => set((s) => ({
       phase: 'systemEntry', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
       score: 0, kills: 0, prevCombatPhase: 'gameplay', highScore: s.highScore, isNewHighScore: false,
       // Story 17.6: Reset flash flags on new game/retry
       wormholeFirstTouch: false, tunnelTransitionPending: false, tunnelEntryFlashTriggered: false,
+      // NOTE: selectedGalaxyId is NOT reset here — persists through systemEntry → gameplay (Story 25.3)
     })),
     triggerLevelUp: () => set((s) => ({ phase: 'levelUp', isPaused: true, prevCombatPhase: s.phase === 'levelUp' ? s.prevCombatPhase : s.phase })),
     triggerPlanetReward: (tier) => set({ phase: 'planetReward', isPaused: true, rewardTier: tier }),
@@ -66,12 +76,14 @@ const useGame = create(
       wormholeFirstTouch: false,
       tunnelTransitionPending: false,
       tunnelEntryFlashTriggered: false,
+      selectedGalaxyId: null, // Story 25.3: Clear galaxy on menu return
     }),
 
     reset: () => set({
       phase: 'menu', isPaused: false, systemTimer: 0, totalElapsedTime: 0,
       score: 0, kills: 0, rewardTier: null, prevCombatPhase: 'gameplay', highScore: 0, isNewHighScore: false,
       wormholeFirstTouch: false, tunnelTransitionPending: false, tunnelEntryFlashTriggered: false, _debugGrid: false,
+      selectedGalaxyId: null, // Story 25.3
     }),
   }))
 )
