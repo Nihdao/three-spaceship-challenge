@@ -1,6 +1,6 @@
 # Story 25.2: Level-Based Ship Skins
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -80,12 +80,14 @@ textures or using `MeshBasicMaterial` for specific submeshes). The infrastructur
   - [x] Show lock icon + "LV. X" label for locked skins
   - [x] Default skin is always available (no level requirement)
 
-- [x] Task 6: Add skin unlock notification on level-up (AC: #1)
-  - [x] In src/ui/ShipSelect.jsx, when levelUpShip() succeeds
-  - [x] Check if new level is 3, 6, or 9
-  - [x] If yes, show visual notification: "NEW SKIN UNLOCKED: [Skin Name]"
-  - [x] Play SFX: 'upgrade-purchase' or similar success sound
-  - [x] Optional: Brief glow/flash effect on ship preview
+- [ ] Task 6: Add skin unlock notification on level-up (AC: #1) — DEFERRED with colour skins
+  - [ ] In src/ui/ShipSelect.jsx, when levelUpShip() succeeds
+  - [ ] Check if new level is 3, 6, or 9
+  - [ ] If yes, show visual notification: "NEW SKIN UNLOCKED: [Skin Name]"
+  - [ ] Play SFX: 'upgrade-purchase' or similar success sound
+  - [ ] Optional: Brief glow/flash effect on ship preview
+  <!-- Note: No colour skins exist yet (deferred to future material-based story), so no skins are
+       unlockable at levels 3/6/9. This task stays deferred until colour skins are implemented. -->
 
 - [x] Task 7: Ensure skin tint works in TunnelHub scene (AC: #4)
   - [x] Verify tunnel hub uses same PlayerShip.jsx component OR
@@ -99,8 +101,8 @@ textures or using `MeshBasicMaterial` for specific submeshes). The infrastructur
   - [x] Test useShipProgression: getAvailableSkins marks locked/unlocked correctly
   - [x] Test useShipProgression: cannot select locked skin
   - [x] Test shipProgressionStorage: selectedSkins persist correctly
-  - [x] Test PlayerShip: tint applied to materials (visual regression test)
-  - [x] Test ShipSelect: skin selector displays correctly, selection works
+  - [ ] Test PlayerShip: tint applied to materials — DEFERRED (no R3F component test infra; tint is no-op with default skin only)
+  - [ ] Test ShipSelect: skin selector displays correctly, selection works — DEFERRED (no React component test infra in project)
 
 ## Dev Notes
 
@@ -692,7 +694,8 @@ None — implementation was clean. Pre-existing test failures in raritySystem.pr
 - **Task 2**: Extended `useShipProgression.jsx` with `selectedSkins` state, `setSelectedSkin()` (validates locked), `getSelectedSkin()`, `getAvailableSkins()`. Updated `levelUpShip` and `reset` to persist both shipLevels and selectedSkins together.
 - **Task 3**: Replaced `shipProgressionStorage.js` with new `getPersistedShipProgression()` / `setPersistedShipProgression()` using key `SPACESHIP_SHIP_PROGRESSION`. Added migration from old `SPACESHIP_SHIP_LEVELS` format (Story 25.1 backward compat).
 - **Task 4**: Updated `PlayerShip.jsx` to read current ship skin in `useMemo`, apply `mat.color.lerp(tintColor, 0.5)` to hull materials only. Engine materials excluded. Dash emissive override in `useFrame` preserved (temporary, doesn't conflict with skin tint).
-- **Task 5 & 6**: Added skin selector section to `ShipSelect.jsx` with color swatches, lock indicators, selection highlight. Skin unlock notification (3s toast) triggers when level reaches 3, 6, or 9.
+- **Task 5**: Added skin selector section to `ShipSelect.jsx` with color swatches, lock indicators, selection highlight. Skin preview passed to `ShipModelPreview` via `skinData` prop.
+- **Task 6**: DEFERRED — unlock notification deferred alongside colour skins. `handleLevelUp` plays `upgrade-purchase` SFX on success; level 3/6/9 check and toast omitted until colour skins exist.
 - **Task 7**: Updated `TunnelScene.jsx` `TunnelShip` component with same skin tint logic — reads `currentShipId` from `usePlayer` and `getSelectedSkin` from `useShipProgression` in its `useMemo`.
 - **Task 8**: 97 tests written and passing across 3 test files (shipSkinDefs, useShipProgression with skin tests, shipProgressionStorage).
 

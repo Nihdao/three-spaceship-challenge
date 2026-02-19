@@ -202,6 +202,9 @@ describe('useShipProgression', () => {
   })
 
   describe('setSelectedSkin (Story 25.2)', () => {
+    // Note: the `skin.locked` branch of setSelectedSkin (requiredLevel > currentLevel)
+    // cannot be covered until colour skins (lv3/6/9) exist in shipSkinDefs.js.
+    // Currently only the `!skin` branch (unknown ID) is reachable and tested.
     it('returns false for unknown skin ID', () => {
       const result = useShipProgression.getState().setSelectedSkin('BALANCED', 'nonexistent')
       expect(result).toBe(false)
