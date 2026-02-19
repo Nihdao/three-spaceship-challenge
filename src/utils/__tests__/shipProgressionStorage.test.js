@@ -101,22 +101,25 @@ describe('shipProgressionStorage (Story 25.2)', () => {
   })
 
   describe('setPersistedShipProgression', () => {
+    // Note: storage does NOT validate skin IDs — it persists arbitrary strings.
+    // Future skin IDs (e.g. 'azure', 'nebula', 'titan') are used here to verify
+    // that arbitrary values round-trip correctly, not to imply they currently exist in shipSkinDefs.js.
     it('saves data to localStorage with new key', () => {
       const data = {
         shipLevels: { BALANCED: 3, GLASS_CANNON: 1, TANK: 1 },
-        selectedSkins: { BALANCED: 'azure', GLASS_CANNON: 'default', TANK: 'default' },
+        selectedSkins: { BALANCED: 'default', GLASS_CANNON: 'default', TANK: 'default' },
       }
       setPersistedShipProgression(data)
 
       const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
       expect(stored.shipLevels.BALANCED).toBe(3)
-      expect(stored.selectedSkins.BALANCED).toBe('azure')
+      expect(stored.selectedSkins.BALANCED).toBe('default')
     })
 
     it('persists both shipLevels and selectedSkins together', () => {
       const data = {
         shipLevels: { BALANCED: 6, GLASS_CANNON: 3, TANK: 9 },
-        selectedSkins: { BALANCED: 'nebula', GLASS_CANNON: 'crimson', TANK: 'titan' },
+        selectedSkins: { BALANCED: 'default', GLASS_CANNON: 'default', TANK: 'default' },
       }
       setPersistedShipProgression(data)
 
@@ -124,13 +127,25 @@ describe('shipProgressionStorage (Story 25.2)', () => {
       expect(stored.shipLevels).toEqual(data.shipLevels)
       expect(stored.selectedSkins).toEqual(data.selectedSkins)
     })
+
+    it('storage accepts arbitrary skin ID strings without validation (future-proofing)', () => {
+      // Verifies that storage is dumb — it will happily persist future skin IDs
+      // (e.g. 'azure', 'nebula') even before shipSkinDefs.js defines them.
+      const data = {
+        shipLevels: { BALANCED: 6, GLASS_CANNON: 1, TANK: 1 },
+        selectedSkins: { BALANCED: 'nebula', GLASS_CANNON: 'default', TANK: 'default' },
+      }
+      setPersistedShipProgression(data)
+      const stored = JSON.parse(store[STORAGE_KEY_SHIP_PROGRESSION])
+      expect(stored.selectedSkins.BALANCED).toBe('nebula')
+    })
   })
 
   describe('round-trip', () => {
     it('data survives a save/load cycle', () => {
       const original = {
         shipLevels: { BALANCED: 7, GLASS_CANNON: 4, TANK: 2 },
-        selectedSkins: { BALANCED: 'sovereign', GLASS_CANNON: 'void', TANK: 'phantom' },
+        selectedSkins: { BALANCED: 'default', GLASS_CANNON: 'default', TANK: 'default' },
       }
       setPersistedShipProgression(original)
 
