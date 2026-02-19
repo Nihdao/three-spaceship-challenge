@@ -73,6 +73,7 @@ const useEnemies = create((set, get) => ({
       meshScale: def.meshScale,
       xpReward: def.xpReward,
       lastHitTime: -Infinity,
+      hitFlashTimer: 0,
     }
 
     initBehaviorData(enemy, def, {})
@@ -121,6 +122,7 @@ const useEnemies = create((set, get) => ({
         meshScale: def.meshScale,
         xpReward: Math.round(def.xpReward * xpMult),
         lastHitTime: -Infinity,
+        hitFlashTimer: 0,
       }
 
       initBehaviorData(enemy, def, instruction)
@@ -274,6 +276,11 @@ const useEnemies = create((set, get) => ({
 
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i]
+
+      // Decay hit flash timer (Story 27.3)
+      if (e.hitFlashTimer > 0) {
+        e.hitFlashTimer = Math.max(0, e.hitFlashTimer - delta)
+      }
 
       if (e.behavior === 'chase') {
         const dx = px - e.x
@@ -449,6 +456,7 @@ const useEnemies = create((set, get) => ({
 
     const enemy = enemies[idx]
     enemy.hp -= damage
+    enemy.hitFlashTimer = GAME_CONFIG.HIT_FLASH.DURATION
     if (enemy.hp <= 0) {
       const deadEnemy = { ...enemy }
       set({ enemies: enemies.filter((_, i) => i !== idx) })
@@ -478,6 +486,7 @@ const useEnemies = create((set, get) => ({
       if (!enemy) continue
 
       enemy.hp -= totalDamage
+      enemy.hitFlashTimer = GAME_CONFIG.HIT_FLASH.DURATION
       if (enemy.hp <= 0) {
         killIds.add(enemyId)
         results.push({ killed: true, enemy: { ...enemy } })

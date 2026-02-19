@@ -6,6 +6,7 @@ import useEnemies from '../stores/useEnemies.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
+import { calculateFlashIntensity, applyHitFlash, restoreOriginalColor } from '../systems/hitFlashSystem.js'
 
 const MAX = GAME_CONFIG.MAX_ENEMIES_ON_SCREEN
 
@@ -26,15 +27,16 @@ class EnemyMeshErrorBoundary extends Component {
 function EnemyTypeMesh({ typeId }) {
   const meshRefs = useRef([])
   const dummyRef = useRef(new THREE.Object3D())
+  const wasFlashingRef = useRef(false) // M1: only restore emissive on flash→idle transition
   const def = ENEMIES[typeId]
 
   const { scene } = useGLTF(def.modelPath)
 
   // Extract all sub-meshes with world transforms baked into geometry.
   // GLB models use SkinnedMesh with 100x parent scale and multiple materials,
-  // so we clone each geometry, apply its world matrix, and pair it with its material.
-  // NOTE: Materials are shared refs from Drei cache — do NOT modify at runtime
-  // (e.g., hit flash). Clone materials first if runtime changes are needed.
+  // so we clone each geometry, apply its world matrix, and clone its material.
+  // Materials are cloned so emissive can be modified per enemy type for hit flash
+  // without affecting the Drei cache (Story 27.3).
   const subMeshes = useMemo(() => {
     const result = []
     scene.updateWorldMatrix(true, true)
@@ -42,7 +44,8 @@ function EnemyTypeMesh({ typeId }) {
       if (child.isMesh) {
         const geo = child.geometry.clone()
         geo.applyMatrix4(child.matrixWorld)
-        result.push({ geometry: geo, material: child.material })
+        const mat = child.material.clone()
+        result.push({ geometry: geo, material: mat })
       }
     })
     return result
@@ -50,8 +53,11 @@ function EnemyTypeMesh({ typeId }) {
 
   useEffect(() => {
     return () => {
-      // Dispose cloned geometries (not the Drei-cached originals)
-      subMeshes.forEach((sm) => sm.geometry.dispose())
+      // Dispose cloned geometries and cloned materials
+      subMeshes.forEach((sm) => {
+        sm.geometry.dispose()
+        sm.material.dispose()
+      })
     }
   }, [subMeshes])
 
@@ -67,9 +73,13 @@ function EnemyTypeMesh({ typeId }) {
     // TODO: O(enemies × types) per frame — consider pre-bucketing enemies by
     // type in the store if more enemy types are added (currently 2, acceptable).
     let count = 0
+    let maxFlashTimer = 0 // Story 27.3: track max flash timer across all enemies of this type
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i]
       if (e.typeId !== typeId) continue
+
+      // Track max hit flash timer for shared material flash (Option B MVP)
+      if (e.hitFlashTimer > maxFlashTimer) maxFlashTimer = e.hitFlashTimer
 
       dummy.position.set(e.x, 0, e.z)
 
@@ -80,7 +90,7 @@ function EnemyTypeMesh({ typeId }) {
 
       // Hit flash: scale pulse after taking non-lethal damage
       const hitAge = now - e.lastHitTime
-      let scaleMult = hitAge < GAME_CONFIG.HIT_FLASH_DURATION_MS ? GAME_CONFIG.HIT_FLASH_SCALE_MULT : 1
+      let scaleMult = hitAge < GAME_CONFIG.SCALE_FLASH_DURATION_MS ? GAME_CONFIG.SCALE_FLASH_MULT : 1
 
       // Sniper fixed telegraph: pulsing scale during charge-up (Story 16.2)
       if (e.attackState === 'telegraph') {
@@ -105,6 +115,22 @@ function EnemyTypeMesh({ typeId }) {
       if (!mesh) continue
       mesh.count = count
       if (count > 0) mesh.instanceMatrix.needsUpdate = true
+    }
+
+    // Story 27.3: Apply hit flash emissive to shared material (shared across all instances of this type)
+    const flashDuration = GAME_CONFIG.HIT_FLASH.DURATION
+    if (maxFlashTimer > 0) {
+      const intensity = calculateFlashIntensity(maxFlashTimer, flashDuration, GAME_CONFIG.HIT_FLASH.FADE_CURVE) * GAME_CONFIG.HIT_FLASH.INTENSITY
+      for (let j = 0; j < refs.length; j++) {
+        if (refs[j]) applyHitFlash(refs[j].material, intensity, GAME_CONFIG.HIT_FLASH.COLOR)
+      }
+      wasFlashingRef.current = true
+    } else if (wasFlashingRef.current) {
+      // Only restore once when transitioning flash→idle, not every frame
+      for (let j = 0; j < refs.length; j++) {
+        if (refs[j]) restoreOriginalColor(refs[j].material)
+      }
+      wasFlashingRef.current = false
     }
   })
 
