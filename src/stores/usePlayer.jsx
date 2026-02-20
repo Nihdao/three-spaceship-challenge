@@ -50,6 +50,7 @@ const usePlayer = create((set, get) => ({
 
   // --- Fragments (Story 7.1) ---
   fragments: 0,
+  fragmentsEarnedThisRun: 0,
 
   // --- Permanent Upgrades & Dilemmas (Story 7.2) ---
   permanentUpgrades: {},
@@ -335,6 +336,7 @@ const usePlayer = create((set, get) => ({
 
   addFragments: (amount) => set(state => ({
     fragments: state.fragments + Math.round(amount),
+    fragmentsEarnedThisRun: state.fragmentsEarnedThisRun + Math.round(amount),
   })),
 
   healFromGem: (healAmount) => {
@@ -580,6 +582,7 @@ const usePlayer = create((set, get) => ({
       pendingLevelUps: 0,
       levelsGainedThisBatch: 0,
       fragments: 0,
+      fragmentsEarnedThisRun: 0,
       permanentUpgrades: {},
       acceptedDilemmas: [],
       upgradeStats: { ...DEFAULT_UPGRADE_STATS },

@@ -4,6 +4,7 @@ import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import useLevel from '../stores/useLevel.jsx'
+import useGlobalStats from '../stores/useGlobalStats.jsx'
 import { playSFX } from '../audio/audioManager.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
@@ -45,18 +46,34 @@ export default function VictoryScreen() {
   // Capture stats on mount so they survive store resets
   const statsRef = useRef(null)
   if (!statsRef.current) {
+    const totalTime = useGame.getState().totalElapsedTime + useGame.getState().systemTimer
     statsRef.current = {
-      systemTimer: useGame.getState().totalElapsedTime + useGame.getState().systemTimer,
+      systemTimer: totalTime,
       kills: useGame.getState().kills,
       score: useGame.getState().score,
       isNewHighScore: useGame.getState().isNewHighScore,
       currentLevel: usePlayer.getState().currentLevel,
       currentSystem: useLevel.getState().currentSystem,
       fragments: usePlayer.getState().fragments,
+      fragmentsEarned: usePlayer.getState().fragmentsEarnedThisRun,
       activeWeapons: [...useWeapons.getState().activeWeapons],
       activeBoons: [...useBoons.getState().activeBoons],
     }
   }
+
+  // Record run stats for career tracking (Story 25.5) — in useEffect to avoid render-phase side effects
+  useEffect(() => {
+    const s = statsRef.current
+    useGlobalStats.getState().recordRunEnd({
+      kills: s.kills,
+      timeSurvived: s.systemTimer,
+      systemsReached: s.currentSystem,
+      level: s.currentLevel,
+      fragments: s.fragmentsEarned,
+      weaponsUsed: s.activeWeapons.map(w => w.weaponId).filter(Boolean),
+      boonsUsed: s.activeBoons.map(b => b.boonId).filter(Boolean),
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Random victory message selected on mount
   const messageRef = useRef(
