@@ -1,5 +1,4 @@
 import { useRef, useMemo } from 'react'
-import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { GAME_CONFIG } from '../config/gameConfig.js'
@@ -18,39 +17,20 @@ function MenuStarfield() {
   )
 }
 
-// Task 1: Planets with GLB model keys — emissive tints differentiate duplicate models (planetA×2, planetB×2)
+// Task 1: Planets with GLB model keys
 const MENU_PLANETS = [
-  { position: [-35, -8, -40], scale: 3.5, modelKey: 'planetA', rotationSpeed: 0.02,  emissiveColor: '#aaaacc', emissiveIntensity: 0.4 },  // left-back
-  { position: [40, 12, 25],   scale: 4.5, modelKey: 'planetB', rotationSpeed: 0.015, emissiveColor: '#ffd700', emissiveIntensity: 0.5 },  // right-front
-  { position: [10, -15, -50], scale: 3,   modelKey: 'planetC', rotationSpeed: 0.025, emissiveColor: '#e5e4e2', emissiveIntensity: 0.3 },  // center-back-low
-  { position: [-30, 20, 35],  scale: 2.5, modelKey: 'planetA', rotationSpeed: 0.018, emissiveColor: '#cc88ff', emissiveIntensity: 0.4 },  // left-front-high
-  { position: [45, -5, -30],  scale: 4,   modelKey: 'planetB', rotationSpeed: 0.012, emissiveColor: '#cc9966', emissiveIntensity: 0.4 },  // right-back
+  { position: [-35, -8, -40], scale: 3.5, modelKey: 'planetA', rotationSpeed: 0.02 },   // left-back
+  { position: [40, 12, 25],   scale: 4.5, modelKey: 'planetB', rotationSpeed: 0.015 },  // right-front
+  { position: [10, -15, -50], scale: 3,   modelKey: 'planetC', rotationSpeed: 0.025 },  // center-back-low
+  { position: [-30, 20, 35],  scale: 2.5, modelKey: 'planetA', rotationSpeed: 0.018 },  // left-front-high
+  { position: [45, -5, -30],  scale: 4,   modelKey: 'planetB', rotationSpeed: 0.012 },  // right-back
 ]
 
-// Task 2: MenuPlanet sub-component — each instance clones the GLB scene and applies per-planet emissive tint
+// Task 2: MenuPlanet sub-component — each instance clones the GLB scene to avoid shared material conflicts
 function MenuPlanet({ planetConfig }) {
   const modelPath = ASSET_MANIFEST.tier2.models[planetConfig.modelKey]
   const { scene } = useGLTF(`/${modelPath}`)
-  const clonedScene = useMemo(() => {
-    const clone = scene.clone()
-    clone.traverse((child) => {
-      if (child.isMesh && child.material) {
-        const isArray = Array.isArray(child.material)
-        const mats = isArray ? child.material : [child.material]
-        const cloned = mats.map((mat) => {
-          if (mat.emissive !== undefined) {
-            const m = mat.clone()
-            m.emissive = new THREE.Color(planetConfig.emissiveColor)
-            m.emissiveIntensity = planetConfig.emissiveIntensity
-            return m
-          }
-          return mat
-        })
-        child.material = isArray ? cloned : cloned[0]
-      }
-    })
-    return clone
-  }, [scene, planetConfig.emissiveColor, planetConfig.emissiveIntensity])
+  const clonedScene = useMemo(() => scene.clone(), [scene])
 
   const groupRef = useRef()
   useFrame((_, delta) => {
