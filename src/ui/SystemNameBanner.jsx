@@ -21,8 +21,10 @@ export default function SystemNameBanner() {
     return () => setIsVisible(false)
   }, [])
 
-  const handleAnimationEnd = () => {
-    if (phase !== 'systemEntry') {
+  const handleAnimationEnd = (event) => {
+    // Filter to only the container's own animation to avoid premature hide
+    // caused by subtitleFadeIn's animationend event bubbling up from the child div
+    if (event.animationName === 'systemBanner' && phase !== 'systemEntry') {
       setIsVisible(false)
     }
   }

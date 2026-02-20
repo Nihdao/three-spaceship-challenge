@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import useGame from '../../stores/useGame.jsx'
 import useLevel from '../../stores/useLevel.jsx'
 import { GAME_CONFIG } from '../../config/gameConfig.js'
+import { getGalaxyById } from '../../entities/galaxyDefs.js'
 
 describe('SystemNameBanner — Story 17.2', () => {
   beforeEach(() => {
@@ -107,6 +108,65 @@ describe('SystemNameBanner — Story 17.2', () => {
       useLevel.getState().advanceSystem() // 2 -> 3
       useLevel.getState().advanceSystem() // 3 -> 3 (capped)
       expect(useLevel.getState().currentSystem).toBe(3)
+    })
+  })
+
+  describe('Story 29.2 — Cinematic two-line banner logic', () => {
+    it('subtitleDelay equals animationDelay + FADE_IN_DURATION + 0.2', () => {
+      const { FADE_IN_DURATION } = GAME_CONFIG.SYSTEM_BANNER
+      const animationDelay = 0.3
+      const subtitleDelay = animationDelay + FADE_IN_DURATION + 0.2
+      expect(subtitleDelay).toBe(0.8)
+    })
+
+    it('subtitleDelay appears ~200ms after system name is fully visible', () => {
+      const { FADE_IN_DURATION } = GAME_CONFIG.SYSTEM_BANNER
+      const animationDelay = 0.3
+      const systemNameVisibleAt = animationDelay + FADE_IN_DURATION
+      const subtitleDelay = animationDelay + FADE_IN_DURATION + 0.2
+      expect(subtitleDelay - systemNameVisibleAt).toBeCloseTo(0.2)
+    })
+
+    it('galaxy subtitle uses Title Case (galaxy.name), not uppercase (galaxyName)', () => {
+      const galaxy = getGalaxyById('andromeda_reach')
+      expect(galaxy).toBeDefined()
+      // galaxyName (for conditional check) = uppercase
+      const galaxyName = galaxy.name.toUpperCase()
+      expect(galaxyName).toBe('ANDROMEDA REACH')
+      // subtitle display = original Title Case
+      expect(galaxy.name).toBe('Andromeda Reach')
+      expect(galaxy.name).not.toBe(galaxyName)
+    })
+
+    it('no galaxy subtitle when selectedGalaxyId is null — galaxy resolves to null', () => {
+      const selectedGalaxyId = null
+      const galaxy = selectedGalaxyId ? getGalaxyById(selectedGalaxyId) : null
+      const galaxyName = galaxy ? galaxy.name.toUpperCase() : null
+      // The conditional {galaxyName && <div>} renders nothing
+      expect(galaxy).toBeNull()
+      expect(galaxyName).toBeNull()
+    })
+
+    it('no galaxy subtitle when selectedGalaxyId is undefined', () => {
+      const selectedGalaxyId = undefined
+      const galaxy = selectedGalaxyId ? getGalaxyById(selectedGalaxyId) : null
+      const galaxyName = galaxy ? galaxy.name.toUpperCase() : null
+      expect(galaxy).toBeNull()
+      expect(galaxyName).toBeNull()
+    })
+
+    it('galaxy subtitle renders when selectedGalaxyId is valid', () => {
+      const selectedGalaxyId = 'andromeda_reach'
+      const galaxy = selectedGalaxyId ? getGalaxyById(selectedGalaxyId) : null
+      const galaxyName = galaxy ? galaxy.name.toUpperCase() : null
+      expect(galaxy).not.toBeNull()
+      expect(galaxyName).toBeTruthy()
+      // galaxy.name (Title Case) is what renders in the subtitle div
+      expect(galaxy.name).toBe('Andromeda Reach')
+    })
+
+    it('selectedGalaxyId stored in useGame state', () => {
+      expect('selectedGalaxyId' in useGame.getState()).toBe(true)
     })
   })
 

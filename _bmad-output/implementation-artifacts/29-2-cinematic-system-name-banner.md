@@ -1,6 +1,6 @@
 # Story 29.2: Cinematic System Name Banner Redesign
 
-Status: review
+Status: done
 
 ## Story
 
@@ -159,7 +159,7 @@ Note: `galaxyName` is kept for the conditional check, `galaxy.name` (original ca
 }
 ```
 
-**Target CSS:**
+**Target CSS (as actually implemented — AC7 overrides earlier drafts):**
 ```css
 /* @keyframes systemBanner — UNCHANGED */
 
@@ -172,17 +172,12 @@ Note: `galaxyName` is kept for the conditional check, `galaxy.name` (original ca
   animation: systemBanner var(--animation-duration, 3.3s) ease-out var(--animation-delay, 0.3s) forwards;
   pointer-events: none;
   opacity: 0;
-  /* NEW: flex layout for two-line display */
+  /* NEW: flex layout for two-line display (AC7) */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  /* MOVED from .system-name-banner-text: */
-  background: rgba(255, 0, 255, 0.15);
-  backdrop-filter: blur(8px);
-  padding: 12px 28px;
-  border-radius: 2px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  gap: 6px;
+  /* No background, no backdrop-filter, no box-shadow — banner is transparent (AC7) */
 }
 
 .system-name-banner-text {
@@ -192,8 +187,8 @@ Note: `galaxyName` is kept for the conditional check, `galaxy.name` (original ca
   color: #ffffff;
   text-align: center;
   letter-spacing: 0.2em;   /* was: 0.15em */
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
-  /* REMOVED: background, backdrop-filter, padding, border-radius, box-shadow */
+  text-shadow: 0 0 40px rgba(255, 100, 255, 0.6), 0 2px 12px rgba(0, 0, 0, 0.9);
+  /* All visual block props (background, backdrop-filter, padding, border-radius, box-shadow) removed */
 }
 
 /* NEW keyframe */
@@ -202,15 +197,15 @@ Note: `galaxyName` is kept for the conditional check, `galaxy.name` (original ca
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* NEW class */
+/* NEW class — no italic (AC2 overrides earlier epic draft) */
 .system-name-banner-subtitle {
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: 400;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.55);
   text-align: center;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 20px rgba(255, 100, 255, 0.4), 0 1px 6px rgba(0, 0, 0, 0.8);
   opacity: 0;
   animation: subtitleFadeIn 0.4s ease-out var(--subtitle-delay, 0.8s) forwards;
 }
@@ -286,3 +281,4 @@ None — straightforward JSX restructure + CSS update following the Dev Notes sp
 ## Change Log
 
 - 2026-02-20: Implemented story 29.2 — cinematic two-line banner (system name large + galaxy subtitle delayed fade-in); CSS restructured for flex-col layout; `@keyframes subtitleFadeIn` added
+- 2026-02-20: Code review — Fixed animationend bubbling bug (handleAnimationEnd now filters by event.animationName === 'systemBanner'); added 7 Story 29.2 logic tests; corrected Dev Notes Target CSS (background/italic discrepancies vs ACs)

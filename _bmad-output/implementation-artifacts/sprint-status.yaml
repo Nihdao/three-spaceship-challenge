@@ -276,14 +276,14 @@ development_status:
   epic-28: in-progress
   28-1-clear-damage-numbers-game-over: done
   28-2-hide-leva-debug-panel: review
-  28-3-fix-music-transition-volume-balance: review
+  28-3-fix-music-transition-volume-balance: done
   28-4-increase-spawn-rate-difficulty-scaling: ready-for-dev
   epic-28-retrospective: optional
 
   # Epic 29: UI & Visual Polish
   epic-29: in-progress
   29-1-planet-assets-menu-screens: done
-  29-2-cinematic-system-name-banner: review
+  29-2-cinematic-system-name-banner: done
   29-3-upgrade-card-ux-full-clickable-descriptions: ready-for-dev
   29-4-permanent-upgrade-exponential-scaling: ready-for-dev
   epic-29-retrospective: optional
