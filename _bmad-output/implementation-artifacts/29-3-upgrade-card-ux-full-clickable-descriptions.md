@@ -1,6 +1,6 @@
 # Story 29.3: Upgrade Card UX — Full Card Clickable + Descriptions Visible
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -23,21 +23,21 @@ so that the upgrade screen is ergonomic and all upgrade information is accessibl
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Remove `truncate` from description `<p>` and allow wrapping (AC: 1, 2, 3)
-  - [ ] In `UpgradeCard`, change line 95 from `truncate` to `leading-relaxed` (removes truncation, enables wrapping)
-  - [ ] Verify description text wraps naturally within the card grid cell
+- [x] Task 1: Remove `truncate` from description `<p>` and allow wrapping (AC: 1, 2, 3)
+  - [x] In `UpgradeCard`, change line 95 from `truncate` to `leading-relaxed` (removes truncation, enables wrapping)
+  - [x] Verify description text wraps naturally within the card grid cell
 
-- [ ] Task 2: Move click interaction to the outer card `<div>` (AC: 4, 5, 7)
-  - [ ] Add `onClick={handleBuy}` to the outer card `<div>` (the one with `border rounded-lg p-3...`)
-  - [ ] Add `onMouseEnter={() => info.canAfford && !info.isMaxed && playSFX('button-hover')}` to the card div
-  - [ ] Add `cursor-pointer` to the card className when `canAfford && !isMaxed`
-  - [ ] Add `cursor-not-allowed` to the card className when `!canAfford && !isMaxed`
+- [x] Task 2: Move click interaction to the outer card `<div>` (AC: 4, 5, 7)
+  - [x] Add `onClick={handleBuy}` to the outer card `<div>` (the one with `border rounded-lg p-3...`)
+  - [x] Add `onMouseEnter={() => info.canAfford && !info.isMaxed && playSFX('button-hover')}` to the card div
+  - [x] Add `cursor-pointer` to the card className when `canAfford && !isMaxed`
+  - [x] Add `cursor-not-allowed` to the card className when `!canAfford && !isMaxed`
 
-- [ ] Task 3: Make the cost button visual-only (AC: 10)
-  - [ ] Remove `onClick={handleBuy}` from the `<button>` element
-  - [ ] Remove `onMouseEnter` from the `<button>` element (moved to card div)
-  - [ ] Keep `disabled={!info.canAfford}` on button for visual state
-  - [ ] Keep all visual classes on button unchanged
+- [x] Task 3: Make the cost button visual-only (AC: 10)
+  - [x] Remove `onClick={handleBuy}` from the `<button>` element
+  - [x] Remove `onMouseEnter` from the `<button>` element (moved to card div)
+  - [x] Keep `disabled={!info.canAfford}` on button for visual state
+  - [x] Keep all visual classes on button unchanged
 
 ## Dev Notes
 
@@ -154,6 +154,8 @@ The button's visual classes are not modified — they already style correctly fo
 
 No tests cover `UpgradeCard` rendering or interaction in the current test suite. The exported `getUpgradeDisplayInfo` and `UPGRADE_IDS` remain unchanged. No store logic is touched.
 
+Note: Testing card click/keyboard behavior requires `@testing-library/react` (not currently installed). See action item in Tasks.
+
 ### Project Structure Notes
 
 - **Only file modified**: `src/ui/UpgradesScreen.jsx`
@@ -168,6 +170,10 @@ No tests cover `UpgradeCard` rendering or interaction in the current test suite.
 - Store: `src/stores/useUpgrades.jsx` → `purchaseUpgrade()` (untouched)
 - Defs: `src/entities/permanentUpgradesDefs.js` → `PERMANENT_UPGRADES`, `getTotalBonus` (untouched)
 
+### Review Follow-ups (AI)
+
+- [ ] [AI-Review][MEDIUM] Add `@testing-library/react` and write component tests for: card click triggers `handleBuy`, `onKeyDown` Enter/Space activates card, `tabIndex` is 0 when affordable and -1 otherwise [src/ui/__tests__/UpgradesScreen.test.jsx]
+
 ## Dev Agent Record
 
 ### Agent Model Used
@@ -176,6 +182,26 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+(none)
+
 ### Completion Notes List
 
+- Removed `truncate` from description `<p>`, replaced with `leading-relaxed` — descriptions now wrap to multiple lines within the card (AC 1, 2, 3)
+- Moved `onClick={handleBuy}` and `onMouseEnter` SFX trigger to the outer card `<div>` — entire card is now clickable (AC 4, 5, 7)
+- Added `cursor-pointer` when `canAfford && !isMaxed`, `cursor-not-allowed` when `!canAfford && !isMaxed` (AC 7, 9)
+- Removed `onClick` and `onMouseEnter` from cost `<button>`, added `tabIndex={-1}` — button is now visual-only reference (AC 10)
+- `handleBuy` guard (`if isMaxed || !canAfford return`) already handles AC 8 correctly — no logic change needed
+- All 20 UpgradesScreen tests pass. Pre-existing failures (audio, MainMenu stats) unrelated to this story.
+
+**Code review fixes (2026-02-20):**
+- Added `role="button"`, `tabIndex={canAfford && !isMaxed ? 0 : -1}`, `onKeyDown` (Enter/Space), and `aria-label` to card div — restores keyboard accessibility regression introduced when button was made visual-only
+- Added `aria-hidden="true"` and `pointer-events-none` to cost button — removes misleading aria-label and hover styles from visual-only element; clicks now pass through cleanly to card div
+
 ### File List
+
+- src/ui/UpgradesScreen.jsx
+
+## Change Log
+
+- 2026-02-20: Implemented Story 29.3 — UpgradeCard full card clickable + descriptions visible. Modified UpgradesScreen.jsx: removed `truncate` from description, moved onClick/onMouseEnter/cursors to outer card div, made cost button visual-only with tabIndex={-1}.
+- 2026-02-20: Code review fixes — added keyboard accessibility (role, tabIndex, onKeyDown, aria-label) to card div; added aria-hidden + pointer-events-none to cost button.
