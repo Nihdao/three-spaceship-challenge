@@ -5,7 +5,7 @@ import { ENEMIES } from '../../entities/enemyDefs.js'
 import { WAVE_PROFILES } from '../../entities/waveDefs.js'
 
 // After MED-3 fix, spawnTimer is initialized to the wave-phase interval on first tick.
-// system1 Easy Start: interval = SPAWN_INTERVAL_BASE / 0.5 = 10s. Use this to trigger first spawn.
+// system1 Easy Start: interval = SPAWN_INTERVAL_BASE / 1.0 = 2.0s. Use this to trigger first spawn.
 const FIRST_SPAWN_TRIGGER = GAME_CONFIG.SPAWN_INTERVAL_BASE / WAVE_PROFILES.system1[0].spawnRateMultiplier + 0.01
 
 describe('spawnSystem', () => {
@@ -26,7 +26,7 @@ describe('spawnSystem', () => {
   })
 
   it('should return spawn instructions when timer expires', () => {
-    // spawnTimer initializes to Easy Start wave-phase interval (10s); tick past it to trigger first spawn
+    // spawnTimer initializes to Easy Start wave-phase interval (~2.0s); tick past it to trigger first spawn
     const result = ss.tick(FIRST_SPAWN_TRIGGER, 0, 0)
     expect(result.length).toBeGreaterThanOrEqual(1)
     expect(result[0]).toHaveProperty('typeId')
@@ -35,8 +35,8 @@ describe('spawnSystem', () => {
   })
 
   it('should spawn more enemies during a hard-spike phase than an easy-start phase', () => {
-    // Easy Start (system1, 0-20%): spawnRateMultiplier=0.5 → interval=10s
-    // Hard Spike 1 (system1, 20-35%): spawnRateMultiplier=1.5 → interval=3.33s
+    // Easy Start (system1, 0-20%): spawnRateMultiplier=1.0 → interval=2.0s
+    // Hard Spike 1 (system1, 20-35%): spawnRateMultiplier=2.5 → interval=0.8s (at min)
     let easyCount = 0
     for (let t = 0; t < 30; t += 0.1) {
       easyCount += ss.tick(0.1, 0, 0).length
@@ -88,6 +88,8 @@ describe('spawnSystem', () => {
     const result = ss.tick(FIRST_SPAWN_TRIGGER, px, pz)
 
     for (const inst of result) {
+      // Sweep enemies use a line-formation offset that can exceed SPAWN_DISTANCE_MAX — skip them
+      if (inst.sweepDirection) continue
       const dx = inst.x - px
       const dz = inst.z - pz
       const dist = Math.sqrt(dx * dx + dz * dz)
@@ -121,12 +123,12 @@ describe('spawnSystem', () => {
     const initialCount = result1.length
     expect(initialCount).toBeGreaterThanOrEqual(GAME_CONFIG.SPAWN_BATCH_SIZE_BASE)
 
-    // Advance past SPAWN_BATCH_RAMP_INTERVAL (30s); still in Easy Start phase (0-120s)
+    // Advance past SPAWN_BATCH_RAMP_INTERVAL (20s); still in Easy Start phase (0-120s)
     for (let t = 0; t < GAME_CONFIG.SPAWN_BATCH_RAMP_INTERVAL; t += 0.1) {
       ss.tick(0.1, 0, 0)
     }
 
-    // Easy Start interval = 10s. Use delta > 10s to guarantee a spawn triggers
+    // Easy Start interval = 2.0s. Use delta > 2.0s to guarantee a spawn triggers
     const result2 = ss.tick(15, 0, 0)
     expect(result2.length).toBeGreaterThanOrEqual(GAME_CONFIG.SPAWN_BATCH_SIZE_BASE + 1)
   })

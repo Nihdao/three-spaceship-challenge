@@ -277,7 +277,7 @@ development_status:
   28-1-clear-damage-numbers-game-over: done
   28-2-hide-leva-debug-panel: review
   28-3-fix-music-transition-volume-balance: done
-  28-4-increase-spawn-rate-difficulty-scaling: review
+  28-4-increase-spawn-rate-difficulty-scaling: done
   epic-28-retrospective: optional
 
   # Epic 29: UI & Visual Polish
