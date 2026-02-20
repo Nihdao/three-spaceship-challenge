@@ -73,11 +73,11 @@ function UpgradeCard({ upgradeId }) {
     <div
       className={`
         border rounded-lg p-3 transition-all duration-150 select-none
-        bg-white/[0.05] backdrop-blur-sm
+        bg-black/40 backdrop-blur-sm
         ${info.isMaxed
           ? 'border-game-success/40'
           : info.canAfford
-            ? 'border-game-border hover:border-[#cc66ff]/60 hover:bg-white/[0.08]'
+            ? 'border-game-border hover:border-[#cc66ff]/60 hover:bg-black/50'
             : 'border-game-border/40 opacity-60'
         }
       `}
