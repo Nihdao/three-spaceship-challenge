@@ -12,7 +12,7 @@ export const MENU_ITEMS = [
   { id: "play", label: "PLAY" },
   { id: "upgrades", label: "UPGRADES" },
   { id: "armory", label: "ARMORY" },
-  { id: "stats", label: "STATS" },
+  { id: "options", label: "OPTIONS" },
 ];
 
 export default function MainMenu() {
@@ -149,7 +149,7 @@ export default function MainMenu() {
           {MENU_ITEMS.map((item, i) => (
             <button
               key={item.id}
-              ref={item.id === "play" ? playButtonRef : item.id === "stats" ? statsButtonRef : undefined}
+              ref={item.id === "play" ? playButtonRef : undefined}
               className={`
                 w-48 py-3 text-lg font-semibold tracking-widest
                 border rounded transition-all duration-150 select-none
@@ -171,14 +171,15 @@ export default function MainMenu() {
           ))}
         </div>
 
-        {/* Bottom-left: Options & Credits */}
+        {/* Bottom-left: Stats & Credits */}
         <div className="absolute bottom-8 left-8 flex flex-col gap-2 select-none">
           <button
-            onClick={() => { playSFX("button-click"); setIsOptionsOpen(true); }}
+            ref={statsButtonRef}
+            onClick={() => { playSFX("button-click"); setIsStatsOpen(true); }}
             onMouseEnter={() => playSFX("button-hover")}
             className="px-4 py-2 text-sm tracking-widest border border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text transition-all duration-150 rounded outline-none cursor-pointer"
           >
-            OPTIONS
+            STATS
           </button>
           <button
             ref={creditsButtonRef}
