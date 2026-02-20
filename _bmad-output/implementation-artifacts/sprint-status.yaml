@@ -250,7 +250,7 @@ development_status:
   25-2-level-based-ship-skins: done
   25-3-galaxy-choice-screen: done
   25-4-armory-catalog-screen: done
-  25-5-persistent-global-stats: ready-for-dev
+  25-5-persistent-global-stats: done
   25-6-stats-display-screen: ready-for-dev
   epic-25-retrospective: optional
 
@@ -268,6 +268,6 @@ development_status:
   27-1-player-damage-numbers-basic-display: done
   27-2-critical-hit-numbers-golden-display: done
   27-3-enemy-hit-flash-visual-impact-feedback: done
-  27-4-enemy-knockback-physics-impact: ready-for-dev
+  27-4-enemy-knockback-physics-impact: done
   27-5-player-damage-numbers-red-display: ready-for-dev
   epic-27-retrospective: optional

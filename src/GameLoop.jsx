@@ -25,6 +25,7 @@ import { rollDrops, resetAll as resetLoot } from './systems/lootSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 import { WEAPONS } from './entities/weaponDefs.js'
 import useDamageNumbers from './stores/useDamageNumbers.jsx'
+import { applyKnockbackImpulse } from './systems/knockbackSystem.js'
 
 // Pre-allocated orb IDs — avoids template string allocation per frame (50 orbs × 60 FPS)
 const _orbIds = []
@@ -376,6 +377,7 @@ export default function GameLoop() {
           for (let h = 0; h < hits.length; h++) {
             if (proj.pierceHits >= proj.pierceCount) break
             projectileHits.push({ enemyId: hits[h].id, damage: proj.damage, isCrit: proj.isCrit ?? false })
+            applyKnockbackImpulse(enemies, hits[h].id, proj) // Story 27.4
             proj.pierceHits++
           }
           if (proj.pierceHits >= proj.pierceCount) proj.active = false
@@ -383,6 +385,7 @@ export default function GameLoop() {
         } else if (proj.explosionRadius) {
           proj.active = false
           projectileHits.push({ enemyId: hits[0].id, damage: proj.damage, isCrit: proj.isCrit ?? false })
+          applyKnockbackImpulse(enemies, hits[0].id, proj) // Story 27.4: direct hit knockback
           // Area damage to all enemies within explosion radius
           for (let e = 0; e < enemies.length; e++) {
             if (enemies[e].id === hits[0].id) continue // already hit directly
@@ -397,6 +400,7 @@ export default function GameLoop() {
         } else {
           proj.active = false
           projectileHits.push({ enemyId: hits[0].id, damage: proj.damage, isCrit: proj.isCrit ?? false })
+          applyKnockbackImpulse(enemies, hits[0].id, proj) // Story 27.4
         }
       }
     }

@@ -16,6 +16,7 @@ export const WEAPONS = {
     projectileColor: '#00ffff',     // cyan beam per UX neon palette
     projectileMeshScale: [0.75, 0.75, 3.0], // elongated beam shape (Story 2.9)
     sfxKey: 'laser-fire',
+    knockbackStrength: 1,         // Story 27.4: light knockback (1 units direct displacement)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',            // 'fixed' for slot 1, 'any' for slots 2-4
     upgrades: [
@@ -45,6 +46,7 @@ export const WEAPONS = {
     projectileColor: '#ffcc00',     // Story 12.2: brighter yellow (was #ff8800 orange)
     projectileMeshScale: [0.5, 0.5, 1.5],
     sfxKey: 'laser-fire',
+    knockbackStrength: 1.5,         // Story 27.4: medium knockback per pellet (1.5 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -73,6 +75,7 @@ export const WEAPONS = {
     projectileColor: '#ff5555',     // Story 12.2: brighter red (was #ff3333)
     projectileMeshScale: [0.6, 0.6, 2.0],
     sfxKey: 'laser-fire',
+    knockbackStrength: 2.5,         // Story 27.4: explosive knockback (2.5 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -100,6 +103,7 @@ export const WEAPONS = {
     projectileColor: '#ff00ff',     // Story 12.2: bright magenta (was #aa00ff)
     projectileMeshScale: [0.7, 0.7, 2.0],
     sfxKey: 'laser-fire',
+    knockbackStrength: 1.75,         // Story 27.4: medium-heavy knockback (1.75 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -131,6 +135,7 @@ export const WEAPONS = {
     projectileColor: '#4488ff',
     projectileMeshScale: [0.3, 0.3, 6.0],
     sfxKey: 'railgun-fire',
+    knockbackStrength: 4,         // Story 27.4: very strong knockback (4 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -160,6 +165,7 @@ export const WEAPONS = {
     projectileColor: '#88ff00',     // Story 12.2: lime green (was #ff6600, conflicted with boss orange)
     projectileMeshScale: [0.4, 0.4, 1.2],
     sfxKey: 'trishot-fire',
+    knockbackStrength: 1.25,         // Story 27.4: light-medium knockback (1.25 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -190,6 +196,7 @@ export const WEAPONS = {
     projectileColor: '#ffff00',
     projectileMeshScale: [0.3, 0.3, 0.5],
     sfxKey: 'shotgun-fire',
+    knockbackStrength: 3,         // Story 27.4: strong knockback (3 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -220,6 +227,7 @@ export const WEAPONS = {
     projectileColor: '#bb66ff',     // Story 12.2 review: purple (was #ffaa00 orange, too close to boss #ff6600)
     projectileMeshScale: [0.6, 0.6, 0.6],
     sfxKey: 'satellite-fire',
+    knockbackStrength: 1,         // Story 27.4: light knockback (1 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -249,6 +257,7 @@ export const WEAPONS = {
     projectileColor: '#00ffaa',
     projectileMeshScale: [0.4, 0.4, 1.0],
     sfxKey: 'drone-fire',
+    knockbackStrength: 1,         // Story 27.4: light knockback (1 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -279,6 +288,7 @@ export const WEAPONS = {
     projectileColor: '#ff0088',
     projectileMeshScale: [0.5, 0.5, 8.0],
     sfxKey: 'beam-fire',
+    knockbackStrength: 0.375,        // Story 27.4: minimal knockback (0.375 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [
@@ -309,6 +319,7 @@ export const WEAPONS = {
     projectileColor: '#ff2244',     // Story 12.2 review: crimson (was #ff4400 red-orange, too close to boss #ff6600)
     projectileMeshScale: [1.2, 1.2, 1.2],
     sfxKey: 'explosive-fire',
+    knockbackStrength: 2,         // Story 27.4: moderate knockback (2 units direct)
     rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
     slot: 'any',
     upgrades: [

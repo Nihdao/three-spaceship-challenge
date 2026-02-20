@@ -440,6 +440,9 @@ export const GAME_CONFIG = {
     BOUNCE_DURATION: 0.15,      // seconds — pop-out bounce effect at spawn
   },
 
+  // Enemy Knockback (Story 27.4)
+  BOSS_KNOCKBACK_RESISTANCE: 0.9, // bosses take only 10% knockback (feel massive)
+
   // Enemy Hit Flash (Story 27.3)
   HIT_FLASH: {
     DURATION: 0.12,           // seconds — 120ms flash duration
