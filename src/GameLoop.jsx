@@ -160,6 +160,11 @@ export default function GameLoop() {
       useBoss.getState().reset()
     }
 
+    // Clear damage numbers when game over occurs (Story 28.1)
+    if (phase === 'gameOver' && prevPhaseRef.current !== 'gameOver') {
+      useDamageNumbers.getState().reset()
+    }
+
     prevPhaseRef.current = phase
 
     // Story 17.4: Boss phase is deprecated — boss fight now happens during 'gameplay' phase

@@ -271,3 +271,27 @@ development_status:
   27-4-enemy-knockback-physics-impact: done
   27-5-player-damage-numbers-red-display: done
   epic-27-retrospective: optional
+
+  # Epic 28: Bugs, Balance & Quick Fixes
+  epic-28: in-progress
+  28-1-clear-damage-numbers-game-over: in-progress
+  28-2-hide-leva-debug-panel: ready-for-dev
+  28-3-fix-music-transition-volume-balance: ready-for-dev
+  28-4-increase-spawn-rate-difficulty-scaling: ready-for-dev
+  epic-28-retrospective: optional
+
+  # Epic 29: UI & Visual Polish
+  epic-29: in-progress
+  29-1-planet-assets-menu-screens: review
+  29-2-cinematic-system-name-banner: ready-for-dev
+  29-3-upgrade-card-ux-full-clickable-descriptions: ready-for-dev
+  29-4-permanent-upgrade-exponential-scaling: ready-for-dev
+  epic-29-retrospective: optional
+
+  # Epic 30: Companion Narrative System
+  epic-30: in-progress
+  30-1-companion-dialogue-ui-component: ready-for-dev
+  30-2-system-arrival-navigation-dialogues: ready-for-dev
+  30-3-contextual-event-dialogues: ready-for-dev
+  30-4-dialogue-definitions-extensibility: backlog
+  epic-30-retrospective: optional
