@@ -6,13 +6,13 @@ import OptionsModal from "./modals/OptionsModal.jsx";
 import CreditsModal from "./modals/CreditsModal.jsx";
 import UpgradesScreen from "./UpgradesScreen.jsx";
 import Armory from "./Armory.jsx";
+import StatsScreen from "./StatsScreen.jsx";
 
 export const MENU_ITEMS = [
   { id: "play", label: "PLAY" },
   { id: "upgrades", label: "UPGRADES" },
   { id: "armory", label: "ARMORY" },
-  { id: "options", label: "OPTIONS" },
-  { id: "credits", label: "CREDITS" },
+  { id: "stats", label: "STATS" },
 ];
 
 export default function MainMenu() {
@@ -22,8 +22,10 @@ export default function MainMenu() {
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const [isUpgradesOpen, setIsUpgradesOpen] = useState(false);
   const [isArmoryOpen, setIsArmoryOpen] = useState(false);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
   const playButtonRef = useRef(null);
   const creditsButtonRef = useRef(null);
+  const statsButtonRef = useRef(null);
 
   // High score from store (loaded from localStorage)
   const highScore = useGame((s) => s.highScore);
@@ -57,6 +59,9 @@ export default function MainMenu() {
       } else if (item.id === "armory") {
         playSFX("button-click");
         setIsArmoryOpen(true);
+      } else if (item.id === "stats") {
+        playSFX("button-click");
+        setIsStatsOpen(true);
       } else if (item.id === "upgrades") {
         playSFX("button-click");
         setIsUpgradesOpen(true);
@@ -77,7 +82,7 @@ export default function MainMenu() {
       if (fading) return;
 
       // Don't navigate menu while any modal is open
-      if (isCreditsOpen || isOptionsOpen || isUpgradesOpen || isArmoryOpen) return;
+      if (isCreditsOpen || isOptionsOpen || isUpgradesOpen || isArmoryOpen || isStatsOpen) return;
 
       if (e.code === "ArrowUp") {
         e.preventDefault();
@@ -96,7 +101,7 @@ export default function MainMenu() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, isUpgradesOpen, isArmoryOpen, handleMenuSelect]);
+  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, isUpgradesOpen, isArmoryOpen, isStatsOpen, handleMenuSelect]);
 
   return (
     <>
@@ -106,8 +111,8 @@ export default function MainMenu() {
         style={{ opacity: fading ? 1 : 0 }}
       />
 
-      {/* Menu overlay — hidden when upgrades or armory screen is open */}
-      {!isUpgradesOpen && !isArmoryOpen && <div
+      {/* Menu overlay — hidden when upgrades, armory, or stats screen is open */}
+      {!isUpgradesOpen && !isArmoryOpen && !isStatsOpen && <div
         className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
         inert={isCreditsOpen || isOptionsOpen ? "" : undefined}
       >
@@ -144,7 +149,7 @@ export default function MainMenu() {
           {MENU_ITEMS.map((item, i) => (
             <button
               key={item.id}
-              ref={item.id === "play" ? playButtonRef : item.id === "credits" ? creditsButtonRef : undefined}
+              ref={item.id === "play" ? playButtonRef : item.id === "stats" ? statsButtonRef : undefined}
               className={`
                 w-48 py-3 text-lg font-semibold tracking-widest
                 border rounded transition-all duration-150 select-none
@@ -164,6 +169,25 @@ export default function MainMenu() {
               {item.label}
             </button>
           ))}
+        </div>
+
+        {/* Bottom-left: Options & Credits */}
+        <div className="absolute bottom-8 left-8 flex flex-col gap-2 select-none">
+          <button
+            onClick={() => { playSFX("button-click"); setIsOptionsOpen(true); }}
+            onMouseEnter={() => playSFX("button-hover")}
+            className="px-4 py-2 text-sm tracking-widest border border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text transition-all duration-150 rounded outline-none cursor-pointer"
+          >
+            OPTIONS
+          </button>
+          <button
+            ref={creditsButtonRef}
+            onClick={() => { playSFX("button-click"); setIsCreditsOpen(true); }}
+            onMouseEnter={() => playSFX("button-hover")}
+            className="px-4 py-2 text-sm tracking-widest border border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text transition-all duration-150 rounded outline-none cursor-pointer"
+          >
+            CREDITS
+          </button>
         </div>
       </div>}
 
@@ -194,6 +218,14 @@ export default function MainMenu() {
       {/* Armory screen overlay */}
       {isArmoryOpen && (
         <Armory onClose={() => setIsArmoryOpen(false)} />
+      )}
+
+      {/* Stats screen overlay */}
+      {isStatsOpen && (
+        <StatsScreen onClose={() => {
+          setIsStatsOpen(false);
+          setTimeout(() => statsButtonRef.current?.focus(), 0);
+        }} />
       )}
     </>
   );

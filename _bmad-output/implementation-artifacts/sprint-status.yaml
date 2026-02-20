@@ -251,7 +251,7 @@ development_status:
   25-3-galaxy-choice-screen: done
   25-4-armory-catalog-screen: done
   25-5-persistent-global-stats: done
-  25-6-stats-display-screen: ready-for-dev
+  25-6-stats-display-screen: done
   epic-25-retrospective: optional
 
   # Epic 26: Audio Integration & Placeholder Sounds
@@ -269,5 +269,5 @@ development_status:
   27-2-critical-hit-numbers-golden-display: done
   27-3-enemy-hit-flash-visual-impact-feedback: done
   27-4-enemy-knockback-physics-impact: done
-  27-5-player-damage-numbers-red-display: ready-for-dev
+  27-5-player-damage-numbers-red-display: review
   epic-27-retrospective: optional
