@@ -20,13 +20,18 @@ import { Howl, Howler } from 'howler'
 
 // Volume categories per UX audio patterns (Story 28.3: rebalanced for SFX clarity)
 // music 35%, sfx actions 80%, sfx feedback+ 100%, sfx feedback- 120%, ui 70%, events 150%
+// Note: Howler.js clamps individual sound volume to [0, 1]. Values above 1.0
+// (sfxFeedbackNegative, events) are intentional: they act as priority weights
+// that boost these SFX relative to others when the player reduces sfxVolume
+// in Options (e.g. sfxVolume=0.6 → events plays at 0.9 vs sfxAction at 0.48).
+// At default sfxVolume=1.0, these values clamp to 1.0 (max).
 export const VOLUME_CATEGORIES = {
   music: 0.35,              // down from 1.0 — gameplay music no longer drowns SFX
   sfxAction: 0.8,           // unchanged — weapon SFX level kept as-is
   sfxFeedbackPositive: 1.0, // up from 0.9 — explosions, scan-complete more audible
-  sfxFeedbackNegative: 1.2, // up from 1.0 — damage-taken more urgent
+  sfxFeedbackNegative: 1.2, // up from 1.0 — damage-taken more urgent (priority weight, see note above)
   ui: 0.7,                  // up from 0.5 — button sounds more audible
-  events: 1.5,              // up from 1.2 — boss-defeat, game-over-impact more impactful
+  events: 1.5,              // up from 1.2 — boss-defeat, game-over-impact more impactful (priority weight)
 }
 
 // SFX key → volume category mapping

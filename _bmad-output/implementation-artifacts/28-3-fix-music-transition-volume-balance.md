@@ -1,6 +1,6 @@
 # Story 28.3: Fix Music Transition & Volume Balance
 
-Status: review
+Status: done
 
 ## Story
 
@@ -56,6 +56,10 @@ And I want to hear SFX clearly without them being covered by music.
   - [x] In `handleInteraction`, capture `wasLocked = !isUnlocked()` BEFORE calling `unlockAudioContext()`
   - [x] Only call `playMusic(menuMusic)` if `wasLocked` is true AND phase is 'menu'
   - [x] This prevents menu music from restarting when the user's first click IS the "Play" button
+
+- [x] Fix systemEntry music trigger for galaxyChoice → systemEntry transition (bonus fix)
+  - [x] Add `|| prevPhase === 'galaxyChoice'` to systemEntry condition in useAudio.jsx
+  - [x] Without this fix, gameplay music would not start when coming from the galaxy choice screen (Story 25.3 phase, never updated in music subscription)
 
 - [x] Verify scan loop rebalancing is automatic — no code changes (AC: #4)
   - [x] Confirm `playScanLoop()` reads `SFX_CATEGORY_MAP['scan-start']` → 'ui' → VOLUME_CATEGORIES['ui'] at call time
@@ -282,3 +286,5 @@ None.
 ### Change Log
 
 - 2026-02-20: Story 28.3 implemented — VOLUME_CATEGORIES rebalanced, handleInteraction race condition fixed
+- 2026-02-20: Bonus fix — galaxyChoice → systemEntry music trigger (useAudio.jsx:113): prevPhase check was missing 'galaxyChoice', causing gameplay music to not start in the normal menu → shipSelect → galaxyChoice → systemEntry flow
+- 2026-02-20: Code review fix — added comment to VOLUME_CATEGORIES explaining Howler.js [0,1] clamping for sfxFeedbackNegative:1.2 and events:1.5 (values above 1.0 act as priority weights at reduced sfxVolume)
