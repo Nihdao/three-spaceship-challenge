@@ -206,6 +206,13 @@ describe('useDamageNumbers store (Story 27.1)', () => {
       expect(useDamageNumbers.getState().damageNumbers).toHaveLength(0)
     })
 
+    it('clears mixed normal and crit numbers — as called on game over transition (Story 28.1)', () => {
+      useDamageNumbers.getState().spawnDamageNumber({ damage: 100, worldX: 5, worldZ: 3, isCrit: true })
+      useDamageNumbers.getState().spawnDamageNumber({ damage: 50, worldX: -2, worldZ: 1, isCrit: false })
+      useDamageNumbers.getState().reset() // same call made by GameLoop on game over transition
+      expect(useDamageNumbers.getState().damageNumbers).toHaveLength(0)
+    })
+
     it('allows spawning again after reset', () => {
       useDamageNumbers.getState().spawnDamageNumber({ damage: 100, worldX: 0, worldZ: 0 })
       useDamageNumbers.getState().reset()
