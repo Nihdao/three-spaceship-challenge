@@ -114,14 +114,14 @@ export const GAME_CONFIG = {
   PLAY_AREA_SIZE: 2000, // half-width of square play area (updated from 200 in Story 1.3)
   BOUNDARY_WARNING_DISTANCE: 100, // updated from 20 in Story 1.3
 
-  // Spawning (Story 2.2)
-  SPAWN_INTERVAL_BASE: 5.0, // seconds between spawns at start
-  SPAWN_INTERVAL_MIN: 1.5, // fastest spawn rate
-  SPAWN_RAMP_RATE: 0.01, // interval decrease per second of game time
+  // Spawning (Story 2.2, updated Story 28.4)
+  SPAWN_INTERVAL_BASE: 2.0, // seconds between spawns at start (down from 5.0)
+  SPAWN_INTERVAL_MIN: 0.8, // fastest spawn rate (down from 1.5)
+  SPAWN_RAMP_RATE: 0.025, // interval decrease per second of game time (up from 0.01, 2.5× faster decay)
   SPAWN_DISTANCE_MIN: 80, // minimum spawn distance from player
   SPAWN_DISTANCE_MAX: 120, // maximum spawn distance from player
   SPAWN_BATCH_SIZE_BASE: 1, // enemies per spawn at start
-  SPAWN_BATCH_RAMP_INTERVAL: 30, // seconds between batch size increases
+  SPAWN_BATCH_RAMP_INTERVAL: 20, // seconds between batch size increases (down from 30)
 
   // Time-gated enemy spawn schedule (Story 16.3)
   // Each entry defines when an enemy type becomes available for spawning

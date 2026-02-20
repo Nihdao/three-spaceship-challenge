@@ -98,13 +98,13 @@ describe('waveDefs — getPhaseForProgress (Story 23.1)', () => {
   it('returns Easy Start at 0.1 (10%) progress for system1', () => {
     const phase = getPhaseForProgress(1, 0.1)
     expect(phase.name).toBe('Easy Start')
-    expect(phase.spawnRateMultiplier).toBe(0.5)
+    expect(phase.spawnRateMultiplier).toBe(1.0)
   })
 
   it('returns Hard Spike 1 at 0.25 (25%) progress for system1', () => {
     const phase = getPhaseForProgress(1, 0.25)
     expect(phase.name).toBe('Hard Spike 1')
-    expect(phase.spawnRateMultiplier).toBe(1.5)
+    expect(phase.spawnRateMultiplier).toBe(2.5)
   })
 
   it('returns Hard Spike 1 exactly at startPercent 0.2', () => {

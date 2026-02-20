@@ -82,9 +82,10 @@ export function createSpawnSystem() {
       const initProgress = Math.min(elapsedTime / systemTimer, 1.0)
       const initPhase = getPhaseForProgress(systemNum, initProgress)
       const initCurseBonus = usePlayer.getState().permanentUpgradeBonuses?.curse ?? 0
+      const initEffectiveBase = Math.max(0, GAME_CONFIG.SPAWN_INTERVAL_BASE - GAME_CONFIG.SPAWN_RAMP_RATE * elapsedTime)
       spawnTimer = Math.max(
         GAME_CONFIG.SPAWN_INTERVAL_MIN,
-        GAME_CONFIG.SPAWN_INTERVAL_BASE / (initPhase.spawnRateMultiplier * (1.0 + initCurseBonus)),
+        initEffectiveBase / (initPhase.spawnRateMultiplier * (1.0 + initCurseBonus)),
       )
     }
 
@@ -102,9 +103,11 @@ export function createSpawnSystem() {
     const curseMultiplier = 1.0 + curseBonus
 
     // Story 23.1: Phase-based interval — higher spawnRateMultiplier = shorter interval = more enemies
+    // Story 28.4: SPAWN_RAMP_RATE decays the effective base over elapsed time for progressively faster spawning
+    const effectiveBase = Math.max(0, GAME_CONFIG.SPAWN_INTERVAL_BASE - GAME_CONFIG.SPAWN_RAMP_RATE * elapsedTime)
     const interval = Math.max(
       GAME_CONFIG.SPAWN_INTERVAL_MIN,
-      GAME_CONFIG.SPAWN_INTERVAL_BASE / (phase.spawnRateMultiplier * curseMultiplier),
+      effectiveBase / (phase.spawnRateMultiplier * curseMultiplier),
     )
     spawnTimer = interval
 
