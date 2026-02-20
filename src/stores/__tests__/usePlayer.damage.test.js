@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import usePlayer from '../usePlayer.jsx'
+import useDamageNumbers from '../useDamageNumbers.jsx'
 import { GAME_CONFIG } from '../../config/gameConfig.js'
 
 describe('usePlayer — damage actions', () => {
   beforeEach(() => {
     usePlayer.getState().reset()
+    useDamageNumbers.getState().reset()
   })
 
   describe('takeDamage', () => {
@@ -182,6 +184,76 @@ describe('usePlayer — damage actions', () => {
     it('HP stays at 0 when damage exceeds currentHP', () => {
       usePlayer.getState().takeDamage(GAME_CONFIG.PLAYER_BASE_HP + 50)
       expect(usePlayer.getState().currentHP).toBe(0)
+    })
+  })
+
+  describe('red damage number spawn (Story 27.5)', () => {
+    it('spawns a damage number when player takes damage', () => {
+      usePlayer.getState().takeDamage(25)
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers).toHaveLength(1)
+    })
+
+    it('spawns damage number with isPlayerDamage: true', () => {
+      usePlayer.getState().takeDamage(30)
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers[0].isPlayerDamage).toBe(true)
+    })
+
+    it('spawns damage number with red color', () => {
+      usePlayer.getState().takeDamage(20)
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers[0].color).toBe(GAME_CONFIG.DAMAGE_NUMBERS.PLAYER_COLOR)
+    })
+
+    it('spawns damage number at player position', () => {
+      usePlayer.setState({ position: [7, 0, -4] })
+      usePlayer.getState().takeDamage(10)
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers[0].worldX).toBeCloseTo(7)
+      expect(damageNumbers[0].worldZ).toBeCloseTo(-4)
+    })
+
+    it('spawns damage number with the actual damage amount taken', () => {
+      usePlayer.getState().takeDamage(40)
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers[0].damage).toBe(40)
+    })
+
+    it('does NOT spawn a damage number when invulnerable', () => {
+      usePlayer.setState({ isInvulnerable: true })
+      usePlayer.getState().takeDamage(25)
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers).toHaveLength(0)
+    })
+
+    it('does NOT spawn a damage number when contactDamageCooldown > 0', () => {
+      usePlayer.getState().takeDamage(10) // spawns first number + sets cooldown
+      useDamageNumbers.getState().reset()   // clear to count fresh
+
+      usePlayer.getState().takeDamage(10)   // blocked by cooldown
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers).toHaveLength(0)
+    })
+
+    it('does NOT spawn a damage number when _godMode is active', () => {
+      usePlayer.setState({ _godMode: true })
+      usePlayer.getState().takeDamage(25)
+      expect(useDamageNumbers.getState().damageNumbers).toHaveLength(0)
+      expect(usePlayer.getState().currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP) // HP unchanged
+    })
+
+    it('spawns damage number showing the reduced amount when damageReduction is applied', () => {
+      usePlayer.getState().takeDamage(100, 0.5) // 50% reduction → 50 damage
+      const { damageNumbers } = useDamageNumbers.getState()
+      expect(damageNumbers).toHaveLength(1)
+      expect(damageNumbers[0].damage).toBe(50)
+      expect(usePlayer.getState().currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP - 50)
+    })
+
+    it('does NOT spawn a damage number when damage is fully reduced to zero', () => {
+      usePlayer.getState().takeDamage(10, 1.0) // 100% reduction → 0 damage
+      expect(useDamageNumbers.getState().damageNumbers).toHaveLength(0)
     })
   })
 })

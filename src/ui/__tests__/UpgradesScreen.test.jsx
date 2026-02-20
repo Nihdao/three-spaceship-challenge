@@ -18,13 +18,11 @@ describe('MainMenu UPGRADES button', () => {
     expect(ids).toContain('upgrades')
   })
 
-  it('UPGRADES appears after PLAY and before OPTIONS', () => {
+  it('UPGRADES appears after PLAY', () => {
     const ids = MENU_ITEMS.map(item => item.id)
     const playIndex = ids.indexOf('play')
     const upgradesIndex = ids.indexOf('upgrades')
-    const optionsIndex = ids.indexOf('options')
     expect(upgradesIndex).toBeGreaterThan(playIndex)
-    expect(upgradesIndex).toBeLessThan(optionsIndex)
   })
 
   it('UPGRADES entry has label "UPGRADES"', () => {

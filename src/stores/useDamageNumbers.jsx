@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { GAME_CONFIG } from '../config/gameConfig.js'
-import { calcDriftOffset, updateDamageNumbers } from '../systems/damageNumberSystem.js'
+import { calcDriftOffset, getColorForDamage, updateDamageNumbers } from '../systems/damageNumberSystem.js'
 
 // Monotonic ID counter — module-level to survive resets
 let _nextId = 0
@@ -12,11 +12,11 @@ const useDamageNumbers = create((set, get) => ({
    * Spawns a new floating damage number at the given world position.
    * If MAX_COUNT is reached, removes the oldest number first.
    *
-   * @param {{ damage: number, worldX: number, worldZ: number, isCrit?: boolean, color?: string }} params
+   * @param {{ damage: number, worldX: number, worldZ: number, isCrit?: boolean, isPlayerDamage?: boolean, color?: string }} params
    */
-  spawnDamageNumber: ({ damage, worldX, worldZ, isCrit = false, color }) => {
+  spawnDamageNumber: ({ damage, worldX, worldZ, isCrit = false, isPlayerDamage = false, color }) => {
     const cfg = GAME_CONFIG.DAMAGE_NUMBERS
-    const resolvedColor = color ?? (isCrit ? GAME_CONFIG.CRIT_HIT_VISUALS.COLOR : '#ffffff')
+    const resolvedColor = color ?? getColorForDamage(isPlayerDamage, isCrit)
     const newNumber = {
       id: _nextId++,
       damage,
@@ -25,6 +25,7 @@ const useDamageNumbers = create((set, get) => ({
       worldZ,
       age: 0,
       isCrit,
+      isPlayerDamage,
       color: resolvedColor,
       offsetX: calcDriftOffset(),
     }
@@ -50,8 +51,8 @@ const useDamageNumbers = create((set, get) => ({
   spawnDamageNumbers: (entries) => {
     if (entries.length === 0) return
     const cfg = GAME_CONFIG.DAMAGE_NUMBERS
-    const newNumbers = entries.map(({ damage, worldX, worldZ, isCrit = false, color }) => {
-      const resolvedColor = color ?? (isCrit ? GAME_CONFIG.CRIT_HIT_VISUALS.COLOR : '#ffffff')
+    const newNumbers = entries.map(({ damage, worldX, worldZ, isCrit = false, isPlayerDamage = false, color }) => {
+      const resolvedColor = color ?? getColorForDamage(isPlayerDamage, isCrit)
       return {
         id: _nextId++,
         damage,
@@ -60,6 +61,7 @@ const useDamageNumbers = create((set, get) => ({
         worldZ,
         age: 0,
         isCrit,
+        isPlayerDamage,
         color: resolvedColor,
         offsetX: calcDriftOffset(),
       }

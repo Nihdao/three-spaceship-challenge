@@ -5,6 +5,7 @@ import { UPGRADES } from '../entities/upgradeDefs.js'
 import { DILEMMAS } from '../entities/dilemmaDefs.js'
 import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 import useShipProgression from './useShipProgression.jsx'
+import useDamageNumbers from './useDamageNumbers.jsx'
 
 const DEFAULT_UPGRADE_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxBonus: 0, cooldownMult: 1.0, fragmentMult: 1.0 }
 const DEFAULT_DILEMMA_STATS = { damageMult: 1.0, speedMult: 1.0, hpMaxMult: 1.0, cooldownMult: 1.0 }
@@ -474,10 +475,10 @@ const usePlayer = create((set, get) => ({
     })
   },
 
-  // Double-guard: invulnerability (post-hit i-frames, Story 3.5) + contact cooldown (Story 2.4).
-  // Both currently share the same duration but serve as independent safety nets.
+  // Triple-guard: god mode (Story 11.5) + invulnerability i-frames (Story 3.5) + contact cooldown (Story 2.4).
   takeDamage: (amount, damageReduction = 0) => {
     const state = get()
+    if (state._godMode) return
     if (state.isInvulnerable) return
     if (state.contactDamageCooldown > 0) return
     const reducedAmount = amount * (1 - damageReduction)
@@ -491,6 +492,16 @@ const usePlayer = create((set, get) => ({
       cameraShakeTimer: GAME_CONFIG.CAMERA_SHAKE_DURATION,
       cameraShakeIntensity: GAME_CONFIG.CAMERA_SHAKE_AMPLITUDE,
     })
+
+    // Spawn red damage number only when damage is non-zero (Story 27.5)
+    if (reducedAmount > 0) {
+      useDamageNumbers.getState().spawnDamageNumber({
+        damage: reducedAmount,
+        worldX: state.position[0],
+        worldZ: state.position[2],
+        isPlayerDamage: true,
+      })
+    }
   },
 
   // Cinematic position override (used by SystemEntryPortal during systemEntry phase)
