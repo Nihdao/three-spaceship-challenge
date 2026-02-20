@@ -77,10 +77,17 @@ function UpgradeCard({ upgradeId }) {
         ${info.isMaxed
           ? 'border-game-success/40'
           : info.canAfford
-            ? 'border-game-border hover:border-[#cc66ff]/60 hover:bg-black/50'
-            : 'border-game-border/40 opacity-60'
+            ? 'border-game-border hover:border-[#cc66ff]/60 hover:bg-black/50 cursor-pointer'
+            : 'border-game-border/40 opacity-60 cursor-not-allowed'
         }
       `}
+      onClick={handleBuy}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleBuy() } }}
+      onMouseEnter={() => info.canAfford && !info.isMaxed && playSFX('button-hover')}
+      role="button"
+      tabIndex={info.canAfford && !info.isMaxed ? 0 : -1}
+      aria-label={info.isMaxed ? `${info.name} — maxed` : `Buy ${info.name} for ${info.nextCost} Fragments`}
+      aria-disabled={!info.canAfford && !info.isMaxed}
     >
       {/* Top: icon + name + level */}
       <div className="flex items-center gap-2 mb-1.5">
@@ -92,7 +99,7 @@ function UpgradeCard({ upgradeId }) {
               {info.currentLevel}/{info.maxLevel}
             </span>
           </div>
-          <p className="text-xs text-game-text-muted truncate">{info.description}</p>
+          <p className="text-xs text-game-text-muted leading-relaxed">{info.description}</p>
         </div>
       </div>
 
@@ -107,17 +114,16 @@ function UpgradeCard({ upgradeId }) {
         ) : (
           <button
             className={`
-              px-2.5 py-1 text-xs font-semibold tracking-wider rounded border transition-all duration-150
-              outline-none
+              px-2.5 py-1 text-xs font-semibold tracking-wider rounded border
+              outline-none pointer-events-none
               ${info.canAfford
-                ? 'border-[#cc66ff]/60 text-[#cc66ff] hover:bg-[#cc66ff]/15 hover:border-[#cc66ff] cursor-pointer'
-                : 'border-game-border/40 text-game-text-muted cursor-not-allowed'
+                ? 'border-[#cc66ff]/60 text-[#cc66ff]'
+                : 'border-game-border/40 text-game-text-muted'
               }
             `}
-            onClick={handleBuy}
-            onMouseEnter={() => info.canAfford && playSFX('button-hover')}
             disabled={!info.canAfford}
-            aria-label={`Buy ${info.name} for ${info.nextCost} Fragments`}
+            aria-hidden="true"
+            tabIndex={-1}
           >
             {info.nextCost}◆
           </button>
