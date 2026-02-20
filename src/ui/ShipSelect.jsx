@@ -309,7 +309,7 @@ export default function ShipSelect() {
             {/* Flat value stats — pass bonus from bonuses object */}
             <StatLine compact
               label="HP"
-              value={effectiveStats.maxHP}
+              value={Math.round(effectiveStats.maxHP)}
               bonusValue={bonuses.maxHP}
               icon="❤️"
             />
@@ -346,7 +346,7 @@ export default function ShipSelect() {
             />
             <StatLine compact
               label="SPEED"
-              value={effectiveStats.speed}
+              value={parseFloat(effectiveStats.speed.toFixed(1))}
               icon="⚡"
             />
             <StatLine compact

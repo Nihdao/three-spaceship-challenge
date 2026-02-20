@@ -191,6 +191,37 @@ describe('ShipSelect — Enriched Stats Display Logic (Story 20.7)', () => {
     })
   })
 
+  // AC 8 (Story 29.4): ShipSelect must display HP as integer and Speed with at most 1 decimal
+  describe('Floating-point display formatting (AC 8)', () => {
+    it('Math.round removes float noise from HP at ship level 4 (shipLevelMult = 1.09)', () => {
+      // 0.03 * 3 = 0.09000000000000001 in floating-point, so 100 * 1.09 = 109.00000000000001
+      const baseHP = 100
+      const shipLevelMult = 1 + 3 * 0.03 // level 4 → 1.0900000000000001
+      const rawHP = baseHP * shipLevelMult
+      expect(rawHP).not.toBe(109)          // float noise present (the bug)
+      expect(Math.round(rawHP)).toBe(109)  // fix works
+    })
+
+    it('parseFloat(toFixed(1)) removes float noise from Speed at ship level 4', () => {
+      const baseSpeed = 50
+      const shipLevelMult = 1 + 3 * 0.03 // level 4 → 1.0900000000000001
+      const rawSpeed = baseSpeed * shipLevelMult
+      expect(rawSpeed).not.toBe(54.5)                           // float noise present (the bug)
+      expect(parseFloat(rawSpeed.toFixed(1))).toBe(54.5)        // fix works
+    })
+
+    it('Math.round is stable for clean integer HP values', () => {
+      expect(Math.round(100)).toBe(100)
+      expect(Math.round(130)).toBe(130) // 100 + 10 + 20 from MAX_HP upgrades
+      expect(Math.round(170)).toBe(170) // 100 + 10 + 20 + 40 from MAX_HP max
+    })
+
+    it('parseFloat(toFixed(1)) is stable for already-clean speed values', () => {
+      expect(parseFloat((50).toFixed(1))).toBe(50)
+      expect(parseFloat((51.5).toFixed(1))).toBe(51.5)
+    })
+  })
+
   describe('Integration: Multiple upgrades across all stat categories', () => {
     it('should compute effectiveStats correctly with bonuses across Combat, Utility, Meta stats', () => {
       usePlayer.setState({ fragments: 10000 })
