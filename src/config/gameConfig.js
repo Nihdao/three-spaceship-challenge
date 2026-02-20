@@ -424,12 +424,16 @@ export const GAME_CONFIG = {
   REVIVAL_ENEMY_PUSHBACK_FORCE: 3, // impulse strength
   REVIVAL_FLASH_RATE: 8, // flashes per second for visual feedback
 
-  // Damage Numbers (Story 27.1)
+  // Damage Numbers (Story 27.1 + 27.5)
   DAMAGE_NUMBERS: {
-    LIFETIME: 1.0,      // seconds before a damage number disappears
-    MAX_COUNT: 50,      // maximum numbers on screen simultaneously
-    DRIFT_RANGE: 30,    // pixels — max horizontal random offset from impact point
-    RISE_SPEED: 50,     // pixels/second upward movement
+    LIFETIME: 1.0,           // seconds before a damage number disappears
+    MAX_COUNT: 50,           // maximum numbers on screen simultaneously
+    DRIFT_RANGE: 30,         // pixels — max horizontal random offset from impact point
+    RISE_SPEED: 50,          // pixels/second upward movement
+    BASE_FONT_PX: 18,        // normal/enemy damage number font size (Story 27.5 review)
+    PLAYER_COLOR: '#FF4444', // red — player damage numbers (Story 27.5)
+    PLAYER_RISE_SPEED_MULT: 1.2, // player damage floats 20% faster for urgency (Story 27.5)
+    PLAYER_FONT_PX: 22,      // slightly larger than enemy damage for visibility (Story 27.5)
   },
 
   // Critical Hit Visuals (Story 27.2)

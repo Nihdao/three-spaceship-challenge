@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { updateDamageNumbers, calcDriftOffset } from '../damageNumberSystem.js'
+import { updateDamageNumbers, calcDriftOffset, getColorForDamage } from '../damageNumberSystem.js'
 import { GAME_CONFIG } from '../../config/gameConfig.js'
 
 describe('damageNumberSystem (Story 27.1)', () => {
@@ -87,6 +87,29 @@ describe('damageNumberSystem (Story 27.1)', () => {
 
     it('returns a number', () => {
       expect(typeof calcDriftOffset()).toBe('number')
+    })
+  })
+
+  describe('getColorForDamage (Story 27.5)', () => {
+    it('returns white for normal enemy damage', () => {
+      expect(getColorForDamage(false, false)).toBe('#ffffff')
+    })
+
+    it('returns red for player damage', () => {
+      expect(getColorForDamage(true, false)).toBe(GAME_CONFIG.DAMAGE_NUMBERS.PLAYER_COLOR)
+    })
+
+    it('returns gold for critical hit (enemy)', () => {
+      expect(getColorForDamage(false, true)).toBe(GAME_CONFIG.CRIT_HIT_VISUALS.COLOR)
+    })
+
+    it('player damage takes priority over crit flag', () => {
+      // isPlayerDamage wins — player takes priority
+      expect(getColorForDamage(true, true)).toBe(GAME_CONFIG.DAMAGE_NUMBERS.PLAYER_COLOR)
+    })
+
+    it('defaults to normal (white) when called with no arguments', () => {
+      expect(getColorForDamage()).toBe('#ffffff')
     })
   })
 })

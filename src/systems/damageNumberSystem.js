@@ -49,3 +49,17 @@ export function updateDamageNumbers(numbers, delta) {
 export function calcDriftOffset() {
   return (Math.random() - 0.5) * GAME_CONFIG.DAMAGE_NUMBERS.DRIFT_RANGE * 2
 }
+
+/**
+ * Determines the color for a damage number based on its source.
+ * Priority: player damage > critical hit > normal (white).
+ *
+ * @param {boolean} [isPlayerDamage=false] - True when the player takes damage
+ * @param {boolean} [isCrit=false] - True for enemy critical hits
+ * @returns {string} CSS color string
+ */
+export function getColorForDamage(isPlayerDamage = false, isCrit = false) {
+  if (isPlayerDamage) return GAME_CONFIG.DAMAGE_NUMBERS.PLAYER_COLOR
+  if (isCrit) return GAME_CONFIG.CRIT_HIT_VISUALS.COLOR
+  return '#ffffff'
+}
