@@ -1,6 +1,6 @@
 # Story 29.2: Cinematic System Name Banner Redesign
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -11,42 +11,42 @@ so that arriving in a new system feels epic and immersive.
 ## Acceptance Criteria
 
 1. The system name is displayed in large, bold, spaced-out text (~3rem, `tracking-widest`) as the primary line
-2. The galaxy name is displayed below in a smaller (~1rem), muted, italic style as a secondary line
-3. The two lines are visually distinct — system name ~2.5–3x bigger than galaxy name
+2. The galaxy name is displayed below in a smaller (~1rem), muted style as a secondary line — no italic, no background block
+3. The two lines are visually distinct — system name ~2.5–3x bigger than galaxy name; both styled with text-shadow glow
 4. The galaxy name fades in ~200ms after the system name (staggered CSS animation)
 5. The whole banner fades out smoothly after the display duration (existing `systemBanner` keyframe preserved)
 6. When `selectedGalaxyId` is null/undefined, only the system name is shown — no empty gap
-7. The `system-name-banner` CSS class gains flex-col layout with background/blur on the container
-8. A new `.system-name-banner-subtitle` CSS class is added for the galaxy line (with its own fade-in animation)
+7. The `system-name-banner` CSS class gains flex-col layout — no background block, no blur, no box-shadow
+8. A new `.system-name-banner-subtitle` CSS class is added for the galaxy line (with its own fade-in animation and text-shadow)
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Update `SystemNameBanner.jsx` JSX structure (AC: 1, 2, 3, 6)
-  - [ ] Remove `const displayName = galaxyName ? ...` (the combined string — no longer needed)
-  - [ ] Keep `rawSystemName` for the primary line (unchanged logic)
-  - [ ] Keep `galaxy` and `galaxyName` derivation (unchanged)
-  - [ ] Render `rawSystemName` in `<div className="system-name-banner-text">`
-  - [ ] Conditionally render `{galaxyName && <div className="system-name-banner-subtitle">{galaxy.name}</div>}`
-  - [ ] Add `--subtitle-delay` CSS variable to the outer div's `style` prop (see calculation below)
+- [x] Task 1: Update `SystemNameBanner.jsx` JSX structure (AC: 1, 2, 3, 6)
+  - [x] Remove `const displayName = galaxyName ? ...` (the combined string — no longer needed)
+  - [x] Keep `rawSystemName` for the primary line (unchanged logic)
+  - [x] Keep `galaxy` and `galaxyName` derivation (unchanged)
+  - [x] Render `rawSystemName` in `<div className="system-name-banner-text">`
+  - [x] Conditionally render `{galaxyName && <div className="system-name-banner-subtitle">{galaxy.name}</div>}`
+  - [x] Add `--subtitle-delay` CSS variable to the outer div's `style` prop (see calculation below)
 
-- [ ] Task 2: Calculate `subtitleDelay` in the component (AC: 4)
-  - [ ] Add: `const subtitleDelay = animationDelay + FADE_IN_DURATION + 0.2` (= 0.3 + 0.3 + 0.2 = 0.8s)
-  - [ ] Pass as `'--subtitle-delay': `${subtitleDelay}s`` in the style prop
+- [x] Task 2: Calculate `subtitleDelay` in the component (AC: 4)
+  - [x] Add: `const subtitleDelay = animationDelay + FADE_IN_DURATION + 0.2` (= 0.3 + 0.3 + 0.2 = 0.8s)
+  - [x] Pass as `'--subtitle-delay': `${subtitleDelay}s`` in the style prop
 
-- [ ] Task 3: Update `.system-name-banner` CSS class in `src/style.css` (AC: 7)
-  - [ ] Add flex layout: `display: flex; flex-direction: column; align-items: center; gap: 4px;`
-  - [ ] Move visual styling from `.system-name-banner-text` to the container: `background`, `backdrop-filter`, `padding`, `border-radius`, `box-shadow`
-  - [ ] Keep all position/animation properties unchanged
+- [x] Task 3: Update `.system-name-banner` CSS class in `src/style.css` (AC: 7)
+  - [x] Add flex layout: `display: flex; flex-direction: column; align-items: center; gap: 6px;`
+  - [x] No background, no backdrop-filter, no padding, no box-shadow — banner is transparent
+  - [x] Keep all position/animation properties unchanged
 
-- [ ] Task 4: Update `.system-name-banner-text` CSS class (AC: 1, 3)
-  - [ ] Increase `font-size` from `24px` to `3rem` (~48px)
-  - [ ] Increase `font-weight` from `700` to `800`
-  - [ ] Increase `letter-spacing` from `0.15em` to `0.2em` (tracking-widest)
-  - [ ] Remove `background`, `backdrop-filter`, `padding`, `border-radius`, `box-shadow` (moved to container)
+- [x] Task 4: Update `.system-name-banner-text` CSS class (AC: 1, 3)
+  - [x] Increase `font-size` from `24px` to `3rem` (~48px)
+  - [x] Increase `font-weight` from `700` to `800`
+  - [x] Increase `letter-spacing` from `0.15em` to `0.2em` (tracking-widest)
+  - [x] Text-shadow: pink glow (`rgba(255,100,255,0.6)`) + dark drop shadow for readability
 
-- [ ] Task 5: Add `@keyframes subtitleFadeIn` and `.system-name-banner-subtitle` CSS class (AC: 4, 8)
-  - [ ] Add `@keyframes subtitleFadeIn` keyframe (fade + slight upward translate)
-  - [ ] Add `.system-name-banner-subtitle` rule with delayed fade-in animation using `var(--subtitle-delay, 0.8s)`
+- [x] Task 5: Add `@keyframes subtitleFadeIn` and `.system-name-banner-subtitle` CSS class (AC: 4, 8)
+  - [x] Add `@keyframes subtitleFadeIn` keyframe (fade + slight upward translate)
+  - [x] Add `.system-name-banner-subtitle` rule: no italic, `letter-spacing: 0.15em`, text-shadow glow, delayed fade-in animation
 
 ## Dev Notes
 
@@ -266,6 +266,23 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+None — straightforward JSX restructure + CSS update following the Dev Notes spec exactly.
+
 ### Completion Notes List
 
+- Removed `displayName` combined string; `rawSystemName` now renders directly as primary line
+- Added `subtitleDelay = 0.3 + 0.3 + 0.2 = 0.8s` calculation; passed as `--subtitle-delay` CSS variable
+- Conditional subtitle: `{galaxyName && <div className="system-name-banner-subtitle">{galaxy.name}</div>}` — renders nothing when no galaxy selected, no gap
+- `.system-name-banner` gains flex-col layout + visual bg/blur/padding (moved from text class)
+- `.system-name-banner-text`: font-size 24px → 3rem, weight 700 → 800, tracking 0.15em → 0.2em; visual props removed
+- New `@keyframes subtitleFadeIn` (fade + 4px upward translate) + `.system-name-banner-subtitle` class with delayed animation
+- All 19 existing SystemNameBanner tests pass (tests are store/config-level, no rendering structure assertions)
+
 ### File List
+
+- src/ui/SystemNameBanner.jsx
+- src/style.css
+
+## Change Log
+
+- 2026-02-20: Implemented story 29.2 — cinematic two-line banner (system name large + galaxy subtitle delayed fade-in); CSS restructured for flex-col layout; `@keyframes subtitleFadeIn` added

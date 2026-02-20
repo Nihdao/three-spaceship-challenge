@@ -36,15 +36,15 @@ export default function SystemNameBanner() {
   }
   const rawSystemName = systemName || `SYSTEM ${currentSystem}`
 
-  // Story 25.3: Build display text with galaxy name prefix if available
+  // Story 25.3: Galaxy info for subtitle display
   const galaxy = selectedGalaxyId ? getGalaxyById(selectedGalaxyId) : null
   const galaxyName = galaxy ? galaxy.name.toUpperCase() : null
-  const displayName = galaxyName ? `${galaxyName} — ${rawSystemName}` : rawSystemName
 
-  // Calculate animation duration from config
+  // Calculate animation durations from config
   const { FADE_IN_DURATION, DISPLAY_DURATION, FADE_OUT_DURATION } = GAME_CONFIG.SYSTEM_BANNER
   const totalDuration = FADE_IN_DURATION + DISPLAY_DURATION + FADE_OUT_DURATION
   const animationDelay = 0.3 // seconds - delay after white flash
+  const subtitleDelay = animationDelay + FADE_IN_DURATION + 0.2 // 0.3 + 0.3 + 0.2 = 0.8s
 
   return (
     <div
@@ -53,11 +53,17 @@ export default function SystemNameBanner() {
       style={{
         '--animation-duration': `${totalDuration}s`,
         '--animation-delay': `${animationDelay}s`,
+        '--subtitle-delay': `${subtitleDelay}s`,
       }}
     >
       <div className="system-name-banner-text">
-        {displayName}
+        {rawSystemName}
       </div>
+      {galaxyName && (
+        <div className="system-name-banner-subtitle">
+          {galaxy.name}
+        </div>
+      )}
     </div>
   )
 }
