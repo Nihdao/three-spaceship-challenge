@@ -1,6 +1,6 @@
 # Story 28.3: Fix Music Transition & Volume Balance
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -43,23 +43,23 @@ And I want to hear SFX clearly without them being covered by music.
 
 ## Tasks / Subtasks
 
-- [ ] Update VOLUME_CATEGORIES in audioManager.js (AC: #2, #3, #4)
-  - [ ] Change `music: 1.0` → `music: 0.35`
-  - [ ] Change `sfxFeedbackPositive: 0.9` → `sfxFeedbackPositive: 1.0`
-  - [ ] Change `sfxFeedbackNegative: 1.0` → `sfxFeedbackNegative: 1.2`
-  - [ ] Change `events: 1.2` → `events: 1.5`
-  - [ ] Change `ui: 0.5` → `ui: 0.7`
-  - [ ] Keep `sfxAction: 0.8` unchanged
-  - [ ] Verify `musicVolume` variable is initialized from `VOLUME_CATEGORIES.music` (already true, line 73 — no code change needed)
+- [x] Update VOLUME_CATEGORIES in audioManager.js (AC: #2, #3, #4)
+  - [x] Change `music: 1.0` → `music: 0.35`
+  - [x] Change `sfxFeedbackPositive: 0.9` → `sfxFeedbackPositive: 1.0`
+  - [x] Change `sfxFeedbackNegative: 1.0` → `sfxFeedbackNegative: 1.2`
+  - [x] Change `events: 1.2` → `events: 1.5`
+  - [x] Change `ui: 0.5` → `ui: 0.7`
+  - [x] Keep `sfxAction: 0.8` unchanged
+  - [x] Verify `musicVolume` variable is initialized from `VOLUME_CATEGORIES.music` (already true, line 73 — no code change needed)
 
-- [ ] Fix handleInteraction race condition in useAudio.jsx (AC: #1)
-  - [ ] In `handleInteraction`, capture `wasLocked = !isUnlocked()` BEFORE calling `unlockAudioContext()`
-  - [ ] Only call `playMusic(menuMusic)` if `wasLocked` is true AND phase is 'menu'
-  - [ ] This prevents menu music from restarting when the user's first click IS the "Play" button
+- [x] Fix handleInteraction race condition in useAudio.jsx (AC: #1)
+  - [x] In `handleInteraction`, capture `wasLocked = !isUnlocked()` BEFORE calling `unlockAudioContext()`
+  - [x] Only call `playMusic(menuMusic)` if `wasLocked` is true AND phase is 'menu'
+  - [x] This prevents menu music from restarting when the user's first click IS the "Play" button
 
-- [ ] Verify scan loop rebalancing is automatic — no code changes (AC: #4)
-  - [ ] Confirm `playScanLoop()` reads `SFX_CATEGORY_MAP['scan-start']` → 'ui' → VOLUME_CATEGORIES['ui'] at call time
-  - [ ] Confirm no hardcoded volume override in `playScanLoop()` (it doesn't have one)
+- [x] Verify scan loop rebalancing is automatic — no code changes (AC: #4)
+  - [x] Confirm `playScanLoop()` reads `SFX_CATEGORY_MAP['scan-start']` → 'ui' → VOLUME_CATEGORIES['ui'] at call time
+  - [x] Confirm no hardcoded volume override in `playScanLoop()` (it doesn't have one)
 
 - [ ] Manual QA: Music transition (AC: #1)
   - [ ] Scenario A: Open game → immediately click "Play" as first interaction — verify no menu music bleed
@@ -263,6 +263,22 @@ Claude Sonnet 4.6 (claude-sonnet-4-6)
 
 ### Debug Log References
 
+None.
+
 ### Completion Notes List
 
+- **audioManager.js VOLUME_CATEGORIES**: `music: 1.0→0.35`, `sfxFeedbackPositive: 0.9→1.0`, `sfxFeedbackNegative: 1.0→1.2`, `ui: 0.5→0.7`, `events: 1.2→1.5`. `sfxAction` kept at 0.8.
+- **`musicVolume`** (line 73) initialises from `VOLUME_CATEGORIES.music` — picks up 0.35 automatically, no other changes needed to `playMusic()` or `crossfadeMusic()`.
+- **useAudio.jsx handleInteraction race condition fixed**: added `isUnlocked` import; `wasLocked = !isUnlocked()` captured before `unlockAudioContext()`. Menu music only (re)started if audio context was actually locked.
+- **useAudio.jsx systemEntry prevPhase bug fixed**: subscription check `prevPhase === 'shipSelect'` was missing `'galaxyChoice'`. Real phase flow is menu → shipSelect → galaxyChoice → systemEntry (Story 25.3 added galaxyChoice but music subscription was never updated). Added `|| prevPhase === 'galaxyChoice'` — gameplay music now crossfades correctly from galaxy choice screen.
+- **Scan loop rebalancing (AC4)**: automatic — `playScanLoop()` reads `VOLUME_CATEGORIES['ui']` at call time; changing `ui: 0.5→0.7` is sufficient, no playScanLoop code change.
+- No tests added — audio/visual-only changes; manual QA is the validation standard per story Dev Notes.
+
 ### File List
+
+- src/audio/audioManager.js
+- src/hooks/useAudio.jsx
+
+### Change Log
+
+- 2026-02-20: Story 28.3 implemented — VOLUME_CATEGORIES rebalanced, handleInteraction race condition fixed

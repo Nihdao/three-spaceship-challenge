@@ -18,15 +18,15 @@ import { Howl, Howler } from 'howler'
  * - Howler.js handles this gracefully: onloaderror warns, game continues
  */
 
-// Volume categories per UX audio patterns
-// music 100%, sfx actions 80%, sfx feedback+ 90%, sfx feedback- 100%, ui 50%, events 120%
+// Volume categories per UX audio patterns (Story 28.3: rebalanced for SFX clarity)
+// music 35%, sfx actions 80%, sfx feedback+ 100%, sfx feedback- 120%, ui 70%, events 150%
 export const VOLUME_CATEGORIES = {
-  music: 1.0,
-  sfxAction: 0.8,
-  sfxFeedbackPositive: 0.9,
-  sfxFeedbackNegative: 1.0,
-  ui: 0.5,
-  events: 1.2,
+  music: 0.35,              // down from 1.0 — gameplay music no longer drowns SFX
+  sfxAction: 0.8,           // unchanged — weapon SFX level kept as-is
+  sfxFeedbackPositive: 1.0, // up from 0.9 — explosions, scan-complete more audible
+  sfxFeedbackNegative: 1.2, // up from 1.0 — damage-taken more urgent
+  ui: 0.7,                  // up from 0.5 — button sounds more audible
+  events: 1.5,              // up from 1.2 — boss-defeat, game-over-impact more impactful
 }
 
 // SFX key → volume category mapping

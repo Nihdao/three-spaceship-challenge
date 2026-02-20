@@ -7,6 +7,7 @@ import {
   preloadSounds,
   loadAudioSettings,
   unlockAudioContext,
+  isUnlocked,
   selectRandomGameplayMusic,
 } from '../audio/audioManager.js'
 import { ASSET_MANIFEST } from '../config/assetManifest.js'
@@ -59,11 +60,16 @@ export default function useAudio() {
 
     // Unlock AudioContext on first user interaction (browser autoplay policy)
     const handleInteraction = () => {
+      // Capture lock state BEFORE unlocking — prevents race condition where the
+      // first click IS the "Play" button (native DOM fires before React synthetic
+      // events, so phase is still 'menu' when we check, causing menu music restart)
+      const wasLocked = !isUnlocked()
       unlockAudioContext()
-      // Restart menu music if we're on the menu phase (fixes initial autoplay block)
-      const currentPhase = useGame.getState().phase
-      if (currentPhase === 'menu') {
-        playMusic(ASSET_MANIFEST.critical.audio.menuMusic)
+      if (wasLocked) {
+        const currentPhase = useGame.getState().phase
+        if (currentPhase === 'menu') {
+          playMusic(ASSET_MANIFEST.critical.audio.menuMusic)
+        }
       }
       document.removeEventListener('click', handleInteraction)
       document.removeEventListener('keydown', handleInteraction)
@@ -104,8 +110,8 @@ export default function useAudio() {
             return
           }
 
-          if (prevPhase === 'menu' || prevPhase === 'shipSelect') {
-            // Menu/ShipSelect → systemEntry: crossfade to randomly selected track
+          if (prevPhase === 'menu' || prevPhase === 'shipSelect' || prevPhase === 'galaxyChoice') {
+            // Menu/ShipSelect/GalaxyChoice → systemEntry: crossfade to randomly selected track
             crossfadeMusic(selectedTrack, 1000)
           } else if (prevPhase === 'tunnel') {
             // Tunnel → systemEntry: crossfade to new random track for new system
