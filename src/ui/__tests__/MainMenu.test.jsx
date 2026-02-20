@@ -37,7 +37,10 @@ describe('MainMenu — MENU_ITEMS export', () => {
     const ids = MENU_ITEMS.map(item => item.id)
     expect(ids).toContain('play')
     expect(ids).toContain('upgrades')
-    expect(ids).toContain('options')
-    expect(ids).toContain('credits')
+    expect(ids).toContain('armory')
+    expect(ids).toContain('stats')
+    // options & credits are corner buttons, not part of main MENU_ITEMS
+    expect(ids).not.toContain('options')
+    expect(ids).not.toContain('credits')
   })
 })
