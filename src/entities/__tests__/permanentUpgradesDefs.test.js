@@ -96,10 +96,21 @@ describe('permanentUpgradesDefs', () => {
     })
   })
 
+  // AC 2 (Story 29.4): Bonus arrays must be heterogeneous (exponential curve, not flat)
+  it.each(['ATTACK_POWER', 'ARMOR', 'REGEN', 'ATTACK_SPEED', 'ZONE', 'EXP_BONUS', 'CURSE'])(
+    '%s bonus values are not all identical (exponential scaling)',
+    (id) => {
+      const upgrade = PERMANENT_UPGRADES[id]
+      const bonuses = upgrade.levels.map(l => l.bonus)
+      const allSame = bonuses.every(b => b === bonuses[0])
+      expect(allSame).toBe(false)
+    }
+  )
+
   describe('getTotalBonus', () => {
     it('returns cumulative bonus', () => {
-      // ATTACK_POWER: each level adds +0.05
-      expect(getTotalBonus('ATTACK_POWER', 3)).toBeCloseTo(0.15)
+      // ATTACK_POWER: 0.05+0.07+0.10
+      expect(getTotalBonus('ATTACK_POWER', 3)).toBeCloseTo(0.22)
     })
 
     it('returns 0 for level 0', () => {
@@ -107,7 +118,7 @@ describe('permanentUpgradesDefs', () => {
     })
 
     it('clamps to maxLevel', () => {
-      expect(getTotalBonus('ATTACK_POWER', 10)).toBeCloseTo(0.25)
+      expect(getTotalBonus('ATTACK_POWER', 10)).toBeCloseTo(0.62)
     })
 
     it('returns 0 for unknown upgrade', () => {

@@ -11,10 +11,10 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 5,
     levels: [
       { level: 1, cost: 50, bonus: 0.05 },
-      { level: 2, cost: 100, bonus: 0.05 },
-      { level: 3, cost: 200, bonus: 0.05 },
-      { level: 4, cost: 350, bonus: 0.05 },
-      { level: 5, cost: 500, bonus: 0.05 },
+      { level: 2, cost: 100, bonus: 0.07 },
+      { level: 3, cost: 200, bonus: 0.10 },
+      { level: 4, cost: 350, bonus: 0.15 },
+      { level: 5, cost: 500, bonus: 0.25 },
     ],
   },
   ARMOR: {
@@ -25,10 +25,10 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 5,
     levels: [
       { level: 1, cost: 50, bonus: 1 },
-      { level: 2, cost: 100, bonus: 1 },
-      { level: 3, cost: 200, bonus: 1 },
-      { level: 4, cost: 350, bonus: 1 },
-      { level: 5, cost: 500, bonus: 1 },
+      { level: 2, cost: 100, bonus: 2 },
+      { level: 3, cost: 200, bonus: 3 },
+      { level: 4, cost: 350, bonus: 5 },
+      { level: 5, cost: 500, bonus: 8 },
     ],
   },
   MAX_HP: {
@@ -39,8 +39,8 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 3,
     levels: [
       { level: 1, cost: 50, bonus: 10 },
-      { level: 2, cost: 100, bonus: 10 },
-      { level: 3, cost: 200, bonus: 10 },
+      { level: 2, cost: 100, bonus: 20 },
+      { level: 3, cost: 200, bonus: 40 },
     ],
   },
   REGEN: {
@@ -51,8 +51,8 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 3,
     levels: [
       { level: 1, cost: 50, bonus: 0.2 },
-      { level: 2, cost: 100, bonus: 0.2 },
-      { level: 3, cost: 200, bonus: 0.2 },
+      { level: 2, cost: 100, bonus: 0.4 },
+      { level: 3, cost: 200, bonus: 1.0 },
     ],
   },
   ATTACK_SPEED: {
@@ -63,8 +63,8 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 3,
     levels: [
       { level: 1, cost: 60, bonus: 0.05 },
-      { level: 2, cost: 120, bonus: 0.05 },
-      { level: 3, cost: 240, bonus: 0.05 },
+      { level: 2, cost: 120, bonus: 0.10 },
+      { level: 3, cost: 240, bonus: 0.20 },
     ],
   },
   ZONE: {
@@ -75,8 +75,8 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 3,
     levels: [
       { level: 1, cost: 40, bonus: 0.10 },
-      { level: 2, cost: 80, bonus: 0.10 },
-      { level: 3, cost: 160, bonus: 0.10 },
+      { level: 2, cost: 80, bonus: 0.15 },
+      { level: 3, cost: 160, bonus: 0.25 },
     ],
   },
   // Story 20.4: Utility stat upgrades
@@ -88,7 +88,7 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 2,
     levels: [
       { level: 1, cost: 80, bonus: 0.15 },
-      { level: 2, cost: 160, bonus: 0.15 },
+      { level: 2, cost: 160, bonus: 0.30 },
     ],
   },
   LUCK: {
@@ -99,8 +99,8 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 3,
     levels: [
       { level: 1, cost: 100, bonus: 0.05 },
-      { level: 2, cost: 200, bonus: 0.05 },
-      { level: 3, cost: 400, bonus: 0.05 },
+      { level: 2, cost: 200, bonus: 0.10 },
+      { level: 3, cost: 400, bonus: 0.20 },
     ],
   },
   EXP_BONUS: {
@@ -111,10 +111,10 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 5,
     levels: [
       { level: 1, cost: 60, bonus: 0.05 },
-      { level: 2, cost: 120, bonus: 0.05 },
-      { level: 3, cost: 240, bonus: 0.05 },
-      { level: 4, cost: 420, bonus: 0.05 },
-      { level: 5, cost: 600, bonus: 0.05 },
+      { level: 2, cost: 120, bonus: 0.07 },
+      { level: 3, cost: 240, bonus: 0.10 },
+      { level: 4, cost: 420, bonus: 0.15 },
+      { level: 5, cost: 600, bonus: 0.25 },
     ],
   },
   CURSE: {
@@ -125,10 +125,10 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 5,
     levels: [
       { level: 1, cost: 50, bonus: 0.10 },
-      { level: 2, cost: 100, bonus: 0.10 },
-      { level: 3, cost: 200, bonus: 0.10 },
-      { level: 4, cost: 350, bonus: 0.10 },
-      { level: 5, cost: 500, bonus: 0.10 },
+      { level: 2, cost: 100, bonus: 0.15 },
+      { level: 3, cost: 200, bonus: 0.20 },
+      { level: 4, cost: 350, bonus: 0.25 },
+      { level: 5, cost: 500, bonus: 0.30 },
     ],
   },
   // Story 20.5: Meta stat upgrades (charges tracked, consumed by Epic 22)

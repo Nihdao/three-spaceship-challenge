@@ -285,12 +285,12 @@ development_status:
   29-1-planet-assets-menu-screens: done
   29-2-cinematic-system-name-banner: done
   29-3-upgrade-card-ux-full-clickable-descriptions: done
-  29-4-permanent-upgrade-exponential-scaling: ready-for-dev
+  29-4-permanent-upgrade-exponential-scaling: done
   epic-29-retrospective: optional
 
   # Epic 30: Companion Narrative System
   epic-30: in-progress
-  30-1-companion-dialogue-ui-component: ready-for-dev
+  30-1-companion-dialogue-ui-component: review
   30-2-system-arrival-navigation-dialogues: ready-for-dev
   30-3-contextual-event-dialogues: ready-for-dev
   30-4-dialogue-definitions-extensibility: backlog

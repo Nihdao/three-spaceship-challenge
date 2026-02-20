@@ -33,8 +33,8 @@ describe('usePlayer — permanent upgrade bonuses integration', () => {
 
   it('initializeRunStats applies maxHP bonus from permanent upgrades', () => {
     usePlayer.setState({ fragments: 5000 })
-    useUpgrades.getState().purchaseUpgrade('MAX_HP') // +10 HP
-    useUpgrades.getState().purchaseUpgrade('MAX_HP') // +10 HP
+    useUpgrades.getState().purchaseUpgrade('MAX_HP') // +10 HP (level 1)
+    useUpgrades.getState().purchaseUpgrade('MAX_HP') // +20 HP (level 2)
 
     // Reset simulates new run
     usePlayer.getState().reset()
@@ -42,9 +42,9 @@ describe('usePlayer — permanent upgrade bonuses integration', () => {
     usePlayer.getState().initializeRunStats(bonuses)
 
     const state = usePlayer.getState()
-    // Default BALANCED ship has 100 baseHP, +20 from permanent upgrades
-    expect(state.maxHP).toBe(120)
-    expect(state.currentHP).toBe(120)
+    // Default BALANCED ship has 100 baseHP, +30 from permanent upgrades (10+20)
+    expect(state.maxHP).toBe(130)
+    expect(state.currentHP).toBe(130)
   })
 
   it('initializeRunStats stores bonuses for gameplay reference', () => {

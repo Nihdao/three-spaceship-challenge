@@ -66,7 +66,7 @@ describe('getUpgradeDisplayInfo', () => {
     expect(info.nextCost).toBe(350) // level 4 cost
     expect(info.isMaxed).toBe(false)
     expect(info.canAfford).toBe(true)
-    expect(info.totalBonus).toBeCloseTo(0.15) // 3 * 0.05
+    expect(info.totalBonus).toBeCloseTo(0.22) // 0.05+0.07+0.10
   })
 
   it('returns isMaxed=true and nextCost=null when fully leveled', () => {
@@ -93,14 +93,14 @@ describe('getUpgradeDisplayInfo', () => {
     const info = getUpgradeDisplayInfo('ARMOR', 2, 300)
     expect(info.name).toBe('Armor')
     expect(info.currentLevel).toBe(2)
-    expect(info.totalBonus).toBe(2) // 2 * 1
+    expect(info.totalBonus).toBe(3) // 1+2
   })
 
   it('works for MAX_HP upgrade at max level (3)', () => {
     const info = getUpgradeDisplayInfo('MAX_HP', 3, 0)
     expect(info.isMaxed).toBe(true)
     expect(info.maxLevel).toBe(3)
-    expect(info.totalBonus).toBe(30) // 3 * 10
+    expect(info.totalBonus).toBe(70) // 10+20+40
   })
 })
 

@@ -125,7 +125,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('ATTACK_POWER')
       useUpgrades.getState().purchaseUpgrade('ATTACK_POWER')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.attackPower).toBeCloseTo(1.10)
+      expect(bonuses.attackPower).toBeCloseTo(1.12)
     })
 
     it('computes correct armor bonus', () => {
@@ -134,7 +134,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('ARMOR')
       useUpgrades.getState().purchaseUpgrade('ARMOR')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.armor).toBe(3)
+      expect(bonuses.armor).toBe(6)
     })
 
     it('computes correct attackSpeed bonus (reduction)', () => {
@@ -142,7 +142,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('ATTACK_SPEED')
       useUpgrades.getState().purchaseUpgrade('ATTACK_SPEED')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.attackSpeed).toBeCloseTo(0.90)
+      expect(bonuses.attackSpeed).toBeCloseTo(0.85)
     })
 
     it('computes correct zone bonus', () => {
@@ -157,7 +157,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('MAX_HP')
       useUpgrades.getState().purchaseUpgrade('MAX_HP')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.maxHP).toBe(20)
+      expect(bonuses.maxHP).toBe(30)
     })
 
     it('computes correct regen bonus', () => {
@@ -181,7 +181,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('MAGNET')
       useUpgrades.getState().purchaseUpgrade('MAGNET')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.magnet).toBeCloseTo(1.30)
+      expect(bonuses.magnet).toBeCloseTo(1.45)
     })
 
     it('computes correct luck bonus (additive)', () => {
@@ -190,7 +190,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('LUCK')
       useUpgrades.getState().purchaseUpgrade('LUCK')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.luck).toBeCloseTo(0.15)
+      expect(bonuses.luck).toBeCloseTo(0.35)
     })
 
     it('computes correct expBonus bonus (multiplier)', () => {
@@ -199,7 +199,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('EXP_BONUS')
       useUpgrades.getState().purchaseUpgrade('EXP_BONUS')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.expBonus).toBeCloseTo(1.15)
+      expect(bonuses.expBonus).toBeCloseTo(1.22)
     })
 
     it('computes correct curse bonus (additive)', () => {
@@ -207,7 +207,7 @@ describe('useUpgrades', () => {
       useUpgrades.getState().purchaseUpgrade('CURSE')
       useUpgrades.getState().purchaseUpgrade('CURSE')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      expect(bonuses.curse).toBeCloseTo(0.20)
+      expect(bonuses.curse).toBeCloseTo(0.25)
     })
 
     // Story 20.5: Meta stat bonuses

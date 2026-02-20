@@ -124,8 +124,8 @@ describe('Story 20.4: Utility Upgrades Integration', () => {
       useUpgrades.getState().purchaseUpgrade('EXP_BONUS')
       useUpgrades.getState().purchaseUpgrade('EXP_BONUS')
       const bonuses = useUpgrades.getState().getComputedBonuses()
-      // 1.0 + 0.05 + 0.05 = 1.10
-      expect(bonuses.expBonus).toBeCloseTo(1.10)
+      // 1.0 + 0.05 + 0.07 = 1.12
+      expect(bonuses.expBonus).toBeCloseTo(1.12)
     })
 
     it('expBonus multiplier is applied correctly with Math.floor', () => {

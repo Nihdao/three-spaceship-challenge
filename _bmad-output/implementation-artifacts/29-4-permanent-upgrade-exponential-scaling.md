@@ -1,6 +1,6 @@
 # Story 29.4: Permanent Upgrade Exponential Scaling
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -27,46 +27,51 @@ so that spending fragments on high levels feels rewarding, not negligible.
 5. Costs remain unchanged (they already scale: 50, 100, 200, 350, 500 for 5-level upgrades)
 6. All test files that assert specific bonus totals are updated to match the new values
 7. The display in `UpgradeCard` shows correct accumulated totals (existing `getTotalBonus` logic handles it transparently)
+8. The ship stats panel in `ShipSelect` displays HP and Speed without floating-point noise (e.g. `109` not `109.0000000000000001`, `54.5` not `54.5000000000000001`) — HP rounded to integer, Speed to 1 decimal max
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Update `permanentUpgradesDefs.js` bonus values (AC: 1, 2, 3, 4, 5)
-  - [ ] Change `ATTACK_POWER` levels bonus values to `[0.05, 0.07, 0.10, 0.15, 0.25]`
-  - [ ] Change `ARMOR` levels bonus values to `[1, 2, 3, 5, 8]`
-  - [ ] Change `MAX_HP` levels bonus values to `[10, 20, 40]`
-  - [ ] Change `REGEN` levels bonus values to `[0.2, 0.4, 1.0]`
-  - [ ] Change `ATTACK_SPEED` levels bonus values to `[0.05, 0.10, 0.20]`
-  - [ ] Change `ZONE` levels bonus values to `[0.10, 0.15, 0.25]`
-  - [ ] Change `MAGNET` levels bonus values to `[0.15, 0.30]`
-  - [ ] Change `LUCK` levels bonus values to `[0.05, 0.10, 0.20]`
-  - [ ] Change `EXP_BONUS` levels bonus values to `[0.05, 0.07, 0.10, 0.15, 0.25]`
-  - [ ] Change `CURSE` levels bonus values to `[0.10, 0.15, 0.20, 0.25, 0.30]`
-  - [ ] Leave `REVIVAL`, `REROLL`, `SKIP`, `BANISH` untouched (meta stats, bonus=1 per level)
+- [x] Task 1: Update `permanentUpgradesDefs.js` bonus values (AC: 1, 2, 3, 4, 5)
+  - [x] Change `ATTACK_POWER` levels bonus values to `[0.05, 0.07, 0.10, 0.15, 0.25]`
+  - [x] Change `ARMOR` levels bonus values to `[1, 2, 3, 5, 8]`
+  - [x] Change `MAX_HP` levels bonus values to `[10, 20, 40]`
+  - [x] Change `REGEN` levels bonus values to `[0.2, 0.4, 1.0]`
+  - [x] Change `ATTACK_SPEED` levels bonus values to `[0.05, 0.10, 0.20]`
+  - [x] Change `ZONE` levels bonus values to `[0.10, 0.15, 0.25]`
+  - [x] Change `MAGNET` levels bonus values to `[0.15, 0.30]`
+  - [x] Change `LUCK` levels bonus values to `[0.05, 0.10, 0.20]`
+  - [x] Change `EXP_BONUS` levels bonus values to `[0.05, 0.07, 0.10, 0.15, 0.25]`
+  - [x] Change `CURSE` levels bonus values to `[0.10, 0.15, 0.20, 0.25, 0.30]`
+  - [x] Leave `REVIVAL`, `REROLL`, `SKIP`, `BANISH` untouched (meta stats, bonus=1 per level)
 
-- [ ] Task 2: Update `permanentUpgradesDefs.test.js` (AC: 6)
-  - [ ] Update `getTotalBonus('ATTACK_POWER', 3)` assertion: `0.15` → `0.22`
-  - [ ] Update `getTotalBonus('ATTACK_POWER', 10)` (clamped to max 5) assertion: `0.25` → `0.62`
+- [x] Task 2: Update `permanentUpgradesDefs.test.js` (AC: 6)
+  - [x] Update `getTotalBonus('ATTACK_POWER', 3)` assertion: `0.15` → `0.22`
+  - [x] Update `getTotalBonus('ATTACK_POWER', 10)` (clamped to max 5) assertion: `0.25` → `0.62`
 
-- [ ] Task 3: Update `useUpgrades.test.js` (AC: 6)
-  - [ ] Update `bonuses.attackPower` at level 2 assertion: `1.10` → `1.12` (0.05+0.07=0.12)
-  - [ ] Update `bonuses.armor` at level 3 assertion: `3` → `6` (1+2+3=6)
-  - [ ] Update `bonuses.attackSpeed` at level 2 assertion: `0.90` → `0.85` (1-(0.05+0.10)=0.85)
-  - [ ] Update `bonuses.maxHP` at level 2 assertion: `20` → `30` (10+20=30)
-  - [ ] Update `bonuses.magnet` at level 2 assertion: `1.30` → `1.45` (1+0.15+0.30=1.45)
-  - [ ] Update `bonuses.luck` at level 3 assertion: `0.15` → `0.35` (0.05+0.10+0.20=0.35)
-  - [ ] Update `bonuses.expBonus` at level 3 assertion: `1.15` → `1.22` (1+0.05+0.07+0.10=1.22)
-  - [ ] Update `bonuses.curse` at level 2 assertion: `0.20` → `0.25` (0.10+0.15=0.25)
-  - [ ] Verify `bonuses.zone` at level 1 (`1.10`) and `bonuses.regen` at level 1 (`0.2`) — no change needed (ZONE[0]=0.10, REGEN[0]=0.2 unchanged)
+- [x] Task 3: Update `useUpgrades.test.js` (AC: 6)
+  - [x] Update `bonuses.attackPower` at level 2 assertion: `1.10` → `1.12` (0.05+0.07=0.12)
+  - [x] Update `bonuses.armor` at level 3 assertion: `3` → `6` (1+2+3=6)
+  - [x] Update `bonuses.attackSpeed` at level 2 assertion: `0.90` → `0.85` (1-(0.05+0.10)=0.85)
+  - [x] Update `bonuses.maxHP` at level 2 assertion: `20` → `30` (10+20=30)
+  - [x] Update `bonuses.magnet` at level 2 assertion: `1.30` → `1.45` (1+0.15+0.30=1.45)
+  - [x] Update `bonuses.luck` at level 3 assertion: `0.15` → `0.35` (0.05+0.10+0.20=0.35)
+  - [x] Update `bonuses.expBonus` at level 3 assertion: `1.15` → `1.22` (1+0.05+0.07+0.10=1.22)
+  - [x] Update `bonuses.curse` at level 2 assertion: `0.20` → `0.25` (0.10+0.15=0.25)
+  - [x] Verify `bonuses.zone` at level 1 (`1.10`) and `bonuses.regen` at level 1 (`0.2`) — no change needed (ZONE[0]=0.10, REGEN[0]=0.2 unchanged)
 
-- [ ] Task 4: Update `usePlayer.permanentBonuses.test.js` (AC: 6)
-  - [ ] Update `state.maxHP` after 2× MAX_HP purchases assertion: `120` → `130` (baseHP 100 + 10 + 20 = 130)
-  - [ ] Verify `attackPower` at level 1 (`1.05`) and `armor` at level 1 (`1`) — no change (ATTACK_POWER[0]=0.05, ARMOR[0]=1 unchanged)
+- [x] Task 4: Update `usePlayer.permanentBonuses.test.js` (AC: 6)
+  - [x] Update `state.maxHP` after 2× MAX_HP purchases assertion: `120` → `130` (baseHP 100 + 10 + 20 = 130)
+  - [x] Verify `attackPower` at level 1 (`1.05`) and `armor` at level 1 (`1`) — no change (ATTACK_POWER[0]=0.05, ARMOR[0]=1 unchanged)
 
-- [ ] Task 5: Run tests to confirm all pass (AC: 6)
-  - [ ] `npx vitest run src/entities/__tests__/permanentUpgradesDefs.test.js`
-  - [ ] `npx vitest run src/entities/__tests__/permanentUpgradesDefs.meta.test.js`
-  - [ ] `npx vitest run src/stores/__tests__/useUpgrades.test.js`
-  - [ ] `npx vitest run src/stores/__tests__/usePlayer.permanentBonuses.test.js`
+- [x] Task 5: Run tests to confirm all pass (AC: 6)
+  - [x] `npx vitest run src/entities/__tests__/permanentUpgradesDefs.test.js`
+  - [x] `npx vitest run src/entities/__tests__/permanentUpgradesDefs.meta.test.js`
+  - [x] `npx vitest run src/stores/__tests__/useUpgrades.test.js`
+  - [x] `npx vitest run src/stores/__tests__/usePlayer.permanentBonuses.test.js`
+
+- [x] Task 6: Fix floating-point display in `ShipSelect` stats panel (AC: 8)
+  - [x] Wrap `effectiveStats.maxHP` with `Math.round()` — HP is always a whole number
+  - [x] Wrap `effectiveStats.speed` with `parseFloat(toFixed(1))` — Speed displayed with at most 1 decimal
 
 ## Dev Notes
 
@@ -79,7 +84,7 @@ so that spending fragments on high levels feels rewarding, not negligible.
 | `src/stores/__tests__/useUpgrades.test.js` | Update 8 assertions |
 | `src/stores/__tests__/usePlayer.permanentBonuses.test.js` | Update 1 assertion |
 
-**No other files need changes.** No store logic, no UI code, no other config.
+**Originally scoped to 4 files.** During implementation, 3 additional files required updates: `UpgradesScreen.test.jsx` and `utilityUpgradesIntegration.test.js` (both had assertions on old flat bonus totals, discovered during regression), and `ShipSelect.jsx` (UI fix for AC 8 floating-point display).
 
 ### The One File That Matters Most
 
@@ -268,6 +273,27 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+_None_
+
 ### Completion Notes List
 
+- Updated `permanentUpgradesDefs.js`: changed bonus arrays for 10 combat/utility upgrades (ATTACK_POWER, ARMOR, MAX_HP, REGEN, ATTACK_SPEED, ZONE, MAGNET, LUCK, EXP_BONUS, CURSE) to heterogeneous exponential values. Meta stats (REVIVAL, REROLL, SKIP, BANISH) left untouched.
+- Updated 4 spec test files + 2 additional files (UpgradesScreen.test.jsx, utilityUpgradesIntegration.test.js) that also asserted old flat bonus totals — not mentioned in original Dev Notes but discovered during regression.
+- Updated `ShipSelect.jsx` (Task 6 / AC 8): fixed floating-point display noise for HP (Math.round) and Speed (parseFloat + toFixed(1)).
+- All 126 tests across the 5 changed test suites pass. 4 pre-existing failing test files (audioManager, progressionSystem, StatsScreen, MainMenu) unrelated to this story remain unchanged.
+
 ### File List
+
+- `src/entities/permanentUpgradesDefs.js`
+- `src/entities/__tests__/permanentUpgradesDefs.test.js`
+- `src/stores/__tests__/useUpgrades.test.js`
+- `src/stores/__tests__/usePlayer.permanentBonuses.test.js`
+- `src/systems/__tests__/utilityUpgradesIntegration.test.js`
+- `src/ui/__tests__/UpgradesScreen.test.jsx`
+- `src/ui/ShipSelect.jsx`
+
+### Change Log
+
+- 2026-02-20: Implemented exponential bonus scaling for all 10 combat/utility permanent upgrades. Updated 6 test files to match new expected values. 120 tests pass, no new regressions introduced.
+- 2026-02-20: Fixed floating-point display noise in ShipSelect stats panel — HP uses Math.round(), Speed uses toFixed(1) to avoid values like `109.0000000000000001`.
+- 2026-02-20: Code review (AI) — 3 Medium + 4 Low findings, all fixed: corrected false claims in Dev Notes & Completion Notes, fixed misleading "+10 HP" comment in test (was +20 HP at level 2), added 7 structural heterogeneity tests for AC 2 (permanentUpgradesDefs.test.js), added 4 floating-point display tests for AC 8 (ShipSelect.enrichedStats.test.js). Story marked done. Git contamination from story 30.1 (style.css, Interface.jsx) noted as workflow issue — unrelated to this story's changes.
