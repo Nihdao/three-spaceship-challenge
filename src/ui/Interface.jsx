@@ -19,6 +19,8 @@ import WhiteFlashTransition from './WhiteFlashTransition.jsx'
 import WarpTransition from './WarpTransition.jsx'
 import SystemNameBanner from './SystemNameBanner.jsx'
 import Crosshair from './Crosshair.jsx'
+import CompanionDialogue from './CompanionDialogue.jsx'
+import useCompanion from '../stores/useCompanion.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 export default function Interface() {
@@ -37,6 +39,10 @@ export default function Interface() {
       setFlashDuration(GAME_CONFIG.SYSTEM_ENTRY.FLASH_DURATION * 1000)
       setFlashVariant('default')
       setShowFlash(true)
+    }
+    // Story 30.1: trigger test-hello companion dialogue on first gameplay entry
+    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay') {
+      useCompanion.getState().trigger('test-hello')
     }
     prevPhaseRef.current = phase
   }, [phase])
@@ -116,6 +122,8 @@ export default function Interface() {
       {GAME_CONFIG.DEBUG_CONSOLE_ENABLED && (phase === 'gameplay' || phase === 'boss') && <DebugConsole />}
       {/* Story 21.2: Crosshair overlay during gameplay/boss */}
       <Crosshair />
+      {/* Story 30.1: Companion dialogue bubble — visible during gameplay phases only */}
+      {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward') && <CompanionDialogue />}
       <WhiteFlashTransition
         active={showFlash}
         onComplete={() => setShowFlash(false)}
