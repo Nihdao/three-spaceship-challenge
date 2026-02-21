@@ -32,6 +32,12 @@ const useCompanion = create((set, get) => ({
     }
   },
 
+  // Clears active dialogue and queue only — preserves shownEvents (per-run one-shots)
+  // Use this between systems so planet-radar / low-hp-warning don't re-fire per system
+  clearQueue: () => {
+    set({ current: null, queue: [] })
+  },
+
   clear: () => {
     shownEvents.clear()
     set({ current: null, queue: [] })
