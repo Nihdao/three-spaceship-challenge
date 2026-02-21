@@ -102,20 +102,15 @@ describe('Armory — boons tab (Story 25.4)', () => {
 })
 
 // ────────────────────────────────────────────────
-// Armory — Items tab (Story 25.4, Task 6)
+// Armory — tabs (Story 25.4, Task 6)
 // ────────────────────────────────────────────────
 
-describe('Armory — items tab (Story 25.4)', () => {
-  it('getArmoryTabData includes tabs array with Weapons, Boons, Items', () => {
+describe('Armory — tabs (Story 25.4)', () => {
+  it('getArmoryTabData includes tabs array with Weapons and Boons', () => {
     const { tabs } = getArmoryTabData()
     expect(tabs).toContain('Weapons')
     expect(tabs).toContain('Boons')
-    expect(tabs).toContain('Items')
-  })
-
-  it('Items tab is marked as "coming soon"', () => {
-    const { itemsComingSoon } = getArmoryTabData()
-    expect(itemsComingSoon).toBe(true)
+    expect(tabs).not.toContain('Items')
   })
 })
 
@@ -202,32 +197,24 @@ describe('Armory — BoonCard display data (Story 25.4)', () => {
 // ────────────────────────────────────────────────
 
 describe('Armory — Tab keyboard cycling (Story 25.4)', () => {
-  it('ARMORY_TABS starts with Weapons and ends with Items', () => {
+  it('ARMORY_TABS starts with Weapons and ends with Boons', () => {
     expect(ARMORY_TABS[0]).toBe('Weapons')
-    expect(ARMORY_TABS[ARMORY_TABS.length - 1]).toBe('Items')
+    expect(ARMORY_TABS[ARMORY_TABS.length - 1]).toBe('Boons')
   })
 
   it('Tab from Weapons goes to Boons', () => {
     expect(computeNextTab('Weapons', false)).toBe('Boons')
   })
 
-  it('Tab from Boons goes to Items', () => {
-    expect(computeNextTab('Boons', false)).toBe('Items')
-  })
-
-  it('Tab from Items wraps back to Weapons', () => {
-    expect(computeNextTab('Items', false)).toBe('Weapons')
+  it('Tab from Boons wraps back to Weapons', () => {
+    expect(computeNextTab('Boons', false)).toBe('Weapons')
   })
 
   it('Shift+Tab from Boons goes back to Weapons', () => {
     expect(computeNextTab('Boons', true)).toBe('Weapons')
   })
 
-  it('Shift+Tab from Weapons wraps to Items', () => {
-    expect(computeNextTab('Weapons', true)).toBe('Items')
-  })
-
-  it('Shift+Tab from Items goes to Boons', () => {
-    expect(computeNextTab('Items', true)).toBe('Boons')
+  it('Shift+Tab from Weapons wraps to Boons', () => {
+    expect(computeNextTab('Weapons', true)).toBe('Boons')
   })
 })
