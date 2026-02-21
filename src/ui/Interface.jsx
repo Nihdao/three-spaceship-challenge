@@ -21,6 +21,7 @@ import SystemNameBanner from './SystemNameBanner.jsx'
 import Crosshair from './Crosshair.jsx'
 import CompanionDialogue from './CompanionDialogue.jsx'
 import useCompanion from '../stores/useCompanion.jsx'
+import useLevel from '../stores/useLevel.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 export default function Interface() {
@@ -34,15 +35,29 @@ export default function Interface() {
   const [flashVariant, setFlashVariant] = useState('default')
   const prevPhaseRef = useRef(phase)
 
+  // Story 30.2: System arrival companion dialogue.
+  // ORDERING INVARIANT: This useEffect MUST be declared BEFORE the flash useEffect.
+  // Both depend on [phase], so React runs them in declaration order. The flash useEffect
+  // updates prevPhaseRef.current at its end — if this effect ran after, it would read
+  // the already-updated (current) phase instead of the previous phase, breaking the guard.
+  useEffect(() => {
+    if (phase !== 'gameplay' || prevPhaseRef.current !== 'systemEntry') return
+    const currentSystem = useLevel.getState().currentSystem
+    if (currentSystem < 1 || currentSystem > 3) {
+      console.warn(`[Companion] No system-arrival dialogue for system ${currentSystem}`)
+      return
+    }
+    const timer = setTimeout(() => {
+      useCompanion.getState().trigger(`system-arrival-${currentSystem}`)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [phase])
+
   useEffect(() => {
     if (phase === 'systemEntry' && prevPhaseRef.current !== 'systemEntry') {
       setFlashDuration(GAME_CONFIG.SYSTEM_ENTRY.FLASH_DURATION * 1000)
       setFlashVariant('default')
       setShowFlash(true)
-    }
-    // Story 30.1: trigger test-hello companion dialogue on first gameplay entry
-    if (phase === 'gameplay' && prevPhaseRef.current !== 'gameplay') {
-      useCompanion.getState().trigger('test-hello')
     }
     prevPhaseRef.current = phase
   }, [phase])
