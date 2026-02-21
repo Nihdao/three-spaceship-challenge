@@ -25,6 +25,7 @@ import { rollDrops, resetAll as resetLoot } from './systems/lootSystem.js'
 import { ENEMIES } from './entities/enemyDefs.js'
 import { WEAPONS } from './entities/weaponDefs.js'
 import useDamageNumbers from './stores/useDamageNumbers.jsx'
+import useCompanion from './stores/useCompanion.jsx'
 import { applyKnockbackImpulse } from './systems/knockbackSystem.js'
 
 // Pre-allocated orb IDs — avoids template string allocation per frame (50 orbs × 60 FPS)
@@ -127,6 +128,7 @@ export default function GameLoop() {
       resetTrailParticles() // Story 24.3
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       useDamageNumbers.getState().reset() // Story 27.1
+      useCompanion.getState().reset() // Story 30.2: clear dialogue queue between systems
       // Accumulate elapsed time before resetting (for total run time display)
       const prevSystemTime = useGame.getState().systemTimer
       if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
@@ -150,6 +152,7 @@ export default function GameLoop() {
       resetTrailParticles() // Story 24.3
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       useDamageNumbers.getState().reset() // Story 27.1
+      useCompanion.getState().reset() // Story 30.2: clear dialogue queue and shownEvents on full restart
       usePlayer.getState().reset()
       // Story 20.1: Apply permanent upgrade bonuses after reset (meta-progression)
       usePlayer.getState().initializeRunStats(useUpgrades.getState().getComputedBonuses())
