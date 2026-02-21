@@ -49,6 +49,8 @@ const SFX_MAP = {
   'xp_rare_pickup': ASSET_MANIFEST.gameplay.audio.xpRarePickup,
   // Story 19.3: Fragment gem pickup SFX
   'fragment_pickup': ASSET_MANIFEST.gameplay.audio.fragmentPickup,
+  // Story 30.1: Companion dialogue notification
+  'ui-message': ASSET_MANIFEST.gameplay.audio.uiMessage,
 }
 
 export default function useAudio() {

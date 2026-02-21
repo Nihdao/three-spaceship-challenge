@@ -70,6 +70,8 @@ const SFX_CATEGORY_MAP = {
   'xp_rare_pickup': 'sfxFeedbackPositive',
   // Story 19.3: Fragment gem pickup SFX
   'fragment_pickup': 'sfxFeedbackPositive',
+  // Story 30.1: Companion dialogue notification
+  'ui-message': 'ui',
 }
 
 let currentMusic = null
