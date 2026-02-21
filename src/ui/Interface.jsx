@@ -22,6 +22,7 @@ import Crosshair from './Crosshair.jsx'
 import CompanionDialogue from './CompanionDialogue.jsx'
 import useCompanion from '../stores/useCompanion.jsx'
 import useLevel from '../stores/useLevel.jsx'
+import usePlayer from '../stores/usePlayer.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 export default function Interface() {
@@ -29,11 +30,24 @@ export default function Interface() {
   const isBossActive = useBoss((s) => s.isActive)
   useAudio()
 
+  // Story 30.3: Contextual event subscriptions
+  const planetsLength = useLevel((s) => s.planets.length)
+  const wormholeState = useLevel((s) => s.wormholeState)
+  const bossDefeated = useBoss((s) => s.bossDefeated)
+  const currentHP = usePlayer((s) => s.currentHP)
+  const maxHP = usePlayer((s) => s.maxHP)
+
   // White flash on phase transitions (Story 17.1, 17.5, 17.6)
   const [showFlash, setShowFlash] = useState(false)
   const [flashDuration, setFlashDuration] = useState(GAME_CONFIG.SYSTEM_ENTRY.FLASH_DURATION * 1000)
   const [flashVariant, setFlashVariant] = useState('default')
   const prevPhaseRef = useRef(phase)
+
+  // Story 30.3: Transition tracking refs
+  const prevPlanetsLengthRef = useRef(0)
+  const prevWormholeStateRef = useRef(wormholeState)
+  const prevBossActiveRef = useRef(isBossActive)
+  const prevBossDefeatedRef = useRef(bossDefeated)
 
   // Story 30.2: System arrival companion dialogue.
   // ORDERING INVARIANT: This useEffect MUST be declared BEFORE the flash useEffect.
@@ -52,6 +66,56 @@ export default function Interface() {
     }, 1500)
     return () => clearTimeout(timer)
   }, [phase])
+
+  // Story 30.3: Planet radar — fires once per run when planets first initialize (0 → N)
+  useEffect(() => {
+    if (planetsLength > 0 && prevPlanetsLengthRef.current === 0) {
+      if (!useCompanion.getState().hasShown('planet-radar')) {
+        const timer = setTimeout(() => {
+          useCompanion.getState().trigger('planet-radar')
+          useCompanion.getState().markShown('planet-radar')
+        }, 3000)
+        prevPlanetsLengthRef.current = planetsLength
+        return () => clearTimeout(timer)
+      }
+    }
+    prevPlanetsLengthRef.current = planetsLength
+  }, [planetsLength])
+
+  // Story 30.3: Wormhole spawn — high priority, immediate
+  useEffect(() => {
+    if (wormholeState === 'visible' && prevWormholeStateRef.current === 'hidden') {
+      useCompanion.getState().trigger('wormhole-spawn', 'high')
+    }
+    prevWormholeStateRef.current = wormholeState
+  }, [wormholeState])
+
+  // Story 30.3: Boss spawn — high priority, immediate
+  useEffect(() => {
+    if (isBossActive && !prevBossActiveRef.current) {
+      useCompanion.getState().trigger('boss-spawn', 'high')
+    }
+    prevBossActiveRef.current = isBossActive
+  }, [isBossActive])
+
+  // Story 30.3: Low HP warning — one-shot per run, guards uninitialized state
+  useEffect(() => {
+    if (maxHP === 0 || currentHP <= 0) return
+    if (currentHP <= maxHP * 0.25) {
+      if (!useCompanion.getState().hasShown('low-hp-warning')) {
+        useCompanion.getState().trigger('low-hp-warning')
+        useCompanion.getState().markShown('low-hp-warning')
+      }
+    }
+  }, [currentHP, maxHP])
+
+  // Story 30.3: Boss defeat — normal priority
+  useEffect(() => {
+    if (bossDefeated && !prevBossDefeatedRef.current) {
+      useCompanion.getState().trigger('boss-defeat')
+    }
+    prevBossDefeatedRef.current = bossDefeated
+  }, [bossDefeated])
 
   useEffect(() => {
     if (phase === 'systemEntry' && prevPhaseRef.current !== 'systemEntry') {

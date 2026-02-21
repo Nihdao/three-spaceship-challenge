@@ -128,7 +128,7 @@ export default function GameLoop() {
       resetTrailParticles() // Story 24.3
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       useDamageNumbers.getState().reset() // Story 27.1
-      useCompanion.getState().reset() // Story 30.2: clear dialogue queue between systems
+      useCompanion.getState().clearQueue() // Story 30.3: clear dialogue queue between systems — preserves per-run shownEvents (planet-radar, low-hp-warning one-shots)
       // Accumulate elapsed time before resetting (for total run time display)
       const prevSystemTime = useGame.getState().systemTimer
       if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)

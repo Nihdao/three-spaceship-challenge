@@ -29,7 +29,32 @@ export const DIALOGUE_EVENTS = {
     { line: "System 3 — the resistance here will be brutal. Good luck.", duration: 4 },
     { line: "We're close. Stay alive long enough to find the wormhole.", duration: 4 },
   ],
-  // Story 30.3 will add more event keys here
+  // Story 30.3: Contextual event dialogues
+  'planet-radar': [
+    { line: "A planet on radar — worth scanning if you get a moment.", duration: 4 },
+    { line: "Oh, a planet nearby. Could have something useful on it.", duration: 4 },
+    { line: "Planet detected. Your call, pilot.", duration: 3 },
+  ],
+  'wormhole-spawn': [
+    { line: "The wormhole just opened! Time to push through.", duration: 4 },
+    { line: "There it is — the way out. Go!", duration: 3 },
+    { line: "Wormhole detected. Clear the path and let's move.", duration: 4 },
+  ],
+  'boss-spawn': [
+    { line: "That's the guardian of this system. We need to take it down.", duration: 5 },
+    { line: "Big contact — hostile, massive. This is the boss fight, pilot.", duration: 5 },
+    { line: "Titan Cruiser incoming. All weapons, go!", duration: 4 },
+  ],
+  'low-hp-warning': [
+    { line: "Hull integrity critical — don't get hit again!", duration: 4 },
+    { line: "We're taking heavy damage. Disengage if you can!", duration: 4 },
+    { line: "Shields down, hull compromised. Careful out there.", duration: 4 },
+  ],
+  'boss-defeat': [
+    { line: "It's down! Nice flying, pilot.", duration: 4 },
+    { line: "Target destroyed. Let's get to that wormhole.", duration: 4 },
+    { line: "We got it! Now move — more will come.", duration: 4 },
+  ],
 }
 
 export function getRandomLine(eventKey) {
