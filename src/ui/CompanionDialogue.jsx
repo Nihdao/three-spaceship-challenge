@@ -3,6 +3,23 @@ import useCompanion from '../stores/useCompanion.jsx'
 import { COMPANION } from '../entities/companionDefs.js'
 import { playSFX } from '../audio/audioManager.js'
 
+function CompanionAvatar() {
+  const [imgFailed, setImgFailed] = useState(false)
+  if (imgFailed) {
+    return (
+      <span style={{ fontSize: '2.5rem', lineHeight: 1, flexShrink: 0 }}>{COMPANION.icon}</span>
+    )
+  }
+  return (
+    <img
+      src="/assets/navi.png"
+      alt={COMPANION.name}
+      onError={() => setImgFailed(true)}
+      style={{ width: '3rem', height: '3rem', flexShrink: 0, objectFit: 'cover', borderRadius: '0.5rem' }}
+    />
+  )
+}
+
 export default function CompanionDialogue() {
   const current = useCompanion((s) => s.current)
   const [isLeaving, setIsLeaving] = useState(false)
@@ -41,11 +58,7 @@ export default function CompanionDialogue() {
         fontFamily: 'Inter, system-ui, sans-serif',
       }}
     >
-      <img
-        src="/assets/navi.png"
-        alt={COMPANION.name}
-        style={{ width: '3rem', height: '3rem', flexShrink: 0, objectFit: 'cover', borderRadius: '0.5rem' }}
-      />
+      <CompanionAvatar />
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', color: '#cc66ff' }}>{COMPANION.name}</div>
         <div style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.4, marginTop: '0.125rem' }}>{current.line}</div>
