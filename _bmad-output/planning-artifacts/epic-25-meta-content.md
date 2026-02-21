@@ -7,7 +7,7 @@ The player experiences deeper long-term progression with ship leveling, galaxy s
 - Implement ship level system (1-9) upgradeable with Fragments, with stat scaling per level
 - Add level-based visual skins (tints at levels 3, 6, 9) that players can unlock and toggle
 - Create galaxy choice screen before starting a run (single galaxy initially, expandable later)
-- Build an Armory screen cataloging all weapons, boons, and future items with descriptions
+- Build an Armory screen cataloging all weapons and boons with descriptions
 - Implement persistent global stats tracking across all runs (kills, time survived, favorites)
 - Create a Stats display screen accessible from the main menu
 
@@ -121,7 +121,7 @@ So that I have a sense of destination and the game can support multiple levels i
 ### Story 25.4: Armory Catalog Screen
 
 As a player,
-I want to browse all available weapons, boons, and items in an Armory screen,
+I want to browse all available weapons and boons in an Armory screen,
 So that I understand what's available and have a collection goal.
 
 **Acceptance Criteria:**
@@ -129,7 +129,7 @@ So that I understand what's available and have a collection goal.
 **Given** the main menu
 **When** the player clicks "ARMORY"
 **Then** a catalog screen opens (overlay style, like ship selection)
-**And** the screen has tabs or sections: Weapons, Boons, Items (Items grayed out / "Coming Soon")
+**And** the screen has two tabs: Weapons, Boons
 
 **Given** the Weapons tab
 **When** displayed
@@ -144,11 +144,6 @@ So that I understand what's available and have a collection goal.
 **When** displayed
 **Then** all boons are listed with the same format as weapons
 **And** boons are organized by category (offensive, defensive, utility) if applicable
-
-**Given** the Items tab (future)
-**When** displayed
-**Then** a "Coming Soon" message or grayed-out placeholder appears
-**And** the tab structure is ready for future item definitions
 
 **Given** the data source
 **When** populating the Armory

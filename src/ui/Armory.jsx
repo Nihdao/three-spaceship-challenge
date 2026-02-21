@@ -4,7 +4,7 @@ import { BOONS } from '../entities/boonDefs.js'
 import useArmory from '../stores/useArmory.jsx'
 import { playSFX } from '../audio/audioManager.js'
 
-export const ARMORY_TABS = ['Weapons', 'Boons', 'Items']
+export const ARMORY_TABS = ['Weapons', 'Boons']
 
 /**
  * Returns static tab/data info for the Armory screen.
@@ -15,7 +15,6 @@ export function getArmoryTabData() {
     tabs: ARMORY_TABS,
     weaponIds: Object.keys(WEAPONS),
     boonIds: Object.keys(BOONS),
-    itemsComingSoon: true,
   }
 }
 
@@ -127,20 +126,6 @@ function BoonsGrid() {
   )
 }
 
-function ItemsPlaceholder() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 select-none">
-      <span className="text-4xl mb-4 opacity-30">📦</span>
-      <p className="text-xl font-bold tracking-widest text-game-text-muted opacity-40">
-        COMING SOON
-      </p>
-      <p className="text-sm text-game-text-muted opacity-30 mt-2">
-        Items will be available in a future update
-      </p>
-    </div>
-  )
-}
-
 /**
  * Returns display data for a weapon card given discovery state.
  * Exported for testing.
@@ -236,23 +221,17 @@ export default function Armory({ onClose }) {
           {ARMORY_TABS.map(tab => (
             <button
               key={tab}
-              onClick={tab !== 'Items' ? () => { setActiveTab(tab); playSFX('button-hover') } : undefined}
+              onClick={() => { setActiveTab(tab); playSFX('button-hover') }}
               className={`
                 px-5 py-2 text-sm font-semibold tracking-wider rounded border transition-all duration-150
-                outline-none select-none
-                ${tab === 'Items'
-                  ? 'border-game-border/40 text-game-text-muted/40 cursor-not-allowed opacity-50'
-                  : activeTab === tab
-                    ? 'border-game-accent text-game-text bg-game-accent/10 cursor-pointer'
-                    : 'border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text cursor-pointer'
+                outline-none select-none cursor-pointer
+                ${activeTab === tab
+                  ? 'border-game-accent text-game-text bg-game-accent/10'
+                  : 'border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text'
                 }
               `}
-              disabled={tab === 'Items'}
             >
               {tab}
-              {tab === 'Items' && (
-                <span className="ml-1 text-xs opacity-60">soon</span>
-              )}
             </button>
           ))}
         </div>
@@ -260,7 +239,6 @@ export default function Armory({ onClose }) {
         {/* Tab content */}
         {activeTab === 'Weapons' && <WeaponsGrid />}
         {activeTab === 'Boons' && <BoonsGrid />}
-        {activeTab === 'Items' && <ItemsPlaceholder />}
 
         {/* Keyboard hint */}
         <p className="text-game-text-muted text-xs mt-6 opacity-30 text-center select-none">

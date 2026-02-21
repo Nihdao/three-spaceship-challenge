@@ -7,7 +7,7 @@ Status: done
 ## Story
 
 As a player,
-I want to browse all available weapons, boons, and items in an Armory screen,
+I want to browse all available weapons and boons in an Armory screen,
 So that I understand what's available and have a collection goal.
 
 ## Acceptance Criteria
@@ -15,7 +15,7 @@ So that I understand what's available and have a collection goal.
 **Given** the main menu
 **When** the player clicks "ARMORY"
 **Then** a catalog screen opens (overlay style, like ship selection)
-**And** the screen has tabs or sections: Weapons, Boons, Items (Items grayed out / "Coming Soon")
+**And** the screen has two tabs: Weapons, Boons
 
 **Given** the Weapons tab
 **When** displayed
@@ -30,11 +30,6 @@ So that I understand what's available and have a collection goal.
 **When** displayed
 **Then** all boons are listed with the same format as weapons
 **And** boons are organized by category (offensive, defensive, utility) if applicable
-
-**Given** the Items tab (future)
-**When** displayed
-**Then** a "Coming Soon" message or grayed-out placeholder appears
-**And** the tab structure is ready for future item definitions
 
 **Given** the data source
 **When** populating the Armory
@@ -62,7 +57,7 @@ So that I understand what's available and have a collection goal.
   - [x] Create src/ui/Armory.jsx (NEW file)
   - [x] Full-screen overlay (pattern from UpgradesScreen.jsx)
   - [x] Keep 3D background visible directly (no dark backdrop)
-  - [x] Tab navigation: Weapons, Boons, Items
+  - [x] Tab navigation: Weapons, Boons
   - [x] BACK button to close and return to main menu
   - [x] Keyboard: Escape to close, Tab to navigate tabs
 
@@ -80,11 +75,6 @@ So that I understand what's available and have a collection goal.
   - [x] Optional: Organize by category — flat grid chosen (12 boons clear without grouping)
   - [x] Show discovery status (same pattern as weapons)
 
-- [x] Task 6: Create Items tab placeholder (AC: #3)
-  - [x] Display "COMING SOON" message
-  - [x] Grayed-out tab or section
-  - [x] Structure ready for future item definitions
-
 - [x] Task 7: Integrate discovery tracking into gameplay (AC: #4)
   - [x] When player picks up a weapon (level-up or planet scan): mark discovered
   - [x] When player picks up a boon (level-up or planet scan): mark discovered
@@ -95,7 +85,6 @@ So that I understand what's available and have a collection goal.
   - [x] Test MainMenu: ARMORY button renders
   - [x] Test Armory: renders all 11 weapons from weaponDefs.js
   - [x] Test Armory: renders all 12 boons from boonDefs.js
-  - [x] Test Armory: Items tab shows "Coming Soon"
   - [x] Test useArmory: markDiscovered() adds to discovered set
   - [x] Test useArmory: isDiscovered() returns correct state
   - [x] Test useArmory: persistence to/from localStorage
@@ -104,7 +93,7 @@ So that I understand what's available and have a collection goal.
 
 ### Architecture Alignment
 
-This story creates the **Armory catalog UI** for browsing available weapons, boons, and items. It introduces a new lightweight store for tracking discovery state across runs.
+This story creates the **Armory catalog UI** for browsing available weapons and boons. It introduces a new lightweight store for tracking discovery state across runs.
 
 **6-Layer Architecture:**
 - **Config Layer**: `src/entities/weaponDefs.js` (ALREADY EXISTS - 11 weapons)
@@ -361,7 +350,7 @@ This can be added to existing stores or called from GameLoop when level-up happe
 **Tab structure:**
 
 ```jsx
-const TABS = ['Weapons', 'Boons', 'Items']
+const TABS = ['Weapons', 'Boons']
 
 function Armory({ onClose }) {
   const [activeTab, setActiveTab] = useState('Weapons')
@@ -384,7 +373,6 @@ function Armory({ onClose }) {
       {/* Tab content */}
       {activeTab === 'Weapons' && <WeaponsGrid />}
       {activeTab === 'Boons' && <BoonsGrid />}
-      {activeTab === 'Items' && <ItemsPlaceholder />}
     </div>
   )
 }
@@ -541,10 +529,9 @@ Or mark on first run start.
 - Test Armory: renders Weapons tab by default
 - Test Armory: renders all 11 weapons from weaponDefs.js
 - Test Armory: renders all 12 boons from boonDefs.js
-- Test Armory: Items tab shows "Coming Soon"
 - Test Armory: BACK button closes overlay
 - Test Armory: Escape key closes overlay
-- Test Armory: Tab switching works (Weapons → Boons → Items)
+- Test Armory: Tab switching works (Weapons ↔ Boons)
 
 **Store tests:**
 - Test useArmory: markDiscovered() adds weapon to discovered set
@@ -602,9 +589,9 @@ vi.mock('../stores/useArmory.jsx', () => ({
 - **Recommendation:** Centralized in level-up choice handler (progressionSystem or GameLoop)
 - **Rationale:** Avoids circular imports, keeps discovery logic in one place, easier to test.
 
-**DECISION 4: Items tab implementation?**
-- **Recommendation:** Simple "COMING SOON" text with grayed-out tab
-- **Rationale:** AC says "grayed-out placeholder". No item definitions exist yet. Tab structure is ready for future expansion.
+**DECISION 4: Items tab — removed (2026-02-21)**
+- **Decision:** Items tab removed entirely from the Armory. The concept won't be implemented.
+- **Rationale:** Scope reduction — Armory now only covers Weapons and Boons.
 
 ### References
 
@@ -631,13 +618,13 @@ None — implementation straightforward, no blocking issues.
 
 - ✅ Task 1: Added ARMORY to MENU_ITEMS in MainMenu.jsx, wired to isArmoryOpen state (pattern identical to isUpgradesOpen)
 - ✅ Task 2: Created useArmory.jsx store with Set-based discovery tracking, localStorage persistence via 'armory-discovery' key. Uses same pattern as upgradesStorage.js. markDiscovered deduplicates (early return if already discovered).
-- ✅ Tasks 3-6: Created Armory.jsx full-screen overlay following UpgradesScreen.jsx pattern exactly. WeaponCard and BoonCard components show discovered items with emoji icons, undiscovered items with "???" silhouette. Items tab is disabled/grayed-out with "COMING SOON" placeholder. Keyboard: Escape closes, Tab switches tabs.
+- ✅ Tasks 3-5: Created Armory.jsx full-screen overlay following UpgradesScreen.jsx pattern exactly. WeaponCard and BoonCard components show discovered items with emoji icons, undiscovered items with "???" silhouette. Keyboard: Escape closes, Tab switches tabs.
 - ✅ Task 7: Discovery tracking centralized in LevelUpModal.jsx and PlanetRewardModal.jsx — both files call useArmory.getState().markDiscovered() when new_weapon or new_boon choice is applied. Avoids circular imports.
 - ✅ Task 8: 30 new tests across 2 test files. Full suite: 128 files, 2149 tests — zero regressions.
 - DECISION 1: Show all items but with discovery status (discovered = full info, undiscovered = "???")
 - DECISION 2: Flat grid for boons (12 items, no category grouping needed)
 - DECISION 3: Centralized discovery calls in modal UI files (avoids circular imports)
-- DECISION 4: Items tab disabled/grayed-out with "COMING SOON" message
+- DECISION 4: Items tab removed — won't be implemented (scope reduction)
 
 ### File List
 
@@ -654,3 +641,4 @@ None — implementation straightforward, no blocking issues.
 
 - 2026-02-19: Story 25.4 implemented — Armory catalog screen with weapon/boon discovery tracking, ARMORY button in MainMenu, useArmory store with localStorage persistence, Armory.jsx full-screen overlay (Weapons/Boons/Items tabs), discovery integration in LevelUpModal and PlanetRewardModal. 30 new tests, 2149 total — zero regressions.
 - 2026-02-19: Code review fixes — [H1] GameLoop.jsx: starter weapon LASER_FRONT now marked discovered at run start; [M1+M2] Armory.jsx: exported getWeaponCardDisplayData, getBoonCardDisplayData, computeNextTab helpers; Armory.test.jsx: +18 tests for card display data (discovered vs undiscovered) and Tab keyboard cycling. 2167 tests total — zero regressions.
+- 2026-02-21: Scope reduction — Items tab removed from Armory (won't be implemented). ARMORY_TABS now `['Weapons', 'Boons']`. ItemsPlaceholder component removed. Tests updated accordingly (tab cycling now Weapons ↔ Boons). Story AC and Dev Notes amended.
