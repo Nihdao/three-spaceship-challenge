@@ -146,6 +146,36 @@
   line-height: 1;
 }
 
+/* ─── Redshift Design System — CSS variables ─────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --rs-bg:          #0d0b14;
+  --rs-bg-surface:  #1a1528;
+  --rs-bg-raised:   #241d35;
+
+  /* Borders */
+  --rs-border:      #2e2545;
+  --rs-border-hot:  rgba(255, 79, 31, 0.4);
+
+  /* Text */
+  --rs-text:        #f5f0e8;
+  --rs-text-muted:  #7a6d8a;
+  --rs-text-dim:    #4a3f5c;
+
+  /* Accents */
+  --rs-orange:      #ff4f1f;
+  --rs-violet:      #9b5de5;
+  --rs-gold:        #ffd60a;
+  --rs-teal:        #00b4d8;
+
+  /* Functional */
+  --rs-hp:          #ef233c;
+  --rs-dash-ready:  #00b4d8;
+  --rs-dash-cd:     #ff4f1f;
+  --rs-success:     #2dc653;
+  --rs-danger:      #ef233c;
+}
+
 html,
 body,
 #root {
