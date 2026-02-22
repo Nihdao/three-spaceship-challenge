@@ -134,7 +134,7 @@ describe('Story 18.2 — System-Specific State Reset', () => {
   describe('AC #5: Planet state reset (via advanceSystem + initializePlanets)', () => {
     it('clears planets and activeScanPlanetId via advanceSystem', () => {
       useLevel.getState().initializePlanets()
-      useLevel.setState({ activeScanPlanetId: 'PLANET_GOLD_0' })
+      useLevel.setState({ activeScanPlanetId: 'PLANET_PULSE_0' })
       expect(useLevel.getState().planets.length).toBeGreaterThan(0)
 
       useLevel.getState().advanceSystem()
@@ -244,7 +244,7 @@ describe('Story 18.2 — System-Specific State Reset', () => {
         difficulty: 3,
         wormholeState: 'active',
         wormhole: { x: 50, z: 50 },
-        activeScanPlanetId: 'PLANET_SILVER_0',
+        activeScanPlanetId: 'PLANET_CINDER_0',
       })
       useBoss.getState().spawnBoss(1)
       useWeapons.getState().tick(10, [0, 0, 0], 0, {})

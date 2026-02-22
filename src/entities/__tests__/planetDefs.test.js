@@ -8,10 +8,10 @@ describe('planetDefs — planet tier definitions', () => {
     expect(Object.keys(PLANETS)).toHaveLength(3)
   })
 
-  it('has PLANET_SILVER, PLANET_GOLD, PLANET_PLATINUM keys', () => {
-    expect(PLANETS).toHaveProperty('PLANET_SILVER')
-    expect(PLANETS).toHaveProperty('PLANET_GOLD')
-    expect(PLANETS).toHaveProperty('PLANET_PLATINUM')
+  it('has PLANET_CINDER, PLANET_PULSE, PLANET_VOID keys', () => {
+    expect(PLANETS).toHaveProperty('PLANET_CINDER')
+    expect(PLANETS).toHaveProperty('PLANET_PULSE')
+    expect(PLANETS).toHaveProperty('PLANET_VOID')
   })
 
   it.each(Object.entries(PLANETS))('%s has all required fields', (key, def) => {
@@ -20,9 +20,9 @@ describe('planetDefs — planet tier definitions', () => {
     }
   })
 
-  it('tier hierarchy: silver scanTime < gold scanTime < platinum scanTime', () => {
-    expect(PLANETS.PLANET_SILVER.scanTime).toBeLessThan(PLANETS.PLANET_GOLD.scanTime)
-    expect(PLANETS.PLANET_GOLD.scanTime).toBeLessThan(PLANETS.PLANET_PLATINUM.scanTime)
+  it('tier hierarchy: CINDER scanTime < PULSE scanTime < VOID scanTime', () => {
+    expect(PLANETS.PLANET_CINDER.scanTime).toBeLessThan(PLANETS.PLANET_PULSE.scanTime)
+    expect(PLANETS.PLANET_PULSE.scanTime).toBeLessThan(PLANETS.PLANET_VOID.scanTime)
   })
 
   it('each planet has a 3-element scale array', () => {
@@ -32,10 +32,10 @@ describe('planetDefs — planet tier definitions', () => {
     }
   })
 
-  it('tiers are silver, gold, platinum respectively', () => {
-    expect(PLANETS.PLANET_SILVER.tier).toBe('silver')
-    expect(PLANETS.PLANET_GOLD.tier).toBe('gold')
-    expect(PLANETS.PLANET_PLATINUM.tier).toBe('platinum')
+  it('tiers are standard, rare, legendary respectively', () => {
+    expect(PLANETS.PLANET_CINDER.tier).toBe('standard')
+    expect(PLANETS.PLANET_PULSE.tier).toBe('rare')
+    expect(PLANETS.PLANET_VOID.tier).toBe('legendary')
   })
 
   it('modelKeys map to distinct planet models', () => {

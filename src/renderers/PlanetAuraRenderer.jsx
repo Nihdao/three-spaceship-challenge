@@ -9,9 +9,9 @@ import { PLANETS } from '../entities/planetDefs.js'
 const MAX_AURAS = 10
 
 const TIER_COLOR_KEY = {
-  silver: 'SILVER_COLOR',
-  gold: 'GOLD_COLOR',
-  platinum: 'PLATINUM_COLOR',
+  standard:  'SILVER_COLOR',
+  rare:      'GOLD_COLOR',
+  legendary: 'PLATINUM_COLOR',
 }
 
 export default function PlanetAuraRenderer() {

@@ -234,12 +234,12 @@ describe('progressionSystem', () => {
 
   describe('generatePlanetReward', () => {
     it('returns exactly 3 choices', () => {
-      const choices = generatePlanetReward('silver', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      const choices = generatePlanetReward('standard', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
       expect(choices).toHaveLength(3)
     })
 
     it('each choice has required properties', () => {
-      const choices = generatePlanetReward('gold', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      const choices = generatePlanetReward('rare', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
       for (const choice of choices) {
         expect(choice).toHaveProperty('type')
         expect(choice).toHaveProperty('id')
@@ -252,27 +252,27 @@ describe('progressionSystem', () => {
       }
     })
 
-    it('silver tier: choices weighted toward upgrades/common boons', () => {
+    it('standard tier: choices weighted toward upgrades/common boons', () => {
       // Run multiple times to account for shuffle randomness
       let upgradeOrBoonCount = 0
       const runs = 20
       for (let i = 0; i < runs; i++) {
-        const choices = generatePlanetReward('silver', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+        const choices = generatePlanetReward('standard', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
         for (const c of choices) {
           if (c.type === 'weapon_upgrade' || c.type === 'new_boon' || c.type === 'boon_upgrade') {
             upgradeOrBoonCount++
           }
         }
       }
-      // Silver should have a majority of upgrade/boon choices across many runs
+      // Standard should have a majority of upgrade/boon choices across many runs
       expect(upgradeOrBoonCount).toBeGreaterThan(runs) // at least 1 per run on average
     })
 
-    it('platinum tier: includes new weapon or new boon if available', () => {
-      // With only 1 weapon equipped and slots available, platinum should offer new weapons
+    it('legendary tier: includes new weapon or new boon if available', () => {
+      // With only 1 weapon equipped and slots available, legendary should offer new weapons
       let foundNewItem = false
       for (let i = 0; i < 30; i++) {
-        const choices = generatePlanetReward('platinum', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+        const choices = generatePlanetReward('legendary', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
         if (choices.some(c => c.type === 'new_weapon' || c.type === 'new_boon')) {
           foundNewItem = true
           break
@@ -290,12 +290,12 @@ describe('progressionSystem', () => {
       ]
       const allBoons = ['DAMAGE_AMP', 'SPEED_BOOST', 'COOLDOWN_REDUCTION']
       const maxedBoons = allBoons.map(id => ({ boonId: id, level: 3 }))
-      const choices = generatePlanetReward('platinum', fourMaxWeapons, allBoons, maxedBoons)
+      const choices = generatePlanetReward('legendary', fourMaxWeapons, allBoons, maxedBoons)
       expect(choices).toHaveLength(3) // Should still return 3 via fallback
     })
 
     it('return format matches generateChoices format', () => {
-      const planetChoices = generatePlanetReward('gold', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      const planetChoices = generatePlanetReward('rare', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
       const levelUpChoices = generateChoices(2, [{ weaponId: 'LASER_FRONT', level: 1 }], [])
       // Both should have same property keys
       const planetKeys = Object.keys(planetChoices[0]).sort()
@@ -307,20 +307,20 @@ describe('progressionSystem', () => {
   describe('generatePlanetReward — banish filtering (Story 22.2)', () => {
     it('excludes banished weapons from planet reward choices', () => {
       const banishedItems = [{ itemId: 'LASER_FRONT', type: 'weapon' }]
-      const choices = generatePlanetReward('gold', [], [], [], banishedItems)
+      const choices = generatePlanetReward('rare', [], [], [], banishedItems)
       const hasLaser = choices.some(c => c.type === 'new_weapon' && c.id === 'LASER_FRONT')
       expect(hasLaser).toBe(false)
     })
 
     it('excludes banished boons from planet reward choices', () => {
       const banishedItems = [{ itemId: 'DAMAGE_AMP', type: 'boon' }]
-      const choices = generatePlanetReward('platinum', [], [], [], banishedItems)
+      const choices = generatePlanetReward('legendary', [], [], [], banishedItems)
       const hasDamageAmp = choices.some(c => c.type === 'new_boon' && c.id === 'DAMAGE_AMP')
       expect(hasDamageAmp).toBe(false)
     })
 
     it('works with empty banishedItems (default)', () => {
-      const choices = generatePlanetReward('silver', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      const choices = generatePlanetReward('standard', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
       expect(choices).toHaveLength(3)
     })
   })

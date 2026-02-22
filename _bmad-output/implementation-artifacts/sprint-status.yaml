@@ -318,7 +318,7 @@ development_status:
   # Epic 33: UI Design Identity — Redshift Design System
   epic-33: in-progress
   33-1-svg-icon-system: done
-  33-2-hud-icon-replacement: ready-for-dev
+  33-2-hud-icon-replacement: review
   33-3-permanent-upgrades-panel: ready-for-dev
   33-4-armory-panel: ready-for-dev
   33-5-ship-select-emoji-removal: ready-for-dev
@@ -328,7 +328,7 @@ development_status:
 
   # Epic 34: Galaxy System Foundation
   epic-34: in-progress
-  34-1-galaxy-profile-planet-redesign: in-progress
+  34-1-galaxy-profile-planet-redesign: done
   34-2-luck-weighted-planet-generation-random-spawn: ready-for-dev
   34-3-procedural-system-names: ready-for-dev
   34-4-wormhole-scan-based-trigger: ready-for-dev

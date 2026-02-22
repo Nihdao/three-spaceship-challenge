@@ -42,7 +42,7 @@ describe('useLevel — System transition (Story 7.3)', () => {
     })
 
     it('resets activeScanPlanetId', () => {
-      useLevel.setState({ activeScanPlanetId: 'PLANET_GOLD_0' })
+      useLevel.setState({ activeScanPlanetId: 'PLANET_PULSE_0' })
       useLevel.getState().advanceSystem()
       expect(useLevel.getState().activeScanPlanetId).toBeNull()
     })

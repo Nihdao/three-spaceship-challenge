@@ -101,3 +101,58 @@ describe('galaxyDefs — Story 25.3', () => {
     })
   })
 })
+
+// --- Story 34.1: Gameplay profile validation (AC #1) ---
+describe('galaxyDefs — Andromeda Reach gameplay profile (Story 34.1)', () => {
+  const galaxy = getGalaxyById('andromeda_reach')
+
+  it('has correct planetCount', () => {
+    expect(galaxy.planetCount).toBe(15)
+  })
+
+  it('has correct wormholeThreshold', () => {
+    expect(galaxy.wormholeThreshold).toBe(0.75)
+  })
+
+  it('has correct planetRarity distribution', () => {
+    expect(galaxy.planetRarity).toEqual({ standard: 8, rare: 5, legendary: 2 })
+  })
+
+  it('has correct luckRarityBias', () => {
+    expect(galaxy.luckRarityBias).toEqual({ standard: -0.15, rare: 0.10, legendary: 0.05 })
+  })
+
+  it('has neutral galaxyRarityBias (reference galaxy)', () => {
+    expect(galaxy.galaxyRarityBias).toBe(0)
+  })
+
+  it('has correct enemySpeedMult', () => {
+    expect(galaxy.enemySpeedMult).toBe(1.5)
+  })
+
+  it('has correct difficultyScalingPerSystem', () => {
+    expect(galaxy.difficultyScalingPerSystem).toEqual({
+      hp: 1.25,
+      damage: 1.20,
+      speed: 1.10,
+      xpReward: 1.15,
+    })
+  })
+
+  it('systemNamePool has at least 12 names', () => {
+    expect(Array.isArray(galaxy.systemNamePool)).toBe(true)
+    expect(galaxy.systemNamePool.length).toBeGreaterThanOrEqual(12)
+  })
+
+  it('systemNamePool contains 16 unique names', () => {
+    expect(galaxy.systemNamePool).toHaveLength(16)
+    expect(new Set(galaxy.systemNamePool).size).toBe(16)
+  })
+
+  it('all systemNamePool entries are non-empty strings', () => {
+    for (const name of galaxy.systemNamePool) {
+      expect(typeof name).toBe('string')
+      expect(name.length).toBeGreaterThan(0)
+    }
+  })
+})

@@ -7,21 +7,21 @@ describe('useLevel — scanningTick (Story 5.3)', () => {
     // Set up test planets manually instead of random placement
     useLevel.setState({
       planets: [
-        { id: 'PLANET_SILVER_0', typeId: 'PLANET_SILVER', tier: 'silver', x: 0, z: 0, scanned: false, scanProgress: 0 },
-        { id: 'PLANET_GOLD_0', typeId: 'PLANET_GOLD', tier: 'gold', x: 200, z: 200, scanned: false, scanProgress: 0 },
-        { id: 'PLANET_PLATINUM_0', typeId: 'PLANET_PLATINUM', tier: 'platinum', x: -300, z: -300, scanned: false, scanProgress: 0 },
+        { id: 'PLANET_CINDER_0', typeId: 'PLANET_CINDER', tier: 'standard', x: 0, z: 0, scanned: false, scanProgress: 0 },
+        { id: 'PLANET_PULSE_0',  typeId: 'PLANET_PULSE',  tier: 'rare', x: 200, z: 200, scanned: false, scanProgress: 0 },
+        { id: 'PLANET_VOID_0',   typeId: 'PLANET_VOID',   tier: 'legendary', x: -300, z: -300, scanned: false, scanProgress: 0 },
       ],
     })
   })
 
   it('player within scan radius increments scanProgress by delta/scanTime', () => {
-    // Silver planet at (0,0), scanRadius=40, scanTime=5
+    // CINDER planet at (0,0), scanRadius=40, scanTime=5
     // Player at (10,10) => dist ~14.14, within 40
     const result = useLevel.getState().scanningTick(1.0, 10, 10)
-    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_SILVER_0')
+    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_CINDER_0')
     expect(planet.scanProgress).toBeCloseTo(1.0 / 5) // delta=1, scanTime=5
     expect(result.completed).toBe(false)
-    expect(result.activeScanPlanetId).toBe('PLANET_SILVER_0')
+    expect(result.activeScanPlanetId).toBe('PLANET_CINDER_0')
   })
 
   it('player outside all zones: activeScanPlanetId is null', () => {
@@ -39,18 +39,18 @@ describe('useLevel — scanningTick (Story 5.3)', () => {
 
     // Second tick: player out of range
     useLevel.getState().scanningTick(1.0, 500, 500)
-    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_SILVER_0')
+    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_CINDER_0')
     expect(planet.scanProgress).toBe(0)
   })
 
   it('scan progress reaching 1.0 returns completed and marks planet scanned', () => {
-    // Silver scanTime=5, so delta=5 should complete it
+    // CINDER scanTime=5, so delta=5 should complete it
     const result = useLevel.getState().scanningTick(5.0, 10, 10)
     expect(result.completed).toBe(true)
-    expect(result.planetId).toBe('PLANET_SILVER_0')
-    expect(result.tier).toBe('silver')
+    expect(result.planetId).toBe('PLANET_CINDER_0')
+    expect(result.tier).toBe('standard')
 
-    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_SILVER_0')
+    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_CINDER_0')
     expect(planet.scanned).toBe(true)
     expect(planet.scanProgress).toBe(1)
   })
@@ -68,8 +68,8 @@ describe('useLevel — scanningTick (Story 5.3)', () => {
     // Place two planets close together
     useLevel.setState({
       planets: [
-        { id: 'A', typeId: 'PLANET_SILVER', tier: 'silver', x: 10, z: 0, scanned: false, scanProgress: 0 },
-        { id: 'B', typeId: 'PLANET_GOLD', tier: 'gold', x: 20, z: 0, scanned: false, scanProgress: 0 },
+        { id: 'A', typeId: 'PLANET_CINDER', tier: 'standard', x: 10, z: 0, scanned: false, scanProgress: 0 },
+        { id: 'B', typeId: 'PLANET_PULSE',  tier: 'rare', x: 20, z: 0, scanned: false, scanProgress: 0 },
       ],
     })
     // Player at (12, 0) — closer to A (dist=2) than B (dist=8), both within scan radius (40 and 50)
@@ -79,19 +79,19 @@ describe('useLevel — scanningTick (Story 5.3)', () => {
 
   it('reset clears activeScanPlanetId', () => {
     useLevel.getState().scanningTick(1.0, 10, 10)
-    expect(useLevel.getState().activeScanPlanetId).toBe('PLANET_SILVER_0')
+    expect(useLevel.getState().activeScanPlanetId).toBe('PLANET_CINDER_0')
 
     useLevel.getState().reset()
     expect(useLevel.getState().activeScanPlanetId).toBeNull()
   })
 
   it('progressive scanning: multiple ticks accumulate progress', () => {
-    // Silver scanTime=5, each tick adds delta/5
+    // CINDER scanTime=5, each tick adds delta/5
     useLevel.getState().scanningTick(1.0, 10, 10) // progress = 0.2
     useLevel.getState().scanningTick(1.0, 10, 10) // progress = 0.4
     useLevel.getState().scanningTick(1.0, 10, 10) // progress = 0.6
 
-    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_SILVER_0')
+    const planet = useLevel.getState().planets.find(p => p.id === 'PLANET_CINDER_0')
     expect(planet.scanProgress).toBeCloseTo(0.6)
   })
 
@@ -104,8 +104,8 @@ describe('useLevel — scanningTick (Story 5.3)', () => {
     // Two planets with overlapping zones
     useLevel.setState({
       planets: [
-        { id: 'A', typeId: 'PLANET_SILVER', tier: 'silver', x: 0, z: 0, scanned: false, scanProgress: 0 },
-        { id: 'B', typeId: 'PLANET_GOLD', tier: 'gold', x: 30, z: 0, scanned: false, scanProgress: 0 },
+        { id: 'A', typeId: 'PLANET_CINDER', tier: 'standard', x: 0, z: 0, scanned: false, scanProgress: 0 },
+        { id: 'B', typeId: 'PLANET_PULSE',  tier: 'rare', x: 30, z: 0, scanned: false, scanProgress: 0 },
       ],
     })
     // Scan A first (player at 5,0 — closer to A)

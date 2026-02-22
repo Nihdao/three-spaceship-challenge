@@ -110,9 +110,9 @@ const useLevel = create((set, get) => ({
     const range = GAME_CONFIG.PLAY_AREA_SIZE - margin
 
     const tiers = [
-      { typeId: 'PLANET_SILVER', count: GAME_CONFIG.PLANET_COUNT_SILVER },
-      { typeId: 'PLANET_GOLD', count: GAME_CONFIG.PLANET_COUNT_GOLD },
-      { typeId: 'PLANET_PLATINUM', count: GAME_CONFIG.PLANET_COUNT_PLATINUM },
+      { typeId: 'PLANET_CINDER', count: GAME_CONFIG.PLANET_COUNT_SILVER },   // 4
+      { typeId: 'PLANET_PULSE',  count: GAME_CONFIG.PLANET_COUNT_GOLD },     // 2
+      { typeId: 'PLANET_VOID',   count: GAME_CONFIG.PLANET_COUNT_PLATINUM }, // 1
     ]
 
     for (const { typeId, count } of tiers) {

@@ -7,7 +7,7 @@ describe('useLevel — initializePlanets', () => {
     useLevel.getState().reset()
   })
 
-  it('generates correct total planet count (4 silver + 2 gold + 1 platinum = 7)', () => {
+  it('generates correct total planet count (4 standard + 2 rare + 1 legendary = 7)', () => {
     useLevel.getState().initializePlanets()
     const planets = useLevel.getState().planets
     expect(planets).toHaveLength(7)
@@ -16,12 +16,12 @@ describe('useLevel — initializePlanets', () => {
   it('generates correct count per tier', () => {
     useLevel.getState().initializePlanets()
     const planets = useLevel.getState().planets
-    const silver = planets.filter((p) => p.tier === 'silver')
-    const gold = planets.filter((p) => p.tier === 'gold')
-    const platinum = planets.filter((p) => p.tier === 'platinum')
-    expect(silver).toHaveLength(GAME_CONFIG.PLANET_COUNT_SILVER)
-    expect(gold).toHaveLength(GAME_CONFIG.PLANET_COUNT_GOLD)
-    expect(platinum).toHaveLength(GAME_CONFIG.PLANET_COUNT_PLATINUM)
+    const standard = planets.filter((p) => p.tier === 'standard')
+    const rare = planets.filter((p) => p.tier === 'rare')
+    const legendary = planets.filter((p) => p.tier === 'legendary')
+    expect(standard).toHaveLength(GAME_CONFIG.PLANET_COUNT_SILVER)
+    expect(rare).toHaveLength(GAME_CONFIG.PLANET_COUNT_GOLD)
+    expect(legendary).toHaveLength(GAME_CONFIG.PLANET_COUNT_PLATINUM)
   })
 
   it('each planet has required state fields', () => {
@@ -84,7 +84,7 @@ describe('useLevel — initializePlanets', () => {
       difficulty: 5,
       planets: [{ id: 'fake' }],
       wormholeState: 'active',
-      activeScanPlanetId: 'PLANET_SILVER_0',
+      activeScanPlanetId: 'PLANET_CINDER_0',
     })
     useLevel.getState().reset()
     const state = useLevel.getState()
