@@ -114,7 +114,7 @@ export default function MainMenu() {
       {/* Menu overlay — hidden when upgrades, armory, or stats screen is open */}
       {!isUpgradesOpen && !isArmoryOpen && !isStatsOpen && <div
         className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
-        inert={isCreditsOpen || isOptionsOpen ? "" : undefined}
+        inert={isCreditsOpen || isOptionsOpen ? true : undefined}
       >
         {/* High score & Fragment display */}
         <div className="absolute top-8 right-8 text-right select-none space-y-6">
