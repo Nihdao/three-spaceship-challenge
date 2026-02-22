@@ -11,10 +11,16 @@ export default function StatLine({ label, value, icon, bonusValue, compact = fal
     return `+${val}`
   }
 
+  const Icon = typeof icon === 'function' ? icon : null
+
   return (
     <div className="flex items-center justify-between gap-2">
       <span className={`text-game-text-muted ${compact ? 'text-[10px]' : 'text-xs'} tracking-widest flex items-center gap-1`}>
-        {icon && <span className="flex-shrink-0">{icon}</span>}
+        {icon && (
+          <span className="flex-shrink-0">
+            {Icon ? <Icon size={14} color="currentColor" /> : icon}
+          </span>
+        )}
         {label}
       </span>
       <div className="flex items-center gap-1">
