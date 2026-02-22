@@ -11,15 +11,15 @@ import { playSFX } from '../audio/audioManager.js'
 import { PLANETS } from '../entities/planetDefs.js'
 
 const TIER_COLORS = {
-  silver: '#c0c0c0',
-  gold: '#ffd700',
-  platinum: '#b0e0e6',
+  standard:  '#a07855',   // CINDER
+  rare:      '#00b4d8',   // PULSE
+  legendary: '#9b5de5',   // VOID
 }
 
 const TIER_LABELS = {
-  silver: 'Silver',
-  gold: 'Gold',
-  platinum: 'Platinum',
+  standard:  'Standard',
+  rare:      'Rare',
+  legendary: 'Legendary',
 }
 
 export default function PlanetRewardModal() {

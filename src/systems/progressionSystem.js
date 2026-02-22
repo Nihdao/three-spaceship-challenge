@@ -263,15 +263,15 @@ export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equ
   const count = GAME_CONFIG.PLANET_SCAN_REWARD_CHOICES
 
   let filtered
-  if (tier === 'silver') {
+  if (tier === 'standard') {
     // Prefer upgrades for equipped weapons + common boons
     filtered = pool.filter(c => c.type === 'weapon_upgrade' || c.type === 'new_boon' || c.type === 'boon_upgrade')
     if (filtered.length < count) filtered = pool // fallback to full pool
-  } else if (tier === 'gold') {
+  } else if (tier === 'rare') {
     // Balanced — allow everything
     filtered = pool
   } else {
-    // Platinum — prioritize new weapons + new boons
+    // Legendary — prioritize new weapons + new boons
     const newItems = pool.filter(c => c.type === 'new_weapon' || c.type === 'new_boon')
     const rest = pool.filter(c => c.type !== 'new_weapon' && c.type !== 'new_boon')
     filtered = [...newItems, ...rest]
@@ -279,8 +279,8 @@ export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equ
 
   shuffle(filtered)
 
-  // Platinum: guarantee at least one new_weapon or new_boon if available
-  if (tier === 'platinum') {
+  // Legendary: guarantee at least one new_weapon or new_boon if available
+  if (tier === 'legendary') {
     const topSlice = filtered.slice(0, count)
     const hasNew = topSlice.some(c => c.type === 'new_weapon' || c.type === 'new_boon')
     if (!hasNew) {

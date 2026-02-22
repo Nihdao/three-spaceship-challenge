@@ -142,17 +142,17 @@ describe('useGame — planet reward phase (Story 5.3)', () => {
 
   it('triggerPlanetReward sets phase to planetReward and stores tier', () => {
     useGame.getState().startGameplay()
-    useGame.getState().triggerPlanetReward('gold')
+    useGame.getState().triggerPlanetReward('rare')
 
     const state = useGame.getState()
     expect(state.phase).toBe('planetReward')
     expect(state.isPaused).toBe(true)
-    expect(state.rewardTier).toBe('gold')
+    expect(state.rewardTier).toBe('rare')
   })
 
   it('resumeGameplay returns to gameplay from planetReward', () => {
     useGame.getState().startGameplay()
-    useGame.getState().triggerPlanetReward('silver')
+    useGame.getState().triggerPlanetReward('standard')
     useGame.getState().resumeGameplay()
 
     const state = useGame.getState()
@@ -161,8 +161,8 @@ describe('useGame — planet reward phase (Story 5.3)', () => {
   })
 
   it('rewardTier included in reset()', () => {
-    useGame.getState().triggerPlanetReward('platinum')
-    expect(useGame.getState().rewardTier).toBe('platinum')
+    useGame.getState().triggerPlanetReward('legendary')
+    expect(useGame.getState().rewardTier).toBe('legendary')
 
     useGame.getState().reset()
     expect(useGame.getState().rewardTier).toBeNull()

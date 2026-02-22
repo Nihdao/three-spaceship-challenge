@@ -53,7 +53,7 @@ describe('Game-over to retry reset flow', () => {
       systemTimer: 55,
       difficulty: 3,
       wormholeState: 'visible',
-      activeScanPlanetId: 'PLANET_SILVER_0',
+      activeScanPlanetId: 'PLANET_CINDER_0',
     })
 
     // Simulate the GameLoop reset sequence

@@ -189,11 +189,11 @@ describe('Story 18.4 — Run Continuity & State Management', () => {
       useLevel.setState({
         systemTimer: 300,
         difficulty: 3,
-        planets: [{ id: 'PLANET_GOLD_0', tier: 'gold' }],
+        planets: [{ id: 'PLANET_PULSE_0', tier: 'rare' }],
         wormholeState: 'active',
         wormhole: { x: 50, z: 50 },
         wormholeActivationTimer: 1.5,
-        activeScanPlanetId: 'PLANET_GOLD_0',
+        activeScanPlanetId: 'PLANET_PULSE_0',
       })
 
       useLevel.getState().advanceSystem()
