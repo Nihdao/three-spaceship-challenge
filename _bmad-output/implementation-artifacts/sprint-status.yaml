@@ -298,7 +298,7 @@ development_status:
 
   # Epic 31: Weapon Roster & Upgrade System Overhaul
   epic-31: in-progress
-  31-1-weapon-stat-schema-roster-cleanup: ready-for-dev
+  31-1-weapon-stat-schema-roster-cleanup: review
   31-2-procedural-upgrade-system: ready-for-dev
   31-3-levelup-formula-rework: ready-for-dev
   31-4-planet-reward-tier-rework: ready-for-dev
@@ -317,7 +317,7 @@ development_status:
 
   # Epic 33: UI Design Identity — Redshift Design System
   epic-33: in-progress
-  33-1-svg-icon-system: ready-for-dev
+  33-1-svg-icon-system: done
   33-2-hud-icon-replacement: ready-for-dev
   33-3-permanent-upgrades-panel: ready-for-dev
   33-4-armory-panel: ready-for-dev
@@ -328,7 +328,7 @@ development_status:
 
   # Epic 34: Galaxy System Foundation
   epic-34: in-progress
-  34-1-galaxy-profile-planet-redesign: ready-for-dev
+  34-1-galaxy-profile-planet-redesign: in-progress
   34-2-luck-weighted-planet-generation-random-spawn: ready-for-dev
   34-3-procedural-system-names: ready-for-dev
   34-4-wormhole-scan-based-trigger: ready-for-dev
@@ -338,19 +338,19 @@ development_status:
   # Epic 35: Exploration & Navigation
   epic-35: in-progress
   35-1-fog-of-war-exploration-module: ready-for-dev
-  35-2-large-map-overlay: backlog
-  35-3-minimap-reskin-square-triangle-wormhole-arrow: backlog
+  35-2-large-map-overlay: ready-for-dev
+  35-3-minimap-reskin-square-triangle-wormhole-arrow: ready-for-dev
   35-4-quest-tracker-hud: backlog
   epic-35-retrospective: optional
 
   # Epic 36: Enemy Pressure Systems
   epic-36: in-progress
   36-1-enemy-leash-teleport-system: ready-for-dev
-  36-2-enemy-pool-eviction-overflow: backlog
+  36-2-enemy-pool-eviction-overflow: ready-for-dev
   epic-36-retrospective: optional
 
   # Epic 37: Companion & UI Polish
-  epic-37: backlog
-  37-1-companion-dialogue-reskin: backlog
-  37-2-companion-dialogues-exploration-scan: backlog
+  epic-37: in-progress
+  37-1-companion-dialogue-reskin: review
+  37-2-companion-dialogues-exploration-scan: ready-for-dev
   epic-37-retrospective: optional

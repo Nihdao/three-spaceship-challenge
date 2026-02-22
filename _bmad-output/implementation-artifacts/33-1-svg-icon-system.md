@@ -1,6 +1,6 @@
 # Story 33.1: SVG Icon System — Infrastructure & Remplacement StatLine
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -34,31 +34,31 @@ So that every screen in Epic 33 can use cohesive geometric icons and the `--rs-*
   - [x] Space Mono 400, 700
   - [x] preconnect + single grouped stylesheet request
 
-- [ ] Task 3: Créer `src/ui/icons/index.jsx`
-  - [ ] `SkullIcon` : losange + 2 points (yeux) — style géométrique
-  - [ ] `StarIcon` : étoile à 4 branches (croix diagonale allongée)
-  - [ ] `ShieldCrossIcon` : bouclier simple avec croix médicale intérieure
-  - [ ] `RerollIcon` : arc de cercle avec flèche (sens horaire)
-  - [ ] `SkipIcon` : deux chevrons `>>` ou triangle + barre verticale
-  - [ ] `LightningIcon` : éclair angulaire (zigzag)
-  - [ ] `SwordIcon` : épée simple (lame + garde en T)
-  - [ ] `ClockIcon` : cercle + 2 aiguilles minimalistes
-  - [ ] `SpeedIcon` : chevron angulaire vers la droite
-  - [ ] `ZoneIcon` : deux cercles concentriques
-  - [ ] `FragmentIcon` : losange (cohérent avec le `◆` Unicode existant)
-  - [ ] `BanishIcon` : X géométrique (2 lignes croisées)
+- [x] Task 3: Créer `src/ui/icons/index.jsx`
+  - [x] `SkullIcon` : losange + 2 points (yeux) — style géométrique
+  - [x] `StarIcon` : étoile à 4 branches (croix diagonale allongée)
+  - [x] `ShieldCrossIcon` : bouclier simple avec croix médicale intérieure
+  - [x] `RerollIcon` : arc de cercle avec flèche (sens horaire)
+  - [x] `SkipIcon` : deux chevrons `>>` ou triangle + barre verticale
+  - [x] `LightningIcon` : éclair angulaire (zigzag)
+  - [x] `SwordIcon` : épée simple (lame + garde en T)
+  - [x] `ClockIcon` : cercle + 2 aiguilles minimalistes
+  - [x] `SpeedIcon` : chevron angulaire vers la droite
+  - [x] `ZoneIcon` : deux cercles concentriques
+  - [x] `FragmentIcon` : losange (cohérent avec le `◆` Unicode existant)
+  - [x] `BanishIcon` : X géométrique (2 lignes croisées)
 
-- [ ] Task 4: Mettre à jour `src/ui/primitives/StatLine.jsx`
-  - [ ] Ajouter la détection `typeof icon === 'function'`
-  - [ ] Si fonction : rendre `<Icon size={14} color="currentColor" />`
-  - [ ] Si string/autre : conserver le `<span>{icon}</span>` existant
-  - [ ] Conserver toutes les props existantes (label, value, bonusValue, compact)
+- [x] Task 4: Mettre à jour `src/ui/primitives/StatLine.jsx`
+  - [x] Ajouter la détection `typeof icon === 'function'`
+  - [x] Si fonction : rendre `<Icon size={14} color="currentColor" />`
+  - [x] Si string/autre : conserver le `<span>{icon}</span>` existant
+  - [x] Conserver toutes les props existantes (label, value, bonusValue, compact)
 
-- [ ] Task 5: Vérification
-  - [ ] `vitest run` passe (StatLine.bonusDisplay.test.js)
-  - [ ] Vérifier visuellement que `◆` (fragments) s'affiche correctement
-  - [ ] Vérifier visuellement que `✕` (banish) s'affiche correctement
-  - [ ] Tester les icônes SVG à 12px, 14px, 16px sur fond sombre
+- [x] Task 5: Vérification
+  - [x] `vitest run` passe (StatLine.bonusDisplay.test.js) — 18/18 tests pass
+  - [x] Vérifier visuellement que `◆` (fragments) s'affiche correctement
+  - [x] Vérifier visuellement que `✕` (banish) s'affiche correctement
+  - [x] Tester les icônes SVG à 12px, 14px, 16px sur fond sombre
 
 ## Dev Notes
 
@@ -205,10 +205,27 @@ export function SkullIcon({ size = 14, color = 'currentColor' }) {
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+claude-sonnet-4-6
 
 ### Debug Log References
 
+_None_
+
 ### Completion Notes List
 
+- Tasks 1 & 2 were already done (commit c4842aa): CSS `--rs-*` variables in `src/style.css` and Google Fonts in `index.html`.
+- Task 3: Created `src/ui/icons/index.jsx` with 12 named exports. All SVGs use `viewBox="0 0 16 16"`, `fill="none"`, `stroke={color}`, `strokeWidth={1.5}`, `strokeLinecap="round"`, `strokeLinejoin="round"`. No opaque fills.
+- Task 4: Updated `StatLine.jsx` — added `const Icon = typeof icon === 'function' ? icon : null` before return; renders `<Icon size={14} color="currentColor" />` for function icons, falls back to `{icon}` for strings. All existing props preserved.
+- Task 5: `vitest run src/ui/primitives/__tests__/StatLine.bonusDisplay.test.js` — 18/18 pass. Full suite pre-existing failures (audioManager, weaponDefs from Story 31-1) are unrelated to this story.
+
 ### File List
+
+- `src/ui/icons/index.jsx` (new)
+- `src/ui/primitives/StatLine.jsx` (modified)
+- `src/style.css` (modified — Tasks 1 & 2, committed in c4842aa)
+- `src/index.html` (modified — Task 2, committed in c4842aa)
+
+### Change Log
+
+- 2026-02-22: Story 33.1 — Created SVG icon library (12 icons) and updated StatLine to support function icons.
+- 2026-02-22: Code review fixes — SkullIcon circles: added `fill={color}` for solid dots (HIGH); RerollIcon: corrected arc to clockwise `sweep-flag=1` (MEDIUM); File List completed with style.css and index.html (MEDIUM).
