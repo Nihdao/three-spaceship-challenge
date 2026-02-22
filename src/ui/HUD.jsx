@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
+import { SkullIcon, StarIcon, ShieldCrossIcon, RerollIcon, SkipIcon } from './icons/index.jsx'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
@@ -94,17 +95,18 @@ function AnimatedStat({ value, icon, colorClass, label, style }) {
     prevValue.current = value
   }, [value])
 
+  const IconComponent = typeof icon === 'function' ? icon : null
   return (
     <div className="flex items-center gap-1" aria-label={label}>
       <span className={colorClass} style={{ fontSize: 'clamp(11px, 1.1vw, 16px)', ...style }}>
-        {icon}
+        {IconComponent ? <IconComponent size={14} color="currentColor" /> : icon}
       </span>
       <span
         ref={ref}
         className={`${colorClass} tabular-nums font-bold`}
         style={{ fontSize: 'clamp(11px, 1.1vw, 16px)', ...style }}
       >
-        {typeof value === 'number' ? value.toLocaleString('en-US') : value}
+        {value}
       </span>
     </div>
   )
@@ -384,25 +386,25 @@ export default function HUD() {
 
           {/* Stats cluster: Kills | Fragments | Score (Story 10.2) */}
           <div className="flex items-center gap-3">
-            <AnimatedStat value={kills} icon="💀" colorClass="text-game-danger" label="kills" />
-            <AnimatedStat value={fragments} icon="◆" label="fragments" style={{ color: '#cc66ff' }} />
-            <AnimatedStat value={score} icon="⭐" colorClass="text-yellow-400" label="score" />
+            <AnimatedStat value={kills} icon={SkullIcon} colorClass="text-game-danger" label="kills" />
+            <AnimatedStat value={fragments} icon="◆" label="fragments" style={{ color: 'var(--rs-violet)' }} />
+            <AnimatedStat value={score} icon={StarIcon} colorClass="text-yellow-400" label="score" />
           </div>
 
           {/* Meta charges row: Revival | Reroll | Skip | Banish — only when any > 0 (Story 22.1, 22.2) */}
           {(revivalCharges > 0 || rerollCharges > 0 || skipCharges > 0 || banishCharges > 0) && (
             <div className="flex items-center gap-3">
               {revivalCharges > 0 && (
-                <AnimatedStat value={revivalCharges} icon="♥" label="revival" style={{ color: '#33ccff' }} />
+                <AnimatedStat value={revivalCharges} icon={ShieldCrossIcon} label="revival" style={{ color: 'var(--rs-teal)' }} />
               )}
               {rerollCharges > 0 && (
-                <AnimatedStat value={rerollCharges} icon="↻" label="reroll" style={{ color: '#00ffcc' }} />
+                <AnimatedStat value={rerollCharges} icon={RerollIcon} label="reroll" style={{ color: 'var(--rs-teal)' }} />
               )}
               {skipCharges > 0 && (
-                <AnimatedStat value={skipCharges} icon="⏭" label="skip" style={{ color: '#ffdd00' }} />
+                <AnimatedStat value={skipCharges} icon={SkipIcon} label="skip" style={{ color: 'var(--rs-gold)' }} />
               )}
               {banishCharges > 0 && (
-                <AnimatedStat value={banishCharges} icon="✕" label="banish" style={{ color: '#ff3366' }} />
+                <AnimatedStat value={banishCharges} icon="✕" label="banish" style={{ color: 'var(--rs-danger)' }} />
               )}
             </div>
           )}

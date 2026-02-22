@@ -298,7 +298,7 @@ development_status:
 
   # Epic 31: Weapon Roster & Upgrade System Overhaul
   epic-31: in-progress
-  31-1-weapon-stat-schema-roster-cleanup: review
+  31-1-weapon-stat-schema-roster-cleanup: done
   31-2-procedural-upgrade-system: ready-for-dev
   31-3-levelup-formula-rework: ready-for-dev
   31-4-planet-reward-tier-rework: ready-for-dev
@@ -318,7 +318,7 @@ development_status:
   # Epic 33: UI Design Identity — Redshift Design System
   epic-33: in-progress
   33-1-svg-icon-system: done
-  33-2-hud-icon-replacement: review
+  33-2-hud-icon-replacement: done
   33-3-permanent-upgrades-panel: ready-for-dev
   33-4-armory-panel: ready-for-dev
   33-5-ship-select-emoji-removal: ready-for-dev
