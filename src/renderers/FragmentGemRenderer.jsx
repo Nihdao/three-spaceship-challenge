@@ -10,14 +10,13 @@ export default function FragmentGemRenderer() {
   const meshRef = useRef()
   const dummyRef = useRef(new THREE.Object3D())
 
-  const geometry = useMemo(() => new THREE.SphereGeometry(1, 8, 8), [])
+  // GEOMETRY: flat hexagonal disk (6 radial segments, height 0.14)
+  const geometry = useMemo(() => new THREE.CylinderGeometry(0.28, 0.28, 0.14, 6), [])
   const material = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new THREE.MeshBasicMaterial({
         color: GAME_CONFIG.FRAGMENT_GEM_COLOR,
-        emissive: GAME_CONFIG.FRAGMENT_GEM_COLOR,
-        emissiveIntensity: 2,
-        toneMapped: false, // Allows emissive to glow brighter
+        toneMapped: false,
       }),
     [],
   )
@@ -39,14 +38,16 @@ export default function FragmentGemRenderer() {
     const elapsed = state.clock.elapsedTime
     const [sx, sy, sz] = GAME_CONFIG.FRAGMENT_GEM_SCALE
 
+    // Pulse is identical for all gems (depends only on elapsed) — hoist out of loop
+    const pulsePhase = elapsed * GAME_CONFIG.FRAGMENT_GEM_PULSE_SPEED
+    const pulse = Math.sin(pulsePhase) * 0.15 + 1.0
+
     for (let i = 0; i < count; i++) {
       const gem = gems[i]
       // Bobbing Y animation (same pattern as XP orbs)
       const y = 0.5 + Math.sin((elapsed + gem.x * 0.5 + gem.z * 0.3) * 3) * 0.3
 
       // Pulse animation: scale oscillation
-      const pulsePhase = elapsed * GAME_CONFIG.FRAGMENT_GEM_PULSE_SPEED
-      const pulse = Math.sin(pulsePhase) * 0.15 + 1.0
       const scaleX = sx * pulse
       const scaleY = sy * pulse
       const scaleZ = sz * pulse

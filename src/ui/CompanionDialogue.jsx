@@ -7,7 +7,22 @@ function CompanionAvatar() {
   const [imgFailed, setImgFailed] = useState(false)
   if (imgFailed) {
     return (
-      <span style={{ fontSize: '2.5rem', lineHeight: 1, flexShrink: 0 }}>{COMPANION.icon}</span>
+      <span
+        style={{
+          fontSize: '2.5rem',
+          lineHeight: 1,
+          flexShrink: 0,
+          width: '3rem',
+          height: '3rem',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '2px solid var(--rs-violet)',
+          borderRadius: '0.25rem',
+        }}
+      >
+        {COMPANION.icon}
+      </span>
     )
   }
   return (
@@ -15,7 +30,14 @@ function CompanionAvatar() {
       src="/assets/navi.png"
       alt={COMPANION.name}
       onError={() => setImgFailed(true)}
-      style={{ width: '3rem', height: '3rem', flexShrink: 0, objectFit: 'cover', borderRadius: '0.5rem' }}
+      style={{
+        width: '3rem',
+        height: '3rem',
+        flexShrink: 0,
+        objectFit: 'cover',
+        border: '2px solid var(--rs-violet)',
+        borderRadius: '0.25rem',
+      }}
     />
   )
 }
@@ -47,21 +69,42 @@ export default function CompanionDialogue() {
         left: '1.5rem',
         zIndex: 42,
         maxWidth: '320px',
-        background: 'rgba(0,0,0,0.75)',
-        backdropFilter: 'blur(4px)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: '0.75rem',
+        background: 'var(--rs-bg-surface)',
+        borderLeft: '3px solid var(--rs-violet)',
+        clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
         padding: '0.75rem 1rem',
         display: 'flex',
         alignItems: 'flex-start',
         gap: '0.75rem',
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'Rajdhani, sans-serif',
       }}
     >
       <CompanionAvatar />
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', color: '#cc66ff' }}>{COMPANION.name}</div>
-        <div style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.4, marginTop: '0.125rem' }}>{current.line}</div>
+        <div
+          style={{
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            color: 'var(--rs-violet)',
+            fontFamily: 'Rajdhani, sans-serif',
+            textTransform: 'uppercase',
+          }}
+        >
+          {COMPANION.name}
+        </div>
+        <div
+          style={{
+            fontSize: '0.875rem',
+            fontFamily: 'Rajdhani, sans-serif',
+            fontWeight: 400,
+            color: 'var(--rs-text)',
+            lineHeight: 1.4,
+            marginTop: '0.125rem',
+          }}
+        >
+          {current.line}
+        </div>
       </div>
     </div>
   )

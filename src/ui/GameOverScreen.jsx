@@ -23,6 +23,41 @@ const TAUNT_MESSAGES = [
 
 export { TAUNT_MESSAGES }
 
+const S = {
+  mainTitle: {
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: 'clamp(3rem, 8vw, 5rem)',
+    letterSpacing: '0.15em',
+    color: 'var(--rs-text)',
+    textAlign: 'center',
+    margin: 0,
+    lineHeight: 1,
+    userSelect: 'none',
+  },
+  highScoreLabel: {
+    color: 'var(--rs-gold)',
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: 'clamp(1rem, 2vw, 1.75rem)',
+    letterSpacing: '0.2em',
+    userSelect: 'none',
+    marginTop: '24px',
+  },
+  actionBtn: {
+    padding: '12px 24px',
+    background: 'transparent',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-text-muted)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: 'clamp(12px, 1.3vw, 16px)',
+    letterSpacing: '0.1em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+}
+
 export default function GameOverScreen() {
   // stage: 0=flash, 1=fadeToBlack, 2=blackScreen, 3=tauntVisible, 4=statsVisible, 5=actionsVisible
   const [stage, setStage] = useState(0)
@@ -128,10 +163,10 @@ export default function GameOverScreen() {
 
       {/* Fade to black overlay — stage 1+ */}
       <div
-        className="fixed inset-0 z-50 bg-black pointer-events-none transition-opacity"
+        className="fixed inset-0 z-50 pointer-events-none transition-opacity duration-300"
         style={{
+          backgroundColor: 'var(--rs-bg)',
           opacity: stage >= 1 ? 1 : 0,
-          transitionDuration: '300ms',
         }}
       />
 
@@ -142,15 +177,12 @@ export default function GameOverScreen() {
       />
 
       {/* Content overlay */}
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game pointer-events-none">
+      <div className="fixed inset-0 z-[51] flex flex-col items-center justify-center pointer-events-none" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
         {/* Taunt message */}
         {stage >= 3 && (
           <h1
-            className="text-game-text text-center font-bold select-none animate-fade-in"
-            style={{
-              fontSize: 'clamp(24px, 3vw, 48px)',
-              letterSpacing: '0.15em',
-            }}
+            className="animate-fade-in"
+            style={S.mainTitle}
           >
             {tauntRef.current}
           </h1>
@@ -159,53 +191,83 @@ export default function GameOverScreen() {
         {/* New high score celebration */}
         {stage >= 4 && stats.isNewHighScore && (
           <p
-            className="mt-6 text-game-accent font-bold tracking-[0.2em] select-none animate-pulse"
-            style={{ fontSize: 'clamp(16px, 2vw, 28px)' }}
+            className="animate-pulse"
+            style={S.highScoreLabel}
           >
             NEW HIGH SCORE!
           </p>
         )}
 
-        {/* Stats section */}
+        {/* Stats + Actions panel */}
         {stage >= 4 && (
           <div
-            className="mt-10 w-full animate-slide-up"
-            style={{ maxWidth: 'clamp(260px, 30vw, 400px)' }}
+            className="animate-fade-in"
+            style={{
+              marginTop: 16,
+              background: 'var(--rs-bg-surface)',
+              border: '1px solid var(--rs-border)',
+              clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+              padding: 24,
+              maxWidth: 'clamp(320px, 40vw, 480px)',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 24,
+            }}
           >
-            <div className="flex flex-col gap-2">
-              <StatLine label="SCORE" value={stats.score.toLocaleString()} />
-              <StatLine label="SYSTEM REACHED" value={`System ${stats.currentSystem}`} />
-              <StatLine label="TIME SURVIVED" value={timeSurvived} />
-              <StatLine label="ENEMIES KILLED" value={stats.kills} />
-              <StatLine label="LEVEL REACHED" value={stats.currentLevel} />
-              <StatLine label="WEAPONS" value={weaponNames || 'None'} />
+            {/* Stats section */}
+            <div className="w-full animate-slide-up">
+              <div className="flex flex-col gap-2">
+                <StatLine label="SCORE" value={stats.score.toLocaleString()} />
+                <StatLine label="SYSTEM REACHED" value={`System ${stats.currentSystem}`} />
+                <StatLine label="TIME SURVIVED" value={timeSurvived} />
+                <StatLine label="ENEMIES KILLED" value={stats.kills} />
+                <StatLine label="LEVEL REACHED" value={stats.currentLevel} />
+                <StatLine label="WEAPONS" value={weaponNames || 'None'} />
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Action buttons */}
-        {stage >= 5 && (
-          <div className="mt-10 flex gap-6 animate-fade-in pointer-events-auto">
-            <button
-              className="px-6 py-3 font-semibold tracking-widest border border-game-border rounded
-                transition-all duration-150 select-none cursor-pointer outline-none
-                text-game-text hover:border-game-accent hover:scale-105 hover:bg-game-accent/10"
-              style={{ fontSize: 'clamp(13px, 1.3vw, 18px)' }}
-              onClick={handleRetry}
-              onMouseEnter={() => playSFX('button-hover')}
-            >
-              [R] RETRY
-            </button>
-            <button
-              className="px-6 py-3 font-semibold tracking-widest border border-game-border rounded
-                transition-all duration-150 select-none cursor-pointer outline-none
-                text-game-text hover:border-game-accent hover:scale-105 hover:bg-game-accent/10"
-              style={{ fontSize: 'clamp(13px, 1.3vw, 18px)' }}
-              onClick={handleMenu}
-              onMouseEnter={() => playSFX('button-hover')}
-            >
-              [M] MENU
-            </button>
+            {/* Action buttons */}
+            {stage >= 5 && (
+              <div className="flex gap-6 animate-fade-in pointer-events-auto">
+                <button
+                  type="button"
+                  style={S.actionBtn}
+                  onClick={handleRetry}
+                  onMouseEnter={(e) => {
+                    playSFX('button-hover')
+                    e.currentTarget.style.borderColor = 'var(--rs-orange)'
+                    e.currentTarget.style.color = 'var(--rs-text)'
+                    e.currentTarget.style.transform = 'translateX(4px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--rs-border)'
+                    e.currentTarget.style.color = 'var(--rs-text-muted)'
+                    e.currentTarget.style.transform = 'translateX(0)'
+                  }}
+                >
+                  [R] RETRY
+                </button>
+                <button
+                  type="button"
+                  style={S.actionBtn}
+                  onClick={handleMenu}
+                  onMouseEnter={(e) => {
+                    playSFX('button-hover')
+                    e.currentTarget.style.borderColor = 'var(--rs-orange)'
+                    e.currentTarget.style.color = 'var(--rs-text)'
+                    e.currentTarget.style.transform = 'translateX(4px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--rs-border)'
+                    e.currentTarget.style.color = 'var(--rs-text-muted)'
+                    e.currentTarget.style.transform = 'translateX(0)'
+                  }}
+                >
+                  [M] MENU
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

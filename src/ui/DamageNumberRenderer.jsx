@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import useDamageNumbers from '../stores/useDamageNumbers.jsx'
+import useGame from '../stores/useGame.jsx'
 import { project3DToScreen } from '../systems/damageNumberSystem.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
@@ -35,6 +36,8 @@ const _tmpV = new THREE.Vector3()
 export default function DamageNumberRenderer() {
   const { camera, gl } = useThree()
   const divRefs = useRef([])
+  // Tracks whether last frame was paused — avoids re-hiding already-hidden divs on sustained pause (Story 40.1)
+  const wasPausedRef = useRef(false)
 
   // Create HTML container + pre-allocated div pool imperatively (outside R3F's reconciler)
   useEffect(() => {
@@ -56,7 +59,25 @@ export default function DamageNumberRenderer() {
     }
   }, [])
 
+  // Ordering contract: this useFrame must run AFTER GameLoop.useFrame so that isPaused is already
+  // set (e.g. triggerLevelUp called from GameLoop) before this guard reads it. Both use default
+  // priority 0 — execution order is determined by component mount order (GameLoop mounts first).
   useFrame(() => {
+    const isPaused = useGame.getState().isPaused
+    // Guard: hide all numbers during pause / modal phases (Story 40.1)
+    // wasPausedRef avoids re-iterating already-hidden divs on every sustained pause frame
+    if (isPaused) {
+      if (!wasPausedRef.current) {
+        const refs = divRefs.current
+        for (let i = 0; i < MAX_COUNT; i++) {
+          if (refs[i]) refs[i].style.display = 'none'
+        }
+        wasPausedRef.current = true
+      }
+      return
+    }
+    wasPausedRef.current = false
+
     const { damageNumbers } = useDamageNumbers.getState()
     const canvas = gl.domElement
 

@@ -12,6 +12,12 @@ import useBoons from '../useBoons.jsx'
  * (spawnSystem/projectileSystem/particles/orbs are ref-based systems not testable here)
  */
 
+const MOCK_GALAXY_CONFIG = {
+  planetCount: 7,
+  planetRarity: { standard: 4, rare: 2, legendary: 1 },
+  luckRarityBias: { standard: -0.15, rare: 0.10, legendary: 0.05 },
+}
+
 // Helper: runs the same store-level reset sequence as GameLoop.jsx
 function simulateGameLoopReset() {
   useWeapons.getState().initializeWeapons()
@@ -19,7 +25,7 @@ function simulateGameLoopReset() {
   usePlayer.getState().reset()
   useEnemies.getState().reset()
   useLevel.getState().reset()
-  useLevel.getState().initializePlanets()
+  useLevel.getState().initializePlanets(MOCK_GALAXY_CONFIG)
 }
 
 describe('Game-over to retry reset flow', () => {
@@ -48,7 +54,7 @@ describe('Game-over to retry reset flow', () => {
 
   it('clears all level state including scan progress and wormhole', () => {
     // Simulate a game with dirty level state
-    useLevel.getState().initializePlanets()
+    useLevel.getState().initializePlanets(MOCK_GALAXY_CONFIG)
     useLevel.setState({
       systemTimer: 55,
       difficulty: 3,

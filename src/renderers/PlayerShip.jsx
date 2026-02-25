@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
@@ -6,6 +6,11 @@ import usePlayer from '../stores/usePlayer.jsx'
 import useShipProgression from '../stores/useShipProgression.jsx'
 import { getSkinForShip } from '../entities/shipSkinDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+
+// Shared ref — allows other renderers (e.g. LaserCrossRenderer) to read the ship's
+// current Three.js world position without an independent Zustand read, eliminating
+// any potential one-frame lag when the ship is moving.
+export const playerShipGroupRef = { current: null }
 
 const _lighting = GAME_CONFIG.PLAYER_SHIP_LIGHTING
 const _dashEmissive = new THREE.Color(GAME_CONFIG.DASH_TRAIL_COLOR)
@@ -15,6 +20,8 @@ export default function PlayerShip() {
   const groupRef = useRef()
   const bankRef = useRef()
   const trailRef = useRef()
+  const shieldMeshRef = useRef()
+  const shieldMaterialRef = useRef()
   const { scene } = useGLTF('/models/ships/Spaceship.glb')
   const clonedScene = useMemo(() => scene.clone(), [scene])
 
@@ -61,10 +68,16 @@ export default function PlayerShip() {
     return { allMaterials: all, engineMaterials: engines }
   }, [clonedScene])
 
+  // Populate the shared module-level ref once, so other renderers can track the ship
+  useEffect(() => {
+    playerShipGroupRef.current = groupRef.current
+    return () => { playerShipGroupRef.current = null }
+  }, [])
+
   const wasDashingRef = useRef(false)
   const initDoneRef = useRef(false)
 
-  useFrame(() => {
+  useFrame((state) => {
     if (!groupRef.current || !bankRef.current) return
 
     // First-frame emissive init: runs before the first draw call, same timing as post-dash
@@ -129,6 +142,15 @@ export default function PlayerShip() {
       }
     }
 
+    // Shield visual (Story 44.5)
+    if (shieldMeshRef.current && shieldMaterialRef.current) {
+      const shieldActive = usePlayer.getState().shieldTimer > 0
+      shieldMeshRef.current.visible = shieldActive
+      if (shieldActive) {
+        shieldMaterialRef.current.opacity = 0.18 + Math.sin(state.clock.elapsedTime * 4) * 0.1
+      }
+    }
+
     // Trail visibility + fade
     if (trailRef.current) {
       trailRef.current.visible = isDashing
@@ -152,6 +174,18 @@ export default function PlayerShip() {
         color="#ffffff"
         position={[0, _lighting.POINT_LIGHT_Y, 0]}
       />
+      {/* Shield sphere — outside bankRef so it stays centered on the ship (Story 44.5) */}
+      <mesh ref={shieldMeshRef} visible={false}>
+        <sphereGeometry args={[2.2, 20, 14]} />
+        <meshBasicMaterial
+          ref={shieldMaterialRef}
+          color="#4499ff"
+          transparent
+          opacity={0.25}
+          toneMapped={false}
+        />
+      </mesh>
+
       {/* Magenta trail — outside bankRef so it stays horizontal during barrel roll */}
       <mesh ref={trailRef} position={[0, 0, 4]} visible={false}>
         <planeGeometry args={[1.5, 8]} />

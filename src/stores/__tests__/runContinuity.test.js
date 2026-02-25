@@ -18,6 +18,12 @@ import { GAME_CONFIG } from '../../config/gameConfig.js'
  * These tests validate the complete state management across system transitions and full game resets.
  */
 
+const MOCK_GALAXY_CONFIG = {
+  planetCount: 7,
+  planetRarity: { standard: 4, rare: 2, legendary: 1 },
+  luckRarityBias: { standard: -0.15, rare: 0.10, legendary: 0.05 },
+}
+
 // Simulates the complete system transition as executed in production code
 // TunnelHub calls advanceSystem + resetForNewSystem BEFORE phase change
 // GameLoop clears entity pools AFTER phase change
@@ -41,7 +47,7 @@ function simulateFullSystemTransition(spawnSystem, projectileSystem) {
   useGame.getState().setSystemTimer(0)
 
   // Initialize planets for new system
-  useLevel.getState().initializePlanets()
+  useLevel.getState().initializePlanets(MOCK_GALAXY_CONFIG)
 }
 
 describe('Story 18.4 — Run Continuity & State Management', () => {
@@ -154,8 +160,10 @@ describe('Story 18.4 — Run Continuity & State Management', () => {
       usePlayer.getState().resetForNewSystem()
 
       const p = usePlayer.getState()
-      // Movement reset
-      expect(p.position).toEqual([0, 0, 0])
+      // Movement reset (Story 34.2: position is random spawn within [-1200, 1200])
+      expect(Math.abs(p.position[0])).toBeLessThanOrEqual(1200)
+      expect(p.position[1]).toBe(0)
+      expect(Math.abs(p.position[2])).toBeLessThanOrEqual(1200)
       expect(p.velocity).toEqual([0, 0, 0])
       expect(p.rotation).toBe(0)
       expect(p.bankAngle).toBe(0)
@@ -354,8 +362,10 @@ describe('Story 18.4 — Run Continuity & State Management', () => {
       expect(g1.score).toBe(5000)
       expect(g1.totalElapsedTime).toBe(250)
 
-      // Verify SYSTEM-SPECIFIC state reset
-      expect(p1.position).toEqual([0, 0, 0])
+      // Verify SYSTEM-SPECIFIC state reset (Story 34.2: position is random spawn within [-1200, 1200])
+      expect(Math.abs(p1.position[0])).toBeLessThanOrEqual(1200)
+      expect(p1.position[1]).toBe(0)
+      expect(Math.abs(p1.position[2])).toBeLessThanOrEqual(1200)
       expect(p1.velocity).toEqual([0, 0, 0])
       expect(p1.isDashing).toBe(false)
       expect(useEnemies.getState().enemies).toEqual([])
@@ -443,10 +453,13 @@ describe('Story 18.4 — Run Continuity & State Management', () => {
       expect(p.xpToNextLevel).toBe(GAME_CONFIG.XP_LEVEL_CURVE[0])
       expect(p.currentHP).toBe(GAME_CONFIG.PLAYER_BASE_HP)
       expect(p.maxHP).toBe(GAME_CONFIG.PLAYER_BASE_HP)
-      expect(p.fragments).toBe(0)
+      expect(p.fragments).toBe(200) // fragments persist across runs (permanent cross-run currency)
       expect(p.permanentUpgrades).toEqual({})
       expect(p.acceptedDilemmas).toEqual([])
-      expect(p.position).toEqual([0, 0, 0])
+      // Story 34.2: position is random spawn within [-1200, 1200]
+      expect(Math.abs(p.position[0])).toBeLessThanOrEqual(1200)
+      expect(p.position[1]).toBe(0)
+      expect(Math.abs(p.position[2])).toBeLessThanOrEqual(1200)
       expect(p.velocity).toEqual([0, 0, 0])
       expect(p.isDashing).toBe(false)
       // NOTE: currentShipId persists across resets (by design — ship selection is per-session, not per-run)

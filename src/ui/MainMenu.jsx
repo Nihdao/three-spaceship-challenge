@@ -7,6 +7,7 @@ import CreditsModal from "./modals/CreditsModal.jsx";
 import UpgradesScreen from "./UpgradesScreen.jsx";
 import Armory from "./Armory.jsx";
 import StatsScreen from "./StatsScreen.jsx";
+import { FragmentIcon } from "./icons/index.jsx";
 
 export const MENU_ITEMS = [
   { id: "play", label: "PLAY" },
@@ -14,6 +15,58 @@ export const MENU_ITEMS = [
   { id: "armory", label: "ARMORY" },
   { id: "options", label: "OPTIONS" },
 ];
+
+const S = {
+  menuBtn: {
+    width: "12rem",
+    padding: "10px 16px",
+    background: "rgba(13, 11, 20, 0.72)",
+    borderTop: "1px solid var(--rs-border)",
+    borderRight: "1px solid var(--rs-border)",
+    borderBottom: "1px solid var(--rs-border)",
+    borderLeft: "3px solid var(--rs-orange)",
+    clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
+    color: "var(--rs-text-muted)",
+    fontFamily: "Space Mono, monospace",
+    fontSize: "0.75rem",
+    letterSpacing: "0.12em",
+    cursor: "pointer",
+    transition: "border-color 150ms, color 150ms, transform 150ms",
+    transform: "translateX(0)",
+    outline: "none",
+  },
+  menuBtnSelected: {
+    width: "12rem",
+    padding: "10px 16px",
+    background: "rgba(255, 79, 31, 0.08)",
+    borderTop: "1px solid var(--rs-orange)",
+    borderRight: "1px solid var(--rs-orange)",
+    borderBottom: "1px solid var(--rs-orange)",
+    borderLeft: "3px solid var(--rs-orange)",
+    clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
+    color: "var(--rs-text)",
+    fontFamily: "Space Mono, monospace",
+    fontSize: "0.75rem",
+    letterSpacing: "0.12em",
+    cursor: "pointer",
+    transition: "border-color 150ms, color 150ms, transform 150ms",
+    transform: "translateX(0)",
+    outline: "none",
+  },
+  cornerBtn: {
+    background: "rgba(13, 11, 20, 0.82)",
+    padding: "6px 14px",
+    border: "1px solid var(--rs-border-hot)",
+    clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
+    color: "var(--rs-text)",
+    fontFamily: "Space Mono, monospace",
+    fontSize: "0.72rem",
+    letterSpacing: "0.1em",
+    cursor: "pointer",
+    transition: "border-color 150ms, color 150ms, transform 150ms",
+    outline: "none",
+  },
+};
 
 export default function MainMenu() {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -26,6 +79,7 @@ export default function MainMenu() {
   const playButtonRef = useRef(null);
   const creditsButtonRef = useRef(null);
   const statsButtonRef = useRef(null);
+  const optionsButtonRef = useRef(null);
 
   // High score from store (loaded from localStorage)
   const highScore = useGame((s) => s.highScore);
@@ -59,9 +113,6 @@ export default function MainMenu() {
       } else if (item.id === "armory") {
         playSFX("button-click");
         setIsArmoryOpen(true);
-      } else if (item.id === "stats") {
-        playSFX("button-click");
-        setIsStatsOpen(true);
       } else if (item.id === "upgrades") {
         playSFX("button-click");
         setIsUpgradesOpen(true);
@@ -113,57 +164,97 @@ export default function MainMenu() {
 
       {/* Menu overlay — hidden when upgrades, armory, or stats screen is open */}
       {!isUpgradesOpen && !isArmoryOpen && !isStatsOpen && <div
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in"
+        className="fixed inset-0 z-50 flex flex-col items-center justify-center animate-fade-in"
         inert={isCreditsOpen || isOptionsOpen ? true : undefined}
       >
         {/* High score & Fragment display */}
         <div className="absolute top-8 right-8 text-right select-none space-y-6">
           <div>
-            <p className="text-game-text-muted text-xs tracking-[0.3em]">
+            <p style={{
+              fontFamily: "Space Mono, monospace",
+              fontSize: "0.65rem",
+              letterSpacing: "0.1em",
+              color: "var(--rs-text-muted)",
+              textTransform: "uppercase",
+            }}>
               BEST RUN
             </p>
-            <p className="text-2xl font-bold tabular-nums text-game-text">
+            <p style={{
+              fontFamily: "Rajdhani, sans-serif",
+              fontWeight: 700,
+              fontSize: "1.5rem",
+              color: "var(--rs-text)",
+              fontVariantNumeric: "tabular-nums",
+            }}>
               {highScore > 0 ? highScore.toLocaleString() : "---"}
             </p>
           </div>
           <div>
-            <p className="text-game-text-muted text-xs tracking-[0.3em]">
+            <p style={{
+              fontFamily: "Space Mono, monospace",
+              fontSize: "0.65rem",
+              letterSpacing: "0.1em",
+              color: "var(--rs-text-muted)",
+              textTransform: "uppercase",
+            }}>
               FRAGMENTS
             </p>
-            <p className="text-2xl font-bold tabular-nums text-[#cc66ff]">
-              ◆ {fragments.toLocaleString()}
+            <p style={{
+              fontFamily: "Rajdhani, sans-serif",
+              fontWeight: 700,
+              fontSize: "1.5rem",
+              color: "var(--rs-violet)",
+              fontVariantNumeric: "tabular-nums",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+            }}>
+              <FragmentIcon size={14} color="var(--rs-violet)" />
+              {fragments.toLocaleString()}
             </p>
           </div>
         </div>
 
         {/* Title */}
-        <h1
-          className="text-5xl font-bold tracking-[0.15em] text-game-text mb-16 select-none"
-          style={{ textShadow: "0 0 40px rgba(255, 0, 255, 0.3)" }}
-        >
-          REDSHIFT SURVIVOR
-        </h1>
+        <div>
+          <h1 style={{
+            fontFamily: "Bebas Neue, sans-serif",
+            fontSize: "clamp(3rem, 8vw, 6rem)",
+            letterSpacing: "0.12em",
+            color: "var(--rs-text)",
+            lineHeight: 1,
+            margin: 0,
+            userSelect: "none",
+          }}>
+            REDSHIFT SURVIVOR
+          </h1>
+          <div style={{ width: "32px", height: "2px", background: "var(--rs-orange)", marginTop: "6px", marginBottom: "3rem" }} />
+        </div>
 
         {/* Menu items */}
         <div className="flex flex-col items-center gap-4">
           {MENU_ITEMS.map((item, i) => (
             <button
               key={item.id}
-              ref={item.id === "play" ? playButtonRef : undefined}
-              className={`
-                w-48 py-3 text-lg font-semibold tracking-widest
-                border rounded transition-all duration-150 select-none
-                outline-none cursor-pointer
-                ${
-                  selectedIndex === i
-                    ? "border-game-accent text-game-text scale-105 bg-game-accent/10"
-                    : "border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text hover:scale-105"
-                }
-              `}
+              ref={item.id === "play" ? playButtonRef : item.id === "options" ? optionsButtonRef : undefined}
+              style={selectedIndex === i ? S.menuBtnSelected : S.menuBtn}
               onClick={() => handleMenuSelect(item)}
-              onMouseEnter={() => {
+              onMouseEnter={(e) => {
                 setSelectedIndex(i);
                 playSFX("button-hover");
+                e.currentTarget.style.borderTopColor = "var(--rs-orange)";
+                e.currentTarget.style.borderRightColor = "var(--rs-orange)";
+                e.currentTarget.style.borderBottomColor = "var(--rs-orange)";
+                e.currentTarget.style.color = "var(--rs-text)";
+                e.currentTarget.style.transform = "translateX(4px)";
+              }}
+              onMouseLeave={(e) => {
+                const isSelected = selectedIndex === i;
+                e.currentTarget.style.borderTopColor = isSelected ? "var(--rs-orange)" : "var(--rs-border)";
+                e.currentTarget.style.borderRightColor = isSelected ? "var(--rs-orange)" : "var(--rs-border)";
+                e.currentTarget.style.borderBottomColor = isSelected ? "var(--rs-orange)" : "var(--rs-border)";
+                e.currentTarget.style.color = isSelected ? "var(--rs-text)" : "var(--rs-text-muted)";
+                e.currentTarget.style.transform = "translateX(0)";
               }}
             >
               {item.label}
@@ -175,17 +266,37 @@ export default function MainMenu() {
         <div className="absolute bottom-8 left-8 flex flex-col gap-2 select-none">
           <button
             ref={statsButtonRef}
+            style={S.cornerBtn}
             onClick={() => { playSFX("button-click"); setIsStatsOpen(true); }}
-            onMouseEnter={() => playSFX("button-hover")}
-            className="px-4 py-2 text-sm tracking-widest border border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text transition-all duration-150 rounded outline-none cursor-pointer"
+            onMouseEnter={(e) => {
+              playSFX("button-hover");
+              e.currentTarget.style.borderColor = "var(--rs-orange)";
+              e.currentTarget.style.color = "var(--rs-text)";
+              e.currentTarget.style.transform = "translateX(4px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--rs-border-hot)";
+              e.currentTarget.style.color = "var(--rs-text)";
+              e.currentTarget.style.transform = "translateX(0)";
+            }}
           >
             STATS
           </button>
           <button
             ref={creditsButtonRef}
+            style={S.cornerBtn}
             onClick={() => { playSFX("button-click"); setIsCreditsOpen(true); }}
-            onMouseEnter={() => playSFX("button-hover")}
-            className="px-4 py-2 text-sm tracking-widest border border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text transition-all duration-150 rounded outline-none cursor-pointer"
+            onMouseEnter={(e) => {
+              playSFX("button-hover");
+              e.currentTarget.style.borderColor = "var(--rs-orange)";
+              e.currentTarget.style.color = "var(--rs-text)";
+              e.currentTarget.style.transform = "translateX(4px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--rs-border-hot)";
+              e.currentTarget.style.color = "var(--rs-text)";
+              e.currentTarget.style.transform = "translateX(0)";
+            }}
           >
             CREDITS
           </button>
@@ -199,6 +310,7 @@ export default function MainMenu() {
             setIsOptionsOpen(false);
             // Reload high score in case clear save was used
             useGame.getState().loadHighScore();
+            setTimeout(() => optionsButtonRef.current?.focus(), 0);
           }}
         />
       )}

@@ -10,7 +10,7 @@ export const GALAXIES = [
     fragmentMultiplier: 1.0,
     // --- Gameplay Profile (Story 34.1) ---
     planetCount: 15,
-    wormholeThreshold: 0.75,          // 75% scanned → wormhole spawns (= 12 planets for Andromeda)
+    wormholeThreshold: 0.666,         // 66.6% scanned → wormhole spawns (= 10 planets for Andromeda)
     planetRarity: {
       standard: 8,
       rare: 5,

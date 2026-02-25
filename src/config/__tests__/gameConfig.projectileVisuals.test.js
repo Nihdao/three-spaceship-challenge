@@ -32,9 +32,11 @@ describe('GAME_CONFIG.PROJECTILE_VISUALS (Story 12.2)', () => {
     expect(visuals.SPEED_SCALE_MAX).toBeLessThanOrEqual(3.0)
   })
 
-  // Motion blur elongation sanity check for all weapon speeds
+  // Motion blur elongation sanity check for all projectile weapon speeds
+  // Story 32.1: LASER_CROSS uses weaponType (no baseSpeed) — skip non-projectile weapons
   it('motion blur produces subtle elongation (1.0x-2.0x) for all weapon speeds', () => {
     for (const [id, def] of Object.entries(WEAPONS)) {
+      if (def.weaponType) continue // skip non-projectile weapons (e.g., laser_cross)
       const speed = def.baseSpeed // assumes normalized direction vector magnitude ~1.0
       const rawMult = 1.0 + speed * visuals.SPEED_SCALE_MULT
       const capped = Math.min(rawMult, visuals.SPEED_SCALE_MAX)

@@ -14,13 +14,13 @@ export default function BossHPBar() {
   const barColor = phaseColors[boss?.phase ?? 0] || '#ff4444'
 
   return (
-    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none font-game">
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
       <div style={{ animation: bossDefeated ? 'bossHPFadeOut 0.5s ease-out forwards' : 'bossHPSlideIn 600ms ease-out forwards' }}>
         <div className="flex flex-col items-center pt-2 gap-1">
           {/* Boss name */}
           <span
-            className="font-bold tracking-[0.3em] text-game-text"
-            style={{ fontSize: 'clamp(14px, 1.4vw, 20px)' }}
+            className="font-bold tracking-[0.3em]"
+            style={{ fontSize: 'clamp(14px, 1.4vw, 20px)', color: 'var(--rs-text)' }}
           >
             {GAME_CONFIG.BOSS_NAME}
           </span>

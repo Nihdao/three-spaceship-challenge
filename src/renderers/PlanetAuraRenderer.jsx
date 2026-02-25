@@ -8,11 +8,6 @@ import { PLANETS } from '../entities/planetDefs.js'
 
 const MAX_AURAS = 10
 
-const TIER_COLOR_KEY = {
-  standard:  'SILVER_COLOR',
-  rare:      'GOLD_COLOR',
-  legendary: 'PLATINUM_COLOR',
-}
 
 export default function PlanetAuraRenderer() {
   const meshRef = useRef()
@@ -59,7 +54,8 @@ export default function PlanetAuraRenderer() {
     let closestId = null
     let closestDist = Infinity
 
-    for (const planet of planets) {
+    for (let i = 0; i < planets.length; i++) {
+      const planet = planets[i]
       if (planet.scanned && !cfg.SHOW_COMPLETED_AURA) continue
 
       const dx = playerX - planet.x
@@ -74,7 +70,8 @@ export default function PlanetAuraRenderer() {
     }
 
     // Update fade states
-    for (const planet of planets) {
+    for (let i = 0; i < planets.length; i++) {
+      const planet = planets[i]
       if (!states.has(planet.id)) {
         states.set(planet.id, { opacity: 0, pulsePhase: 0 })
       }
@@ -106,7 +103,8 @@ export default function PlanetAuraRenderer() {
 
     // Render visible auras
     let count = 0
-    for (const planet of planets) {
+    for (let i = 0; i < planets.length; i++) {
+      const planet = planets[i]
       const s = states.get(planet.id)
       if (!s || s.opacity <= 0) continue
 
@@ -122,10 +120,10 @@ export default function PlanetAuraRenderer() {
       dummy.updateMatrix()
       mesh.setMatrixAt(count, dummy.matrix)
 
-      const colorKey = planet.scanned && cfg.SHOW_COMPLETED_AURA
-        ? 'COMPLETED_COLOR'
-        : TIER_COLOR_KEY[planet.tier]
-      tempColor.set(cfg[colorKey] || '#ffffff')
+      const color = planet.scanned && cfg.SHOW_COMPLETED_AURA
+        ? cfg.COMPLETED_COLOR
+        : PLANETS[planet.typeId].color
+      tempColor.set(color || '#ffffff')
       // Scale color brightness by per-instance opacity ratio to simulate
       // individual opacity (shared material only supports one opacity value).
       // With AdditiveBlending, dimmer color = visually lower opacity.

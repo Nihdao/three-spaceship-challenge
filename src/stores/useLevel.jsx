@@ -13,6 +13,10 @@ const useLevel = create((set, get) => ({
   wormholeActivationTimer: 0,
   activeScanPlanetId: null,
 
+  // --- Procedural System Names (Story 34.3) ---
+  currentSystemName: null,
+  usedSystemNames: [],
+
   // --- Cumulative Timer (Story 23.3) ---
   carriedTime: 0, // Time remaining from previous system (seconds); added to next system's duration
   actualSystemDuration: GAME_CONFIG.SYSTEM_TIMER, // Effective duration for current system (base + carried)
@@ -32,7 +36,8 @@ const useLevel = create((set, get) => ({
     let closestDist = Infinity
 
     // Find closest unscanned planet in range
-    for (const planet of planets) {
+    for (let i = 0; i < planets.length; i++) {
+      const planet = planets[i]
       if (planet.scanned) continue
       const dx = playerX - planet.x
       const dz = playerZ - planet.z
@@ -49,33 +54,36 @@ const useLevel = create((set, get) => ({
       const scanTime = PLANETS[closestUnscanPlanet.typeId].scanTime
       const newProgress = closestUnscanPlanet.scanProgress + (delta / scanTime)
 
+      // Reset previous planet's progress in-place if switching targets
+      if (switchedPlanet) {
+        for (let i = 0; i < planets.length; i++) {
+          if (planets[i].id === activeScanPlanetId) { planets[i].scanProgress = 0; break }
+        }
+      }
+
       if (newProgress >= 1.0) {
-        // Scan complete
-        const updatedPlanets = planets.map(p => {
-          if (p.id === closestUnscanPlanet.id) return { ...p, scanned: true, scanProgress: 1 }
-          if (switchedPlanet && p.id === activeScanPlanetId) return { ...p, scanProgress: 0 }
-          return p
-        })
-        set({ planets: updatedPlanets, activeScanPlanetId: null })
+        // Scan complete — mutate in-place + set() for React subscribers
+        closestUnscanPlanet.scanned = true
+        closestUnscanPlanet.scanProgress = 1
+        set({ planets, activeScanPlanetId: null })
         return { completed: true, planetId: closestUnscanPlanet.id, tier: closestUnscanPlanet.tier }
       }
 
-      // Scan in progress
-      const updatedPlanets = planets.map(p => {
-        if (p.id === closestUnscanPlanet.id) return { ...p, scanProgress: newProgress }
-        if (switchedPlanet && p.id === activeScanPlanetId) return { ...p, scanProgress: 0 }
-        return p
-      })
-      set({ planets: updatedPlanets, activeScanPlanetId: closestUnscanPlanet.id })
+      // Scan in progress — mutate scanProgress directly (renderers read via getState())
+      closestUnscanPlanet.scanProgress = newProgress
+      // Only call set() when activeScanPlanetId changes (scan start or target switch)
+      if (activeScanPlanetId !== closestUnscanPlanet.id) {
+        set({ activeScanPlanetId: closestUnscanPlanet.id })
+      }
       return { completed: false, activeScanPlanetId: closestUnscanPlanet.id, scanProgress: newProgress }
     }
 
     // Not in any scan zone — reset active scan
     if (activeScanPlanetId) {
-      const updatedPlanets = planets.map(p =>
-        p.id === activeScanPlanetId ? { ...p, scanProgress: 0 } : p
-      )
-      set({ planets: updatedPlanets, activeScanPlanetId: null })
+      for (let i = 0; i < planets.length; i++) {
+        if (planets[i].id === activeScanPlanetId) { planets[i].scanProgress = 0; break }
+      }
+      set({ activeScanPlanetId: null })
     }
     return { completed: false, activeScanPlanetId: null, scanProgress: 0 }
   },
@@ -102,54 +110,95 @@ const useLevel = create((set, get) => ({
     set({ actualSystemDuration: GAME_CONFIG.SYSTEM_TIMER + carried, carriedTime: 0 })
   },
 
-  initializePlanets: () => {
+  initializeSystemName: (pool) => {
+    if (!pool || pool.length === 0) return
+    const { usedSystemNames } = get()
+    let available = pool.filter(name => !usedSystemNames.includes(name))
+    // Wrap-around: if all names used, reset tracking and pick from full pool
+    // Resetting usedSystemNames to [name] restores deduplication for subsequent calls
+    const isWrapped = available.length === 0
+    if (isWrapped) available = [...pool]
+    const name = available[Math.floor(Math.random() * available.length)]
+    set({ currentSystemName: name, usedSystemNames: isWrapped ? [name] : [...usedSystemNames, name] })
+  },
+
+  initializePlanets: (galaxyConfig, luckValue = 0) => {
     const planets = []
     const margin = GAME_CONFIG.PLANET_PLACEMENT_MARGIN
     const minCenter = GAME_CONFIG.PLANET_MIN_DISTANCE_FROM_CENTER
     const minBetween = GAME_CONFIG.PLANET_MIN_DISTANCE_BETWEEN
     const range = GAME_CONFIG.PLAY_AREA_SIZE - margin
 
-    const tiers = [
-      { typeId: 'PLANET_CINDER', count: GAME_CONFIG.PLANET_COUNT_SILVER },   // 4
-      { typeId: 'PLANET_PULSE',  count: GAME_CONFIG.PLANET_COUNT_GOLD },     // 2
-      { typeId: 'PLANET_VOID',   count: GAME_CONFIG.PLANET_COUNT_PLATINUM }, // 1
-    ]
+    // Luck-adjusted weights (clamped to min 0)
+    const base = galaxyConfig.planetRarity
+    const bias = galaxyConfig.luckRarityBias
+    const weights = {
+      standard:  Math.max(0, base.standard  + bias.standard  * luckValue),
+      rare:      Math.max(0, base.rare      + bias.rare      * luckValue),
+      legendary: Math.max(0, base.legendary + bias.legendary * luckValue),
+    }
+    let totalWeight = weights.standard + weights.rare + weights.legendary
+    if (totalWeight <= 0) {
+      console.warn('[initializePlanets] All luck-adjusted weights clamped to 0 — defaulting to base weights without luck bias')
+      weights.standard = base.standard
+      weights.rare = base.rare
+      weights.legendary = base.legendary
+      totalWeight = base.standard + base.rare + base.legendary
+    }
 
-    for (const { typeId, count } of tiers) {
+    // Rarity → typeId mapping
+    const TYPE_MAP = {
+      standard:  'PLANET_CINDER',
+      rare:      'PLANET_PULSE',
+      legendary: 'PLANET_VOID',
+    }
+
+    for (let i = 0; i < galaxyConfig.planetCount; i++) {
+      // Weighted random roll for type
+      const roll = Math.random() * totalWeight
+      let typeId
+      if (roll < weights.standard) {
+        typeId = TYPE_MAP.standard
+      } else if (roll < weights.standard + weights.rare) {
+        typeId = TYPE_MAP.rare
+      } else {
+        typeId = TYPE_MAP.legendary
+      }
+
       const def = PLANETS[typeId]
-      for (let i = 0; i < count; i++) {
-        let x, z, valid
-        let attempts = 0
-        do {
-          x = (Math.random() * 2 - 1) * range
-          z = (Math.random() * 2 - 1) * range
-          const distFromCenter = Math.sqrt(x * x + z * z)
-          valid = distFromCenter >= minCenter
-          if (valid) {
-            for (const p of planets) {
-              const dx = p.x - x, dz = p.z - z
-              if (Math.sqrt(dx * dx + dz * dz) < minBetween) {
-                valid = false
-                break
-              }
+
+      // Spatial placement with constraints
+      let x, z, valid
+      let attempts = 0
+      do {
+        x = (Math.random() * 2 - 1) * range
+        z = (Math.random() * 2 - 1) * range
+        const distFromCenter = Math.sqrt(x * x + z * z)
+        valid = distFromCenter >= minCenter
+        if (valid) {
+          for (const p of planets) {
+            const dx = p.x - x, dz = p.z - z
+            if (Math.sqrt(dx * dx + dz * dz) < minBetween) {
+              valid = false
+              break
             }
           }
-          attempts++
-        } while (!valid && attempts < 50)
-
-        if (attempts >= 50) {
-          console.warn(`Planet placement: ${typeId}_${i} placed after 50 failed attempts (constraints may be violated)`)
         }
+        attempts++
+      } while (!valid && attempts < 50)
 
-        planets.push({
-          id: `${typeId}_${i}`,
-          typeId,
-          tier: def.tier,
-          x, z,
-          scanned: false,
-          scanProgress: 0,
-        })
+      if (attempts >= 50) {
+        console.warn(`Planet placement: ${typeId}_${i} placed after 50 failed attempts (constraints may be violated)`)
       }
+
+      planets.push({
+        id: `${typeId}_${i}`,
+        typeId,
+        tier: def.tier,
+        x, z,
+        scanned: false,
+        scanProgress: 0,
+      })
     }
     set({ planets })
   },
@@ -229,6 +278,8 @@ const useLevel = create((set, get) => ({
     banishedItems: [], // Story 22.2: Clear banish list on new run
     carriedTime: 0, // Story 23.3: Reset carryover on new game
     actualSystemDuration: GAME_CONFIG.SYSTEM_TIMER, // Story 23.3: Reset to base duration
+    currentSystemName: null,
+    usedSystemNames: [],
   }),
 }))
 

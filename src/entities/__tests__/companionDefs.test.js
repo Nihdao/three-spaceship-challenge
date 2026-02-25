@@ -10,6 +10,7 @@ const PRODUCTION_EVENT_KEYS = [
   'boss-spawn',
   'low-hp-warning',
   'boss-defeat',
+  'near-wormhole-threshold',
 ]
 
 describe('companionDefs — COMPANION identity (Story 30.4)', () => {
@@ -24,7 +25,7 @@ describe('companionDefs — COMPANION identity (Story 30.4)', () => {
 })
 
 describe('companionDefs — DIALOGUE_EVENTS catalogue (Story 30.4)', () => {
-  it('contains all 8 required production event keys', () => {
+  it('contains all 9 required production event keys', () => {
     for (const key of PRODUCTION_EVENT_KEYS) {
       expect(DIALOGUE_EVENTS, `Missing event key: "${key}"`).toHaveProperty(key)
     }
@@ -34,8 +35,8 @@ describe('companionDefs — DIALOGUE_EVENTS catalogue (Story 30.4)', () => {
     expect(DIALOGUE_EVENTS).toHaveProperty('test-hello')
   })
 
-  it.each(PRODUCTION_EVENT_KEYS)('%s — has exactly 3 lines', (key) => {
-    expect(DIALOGUE_EVENTS[key]).toHaveLength(3)
+  it.each(PRODUCTION_EVENT_KEYS)('%s — has at least 3 lines', (key) => {
+    expect(DIALOGUE_EVENTS[key].length).toBeGreaterThanOrEqual(3)
   })
 
   it.each(PRODUCTION_EVENT_KEYS)('%s — each line has string `line` and positive `duration`', (key) => {
@@ -79,7 +80,7 @@ describe('companionDefs — getRandomLine (Story 30.4)', () => {
     for (let i = 0; i < 50; i++) {
       results.add(getRandomLine(key).line)
     }
-    // With 3 lines and 50 draws, all 3 should appear
+    // system-arrival-1 has 5 lines since Story 37.2; with 50 draws all 5 should appear
     for (const line of lines) {
       expect(results).toContain(line)
     }

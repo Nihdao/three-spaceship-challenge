@@ -10,43 +10,26 @@ describe('SystemNameBanner — Story 17.2', () => {
     useLevel.getState().reset()
   })
 
-  describe('System name lookup logic', () => {
-    it('SYSTEM_NAMES array has 3 entries for 3 systems', () => {
-      expect(GAME_CONFIG.SYSTEM_NAMES).toBeDefined()
-      expect(GAME_CONFIG.SYSTEM_NAMES.length).toBe(3)
+  describe('Story 34.3 — currentSystemName from useLevel', () => {
+    it('currentSystemName defaults to null in useLevel', () => {
+      useLevel.getState().reset()
+      expect(useLevel.getState().currentSystemName).toBeNull()
     })
 
-    it('SYSTEM_NAMES are non-empty strings', () => {
-      for (const name of GAME_CONFIG.SYSTEM_NAMES) {
-        expect(typeof name).toBe('string')
-        expect(name.length).toBeGreaterThan(0)
-      }
+    it('fallback rawSystemName is SYSTEM {n} when currentSystemName is null', () => {
+      useLevel.getState().reset()
+      const currentSystemName = useLevel.getState().currentSystemName
+      const currentSystem = useLevel.getState().currentSystem
+      const rawSystemName = currentSystemName || `SYSTEM ${currentSystem}`
+      expect(rawSystemName).toBe('SYSTEM 1')
     })
 
-    it('currentSystem 1 maps to SYSTEM_NAMES[0] (1-indexed to 0-indexed)', () => {
-      const systemName = GAME_CONFIG.SYSTEM_NAMES[1 - 1]
-      expect(systemName).toBe('ALPHA CENTAURI')
-    })
-
-    it('currentSystem 2 maps to SYSTEM_NAMES[1]', () => {
-      const systemName = GAME_CONFIG.SYSTEM_NAMES[2 - 1]
-      expect(systemName).toBe('PROXIMA')
-    })
-
-    it('currentSystem 3 maps to SYSTEM_NAMES[2]', () => {
-      const systemName = GAME_CONFIG.SYSTEM_NAMES[3 - 1]
-      expect(systemName).toBe('KEPLER-442')
-    })
-
-    it('out-of-bounds currentSystem returns undefined (fallback handles this)', () => {
-      const systemName = GAME_CONFIG.SYSTEM_NAMES[4 - 1]
-      expect(systemName).toBeUndefined()
-      // Component uses: systemName || `SYSTEM ${currentSystem}` as fallback
-    })
-
-    it('currentSystem 0 returns undefined (fallback handles this)', () => {
-      const systemName = GAME_CONFIG.SYSTEM_NAMES[0 - 1]
-      expect(systemName).toBeUndefined()
+    it('rawSystemName uses currentSystemName when set', () => {
+      useLevel.setState({ currentSystemName: 'IRON REACH' })
+      const currentSystemName = useLevel.getState().currentSystemName
+      const currentSystem = useLevel.getState().currentSystem
+      const rawSystemName = currentSystemName || `SYSTEM ${currentSystem}`
+      expect(rawSystemName).toBe('IRON REACH')
     })
   })
 
@@ -170,20 +153,4 @@ describe('SystemNameBanner — Story 17.2', () => {
     })
   })
 
-  describe('Dev mode console warning (boundary validation)', () => {
-    it('console.warn is called when system name is undefined in dev mode', () => {
-      const originalEnv = import.meta.env.DEV
-      // Note: We can't easily mock import.meta.env.DEV in Vitest, so this is a documentation test
-      // The component should call console.warn when SYSTEM_NAMES[currentSystem - 1] is undefined
-
-      // Verify fallback behavior by checking that out-of-bounds access returns undefined
-      const outOfBoundsName = GAME_CONFIG.SYSTEM_NAMES[99]
-      expect(outOfBoundsName).toBeUndefined()
-
-      // In the component, this would trigger: console.warn if (!systemName && import.meta.env.DEV)
-      // We verify the guard condition logic here
-      const shouldWarn = !outOfBoundsName && import.meta.env.DEV
-      // shouldWarn would be true in dev mode when systemName is undefined
-    })
-  })
 })

@@ -70,13 +70,11 @@ describe('useEnemies — damage actions', () => {
 
     it('sets lastHitTime on non-lethal damage', () => {
       const enemy = spawnTestEnemy({ hp: 20 })
-      const before = performance.now()
-      useEnemies.getState().damageEnemy(enemy.id, 5)
-      const after = performance.now()
+      const clockMs = 12345
+      useEnemies.getState().damageEnemy(enemy.id, 5, clockMs)
 
       const updated = useEnemies.getState().enemies.find((e) => e.id === enemy.id)
-      expect(updated.lastHitTime).toBeGreaterThanOrEqual(before)
-      expect(updated.lastHitTime).toBeLessThanOrEqual(after)
+      expect(updated.lastHitTime).toBe(clockMs)
     })
 
     it('does not set lastHitTime on lethal damage', () => {
@@ -142,7 +140,7 @@ describe('useEnemies — damage actions', () => {
     })
 
     it('returns correct death events with position/color data', () => {
-      const enemy = spawnTestEnemy({ hp: 10, x: 42, z: 99, color: '#ff5555' })
+      const enemy = spawnTestEnemy({ hp: 10, x: 42, z: 99, color: '#ff5555', typeId: 'FODDER_BASIC' })
 
       const results = useEnemies.getState().damageEnemiesBatch([
         { enemyId: enemy.id, damage: 15 },
@@ -152,7 +150,13 @@ describe('useEnemies — damage actions', () => {
       expect(deathEvent).toBeTruthy()
       expect(deathEvent.enemy.x).toBe(42)
       expect(deathEvent.enemy.z).toBe(99)
+      expect(deathEvent.enemy.typeId).toBe('FODDER_BASIC')
       expect(deathEvent.enemy.color).toBe('#ff5555')
+      // Minimal capture guard (Story 43.1 AC3) — only { x, z, typeId, color }
+      expect(deathEvent.enemy.id).toBeUndefined()
+      expect(deathEvent.enemy.hp).toBeUndefined()
+      expect(deathEvent.enemy.xpReward).toBeUndefined()
+      expect(deathEvent.enemy.lastHitTime).toBeUndefined()
     })
 
     it('returns empty array for empty hits', () => {
@@ -164,17 +168,15 @@ describe('useEnemies — damage actions', () => {
       const e1 = spawnTestEnemy({ hp: 20 })
       const e2 = spawnTestEnemy({ hp: 5 })
 
-      const before = performance.now()
+      const clockMs = 67890
       useEnemies.getState().damageEnemiesBatch([
         { enemyId: e1.id, damage: 5 },
         { enemyId: e2.id, damage: 10 },
-      ])
-      const after = performance.now()
+      ], clockMs)
 
-      // e1 survived — should have lastHitTime set
+      // e1 survived — should have lastHitTime set to clockMs
       const surviving = useEnemies.getState().enemies.find((e) => e.id === e1.id)
-      expect(surviving.lastHitTime).toBeGreaterThanOrEqual(before)
-      expect(surviving.lastHitTime).toBeLessThanOrEqual(after)
+      expect(surviving.lastHitTime).toBe(clockMs)
 
       // e2 died — should be removed
       expect(useEnemies.getState().enemies.find((e) => e.id === e2.id)).toBeUndefined()
@@ -190,7 +192,6 @@ describe('useEnemies — damage actions', () => {
 
       const deathEvent = results.find((r) => r.killed)
       expect(deathEvent).toBeTruthy()
-      expect(deathEvent.enemy.id).toBe(enemy.id)
       expect(useEnemies.getState().enemies.find((e) => e.id === enemy.id)).toBeUndefined()
     })
 

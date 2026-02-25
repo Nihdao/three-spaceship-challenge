@@ -48,9 +48,8 @@ export function updateHealGemMagnetization(px, pz, delta, pickupRadiusMultiplier
 
     if (distSq <= magnetRadiusSq) {
       gem.isMagnetized = true
-    } else {
-      gem.isMagnetized = false
     }
+    // No else — once magnetized, stays magnetized until collected or reset
 
     if (gem.isMagnetized) {
       const dist = Math.sqrt(distSq)
@@ -58,8 +57,8 @@ export function updateHealGemMagnetization(px, pz, delta, pickupRadiusMultiplier
         const dirX = dx / dist
         const dirZ = dz / dist
         const normalizedDist = dist / magnetRadius
-        const speedFactor = Math.pow(1 - normalizedDist, accelCurve)
-        const speed = magnetSpeed * speedFactor
+        const speedFactor = Math.max(0, Math.pow(Math.max(0, 1 - normalizedDist), accelCurve))
+        const speed = Math.max(GAME_CONFIG.XP_MAGNET_MIN_SPEED, magnetSpeed * speedFactor)
         gem.x += dirX * speed * delta
         gem.z += dirZ * speed * delta
       }
@@ -73,6 +72,12 @@ export function getHealGems() {
 
 export function getActiveHealGemCount() {
   return activeCount
+}
+
+export function forceActivateMagnetHealGems() {
+  for (let i = 0; i < activeCount; i++) {
+    healGems[i].isMagnetized = true
+  }
 }
 
 export function resetHealGems() {

@@ -46,10 +46,13 @@ describe('usePlayer — resetForNewSystem cross-system preservation (Story 7.3)'
     expect(usePlayer.getState().dilemmaStats).toEqual(customStats)
   })
 
-  it('resets position to origin', () => {
+  it('resets position to a random spawn within [-1200, 1200] (Story 34.2)', () => {
     usePlayer.setState({ position: [100, 0, -200] })
     usePlayer.getState().resetForNewSystem()
-    expect(usePlayer.getState().position).toEqual([0, 0, 0])
+    const [px, py, pz] = usePlayer.getState().position
+    expect(py).toBe(0)
+    expect(Math.abs(px)).toBeLessThanOrEqual(1200)
+    expect(Math.abs(pz)).toBeLessThanOrEqual(1200)
   })
 
   it('preserves XP and level across system transition (Story 18.1)', () => {
@@ -106,5 +109,33 @@ describe('usePlayer — resetForNewSystem cross-system preservation (Story 7.3)'
     usePlayer.getState().resetForNewSystem()
     expect(usePlayer.getState().isInvulnerable).toBe(false)
     expect(usePlayer.getState().invulnerabilityTimer).toBe(0)
+  })
+})
+
+describe('usePlayer — random spawn (Story 34.2)', () => {
+  it('reset() sets position within [-1200, 1200] range', () => {
+    usePlayer.getState().reset()
+    const [x, y, z] = usePlayer.getState().position
+    expect(y).toBe(0)
+    expect(Math.abs(x)).toBeLessThanOrEqual(1200)
+    expect(Math.abs(z)).toBeLessThanOrEqual(1200)
+  })
+
+  it('reset() does not always spawn at [0, 0, 0] (10 iterations)', () => {
+    const positions = []
+    for (let i = 0; i < 10; i++) {
+      usePlayer.getState().reset()
+      positions.push([...usePlayer.getState().position])
+    }
+    const allAtOrigin = positions.every(([x, , z]) => x === 0 && z === 0)
+    expect(allAtOrigin).toBe(false)
+  })
+
+  it('resetForNewSystem() sets position within [-1200, 1200] range', () => {
+    usePlayer.getState().resetForNewSystem()
+    const [x, y, z] = usePlayer.getState().position
+    expect(y).toBe(0)
+    expect(Math.abs(x)).toBeLessThanOrEqual(1200)
+    expect(Math.abs(z)).toBeLessThanOrEqual(1200)
   })
 })

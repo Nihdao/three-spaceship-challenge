@@ -27,6 +27,11 @@ export const CREDITS_SECTIONS = [
     credit: "Quaternius · Mastjie via PolyPizza",
     items: [{ label: "PolyPizza", entries: [{ title: "Quaternius" }, { title: "Mastjie" }] }],
   },
+  {
+    category: "Icons",
+    credit: "game-icons.net",
+    items: [{ entries: [{ title: "Game-Icons.net" }] }],
+  },
 ];
 
 // ─── styles ────────────────────────────────────────────────────────────────
@@ -186,6 +191,24 @@ export default function CreditsModal({ onClose }) {
         <div>
           <h2 id={titleId} style={S.title}>Credits</h2>
           <div style={S.titleAccent} />
+        </div>
+
+        {/* Author */}
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontFamily: "Space Mono, monospace", fontSize: "0.65rem", letterSpacing: "0.12em", color: "var(--rs-text-muted)", textTransform: "uppercase", margin: "0 0 4px" }}>
+            A Game By
+          </p>
+          <a
+            href="https://x.com/Nihdao"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontFamily: "Bebas Neue, sans-serif", fontSize: "1.75rem", letterSpacing: "0.15em", color: "var(--rs-teal)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "5px", transition: "color 150ms" }}
+            onMouseEnter={(e) => { playSFX("button-hover"); e.currentTarget.style.color = "var(--rs-text)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--rs-teal)"; }}
+          >
+            NIHDAO
+            <span aria-hidden="true" style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "1rem", fontWeight: 400 }}>↗</span>
+          </a>
         </div>
 
         <hr style={S.hr} />

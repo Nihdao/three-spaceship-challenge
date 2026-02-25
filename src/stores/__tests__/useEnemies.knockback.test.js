@@ -43,20 +43,20 @@ describe('useEnemies — knockback (Story 27.4)', () => {
       })
     })
 
-    it('SHOTGUN has higher knockback than LASER_FRONT', () => {
-      expect(WEAPONS.SHOTGUN.knockbackStrength).toBeGreaterThan(WEAPONS.LASER_FRONT.knockbackStrength)
+    it('EXPLOSIVE_ROUND has higher knockback than LASER_FRONT', () => {
+      expect(WEAPONS.EXPLOSIVE_ROUND.knockbackStrength).toBeGreaterThan(WEAPONS.LASER_FRONT.knockbackStrength)
     })
 
-    it('RAILGUN has higher knockback than SPREAD_SHOT', () => {
-      expect(WEAPONS.RAILGUN.knockbackStrength).toBeGreaterThan(WEAPONS.SPREAD_SHOT.knockbackStrength)
+    it('EXPLOSIVE_ROUND has higher knockback than SPREAD_SHOT', () => {
+      expect(WEAPONS.EXPLOSIVE_ROUND.knockbackStrength).toBeGreaterThan(WEAPONS.SPREAD_SHOT.knockbackStrength)
     })
 
     it('BEAM has minimal knockback (beam weapons push gently)', () => {
-      expect(WEAPONS.BEAM.knockbackStrength).toBeLessThan(WEAPONS.SHOTGUN.knockbackStrength)
+      expect(WEAPONS.BEAM.knockbackStrength).toBeLessThan(WEAPONS.EXPLOSIVE_ROUND.knockbackStrength)
     })
 
-    it('MISSILE_HOMING has significant knockback (explosive weapon)', () => {
-      expect(WEAPONS.MISSILE_HOMING.knockbackStrength).toBeGreaterThan(WEAPONS.LASER_FRONT.knockbackStrength)
+    it('EXPLOSIVE_ROUND has significant knockback (explosive weapon)', () => {
+      expect(WEAPONS.EXPLOSIVE_ROUND.knockbackStrength).toBeGreaterThan(WEAPONS.LASER_FRONT.knockbackStrength)
     })
   })
 
@@ -113,7 +113,7 @@ describe('useEnemies — knockback (Story 27.4)', () => {
     it('displaces diagonally (both x and z change) for a diagonal projectile', () => {
       const enemies = [{ id: 'e1', x: 0, z: 0, typeId: 'FODDER_BASIC' }]
       const invSqrt2 = 1 / Math.sqrt(2)
-      applyKnockbackImpulse(enemies, 'e1', { weaponId: 'RAILGUN', dirX: invSqrt2, dirZ: invSqrt2 })
+      applyKnockbackImpulse(enemies, 'e1', { weaponId: 'EXPLOSIVE_ROUND', dirX: invSqrt2, dirZ: invSqrt2 })
       expect(enemies[0].x).toBeGreaterThan(0)
       expect(enemies[0].z).toBeGreaterThan(0)
       expect(enemies[0].x).toBeCloseTo(enemies[0].z)
@@ -179,16 +179,16 @@ describe('useEnemies — knockback (Story 27.4)', () => {
   describe('applyKnockbackImpulse() — boss resistance', () => {
     it('applies full knockback to regular enemy', () => {
       const enemies = [{ id: 'e1', x: 0, z: 0, typeId: 'FODDER_BASIC' }]
-      const strength = WEAPONS.RAILGUN.knockbackStrength
-      applyKnockbackImpulse(enemies, 'e1', { weaponId: 'RAILGUN', dirX: 1, dirZ: 0 })
+      const strength = WEAPONS.EXPLOSIVE_ROUND.knockbackStrength
+      applyKnockbackImpulse(enemies, 'e1', { weaponId: 'EXPLOSIVE_ROUND', dirX: 1, dirZ: 0 })
       expect(enemies[0].x).toBeCloseTo(strength)
     })
 
     it('applies reduced knockback (10% of base) to enemy with isBoss flag', () => {
       // BOSS_SPACESHIP has isBoss: true in ENEMIES
       const enemies = [{ id: 'boss1', x: 0, z: 0, typeId: 'BOSS_SPACESHIP' }]
-      const strength = WEAPONS.RAILGUN.knockbackStrength
-      applyKnockbackImpulse(enemies, 'boss1', { weaponId: 'RAILGUN', dirX: 1, dirZ: 0 })
+      const strength = WEAPONS.EXPLOSIVE_ROUND.knockbackStrength
+      applyKnockbackImpulse(enemies, 'boss1', { weaponId: 'EXPLOSIVE_ROUND', dirX: 1, dirZ: 0 })
       const expectedReduced = strength * (1 - GAME_CONFIG.BOSS_KNOCKBACK_RESISTANCE)
       expect(enemies[0].x).toBeCloseTo(expectedReduced)
     })
@@ -196,7 +196,7 @@ describe('useEnemies — knockback (Story 27.4)', () => {
     it('boss receives significantly less knockback than regular enemy from the same weapon', () => {
       const regularEnemies = [{ id: 'e1', x: 0, z: 0, typeId: 'FODDER_BASIC' }]
       const bossEnemies = [{ id: 'boss1', x: 0, z: 0, typeId: 'BOSS_SPACESHIP' }]
-      const proj = { weaponId: 'SHOTGUN', dirX: 1, dirZ: 0 }
+      const proj = { weaponId: 'EXPLOSIVE_ROUND', dirX: 1, dirZ: 0 }
       applyKnockbackImpulse(regularEnemies, 'e1', proj)
       applyKnockbackImpulse(bossEnemies, 'boss1', proj)
       expect(bossEnemies[0].x).toBeLessThan(regularEnemies[0].x)

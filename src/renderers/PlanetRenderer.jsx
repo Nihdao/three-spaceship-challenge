@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
@@ -6,12 +6,15 @@ import useLevel from '../stores/useLevel.jsx'
 import { PLANETS } from '../entities/planetDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ASSET_MANIFEST } from '../config/assetManifest.js'
+import { isPosDiscovered } from '../systems/fogSystem.js'
 
 function Planet({ planet }) {
   const def = PLANETS[planet.typeId]
   const modelPath = ASSET_MANIFEST.tier2.models[def.modelKey]
   const { scene } = useGLTF(`/${modelPath}`)
+  const clonedMaterialsRef = useRef([])
   const clonedScene = useMemo(() => {
+    const clonedMats = []
     const clone = scene.clone()
     // Apply tier-specific emissive glow to all meshes
     clone.traverse((child) => {
@@ -23,6 +26,7 @@ function Planet({ planet }) {
             const m = mat.clone()
             m.emissive = new THREE.Color(def.emissiveColor)
             m.emissiveIntensity = def.emissiveIntensity
+            clonedMats.push(m)
             return m
           }
           return mat
@@ -30,13 +34,22 @@ function Planet({ planet }) {
         child.material = isArray ? cloned : cloned[0]
       }
     })
+    clonedMaterialsRef.current = clonedMats
     return clone
   }, [scene, def.emissiveColor, def.emissiveIntensity])
+  useEffect(() => {
+    const snapshot = clonedMaterialsRef.current
+    return () => {
+      snapshot.forEach(m => m.dispose())
+    }
+  }, [clonedScene])
   const groupRef = useRef()
 
+  // Future: consolidate N planet useFrame into one shared ticker
   useFrame((_, delta) => {
     if (groupRef.current) {
       groupRef.current.rotation.y += GAME_CONFIG.PLANET_ORBIT_SPEED * delta
+      groupRef.current.visible = isPosDiscovered(planet.x, planet.z)
     }
   })
 

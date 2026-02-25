@@ -5,6 +5,65 @@ import useEnemies from '../stores/useEnemies.jsx'
 import { playSFX } from '../audio/audioManager.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
+// ─── styles ─────────────────────────────────────────────────────────────────
+
+const S = {
+  overlay: {
+    background: 'rgba(13,11,20,0.88)',
+  },
+  title: {
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: '2.5rem',
+    letterSpacing: '0.15em',
+    color: 'var(--rs-text)',
+    margin: 0,
+    lineHeight: 1,
+  },
+  titleAccent: {
+    width: '32px',
+    height: '2px',
+    background: 'var(--rs-orange)',
+    marginTop: '6px',
+    marginBottom: '12px',
+  },
+  subLabel: {
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.75rem',
+    color: 'var(--rs-text-muted)',
+    marginBottom: '32px',
+  },
+  btnRevive: {
+    padding: '16px 32px',
+    background: 'var(--rs-bg-raised)',
+    border: '1px solid var(--rs-teal)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-teal)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '1.1rem',
+    letterSpacing: '0.15em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+  btnGameOver: {
+    padding: '16px 32px',
+    background: 'var(--rs-bg-raised)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-text-muted)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '1.1rem',
+    letterSpacing: '0.15em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+}
+
+// ─── component ───────────────────────────────────────────────────────────────
+
 export default function RevivePrompt() {
   const revivalCharges = usePlayer(s => s.revivalCharges)
 
@@ -64,46 +123,82 @@ export default function RevivePrompt() {
   }, [revivalCharges, handleRevive, handleGameOver])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 font-game">
-      {/* Title */}
-      <h1 className="text-3xl font-bold tracking-widest text-game-text mb-3 animate-fade-in">
-        REVIVE?
-      </h1>
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+      style={S.overlay}
+    >
+      {/* Inner panel */}
+      <div style={{
+        background: 'var(--rs-bg-surface)',
+        border: '1px solid var(--rs-border)',
+        clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+        padding: 24,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}>
+        {/* Title */}
+        <h1 className="animate-fade-in" style={S.title}>
+          REVIVE?
+        </h1>
+        <div style={S.titleAccent} />
 
-      {/* Revival charges count */}
-      <p className="text-game-text-muted text-sm mb-8 animate-fade-in" style={{ animationDelay: '50ms', animationFillMode: 'backwards' }}>
-        {revivalCharges} Revival{revivalCharges === 1 ? '' : 's'} Remaining
-      </p>
-
-      {/* Buttons */}
-      <div className="flex gap-4">
-        {/* REVIVE button — only show when charges available */}
-        {revivalCharges >= 1 && (
-          <button
-            onClick={handleRevive}
-            className="px-8 py-4 bg-game-bg-medium border-2 border-game-accent rounded-lg
-                       text-game-accent font-bold text-xl tracking-wider
-                       hover:bg-game-accent hover:text-game-bg hover:scale-105
-                       transition-all cursor-pointer animate-fade-in"
-            style={{ animationDelay: '100ms', animationFillMode: 'backwards' }}
-          >
-            REVIVE
-            <span className="block text-xs font-normal mt-1 opacity-70">[1]</span>
-          </button>
-        )}
-
-        {/* GAME OVER button — always available */}
-        <button
-          onClick={handleGameOver}
-          className="px-8 py-4 bg-game-bg-medium border-2 border-game-border rounded-lg
-                     text-game-text-muted font-bold text-xl tracking-wider
-                     hover:border-game-text hover:text-game-text hover:scale-105
-                     transition-all cursor-pointer animate-fade-in"
-          style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+        {/* Revival charges count */}
+        <p
+          className="animate-fade-in"
+          style={{ ...S.subLabel, animationDelay: '50ms', animationFillMode: 'backwards' }}
         >
-          GAME OVER
-          <span className="block text-xs font-normal mt-1 opacity-70">[2]</span>
-        </button>
+          {revivalCharges} Revival{revivalCharges === 1 ? '' : 's'} Remaining
+        </p>
+
+        {/* Buttons */}
+        <div className="flex gap-4">
+          {/* REVIVE button — only show when charges available */}
+          {revivalCharges >= 1 && (
+            <button
+              type="button"
+              onClick={handleRevive}
+              className="animate-fade-in"
+              style={{ ...S.btnRevive, animationDelay: '100ms', animationFillMode: 'backwards' }}
+              onMouseEnter={(e) => {
+                playSFX('button-hover')
+                e.currentTarget.style.borderColor = 'var(--rs-teal)'
+                e.currentTarget.style.color = 'var(--rs-text)'
+                e.currentTarget.style.transform = 'translateX(4px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--rs-teal)'
+                e.currentTarget.style.color = 'var(--rs-teal)'
+                e.currentTarget.style.transform = 'translateX(0)'
+              }}
+            >
+              REVIVE
+              <span style={{ display: 'block', fontSize: '0.65rem', fontFamily: "'Space Mono', monospace", opacity: 0.7, marginTop: 4 }}>[1]</span>
+            </button>
+          )}
+
+          {/* GAME OVER button — always available */}
+          <button
+            type="button"
+            onClick={handleGameOver}
+            className="animate-fade-in"
+            style={{ ...S.btnGameOver, animationDelay: '150ms', animationFillMode: 'backwards' }}
+            onMouseEnter={(e) => {
+              playSFX('button-hover')
+              e.currentTarget.style.borderColor = 'var(--rs-danger)'
+              e.currentTarget.style.color = 'var(--rs-text)'
+              e.currentTarget.style.transform = 'translateX(4px)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--rs-border)'
+              e.currentTarget.style.color = 'var(--rs-text-muted)'
+              e.currentTarget.style.transform = 'translateX(0)'
+            }}
+          >
+            GAME OVER
+            <span style={{ display: 'block', fontSize: '0.65rem', fontFamily: "'Space Mono', monospace", opacity: 0.7, marginTop: 4 }}>[2]</span>
+          </button>
+        </div>
       </div>
     </div>
   )

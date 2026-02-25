@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { minimapDotPosition, isWithinMinimapRadius, minimapBoundaryEdgePct, MINIMAP } from '../HUD.jsx'
+import { minimapDotPosition, isWithinMinimapRadius, minimapBoundaryEdgePct, minimapWormholeArrowPosition, MINIMAP, formatTimer } from '../HUD.jsx'
 import { GAME_CONFIG } from '../../config/gameConfig.js'
 
 describe('Minimap helpers (Story 10.3, updated Story 24.1)', () => {
@@ -113,10 +113,62 @@ describe('Minimap helpers (Story 10.3, updated Story 24.1)', () => {
     })
   })
 
+  describe('minimapWormholeArrowPosition (Story 35.3)', () => {
+    it('wormhole directly right: edgeX≈100, edgeZ≈50, angle≈0', () => {
+      const { edgeX, edgeZ, angle } = minimapWormholeArrowPosition(100, 0, 0, 0)
+      expect(edgeX).toBeCloseTo(100, 1)
+      expect(edgeZ).toBeCloseTo(50, 1)
+      expect(angle).toBeCloseTo(0, 5)
+    })
+
+    it('wormhole directly below: edgeX≈50, edgeZ≈100, angle≈π/2', () => {
+      const { edgeX, edgeZ, angle } = minimapWormholeArrowPosition(0, 100, 0, 0)
+      expect(edgeX).toBeCloseTo(50, 1)
+      expect(edgeZ).toBeCloseTo(100, 1)
+      expect(angle).toBeCloseTo(Math.PI / 2, 5)
+    })
+
+    it('wormhole directly above: edgeX≈50, edgeZ≈0, angle≈-π/2', () => {
+      const { edgeX, edgeZ, angle } = minimapWormholeArrowPosition(0, -100, 0, 0)
+      expect(edgeX).toBeCloseTo(50, 1)
+      expect(edgeZ).toBeCloseTo(0, 1)
+      expect(angle).toBeCloseTo(-Math.PI / 2, 5)
+    })
+
+    it('wormhole directly left: edgeX≈0, edgeZ≈50, angle≈±π', () => {
+      const { edgeX, edgeZ, angle } = minimapWormholeArrowPosition(-100, 0, 0, 0)
+      expect(edgeX).toBeCloseTo(0, 1)
+      expect(edgeZ).toBeCloseTo(50, 1)
+      expect(Math.abs(angle)).toBeCloseTo(Math.PI, 5)
+    })
+
+    it('wormhole diagonal (dx=100, dz=100): edgeX≈100, edgeZ≈100, angle≈π/4', () => {
+      const { edgeX, edgeZ, angle } = minimapWormholeArrowPosition(100, 100, 0, 0)
+      expect(edgeX).toBeCloseTo(100, 1)
+      expect(edgeZ).toBeCloseTo(100, 1)
+      expect(angle).toBeCloseTo(Math.PI / 4, 5)
+    })
+
+    it('returns { edgeX, edgeZ, angle } properties', () => {
+      const result = minimapWormholeArrowPosition(10, 20, 0, 0)
+      expect(result).toHaveProperty('edgeX')
+      expect(result).toHaveProperty('edgeZ')
+      expect(result).toHaveProperty('angle')
+    })
+
+    it('works with non-zero player position (relative offset)', () => {
+      // dx=100, dz=0 like "directly right" but player at (50, 30) — same expected result
+      const { edgeX, edgeZ, angle } = minimapWormholeArrowPosition(150, 30, 50, 30)
+      expect(edgeX).toBeCloseTo(100, 1)
+      expect(edgeZ).toBeCloseTo(50, 1)
+      expect(angle).toBeCloseTo(0, 5)
+    })
+  })
+
   describe('MINIMAP constants', () => {
-    it('exports all required styling keys', () => {
+    it('exports all required styling keys (Story 35.3: borderRadius + boxShadow removed)', () => {
       const requiredKeys = [
-        'borderRadius', 'borderColor', 'boxShadow', 'backgroundColor',
+        'borderColor', 'backgroundColor',
         'playerDotColor', 'playerDotSize', 'playerDotGlow',
         'planetDotSize',
         'wormholeBaseSize', 'wormholeActiveSize', 'wormholeColor',
@@ -132,6 +184,22 @@ describe('Minimap helpers (Story 10.3, updated Story 24.1)', () => {
       }
     })
 
+    it('borderRadius is removed (Story 35.3 — clipPath replaces circular shape)', () => {
+      expect(MINIMAP.borderRadius).toBeUndefined()
+    })
+
+    it('boxShadow is removed (Story 35.3 — Redshift style, no glow on container)', () => {
+      expect(MINIMAP.boxShadow).toBeUndefined()
+    })
+
+    it('borderColor is var(--rs-teal) (Story 35.3)', () => {
+      expect(MINIMAP.borderColor).toBe('var(--rs-teal)')
+    })
+
+    it('backgroundColor is var(--rs-bg-surface) (Story 35.3)', () => {
+      expect(MINIMAP.backgroundColor).toBe('var(--rs-bg-surface)')
+    })
+
     it('wormhole active size is larger than base size', () => {
       const base = parseInt(MINIMAP.wormholeBaseSize)
       const active = parseInt(MINIMAP.wormholeActiveSize)
@@ -145,5 +213,37 @@ describe('Minimap helpers (Story 10.3, updated Story 24.1)', () => {
     it('player dot color differs from wormhole color', () => {
       expect(MINIMAP.playerDotColor).not.toBe(MINIMAP.wormholeColor)
     })
+  })
+})
+
+describe('Timer selector throttle (Story 41.4 — AC 1)', () => {
+  it('Math.floor returns the same integer for all values within the same second', () => {
+    expect(Math.floor(9.0)).toBe(9)
+    expect(Math.floor(9.5)).toBe(9)
+    expect(Math.floor(9.99)).toBe(9)
+  })
+
+  it('Math.floor advances only when crossing a second boundary', () => {
+    expect(Math.floor(9.99)).toBe(9)
+    expect(Math.floor(10.0)).toBe(10)
+  })
+
+  it('formatTimer display is stable within a second when systemTimer is floored', () => {
+    const duration = 30
+    // All three values floor to 9 → remaining stays 21 → same display
+    expect(formatTimer(duration - Math.floor(9.0))).toBe('00:21')
+    expect(formatTimer(duration - Math.floor(9.5))).toBe('00:21')
+    expect(formatTimer(duration - Math.floor(9.99))).toBe('00:21')
+  })
+
+  it('formatTimer display advances exactly at the second boundary', () => {
+    const duration = 30
+    expect(formatTimer(duration - Math.floor(9.99))).toBe('00:21')
+    expect(formatTimer(duration - Math.floor(10.0))).toBe('00:20')
+  })
+
+  it('formatTimer handles zero remaining correctly', () => {
+    expect(formatTimer(0)).toBe('00:00')
+    expect(formatTimer(-1)).toBe('00:00') // clamped to 0
   })
 })

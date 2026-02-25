@@ -180,6 +180,9 @@ describe('usePlayer — dual-stick controls (Story 21.1)', () => {
 
   describe('Regression: Movement still works independently of rotation', () => {
     it('should move in WASD direction regardless of aim direction', () => {
+      // Reset to origin for deterministic position check (Story 34.2: reset() is random)
+      usePlayer.setState({ position: [0, 0, 0], velocity: [0, 0, 0] })
+
       // Aim right
       usePlayer.getState().setAimDirection([1, 0])
 

@@ -14,11 +14,12 @@ describe('useWeapons — ship baseDamageMultiplier integration (Story 9.3 Task 4
 
   function fireOnce(damageMultiplier = 1) {
     // Tick with enough delta to guarantee a shot fires (cooldown expires)
+    // critChance: -1 prevents all crits including weapon's base critChance (Story 31.2: totalCritChance = def.critChance + critBonus + critChance)
     useWeapons.getState().tick(
       10, // large delta to ensure cooldown expires
       [0, 0, 0], // player position
       0, // player rotation
-      { damageMultiplier, cooldownMultiplier: 1, critChance: 0 }
+      { damageMultiplier, cooldownMultiplier: 1, critChance: -1 }
     )
     return useWeapons.getState().projectiles
   }

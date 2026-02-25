@@ -20,6 +20,7 @@ import WarpTransition from './WarpTransition.jsx'
 import SystemNameBanner from './SystemNameBanner.jsx'
 import Crosshair from './Crosshair.jsx'
 import CompanionDialogue from './CompanionDialogue.jsx'
+import MapOverlay from './MapOverlay.jsx'
 import useCompanion from '../stores/useCompanion.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
@@ -166,9 +167,9 @@ export default function Interface() {
     useGame.getState().resetTunnelEntryFlash()
   }, [])
 
-  // ESC / P key toggles pause during gameplay (Story 10.6)
+  // ESC / P key toggles pause during gameplay/boss (Story 10.6, Story 42.5)
   useEffect(() => {
-    if (phase !== 'gameplay') return
+    if (phase !== 'gameplay' && phase !== 'boss') return
     const handler = (e) => {
       if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
         const { isPaused } = useGame.getState()
@@ -188,7 +189,8 @@ export default function Interface() {
       {phase === 'shipSelect' && <ShipSelect />}
       {phase === 'galaxyChoice' && <GalaxyChoice />}
       {(phase === 'gameplay' || phase === 'levelUp' || phase === 'planetReward' || phase === 'revive') && <HUD />}
-      {phase === 'gameplay' && <PauseMenu />}
+      {phase === 'gameplay' && <MapOverlay />}
+      {(phase === 'gameplay' || phase === 'boss') && <PauseMenu />}
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}
       {phase === 'revive' && <RevivePrompt />}

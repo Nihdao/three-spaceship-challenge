@@ -8,6 +8,11 @@ import {
   getSfxVolume,
   playSFX,
 } from "../../audio/audioManager.js";
+import useShipProgression from "../../stores/useShipProgression.jsx";
+import useUpgrades from "../../stores/useUpgrades.jsx";
+import useArmory from "../../stores/useArmory.jsx";
+import useGlobalStats from "../../stores/useGlobalStats.jsx";
+import usePlayer from "../../stores/usePlayer.jsx";
 
 export function readAudioSettings() {
   try {
@@ -37,6 +42,111 @@ export function clampVolume(val) {
   if (!Number.isFinite(n)) return 100;
   return Math.max(0, Math.min(100, n));
 }
+
+// ─── styles ─────────────────────────────────────────────────────────────────
+
+const S = {
+  overlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(13,11,20,0.88)",
+  },
+  modal: {
+    position: "relative",
+    background: "var(--rs-bg-surface)",
+    border: "1px solid var(--rs-border)",
+    clipPath: "polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)",
+    padding: "32px 32px 24px",
+  },
+  title: {
+    fontFamily: "Bebas Neue, sans-serif",
+    fontSize: "2.5rem",
+    letterSpacing: "0.15em",
+    color: "var(--rs-text)",
+    margin: 0,
+    lineHeight: 1,
+  },
+  titleAccent: {
+    width: "32px",
+    height: "2px",
+    background: "var(--rs-orange)",
+    marginTop: "6px",
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
+  separator: {
+    borderTop: "1px solid var(--rs-border)",
+    margin: "24px 0",
+  },
+  btnDanger: {
+    width: "100%",
+    padding: "12px 0",
+    background: "rgba(239,35,60,0.08)",
+    border: "1px solid var(--rs-danger)",
+    clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
+    color: "var(--rs-danger)",
+    fontFamily: "'Space Mono', monospace",
+    fontSize: "0.75rem",
+    letterSpacing: "0.12em",
+    cursor: "pointer",
+    transition: "border-color 150ms, color 150ms, transform 150ms",
+    outline: "none",
+    userSelect: "none",
+    marginBottom: "8px",
+  },
+  backBtn: {
+    width: "100%",
+    padding: "10px 0",
+    background: "transparent",
+    border: "1px solid var(--rs-border)",
+    clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
+    color: "var(--rs-text-muted)",
+    fontFamily: "'Space Mono', monospace",
+    fontSize: "0.72rem",
+    letterSpacing: "0.1em",
+    cursor: "pointer",
+    transition: "border-color 150ms, color 150ms, transform 150ms",
+    outline: "none",
+  },
+  confirmCard: {
+    position: "relative",
+    background: "var(--rs-bg-surface)",
+    border: "1px solid var(--rs-danger)",
+    clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)",
+    padding: "24px",
+  },
+  btnCancel: {
+    flex: 1,
+    padding: "8px 0",
+    background: "transparent",
+    border: "1px solid var(--rs-border)",
+    clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
+    color: "var(--rs-text-muted)",
+    fontFamily: "'Space Mono', monospace",
+    fontSize: "0.72rem",
+    letterSpacing: "0.1em",
+    cursor: "pointer",
+    transition: "border-color 150ms, color 150ms, transform 150ms",
+    outline: "none",
+  },
+  btnClearData: {
+    flex: 1,
+    padding: "8px 0",
+    background: "var(--rs-danger)",
+    border: "1px solid var(--rs-danger)",
+    clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
+    color: "var(--rs-text)",
+    fontFamily: "'Space Mono', monospace",
+    fontSize: "0.72rem",
+    letterSpacing: "0.12em",
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "opacity 150ms, transform 150ms",
+    outline: "none",
+  },
+};
+
+// ─── component ───────────────────────────────────────────────────────────────
 
 export default function OptionsModal({ onClose }) {
   const [masterVol, setMasterVol] = useState(() => readAudioSettings().masterVolume);
@@ -120,6 +230,12 @@ export default function OptionsModal({ onClose }) {
     } catch {
       // localStorage unavailable
     }
+    // Reset all persistent stores in memory (localStorage already cleared above)
+    useShipProgression.getState().reset();
+    useUpgrades.getState().reset();
+    useArmory.getState().reset();
+    useGlobalStats.getState().reset();
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 });
     setIsClearConfirmOpen(false);
     // Reset audio to defaults
     setMasterVolume(1);
@@ -131,19 +247,22 @@ export default function OptionsModal({ onClose }) {
   return (
     <div
       ref={modalRef}
-      className="fixed inset-0 z-[55] flex items-center justify-center font-game animate-fade-in"
+      className="fixed inset-0 z-[55] flex items-center justify-center animate-fade-in"
+      style={{ fontFamily: "'Rajdhani', sans-serif" }}
       role="dialog"
       aria-modal="true"
       aria-label="Options"
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/60" />
+      <div style={S.overlay} />
 
       {/* Modal card */}
-      <div className="relative bg-[#0a0a0f] border-2 border-game-primary rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-3xl font-bold text-game-text text-center mb-8 tracking-widest select-none">
-          OPTIONS
-        </h2>
+      <div className="relative w-full max-w-md" style={S.modal}>
+        {/* Title */}
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <h2 style={S.title}>OPTIONS</h2>
+          <div style={S.titleAccent} />
+        </div>
 
         {/* Audio section */}
         <div className="space-y-5 mb-8">
@@ -169,18 +288,25 @@ export default function OptionsModal({ onClose }) {
         </div>
 
         {/* Separator */}
-        <div className="border-t border-game-border my-6" />
+        <div style={S.separator} />
 
         {/* Clear Save */}
         <button
-          className="w-full py-3 text-sm font-bold tracking-wider rounded
-            bg-game-danger/20 border border-game-danger text-game-danger
-            hover:bg-game-danger hover:text-white
-            transition-all duration-150 cursor-pointer select-none
-            outline-none focus-visible:ring-2 focus-visible:ring-game-danger mb-4"
+          style={S.btnDanger}
           onClick={() => {
             playSFX("button-click");
             setIsClearConfirmOpen(true);
+          }}
+          onMouseEnter={(e) => {
+            playSFX("button-hover");
+            e.currentTarget.style.borderColor = "var(--rs-danger)";
+            e.currentTarget.style.color = "var(--rs-text)";
+            e.currentTarget.style.transform = "translateX(4px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--rs-danger)";
+            e.currentTarget.style.color = "var(--rs-danger)";
+            e.currentTarget.style.transform = "translateX(0)";
           }}
         >
           CLEAR LOCAL SAVE
@@ -189,15 +315,22 @@ export default function OptionsModal({ onClose }) {
         {/* BACK button */}
         <button
           ref={backButtonRef}
-          className="w-full py-3 text-sm font-semibold tracking-wider border border-game-border rounded
-            text-game-text-muted hover:border-game-accent hover:text-game-text
-            transition-all duration-150 cursor-pointer select-none
-            outline-none focus-visible:ring-2 focus-visible:ring-game-accent"
+          style={S.backBtn}
           onClick={() => {
             playSFX("button-click");
             onClose();
           }}
-          onMouseEnter={() => playSFX("button-hover")}
+          onMouseEnter={(e) => {
+            playSFX("button-hover");
+            e.currentTarget.style.borderColor = "var(--rs-orange)";
+            e.currentTarget.style.color = "var(--rs-text)";
+            e.currentTarget.style.transform = "translateX(4px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--rs-border)";
+            e.currentTarget.style.color = "var(--rs-text-muted)";
+            e.currentTarget.style.transform = "translateX(0)";
+          }}
         >
           [ESC] BACK
         </button>
@@ -211,34 +344,44 @@ export default function OptionsModal({ onClose }) {
           aria-modal="true"
           aria-label="Confirm clear save data"
         >
-          <div className="absolute inset-0 bg-black/80" />
-          <div className="relative bg-[#0a0a0f] border-2 border-game-danger rounded-lg p-6 max-w-sm">
-            <p className="text-game-text text-sm mb-6 text-center select-none">
+          <div style={{ position: "absolute", inset: 0, background: "rgba(13,11,20,0.92)" }} />
+          <div className="relative max-w-sm" style={S.confirmCard}>
+            <p style={{ color: 'var(--rs-text)', fontSize: '0.85rem', marginBottom: '24px', textAlign: 'center', userSelect: 'none' }}>
               Are you sure? This will erase all progress, high scores, and
               settings. This cannot be undone.
             </p>
             <div className="flex gap-4">
               <button
-                className="flex-1 py-2 text-sm font-semibold tracking-wider border border-game-border rounded
-                  text-game-text-muted hover:border-game-accent hover:text-game-text
-                  transition-all duration-150 cursor-pointer select-none
-                  outline-none focus-visible:ring-2 focus-visible:ring-game-accent"
+                style={S.btnCancel}
                 onClick={() => {
                   playSFX("button-click");
                   setIsClearConfirmOpen(false);
                 }}
-                onMouseEnter={() => playSFX("button-hover")}
+                onMouseEnter={(e) => {
+                  playSFX("button-hover");
+                  e.currentTarget.style.borderColor = "var(--rs-orange)";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "var(--rs-border)";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }}
                 autoFocus
               >
                 CANCEL
               </button>
               <button
-                className="flex-1 py-2 text-sm font-bold tracking-wider rounded
-                  bg-game-danger text-white hover:bg-red-700
-                  transition-all duration-150 cursor-pointer select-none
-                  outline-none focus-visible:ring-2 focus-visible:ring-game-danger"
+                style={S.btnClearData}
                 onClick={handleClearSave}
-                onMouseEnter={() => playSFX("button-hover")}
+                onMouseEnter={(e) => {
+                  playSFX("button-hover");
+                  e.currentTarget.style.opacity = "0.85";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }}
               >
                 CLEAR DATA
               </button>
@@ -253,7 +396,7 @@ export default function OptionsModal({ onClose }) {
 function VolumeSlider({ label, value, onChange, onRelease }) {
   return (
     <div>
-      <label className="block text-game-text text-sm mb-1 select-none">
+      <label style={{ display: "block", fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", letterSpacing: "0.1em", color: "var(--rs-text-muted)", textTransform: "uppercase", marginBottom: "6px", userSelect: "none" }}>
         {label}
       </label>
       <div className="flex items-center gap-3">
@@ -265,9 +408,10 @@ function VolumeSlider({ label, value, onChange, onRelease }) {
           onChange={(e) => onChange(parseInt(e.target.value, 10))}
           onMouseUp={onRelease}
           onTouchEnd={onRelease}
-          className="flex-1 accent-game-primary h-2 rounded-full cursor-pointer"
+          className="flex-1 h-2 cursor-pointer"
+          style={{ accentColor: 'var(--rs-orange)' }}
         />
-        <span className="text-game-text tabular-nums w-10 text-right text-sm select-none">
+        <span style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "0.9rem", color: "var(--rs-text-muted)", minWidth: "40px", textAlign: "right", userSelect: "none" }}>
           {value}%
         </span>
       </div>

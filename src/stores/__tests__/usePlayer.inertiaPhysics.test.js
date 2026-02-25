@@ -18,6 +18,8 @@ const moveForward = { moveLeft: false, moveRight: false, moveForward: true, move
 describe('usePlayer — inertia physics verification (Story 21.3)', () => {
   beforeEach(() => {
     usePlayer.getState().reset()
+    // Story 34.2: reset() uses random spawn — normalize to origin for deterministic physics tests
+    usePlayer.setState({ position: [0, 0, 0], velocity: [0, 0, 0] })
   })
 
   describe('Task 1: Verify existing inertia physics (AC 1, 2, 3)', () => {

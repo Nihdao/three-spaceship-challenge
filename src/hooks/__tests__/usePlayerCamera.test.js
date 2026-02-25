@@ -75,5 +75,33 @@ describe('usePlayerCamera — top-down mode (Story 14.1)', () => {
       expect(camera.rotation.y).toBeCloseTo(0)
       expect(camera.rotation.z).toBeCloseTo(0)
     })
+
+    it('shakeTimerOverride=0 suppresses shake even when playerState has active timer (Story 43.3)', () => {
+      // Converge smoothedPosition to origin so we can measure shake displacement cleanly
+      for (let i = 0; i < 300; i++) {
+        computeCameraFrame(camera, smoothedPosition, { position: [0, 0, 0], cameraShakeTimer: 0, cameraShakeIntensity: 0 }, 1 / 60, 120, 20, 1.0)
+      }
+
+      // Now call with active shake in playerState but override = 0 (pause scenario)
+      computeCameraFrame(camera, smoothedPosition, { position: [0, 0, 0], cameraShakeTimer: 0.5, cameraShakeIntensity: 2.0 }, 1 / 60, 120, 20, 5.0, 0)
+
+      // Camera should NOT be displaced — override suppresses shake
+      expect(camera.position.x).toBeCloseTo(0, 5)
+      expect(camera.position.z).toBeCloseTo(0, 5)
+    })
+
+    it('shakeTimerOverride=undefined falls back to playerState.cameraShakeTimer (Story 43.3)', () => {
+      // Converge smoothedPosition to origin
+      for (let i = 0; i < 300; i++) {
+        computeCameraFrame(camera, smoothedPosition, { position: [0, 0, 0], cameraShakeTimer: 0, cameraShakeIntensity: 0 }, 1 / 60, 120, 20, 1.0)
+      }
+
+      // Call without 8th arg — should use playerState.cameraShakeTimer = 0.5
+      computeCameraFrame(camera, smoothedPosition, { position: [0, 0, 0], cameraShakeTimer: 0.5, cameraShakeIntensity: 2.0 }, 1 / 60, 120, 20, 5.0)
+
+      // Camera SHOULD be displaced — no override, shake is active
+      const distFromCenter = Math.sqrt(camera.position.x ** 2 + camera.position.z ** 2)
+      expect(distFromCenter).toBeGreaterThan(0)
+    })
   })
 })

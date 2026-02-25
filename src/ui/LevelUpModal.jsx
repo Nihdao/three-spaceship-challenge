@@ -17,6 +17,13 @@ export default function LevelUpModal() {
   const rerollCharges = usePlayer(s => s.rerollCharges)
   const skipCharges = usePlayer(s => s.skipCharges)
   const banishCharges = usePlayer(s => s.banishCharges)
+  const currentHP = usePlayer(s => s.currentHP)
+  const maxHP = usePlayer(s => s.maxHP)
+  const currentLevel = usePlayer(s => s.currentLevel)
+  const shipBaseSpeed = usePlayer(s => s.shipBaseSpeed)
+  const activeWeaponsCount = useWeapons(s => s.activeWeapons.length)
+  const activeBoonsCount = useBoons(s => s.activeBoons.length)
+  const damageMultiplier = useBoons(s => s.modifiers.damageMultiplier ?? 1)
 
   // Shared helper: get current equipped state and generate choices
   const buildChoices = useCallback((banishedItems) => {
@@ -39,7 +46,7 @@ export default function LevelUpModal() {
     playSFX('button-click')
     const rarity = choice.rarity || 'COMMON'
     if (choice.type === 'weapon_upgrade') {
-      useWeapons.getState().upgradeWeapon(choice.id, rarity)
+      useWeapons.getState().upgradeWeapon(choice.id, choice.upgradeResult)
     } else if (choice.type === 'new_weapon') {
       useWeapons.getState().addWeapon(choice.id, rarity)
       useArmory.getState().markDiscovered('weapons', choice.id)
@@ -133,121 +140,188 @@ export default function LevelUpModal() {
   }, [choices, applyChoice, handleReroll, handleSkip, handleBanish])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 font-game">
-      <h1 className="text-3xl font-bold tracking-widest text-game-text mb-8 animate-fade-in">
-        LEVEL UP!
-      </h1>
-      <div className="flex gap-4">
-        {choices.map((choice, i) => {
-          const rarityTier = getRarityTier(choice.rarity || 'COMMON')
-          const isCommon = !choice.rarity || choice.rarity === 'COMMON'
-          const glowPx = rarityTier.glowIntensity * 8
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(13,11,20,0.88)', fontFamily: "'Rajdhani', sans-serif" }}>
+      {/* Conteneur 2 colonnes avec responsive wrap */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 24,
+        alignItems: 'flex-start',
+        maxWidth: 860,
+        padding: 24,
+        background: 'var(--rs-bg-surface)',
+        border: '1px solid var(--rs-border)',
+        clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+      }}>
 
-          return (
-            <div
-              key={`${choice.type}_${choice.id}_${i}`}
-              className="relative w-52 p-4 bg-game-bg-medium rounded-lg cursor-pointer transition-all animate-fade-in"
-              style={{
-                animationDelay: `${i * 50}ms`,
-                animationFillMode: 'backwards',
-                opacity: banishingIndex === i ? 0.2 : 1,
-                transform: banishingIndex === i ? 'scale(0.95)' : undefined,
-                transition: 'opacity 200ms ease-out, transform 200ms ease-out, border-color 150ms, box-shadow 150ms',
-                borderWidth: '2px',
-                borderStyle: 'solid',
-                borderColor: rarityTier.color,
-                boxShadow: isCommon ? 'none' : `0 0 ${glowPx}px ${rarityTier.color}`,
-              }}
-              onClick={() => applyChoice(choice)}
-            >
-              {/* Banish X button — top-right of each card (Story 22.2 Task 5) */}
-              {/* Hidden for stat_boost fallback choices (no meaningful item to banish) */}
-              {banishCharges > 0 && choice.type !== 'stat_boost' && (
-                <button
-                  className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center
-                             rounded-full text-white text-xs font-bold
-                             hover:scale-110 transition-transform cursor-pointer"
-                  style={{
-                    backgroundColor: '#ff3366',
-                    boxShadow: '0 0 6px rgba(255, 51, 102, 0.5)',
-                    zIndex: 10,
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleBanish(choice, i)
-                  }}
-                  aria-label={`banish ${choice.name}`}
-                >
-                  ✕
-                </button>
-              )}
+        {/* ── Colonne gauche : Build Overview ── */}
+        <div style={{ width: 220, flexShrink: 0 }}>
+          <p style={{
+            fontFamily: "'Rajdhani', sans-serif",
+            fontWeight: 700,
+            fontSize: 12,
+            letterSpacing: '0.12em',
+            color: 'var(--rs-text-muted)',
+            marginBottom: 12,
+            textTransform: 'uppercase',
+          }}>
+            Current Build
+          </p>
 
-              {/* Top row: rarity badge (if not Common) + level/NEW indicator */}
-              <div className="flex items-center gap-2">
-                {!isCommon && (
-                  <div
-                    className="px-2 py-0.5 text-xs font-bold rounded"
-                    style={{ backgroundColor: rarityTier.color, color: '#000' }}
-                  >
-                    {rarityTier.name.toUpperCase()}
-                  </div>
-                )}
-                <span
-                  className={
-                    choice.level
-                      ? 'text-game-text-muted text-xs'
-                      : 'text-game-accent text-xs font-bold'
-                  }
-                >
-                  {choice.level ? `Lvl ${choice.level}` : 'NEW'}
-                </span>
-              </div>
-              <h3 className="text-game-text font-semibold mt-1">{choice.name}</h3>
-              {choice.statPreview ? (
-                <p className="text-game-text-muted text-sm mt-1">{choice.statPreview}</p>
-              ) : (
-                <p className="text-game-text-muted text-sm mt-1">{choice.description}</p>
-              )}
-              <span className="text-game-text-muted text-xs mt-2 block">[{i + 1}]</span>
+          {[
+            ['HP',    `${Math.round(currentHP)} / ${Math.round(maxHP)}`],
+            ['Level', currentLevel],
+            ['Speed', shipBaseSpeed.toFixed(2)],
+            ['Damage Mult', `×${damageMultiplier.toFixed(2)}`],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, color: 'var(--rs-text-muted)', fontFamily: "'Rajdhani', sans-serif", fontWeight: 600 }}>
+                {label}
+              </span>
+              <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: '#e8e8f0' }}>
+                {value}
+              </span>
             </div>
-          )
-        })}
-      </div>
+          ))}
 
-      {/* Strategic buttons — below choice cards (Story 22.2 Tasks 3-4) */}
-      {(rerollCharges > 0 || skipCharges > 0) && (
-        <div className="mt-6 flex gap-4 animate-fade-in" style={{ animationDelay: '200ms', animationFillMode: 'backwards' }}>
+          <p style={{ fontSize: 11, color: 'var(--rs-text-dim)', marginTop: 6, fontFamily: "'Space Mono', monospace" }}>
+            Weapons: {activeWeaponsCount} · Boons: {activeBoonsCount}
+          </p>
+
+          <div style={{ borderTop: '1px solid var(--rs-border)', margin: '16px 0' }} />
+
           {rerollCharges > 0 && (
             <button
+              type="button"
               onClick={handleReroll}
-              className="px-5 py-2 bg-game-bg-medium border border-game-border rounded-lg
-                         font-bold tracking-wider
-                         hover:border-game-accent hover:scale-105
-                         transition-all cursor-pointer"
-              style={{ color: '#00ffcc', borderColor: 'rgba(0, 255, 204, 0.3)' }}
+              className="w-full mb-2 px-4 py-2 font-bold tracking-wider transition-all cursor-pointer"
+              style={{
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                color: 'var(--rs-teal, #00b4d8)',
+                border: '1px solid var(--rs-teal, #00b4d8)',
+                background: 'transparent',
+                clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+              }}
             >
-              ↻ REROLL ({rerollCharges})
+              REROLL ({rerollCharges})
               <span className="block text-xs font-normal mt-0.5 opacity-50">R</span>
             </button>
           )}
+
           {skipCharges > 0 && (
             <button
+              type="button"
               onClick={handleSkip}
-              className="px-5 py-2 bg-game-bg-medium border border-game-border rounded-lg
-                         font-bold tracking-wider
-                         hover:border-game-text hover:scale-105
-                         transition-all cursor-pointer"
-              style={{ color: '#ffdd00', borderColor: 'rgba(255, 221, 0, 0.3)' }}
+              className="w-full px-4 py-2 font-bold tracking-wider transition-all cursor-pointer"
+              style={{
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                color: 'var(--rs-gold, #ffd60a)',
+                border: '1px solid var(--rs-gold, #ffd60a)',
+                background: 'transparent',
+                clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+              }}
             >
-              ⏭ SKIP ({skipCharges})
+              SKIP ({skipCharges})
               <span className="block text-xs font-normal mt-0.5 opacity-50">S</span>
             </button>
           )}
         </div>
-      )}
 
-      {/* Keyboard hints — bottom of modal */}
-      <p className="text-game-text-muted text-xs mt-4 opacity-40 animate-fade-in" style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}>
+        {/* ── Colonne droite : Titre + Cards verticales ── */}
+        <div style={{ flex: 1, minWidth: 320, paddingBottom: 16 }}>
+          <h1 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '2.5rem', letterSpacing: '0.15em', color: 'var(--rs-text)', margin: 0 }}>
+            LEVEL UP!
+          </h1>
+          <div style={{ width: 32, height: 2, background: 'var(--rs-orange)', marginTop: 6, marginBottom: 24 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {choices.map((choice, i) => {
+              const rarityTier = getRarityTier(choice.rarity || 'COMMON')
+              const isCommon = !choice.rarity || choice.rarity === 'COMMON'
+
+              return (
+                <div
+                  key={`${choice.type}_${choice.id}_${i}`}
+                  className="relative p-3 cursor-pointer transition-all animate-fade-in"
+                  style={{
+                    animationDelay: `${i * 50}ms`,
+                    animationFillMode: 'backwards',
+                    opacity: banishingIndex === i ? 0.2 : 1,
+                    transform: banishingIndex === i ? 'scale(0.95)' : undefined,
+                    transition: 'opacity 200ms ease-out, transform 200ms ease-out',
+                    borderLeft: `3px solid ${rarityTier.color}`,
+                    clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
+                    backgroundColor: 'var(--rs-bg-raised)',
+                  }}
+                  onClick={() => applyChoice(choice)}
+                >
+                  {/* Banish X button — top-right of each card */}
+                  {banishCharges > 0 && choice.type !== 'stat_boost' && (
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center
+                                 text-white text-xs font-bold cursor-pointer"
+                      style={{
+                        clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
+                        backgroundColor: 'var(--rs-danger)',
+                        zIndex: 10,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleBanish(choice, i)
+                      }}
+                      aria-label={`banish ${choice.name}`}
+                    >
+                      ✕
+                    </button>
+                  )}
+
+                  {/* Top row: badge rareté inline + level/NEW + shortcut aligné à droite */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                    {!isCommon && (
+                      <span style={{
+                        fontFamily: "'Rajdhani', sans-serif",
+                        fontWeight: 700,
+                        fontSize: 11,
+                        color: rarityTier.color,
+                        letterSpacing: '0.05em',
+                      }}>
+                        [{rarityTier.name.toUpperCase()}]
+                      </span>
+                    )}
+                    <span className="text-xs" style={{ color: choice.level ? 'var(--rs-text-muted)' : 'var(--rs-orange)', fontWeight: choice.level ? undefined : 700 }}>
+                      {choice.level ? `Lv${choice.level}` : 'NEW'}
+                    </span>
+                    <span style={{
+                      marginLeft: 'auto',
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: 11,
+                      color: 'var(--rs-text-dim)',
+                    }}>
+                      [{i + 1}]
+                    </span>
+                  </div>
+
+                  <h3 className="font-semibold text-sm" style={{ color: 'var(--rs-text)' }}>{choice.name}</h3>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--rs-text-muted)' }}>
+                    {choice.statPreview ?? choice.description}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Keyboard hints — position absolute en bas, hors du flow 2 colonnes */}
+      <p
+        className="text-xs opacity-40 animate-fade-in"
+        style={{ color: 'var(--rs-text-muted)', position: 'absolute', bottom: 24, animationDelay: '300ms', animationFillMode: 'backwards' }}
+      >
         [1-4] Select{rerollCharges > 0 ? ' · R Reroll' : ''}{skipCharges > 0 ? ' · S Skip' : ''}{banishCharges > 0 ? ' · X+# Banish' : ''}
       </p>
     </div>

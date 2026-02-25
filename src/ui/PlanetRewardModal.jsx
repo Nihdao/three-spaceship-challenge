@@ -8,7 +8,6 @@ import useLevel from '../stores/useLevel.jsx'
 import { generatePlanetReward } from '../systems/progressionSystem.js'
 import { getRarityTier } from '../systems/raritySystem.js'
 import { playSFX } from '../audio/audioManager.js'
-import { PLANETS } from '../entities/planetDefs.js'
 
 const TIER_COLORS = {
   standard:  '#a07855',   // CINDER
@@ -20,6 +19,118 @@ const TIER_LABELS = {
   standard:  'Standard',
   rare:      'Rare',
   legendary: 'Legendary',
+}
+
+const TIER_FLAVOR = {
+  standard: 'Mineral deposits detected. Basic loot available.',
+  rare:     'Anomalous readings. Rare tech signature.',
+  legendary:'Void energy surge. Legendary cache found.',
+}
+
+// Centralized styles (Task 9 — const S pattern)
+const S = {
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 50,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(13,11,20,0.88)',
+  },
+  container: {
+    display: 'flex',
+    gap: 24,
+    alignItems: 'flex-start',
+    maxWidth: 720,
+    padding: 24,
+    background: 'var(--rs-bg-surface)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+  },
+  leftCol: {
+    width: 200,
+    flexShrink: 0,
+  },
+  sectionLabel: {
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.65rem',
+    letterSpacing: '0.1em',
+    color: 'var(--rs-text-muted)',
+    textTransform: 'uppercase',
+    marginBottom: 12,
+  },
+  separator: {
+    borderTop: '1px solid var(--rs-border)',
+    margin: '12px 0',
+  },
+  flavorText: {
+    fontSize: 10,
+    color: 'var(--rs-text-dim)',
+    fontFamily: "'Space Mono', monospace",
+    lineHeight: 1.5,
+  },
+  rightCol: {
+    flex: 1,
+    minWidth: 280,
+  },
+  titleAccent: (tierColor) => ({
+    width: '32px',
+    height: '2px',
+    background: tierColor,
+    marginTop: '6px',
+    marginBottom: '20px',
+  }),
+  cardsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
+  card: (rarityColor, animDelay) => ({
+    position: 'relative',
+    padding: 12,
+    background: 'var(--rs-bg-raised)',
+    clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
+    borderLeft: `3px solid ${rarityColor}`,
+    cursor: 'pointer',
+    animationDelay: `${animDelay}ms`,
+    animationFillMode: 'backwards',
+  }),
+  topRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
+  rarityBadge: (rarityColor) => ({
+    display: 'inline-block',
+    padding: '2px 8px',
+    fontSize: 11,
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 700,
+    color: '#000',
+    backgroundColor: rarityColor,
+    clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
+  }),
+  shortcutKey: {
+    marginLeft: 'auto',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: 10,
+    color: 'var(--rs-text-dim)',
+  },
+  cardTitle: {
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 700,
+    fontSize: '0.95rem',
+    color: 'var(--rs-text)',
+    marginTop: 4,
+  },
+  cardDesc: {
+    fontFamily: "'Rajdhani', sans-serif",
+    fontSize: '0.8rem',
+    color: 'var(--rs-text-muted)',
+    marginTop: 2,
+  },
 }
 
 export default function PlanetRewardModal() {
@@ -34,14 +145,15 @@ export default function PlanetRewardModal() {
     const equippedBoonIds = useBoons.getState().activeBoons.map(b => b.boonId)
     const equippedBoons = useBoons.getState().getEquippedBoons()
     const banishedItems = useLevel.getState().banishedItems
-    setChoices(generatePlanetReward(rewardTier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems))
+    const luckStat = (usePlayer.getState().getLuckStat?.() ?? 0) + (useBoons.getState().modifiers.luckBonus ?? 0)
+    setChoices(generatePlanetReward(rewardTier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat))
   }, [rewardTier])
 
   const applyChoice = useCallback((choice) => {
     playSFX('button-click')
     const rarity = choice.rarity || 'COMMON'
     if (choice.type === 'weapon_upgrade') {
-      useWeapons.getState().upgradeWeapon(choice.id, rarity)
+      useWeapons.getState().upgradeWeapon(choice.id, choice.upgradeResult)
     } else if (choice.type === 'new_weapon') {
       useWeapons.getState().addWeapon(choice.id, rarity)
       useArmory.getState().markDiscovered('weapons', choice.id)
@@ -75,63 +187,99 @@ export default function PlanetRewardModal() {
   }, [choices, applyChoice])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 font-game">
-      <h1
-        className="text-3xl font-bold tracking-widest text-game-text mb-2 animate-fade-in"
-        style={{ color: tierColor }}
-      >
-        PLANET SCANNED!
-      </h1>
-      <p className="text-game-text-muted text-sm mb-8 animate-fade-in">{tierLabel} Planet Reward</p>
-      <div className="flex gap-4">
-        {choices.map((choice, i) => {
-          const rarityTier = getRarityTier(choice.rarity || 'COMMON')
-          const isCommon = !choice.rarity || choice.rarity === 'COMMON'
-          const glowPx = rarityTier.glowIntensity * 8
+    <div style={S.overlay}>
+      {/* ── Conteneur 2 colonnes ── */}
+      <div style={S.container}>
 
-          return (
-            <div
-              key={`${choice.type}_${choice.id}`}
-              className="w-52 p-4 bg-game-bg-medium rounded-lg
-                         hover:cursor-pointer transition-all animate-fade-in"
-              style={{
-                animationDelay: `${i * 50}ms`,
-                animationFillMode: 'backwards',
-                borderWidth: '2px',
-                borderStyle: 'solid',
-                borderColor: isCommon ? `${tierColor}66` : rarityTier.color,
-                boxShadow: isCommon ? `0 0 12px ${tierColor}30` : `0 0 ${glowPx}px ${rarityTier.color}`,
-              }}
-              onClick={() => applyChoice(choice)}
-              onMouseEnter={() => playSFX('button-hover')}
-            >
-              {/* Top row: rarity badge (if not Common) + level/NEW indicator */}
-              <div className="flex items-center gap-2">
-                {!isCommon && (
-                  <div
-                    className="px-2 py-0.5 text-xs font-bold rounded"
-                    style={{ backgroundColor: rarityTier.color, color: '#000' }}
-                  >
-                    {rarityTier.name.toUpperCase()}
-                  </div>
-                )}
-                <span
-                  className={choice.level ? 'text-game-text-muted text-xs' : 'text-xs font-bold'}
-                  style={!choice.level && isCommon ? { color: tierColor } : undefined}
+        {/* ── Colonne gauche : Scan Info ── */}
+        <div style={S.leftCol}>
+          <p style={S.sectionLabel}>Scan Info</p>
+
+          {/* Pill tier coloré */}
+          <div style={{
+            display: 'inline-block',
+            padding: '4px 10px',
+            fontFamily: 'Bebas Neue, sans-serif',
+            fontSize: '0.9rem',
+            color: tierColor,
+            backgroundColor: `${tierColor}18`,
+            clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
+            letterSpacing: '0.1em',
+          }}>
+            {tierLabel}
+          </div>
+
+          <div style={S.separator} />
+
+          {/* Flavor text selon tier */}
+          <p style={S.flavorText}>
+            {TIER_FLAVOR[rewardTier] || TIER_FLAVOR.standard}
+          </p>
+        </div>
+
+        {/* ── Colonne droite : Titre + Cards verticales ── */}
+        <div style={S.rightCol}>
+          <h1 style={{
+            fontFamily: 'Bebas Neue, sans-serif',
+            fontSize: '2.5rem',
+            letterSpacing: '0.15em',
+            color: 'var(--rs-text)',
+            margin: 0,
+            lineHeight: 1,
+          }}>
+            PLANET SCANNED!
+          </h1>
+          <div style={S.titleAccent(tierColor)} />
+
+          <div style={S.cardsContainer}>
+            {choices.map((choice, i) => {
+              const rarityTier = getRarityTier(choice.rarity || 'COMMON')
+              const isCommon = !choice.rarity || choice.rarity === 'COMMON'
+
+              return (
+                <div
+                  key={`${choice.type}_${choice.id}`}
+                  style={S.card(rarityTier.color, i * 50)}
+                  className="animate-fade-in"
+                  onClick={() => applyChoice(choice)}
+                  onMouseEnter={(e) => {
+                    playSFX('button-hover')
+                    e.currentTarget.style.borderColor = 'var(--rs-border-hot)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = rarityTier.color
+                  }}
                 >
-                  {choice.level ? `Lvl ${choice.level}` : 'NEW'}
-                </span>
-              </div>
-              <h3 className="text-game-text font-semibold mt-1">{choice.name}</h3>
-              {choice.statPreview ? (
-                <p className="text-game-text-muted text-sm mt-1">{choice.statPreview}</p>
-              ) : (
-                <p className="text-game-text-muted text-sm mt-1">{choice.description}</p>
-              )}
-              <span className="text-game-text-muted text-xs mt-2 block">[{i + 1}]</span>
-            </div>
-          )
-        })}
+                  {/* Top row: rarity badge + level/NEW + shortcut [1-3] */}
+                  <div style={S.topRow}>
+                    {!isCommon && (
+                      <span style={S.rarityBadge(rarityTier.color)}>
+                        {rarityTier.name.toUpperCase()}
+                      </span>
+                    )}
+                    <span style={{
+                      fontSize: '0.75rem',
+                      fontFamily: "'Rajdhani', sans-serif",
+                      fontWeight: choice.level ? 400 : 700,
+                      color: choice.level ? 'var(--rs-text-muted)' : (isCommon ? tierColor : rarityTier.color),
+                    }}>
+                      {choice.level ? `Lvl ${choice.level}` : 'NEW'}
+                    </span>
+                    {i < 3 && (
+                      <span style={S.shortcutKey}>[{i + 1}]</span>
+                    )}
+                  </div>
+
+                  <h3 style={S.cardTitle}>{choice.name}</h3>
+                  <p style={S.cardDesc}>
+                    {choice.statPreview ?? choice.description}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
       </div>
     </div>
   )

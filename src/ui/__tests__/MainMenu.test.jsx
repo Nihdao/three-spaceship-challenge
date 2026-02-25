@@ -5,6 +5,7 @@ import useGame from '../../stores/useGame.jsx'
 
 beforeEach(() => {
   usePlayer.getState().reset()
+  usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
   useGame.getState().reset()
 })
 
@@ -19,10 +20,10 @@ describe('MainMenu — Fragment display store contract', () => {
     expect(usePlayer.getState().fragments).toBe(450)
   })
 
-  it('fragments resets to 0 on full reset (menu shows 0 after clear save)', () => {
+  it('fragments persist on full reset (permanent cross-run currency)', () => {
     usePlayer.getState().addFragments(500)
     usePlayer.getState().reset()
-    expect(usePlayer.getState().fragments).toBe(0)
+    expect(usePlayer.getState().fragments).toBe(500)
   })
 
   it('fragments survives resetForNewSystem (persists between runs)', () => {
@@ -38,9 +39,9 @@ describe('MainMenu — MENU_ITEMS export', () => {
     expect(ids).toContain('play')
     expect(ids).toContain('upgrades')
     expect(ids).toContain('armory')
-    expect(ids).toContain('stats')
-    // options & credits are corner buttons, not part of main MENU_ITEMS
-    expect(ids).not.toContain('options')
+    expect(ids).toContain('options')
+    // stats is a corner button; credits is a corner button — neither in main MENU_ITEMS
+    expect(ids).not.toContain('stats')
     expect(ids).not.toContain('credits')
   })
 })

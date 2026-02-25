@@ -4,6 +4,12 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 
 let nextProjectileId = 0
 
+// Per-weapon active projectile counter — avoids O(N) filter in fire() poolLimit check (Story 41.2 AC 6)
+const _projCountByWeapon = new Map()
+
+// Pre-allocated alive buffer — avoids per-call array allocation in cleanupInactive()
+const _alive = []
+
 const useWeapons = create((set, get) => ({
   // --- State ---
   activeWeapons: [],
@@ -14,7 +20,7 @@ const useWeapons = create((set, get) => ({
   initializeWeapons: () => {
     nextProjectileId = 0
     set({
-      activeWeapons: [{ weaponId: 'LASER_FRONT', level: 1, cooldownTimer: 0 }],
+      activeWeapons: [{ weaponId: 'LASER_FRONT', level: 1, cooldownTimer: 0, multipliers: { damageMultiplier: 1.0, areaMultiplier: 1.0, cooldownMultiplier: 1.0, knockbackMultiplier: 1.0, critBonus: 0 } }],
       projectiles: [],
     })
   },
@@ -37,26 +43,70 @@ const useWeapons = create((set, get) => ({
         weapon.orbitalAngle = (weapon.orbitalAngle || 0) + delta * (def.orbitalSpeed || 2.0)
       }
 
+      // Story 32.1: Handle LASER_CROSS — non-projectile rotation weapon
+      // Must run BEFORE cooldownTimer mutation to avoid corrupting unrelated state
+      if (def.weaponType === 'laser_cross') {
+        weapon.laserCrossAngle = (weapon.laserCrossAngle ?? 0) + delta * def.rotationSpeed * projectileSpeedMultiplier
+        weapon.laserCrossIsActive = weapon.laserCrossIsActive ?? true
+        weapon.laserCrossCycleTimer = (weapon.laserCrossCycleTimer ?? 0) + delta
+        // Phase transition with while loop to handle large delta (single-tick tests)
+        let phaseDuration = weapon.laserCrossIsActive
+          ? def.activeTime
+          : def.inactiveTime * cooldownMultiplier
+        while (weapon.laserCrossCycleTimer >= phaseDuration) {
+          weapon.laserCrossCycleTimer -= phaseDuration
+          weapon.laserCrossIsActive = !weapon.laserCrossIsActive
+          phaseDuration = weapon.laserCrossIsActive
+            ? def.activeTime
+            : def.inactiveTime * cooldownMultiplier
+        }
+        continue // Skip all projectile spawning logic
+      }
+
+      // Story 32.2: Handle MAGNETIC_FIELD — passive aura weapon, no projectile spawning
+      // Must run BEFORE cooldownTimer mutation (weapon has no cooldown concept)
+      if (def.weaponType === 'aura') {
+        continue
+      }
+
+      // Story 32.4: Handle SHOCKWAVE — arc burst weapon, cooldown managed in GameLoop section 7a-quater
+      // Must run BEFORE cooldownTimer mutation to avoid corrupting unrelated state
+      if (def.weaponType === 'shockwave') {
+        continue
+      }
+
+      // Story 32.5: Handle MINE_AROUND — orbiting proximity mines, all logic in GameLoop section 7a-quinquies
+      // Must run BEFORE cooldownTimer mutation (mines have no cooldown concept)
+      if (def.weaponType === 'mine_around') {
+        continue
+      }
+
+      // Story 32.6: Handle TACTICAL_SHOT — instant remote strike, all logic in GameLoop section 7a-sexies
+      // Must run BEFORE cooldownTimer mutation (tactical shot has its own cooldown: tacticalCooldownTimer)
+      if (def.weaponType === 'tactical_shot') {
+        continue
+      }
+
       // Mutate cooldown in-place (no set() call) to avoid unnecessary Zustand re-renders.
-      // Cooldown is internal bookkeeping — no subscriber needs to react to timer ticks.
       weapon.cooldownTimer -= delta
 
       if (weapon.cooldownTimer <= 0) {
-        weapon.cooldownTimer = (weapon.overrides?.cooldown ?? def.baseCooldown) * cooldownMultiplier
+        // Story 31.2: Effective cooldown uses per-weapon multiplier with floor + boon multiplier
+        weapon.cooldownTimer = Math.max(def.baseCooldown * 0.15, def.baseCooldown * (weapon.multipliers?.cooldownMultiplier ?? 1.0)) * cooldownMultiplier
 
         // Respect MAX_PROJECTILES cap
         if (projectiles.length + newProjectiles.length >= GAME_CONFIG.MAX_PROJECTILES) continue
 
         const fwd = GAME_CONFIG.PROJECTILE_SPAWN_FORWARD_OFFSET
-        let baseDamage = weapon.overrides?.damage ?? def.baseDamage
-        let projDamage = baseDamage * damageMultiplier
-        let projIsCrit = false
-        if (critChance > 0 && Math.random() < critChance) {
-          projDamage *= critMultiplier
-          projIsCrit = true
-        }
-        const color = weapon.overrides?.upgradeVisuals?.color ?? def.projectileColor
-        const meshScale = weapon.overrides?.upgradeVisuals?.meshScale ?? def.projectileMeshScale
+        // Story 31.2: Use per-weapon damageMultiplier
+        const baseDamage = def.baseDamage * (weapon.multipliers?.damageMultiplier ?? 1.0)
+        // Story 31.2: totalCritChance = weapon def crit + upgrade critBonus + boon critChance
+        const totalCritChance = Math.min(1.0,
+          (def.critChance ?? 0) + (weapon.multipliers?.critBonus ?? 0) + critChance
+        )
+        // Story 31.2: Always use def color and meshScale (upgradeVisuals removed)
+        const color = def.projectileColor
+        const meshScale = def.projectileMeshScale
 
         // Determine firing angles based on projectile pattern
         // Story 21.1: Use fireAngle (based on aimDirection or rotation)
@@ -72,8 +122,33 @@ const useWeapons = create((set, get) => ({
           for (let p = 0; p < pelletCount; p++) {
             angles.push(fireAngle + (Math.random() * 2 - 1) * spreadAngle)
           }
+        } else if (def.projectilePattern === 'diagonals') {
+          // Story 32.3: 4-projectile X burst, offsets at ±45° and ±135° from fireAngle
+          angles = [
+            fireAngle + Math.PI * 0.25,   // +45°
+            fireAngle + Math.PI * 0.75,   // +135°
+            fireAngle + Math.PI * 1.25,   // +225°
+            fireAngle + Math.PI * 1.75,   // +315°
+          ]
         } else {
           angles = [fireAngle]
+        }
+
+        // Story 32.3: Per-weapon pool limit — evict oldest projectiles to make room before spawning
+        // Story 41.2: Use counter lookup instead of O(N) filter
+        if (def.poolLimit !== undefined) {
+          const weaponProjCount = _projCountByWeapon.get(weapon.weaponId) || 0
+          const toEvict = weaponProjCount + angles.length - def.poolLimit
+          if (toEvict > 0) {
+            let evicted = 0
+            for (let e = 0; e < projectiles.length && evicted < toEvict; e++) {
+              if (projectiles[e].weaponId === weapon.weaponId && projectiles[e].active) {
+                projectiles[e].active = false
+                _projCountByWeapon.set(weapon.weaponId, (_projCountByWeapon.get(weapon.weaponId) || 0) - 1)
+                evicted++
+              }
+            }
+          }
         }
 
         // Determine spawn position (drone fires from offset)
@@ -87,6 +162,9 @@ const useWeapons = create((set, get) => ({
           const radius = def.orbitalRadius || 12
           spawnX = playerPosition[0] + Math.cos(weapon.orbitalAngle || 0) * radius
           spawnZ = playerPosition[2] + Math.sin(weapon.orbitalAngle || 0) * radius
+        } else if (def.projectilePattern === 'diagonals') {
+          spawnX = playerPosition[0]
+          spawnZ = playerPosition[2]
         }
 
         for (let a = 0; a < angles.length; a++) {
@@ -95,11 +173,21 @@ const useWeapons = create((set, get) => ({
           const dirX = Math.sin(angle)
           const dirZ = -Math.cos(angle)
 
+          // Story 32.3: Independent crit roll per projectile (AC#1 requirement)
+          let projDamage = baseDamage * damageMultiplier
+          let projIsCrit = false
+          if (totalCritChance > 0 && Math.random() < totalCritChance) {
+            projDamage *= critMultiplier
+            projIsCrit = true
+          }
+
           const proj = {
             id: `proj_${nextProjectileId++}`,
             weaponId: weapon.weaponId,
             x: spawnX,
             z: spawnZ,
+            prevX: spawnX,
+            prevZ: spawnZ,
             y: GAME_CONFIG.PROJECTILE_SPAWN_Y_OFFSET,
             dirX,
             dirZ,
@@ -118,7 +206,7 @@ const useWeapons = create((set, get) => ({
           // Story 11.3: Piercing projectiles (Railgun)
           if (def.projectilePattern === 'piercing') {
             proj.piercing = true
-            proj.pierceCount = weapon.overrides?.pierceCount ?? def.pierceCount ?? 3
+            proj.pierceCount = def.pierceCount ?? 3
             proj.pierceHits = 0
           }
 
@@ -134,56 +222,83 @@ const useWeapons = create((set, get) => ({
     }
 
     if (newProjectiles.length > 0) {
+      // Story 41.2: Increment per-weapon counters for newly spawned projectiles
+      for (let i = 0; i < newProjectiles.length; i++) {
+        const wid = newProjectiles[i].weaponId
+        _projCountByWeapon.set(wid, (_projCountByWeapon.get(wid) || 0) + 1)
+      }
       set({ projectiles: projectiles.concat(newProjectiles) })
     }
   },
 
-  addWeapon: (weaponId, rarity = 'COMMON') => {
+  // Story 31.2: rarity parameter kept for backward compat but no longer used for damage scaling
+  addWeapon: (weaponId, _rarity = 'COMMON') => {
     const { activeWeapons } = get()
     if (activeWeapons.length >= 4) return // Max 4 weapon slots
     if (activeWeapons.some(w => w.weaponId === weaponId)) return // Already equipped
-    const def = WEAPONS[weaponId]
-    // Story 22.3: Apply rarity damage multiplier to baseDamage at add time
-    const rarityMultiplier = def?.rarityDamageMultipliers?.[rarity] ?? 1.0
-    const weapon = { weaponId, level: 1, cooldownTimer: 0, rarity }
-    if (rarityMultiplier !== 1.0 && def?.baseDamage) {
-      weapon.overrides = { damage: Math.round(def.baseDamage * rarityMultiplier) }
+    const weapon = {
+      weaponId,
+      level: 1,
+      cooldownTimer: 0,
+      multipliers: {
+        damageMultiplier: 1.0,
+        areaMultiplier: 1.0,
+        cooldownMultiplier: 1.0,
+        knockbackMultiplier: 1.0,
+        critBonus: 0,
+      },
     }
     set({ activeWeapons: [...activeWeapons, weapon] })
   },
 
-  upgradeWeapon: (weaponId, rarity = 'COMMON') => {
+  // Story 31.2: upgradeWeapon now accepts { stat, finalMagnitude, rarity } object
+  upgradeWeapon: (weaponId, upgradeResult) => {
     const { activeWeapons } = get()
     const idx = activeWeapons.findIndex(w => w.weaponId === weaponId)
     if (idx === -1) return
     const weapon = activeWeapons[idx]
     if (weapon.level >= 9) return // Max level
     const def = WEAPONS[weaponId]
-    const upgrade = def?.upgrades?.[weapon.level - 1]
+    if (!def) return
+
     const updated = [...activeWeapons]
-    // Each upgrade's rarity is independent — use the passed rarity for this upgrade's damage scaling
-    updated[idx] = { ...weapon, level: weapon.level + 1, cooldownTimer: weapon.cooldownTimer, rarity }
-    // Apply gameplay-relevant overrides only; carry forward upgradeVisuals from previous threshold
-    if (upgrade) {
-      // Story 22.3: Apply rarity damage multiplier to upgrade damage
-      const rarityMultiplier = def?.rarityDamageMultipliers?.[rarity] ?? 1.0
-      const newOverrides = {
-        damage: Math.round(upgrade.damage * rarityMultiplier),
-        cooldown: upgrade.cooldown,
-      }
-      if (upgrade.upgradeVisuals) {
-        newOverrides.upgradeVisuals = upgrade.upgradeVisuals
-      } else if (weapon.overrides?.upgradeVisuals) {
-        newOverrides.upgradeVisuals = weapon.overrides.upgradeVisuals
-      }
-      // Story 11.3: Propagate pierceCount from upgrades (e.g., Railgun level 9)
-      if (upgrade.pierceCount !== undefined) {
-        newOverrides.pierceCount = upgrade.pierceCount
-      } else if (weapon.overrides?.pierceCount !== undefined) {
-        newOverrides.pierceCount = weapon.overrides.pierceCount
-      }
-      updated[idx].overrides = newOverrides
+    const prevMultipliers = weapon.multipliers ?? { damageMultiplier: 1.0, areaMultiplier: 1.0, cooldownMultiplier: 1.0, knockbackMultiplier: 1.0, critBonus: 0 }
+    const newMultipliers = { ...prevMultipliers }
+
+    if (!upgradeResult) return
+
+    const { stat, finalMagnitude, rarity } = upgradeResult
+    switch (stat) {
+      case 'damage':
+        newMultipliers.damageMultiplier *= (1 + finalMagnitude / 100)
+        break
+      case 'area':
+        newMultipliers.areaMultiplier *= (1 + finalMagnitude / 100)
+        break
+      case 'cooldown':
+        newMultipliers.cooldownMultiplier *= (1 + finalMagnitude / 100)
+        // Clamp: never below 15% of base cooldown (multiplier floor)
+        newMultipliers.cooldownMultiplier = Math.max(0.15, newMultipliers.cooldownMultiplier)
+        break
+      case 'knockback':
+        newMultipliers.knockbackMultiplier *= (1 + finalMagnitude / 100)
+        break
+      case 'crit':
+        newMultipliers.critBonus += finalMagnitude / 100
+        // Cap: def.critChance + critBonus ≤ 1.0
+        newMultipliers.critBonus = Math.min(1.0 - (def.critChance ?? 0), newMultipliers.critBonus)
+        break
+      default:
+        break
     }
+    updated[idx] = {
+      ...weapon,
+      level: weapon.level + 1,
+      cooldownTimer: weapon.cooldownTimer,
+      multipliers: newMultipliers,
+      rarity: rarity ?? weapon.rarity,
+    }
+
     set({ activeWeapons: updated })
   },
 
@@ -198,14 +313,25 @@ const useWeapons = create((set, get) => ({
 
   cleanupInactive: () => {
     const { projectiles } = get()
-    const alive = projectiles.filter((p) => p.active)
-    if (alive.length !== projectiles.length) {
-      set({ projectiles: alive })
+    _alive.length = 0
+    for (let i = 0; i < projectiles.length; i++) {
+      const p = projectiles[i]
+      if (p.active) {
+        _alive.push(p)
+      } else {
+        // Story 41.2: Decrement per-weapon counter for deactivated projectiles
+        const count = _projCountByWeapon.get(p.weaponId)
+        if (count > 0) _projCountByWeapon.set(p.weaponId, count - 1)
+      }
+    }
+    if (_alive.length !== projectiles.length) {
+      set({ projectiles: _alive.slice() })
     }
   },
 
   clearProjectiles: () => {
     nextProjectileId = 0
+    _projCountByWeapon.clear()
     const { activeWeapons } = get()
     set({
       projectiles: [],
@@ -215,6 +341,7 @@ const useWeapons = create((set, get) => ({
 
   reset: () => {
     nextProjectileId = 0
+    _projCountByWeapon.clear()
     set({ activeWeapons: [], projectiles: [] })
   },
 }))

@@ -191,13 +191,20 @@ describe('Difficulty scaling', () => {
       expect(result.enemy.xpReward).not.toBe(ENEMIES.FODDER_BASIC.xpReward)
     })
 
-    it('batch kill returns death events with scaled xpReward', () => {
+    it('batch kill returns death event with minimal fields (x, z, typeId, color)', () => {
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[3]
-      useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, scaling }])
+      useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 5, z: 7, scaling }])
       const enemy = useEnemies.getState().enemies[0]
+      expect(enemy.xpReward).toBe(22) // round(12 * 1.8) = 21.6 → 22 — on spawned entity
       const events = useEnemies.getState().damageEnemiesBatch([{ enemyId: enemy.id, damage: 999 }])
       expect(events[0].killed).toBe(true)
-      expect(events[0].enemy.xpReward).toBe(22) // round(12 * 1.8) = 21.6 → 22
+      expect(events[0].enemy.x).toBe(5)
+      expect(events[0].enemy.z).toBe(7)
+      expect(events[0].enemy.typeId).toBe('FODDER_BASIC')
+      // Minimal capture guard (Story 43.1 AC3) — xpReward must NOT leak into kill event
+      expect(events[0].enemy.xpReward).toBeUndefined()
+      expect(events[0].enemy.id).toBeUndefined()
+      expect(events[0].enemy.hp).toBeUndefined()
     })
   })
 

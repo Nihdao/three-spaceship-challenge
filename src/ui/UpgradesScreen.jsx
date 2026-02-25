@@ -1,8 +1,10 @@
 import { useEffect } from 'react'
+import { FragmentIcon } from './icons/index.jsx'
 import useUpgrades from '../stores/useUpgrades.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import { PERMANENT_UPGRADES, getTotalBonus } from '../entities/permanentUpgradesDefs.js'
 import { playSFX } from '../audio/audioManager.js'
+import { SwordIcon, LightningIcon, ShieldCrossIcon, ZoneIcon, SkullIcon, StarIcon, RerollIcon, SkipIcon, BanishIcon, RegenIcon, MagnetIcon, ArmorIcon, LuckIcon } from './icons/index.jsx'
 
 /**
  * Compute display info for a single upgrade card.
@@ -44,6 +46,23 @@ export const BONUS_FORMATS = {
   // Batch 2 (add when defs land): LUCK: 'percent', EXP_BONUS: 'percent', CURSE: 'percent', MAGNET: 'percent'
 }
 
+const UPGRADE_ICON_MAP = {
+  ATTACK_POWER: SwordIcon,
+  ATTACK_SPEED: LightningIcon,
+  MAX_HP: ShieldCrossIcon,
+  REGEN: RegenIcon,
+  ZONE: ZoneIcon,
+  EXP_BONUS: StarIcon,
+  CURSE: SkullIcon,
+  REROLL: RerollIcon,
+  SKIP: SkipIcon,
+  BANISH: BanishIcon,
+  MAGNET: MagnetIcon,
+  LUCK: LuckIcon,
+  ARMOR: ArmorIcon,
+  REVIVAL: ShieldCrossIcon,
+}
+
 function UpgradeCard({ upgradeId }) {
   const currentLevel = useUpgrades(s => s.upgradeLevels[upgradeId] || 0)
   const fragments = usePlayer(s => s.fragments)
@@ -68,64 +87,102 @@ function UpgradeCard({ upgradeId }) {
   }
 
   const bonusText = formatBonus()
+  const IconComp = UPGRADE_ICON_MAP[upgradeId]
+
+  const cardBorderStyle = info.isMaxed
+    ? { borderColor: 'rgba(45, 198, 83, 0.4)' }
+    : info.canAfford
+      ? { borderColor: 'var(--rs-border)' }
+      : { borderColor: 'var(--rs-border)', opacity: 0.6 }
 
   return (
     <div
-      className={`
-        border rounded-lg p-3 transition-all duration-150 select-none
-        bg-black/40 backdrop-blur-sm
-        ${info.isMaxed
-          ? 'border-game-success/40'
-          : info.canAfford
-            ? 'border-game-border hover:border-[#cc66ff]/60 hover:bg-black/50 cursor-pointer'
-            : 'border-game-border/40 opacity-60 cursor-not-allowed'
-        }
-      `}
+      className="p-3 transition-all duration-150 select-none"
+      style={{
+        background: 'var(--rs-bg-raised)',
+        cursor: info.isMaxed ? 'default' : info.canAfford ? 'pointer' : 'not-allowed',
+        clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+        border: '1px solid var(--rs-border)',
+        ...cardBorderStyle,
+      }}
       onClick={handleBuy}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleBuy() } }}
-      onMouseEnter={() => info.canAfford && !info.isMaxed && playSFX('button-hover')}
+      onMouseEnter={(e) => {
+        if (info.canAfford && !info.isMaxed) {
+          e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--rs-violet) 60%, transparent)'
+          e.currentTarget.style.background = 'color-mix(in srgb, var(--rs-bg-raised) 80%, white)'
+          playSFX('button-hover')
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (info.canAfford && !info.isMaxed) {
+          e.currentTarget.style.borderColor = 'var(--rs-border)'
+          e.currentTarget.style.background = 'var(--rs-bg-raised)'
+        }
+      }}
       role="button"
       tabIndex={info.canAfford && !info.isMaxed ? 0 : -1}
       aria-label={info.isMaxed ? `${info.name} — maxed` : `Buy ${info.name} for ${info.nextCost} Fragments`}
       aria-disabled={!info.canAfford && !info.isMaxed}
     >
       {/* Top: icon + name + level */}
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-2xl flex-shrink-0">{info.icon}</span>
+      <div className="flex items-start gap-2 mb-1.5">
+        {IconComp ? (
+          <span className="mt-0.5 flex-shrink-0"><IconComp size={16} color="var(--rs-orange)" /></span>
+        ) : (
+          <div style={{
+            width: 20,
+            height: 20,
+            marginTop: 2,
+            border: '1px solid var(--rs-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 9,
+            color: 'var(--rs-orange)',
+            flexShrink: 0,
+            userSelect: 'none',
+            letterSpacing: '-0.05em',
+          }}>
+            {upgradeId.slice(0, 2)}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-1">
-            <h3 className="text-sm font-semibold text-game-text truncate">{info.name}</h3>
-            <span className="text-xs text-game-text-muted tabular-nums flex-shrink-0">
+            <h3 className="text-sm font-semibold truncate" style={{ color: 'var(--rs-text)' }}>{info.name}</h3>
+            <span className="text-xs tabular-nums flex-shrink-0" style={{ color: 'var(--rs-text-muted)' }}>
               {info.currentLevel}/{info.maxLevel}
             </span>
           </div>
-          <p className="text-xs text-game-text-muted leading-relaxed">{info.description}</p>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--rs-text-muted)' }}>{info.description}</p>
         </div>
       </div>
 
       {/* Bottom: bonus + cost/buy */}
       <div className="flex items-center justify-between gap-2 mt-2">
-        <div className="text-xs text-[#cc66ff] font-medium">
-          {bonusText ?? <span className="text-game-text-muted">—</span>}
+        <div className="text-xs font-medium" style={{ color: 'var(--rs-violet)' }}>
+          {bonusText ?? <span style={{ color: 'var(--rs-text-muted)' }}>—</span>}
         </div>
 
         {info.isMaxed ? (
-          <span className="text-xs font-bold text-game-success tracking-wider">MAX</span>
+          <span className="text-xs font-bold tracking-wider" style={{ color: 'var(--rs-success)' }}>MAX</span>
         ) : (
           <button
             className={`
-              px-2.5 py-1 text-xs font-semibold tracking-wider rounded border
+              px-2.5 py-1 text-xs font-semibold tracking-wider
               outline-none pointer-events-none
-              ${info.canAfford
-                ? 'border-[#cc66ff]/60 text-[#cc66ff]'
-                : 'border-game-border/40 text-game-text-muted'
-              }
+              ${!info.canAfford ? '' : ''}
             `}
+            style={info.canAfford
+              ? { borderColor: 'var(--rs-violet)', color: 'var(--rs-violet)', border: '1px solid var(--rs-violet)', clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)' }
+              : { border: '1px solid rgba(46,37,69,0.4)', clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)', color: 'var(--rs-text-muted)' }
+            }
             disabled={!info.canAfford}
             aria-hidden="true"
             tabIndex={-1}
           >
-            {info.nextCost}◆
+            {info.nextCost}<FragmentIcon size={12} color="var(--rs-violet)" style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: 2 }} />
           </button>
         )}
       </div>
@@ -151,21 +208,33 @@ export default function UpgradesScreen({ onClose }) {
   }, [onClose])
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in">
-      {/* Content — no backdrop, 3D background visible directly */}
-      <div className="relative w-full max-w-4xl px-6 py-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center animate-fade-in" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+      {/* Panel conteneur ancré — remplace l'ancien div max-w-4xl */}
+      <div style={{
+        background: 'var(--rs-bg-surface)',
+        border: '1px solid var(--rs-border)',
+        clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+        width: 'clamp(640px, 70vw, 960px)',
+        maxHeight: '85vh',
+        overflowY: 'auto',
+        padding: '2rem',
+        position: 'relative',
+      }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => { playSFX('button-click'); onClose() }}
-            className="px-4 py-2 text-sm tracking-widest text-game-text-muted hover:text-game-text transition-colors select-none"
+            className="px-4 py-2 text-sm tracking-widest transition-colors select-none"
+            style={{ color: 'var(--rs-text-muted)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--rs-text)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--rs-text-muted)' }}
           >
             &larr; BACK
           </button>
 
           <h1
-            className="text-2xl font-bold tracking-[0.15em] text-game-text select-none"
-            style={{ textShadow: '0 0 30px rgba(204, 102, 255, 0.3)' }}
+            className="text-2xl font-bold select-none"
+            style={{ fontFamily: 'Bebas Neue, sans-serif', letterSpacing: '0.15em', color: 'var(--rs-text)' }}
           >
             PERMANENT UPGRADES
           </h1>
@@ -173,8 +242,8 @@ export default function UpgradesScreen({ onClose }) {
           <div className="flex items-center gap-4">
             {/* Fragment balance */}
             <div className="flex items-center gap-2 select-none">
-              <span className="text-[#cc66ff] text-lg">◆</span>
-              <span className="text-game-text font-semibold text-lg tabular-nums">{fragments}</span>
+              <FragmentIcon size={18} color="var(--rs-violet)" />
+              <span className="font-semibold text-lg tabular-nums" style={{ color: 'var(--rs-text)' }}>{fragments}</span>
             </div>
 
             {/* REFUND ALL button */}
@@ -184,8 +253,18 @@ export default function UpgradesScreen({ onClose }) {
                   playSFX('button-click')
                   useUpgrades.getState().refundAll()
                 }}
-                onMouseEnter={() => playSFX('button-hover')}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold tracking-wider rounded transition-colors select-none"
+                onMouseEnter={(e) => {
+                  playSFX('button-hover')
+                  e.currentTarget.style.background = 'rgba(255, 51, 102, 0.1)'
+                }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                className="px-4 py-2 text-sm font-semibold tracking-wider transition-colors select-none"
+                style={{
+                  clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+                  border: '1px solid var(--rs-danger)',
+                  color: 'var(--rs-danger)',
+                  background: 'transparent',
+                }}
                 aria-label="Refund all upgrades"
               >
                 REFUND ALL

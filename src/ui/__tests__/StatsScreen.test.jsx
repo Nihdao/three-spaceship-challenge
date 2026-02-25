@@ -94,10 +94,11 @@ describe('StatsScreen — useGlobalStats store contract', () => {
   })
 })
 
-describe('StatsScreen — MENU_ITEMS includes stats', () => {
-  it('MENU_ITEMS from MainMenu contains stats entry', async () => {
+describe('StatsScreen — MENU_ITEMS includes options', () => {
+  it('MENU_ITEMS from MainMenu contains options entry (stats is a corner button)', async () => {
     const { MENU_ITEMS } = await import('../MainMenu.jsx')
     const ids = MENU_ITEMS.map(item => item.id)
-    expect(ids).toContain('stats')
+    expect(ids).toContain('options')
+    expect(ids).not.toContain('stats')
   })
 })

@@ -10,6 +10,25 @@ import { calculateFlashIntensity, applyHitFlash, restoreOriginalColor } from '..
 
 const MAX = GAME_CONFIG.MAX_ENEMIES_ON_SCREEN
 
+// Module-level pre-bucketing cache — groups enemies by typeId once per frame
+// avoids O(enemies × types) per-frame scans in EnemyTypeMesh
+let _bucketFrame = -1
+const _buckets = new Map() // typeId → Enemy[]
+const _empty = []
+
+function _getBuckets(enemies, frameId) {
+  if (frameId === _bucketFrame) return _buckets
+  _bucketFrame = frameId
+  _buckets.forEach(arr => { arr.length = 0 })
+  for (let i = 0; i < enemies.length; i++) {
+    const e = enemies[i]
+    let b = _buckets.get(e.typeId)
+    if (!b) { b = []; _buckets.set(e.typeId, b) }
+    b.push(e)
+  }
+  return _buckets
+}
+
 // Catches GLB load/render errors per enemy type — renders nothing on failure
 class EnemyMeshErrorBoundary extends Component {
   state = { hasError: false }
@@ -61,22 +80,21 @@ function EnemyTypeMesh({ typeId }) {
     }
   }, [subMeshes])
 
-  useFrame(() => {
+  useFrame((state) => {
     const refs = meshRefs.current
     if (refs.length === 0) return
 
     const enemies = useEnemies.getState().enemies
     const playerPos = usePlayer.getState().position
     const dummy = dummyRef.current
-    const now = performance.now()
+    const now = state.clock.elapsedTime * 1000
+    const frameId = Math.floor(now)
+    const typeEnemies = _getBuckets(enemies, frameId).get(typeId) ?? _empty
 
-    // TODO: O(enemies × types) per frame — consider pre-bucketing enemies by
-    // type in the store if more enemy types are added (currently 2, acceptable).
     let count = 0
     let maxFlashTimer = 0 // Story 27.3: track max flash timer across all enemies of this type
-    for (let i = 0; i < enemies.length; i++) {
-      const e = enemies[i]
-      if (e.typeId !== typeId) continue
+    for (let i = 0; i < typeEnemies.length; i++) {
+      const e = typeEnemies[i]
 
       // Track max hit flash timer for shared material flash (Option B MVP)
       if (e.hitFlashTimer > maxFlashTimer) maxFlashTimer = e.hitFlashTimer
@@ -90,7 +108,9 @@ function EnemyTypeMesh({ typeId }) {
 
       // Hit flash: scale pulse after taking non-lethal damage
       const hitAge = now - e.lastHitTime
-      let scaleMult = hitAge < GAME_CONFIG.SCALE_FLASH_DURATION_MS ? GAME_CONFIG.SCALE_FLASH_MULT : 1
+      // Guard hitAge >= 0: if lastHitTime was set via performance.now() fallback (epoch ~1.74T ms)
+      // and now is clock-time (small ms), hitAge is a huge negative → would trigger flash permanently.
+      let scaleMult = hitAge >= 0 && hitAge < GAME_CONFIG.SCALE_FLASH_DURATION_MS ? GAME_CONFIG.SCALE_FLASH_MULT : 1
 
       // Sniper fixed telegraph: pulsing scale during charge-up (Story 16.2)
       if (e.attackState === 'telegraph') {

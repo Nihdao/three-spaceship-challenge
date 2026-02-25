@@ -184,4 +184,31 @@ describe('projectileSystem', () => {
     ps.tick([p], 0.1)
     expect(p.z).toBeCloseTo(-30, 0)
   })
+
+  // --- Anti-tunneling: prevX/prevZ tracking ---
+
+  it('should store prevX/prevZ before moving', () => {
+    const p = makeProjectile({ x: 10, z: 20, dirX: 1, dirZ: 0, speed: 100 })
+    ps.tick([p], 0.5)
+    expect(p.prevX).toBe(10)
+    expect(p.prevZ).toBe(20)
+    expect(p.x).toBeCloseTo(60, 5)
+  })
+
+  it('should update prevX/prevZ each tick', () => {
+    const p = makeProjectile({ x: 0, z: 0, dirX: 0, dirZ: -1, speed: 300 })
+    ps.tick([p], 1 / 60)
+    const afterFirstX = p.x
+    const afterFirstZ = p.z
+    ps.tick([p], 1 / 60)
+    expect(p.prevX).toBeCloseTo(afterFirstX, 5)
+    expect(p.prevZ).toBeCloseTo(afterFirstZ, 5)
+  })
+
+  it('should not set prevX/prevZ on inactive projectiles', () => {
+    const p = makeProjectile({ x: 5, z: 5, active: false })
+    ps.tick([p], 0.1)
+    expect(p.prevX).toBeUndefined()
+    expect(p.prevZ).toBeUndefined()
+  })
 })

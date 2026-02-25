@@ -4,21 +4,54 @@ import { WEAPONS } from '../weaponDefs.js'
 const REQUIRED_FIELDS = [
   'id', 'name', 'description', 'baseDamage', 'baseCooldown', 'baseSpeed',
   'projectileType', 'projectileRadius', 'projectileLifetime',
-  'projectileColor', 'projectileMeshScale', 'sfxKey', 'slot', 'upgrades',
+  'projectileColor', 'projectileMeshScale', 'sfxKey', 'knockbackStrength', 'slot',
+  'baseArea', 'critChance', 'poolLimit', 'rarityWeight',
 ]
 
-const NEW_WEAPON_IDS = [
-  'RAILGUN', 'TRI_SHOT', 'SATELLITE', 'DRONE', 'BEAM', 'EXPLOSIVE_ROUND', 'SHOTGUN',
-]
+// Story 32.3: DIAGONALS moved from STUB_IDS to RETAINED_IDS (implemented: false removed after QA)
+const RETAINED_IDS = ['LASER_FRONT', 'SPREAD_SHOT', 'BEAM', 'EXPLOSIVE_ROUND', 'DIAGONALS']
+// Story 32.2: MAGNETIC_FIELD moved to NON_PROJECTILE_IDS (new weaponType schema)
+// Story 32.4: SHOCKWAVE moved to NON_PROJECTILE_IDS (new weaponType: 'shockwave' schema)
+// Story 32.6: TACTICAL_SHOT moved to NON_PROJECTILE_IDS (new weaponType: 'tactical_shot' schema)
+const STUB_IDS = []
+const NON_PROJECTILE_IDS = ['LASER_CROSS', 'AURA', 'SHOCKWAVE', 'MINE_AROUND', 'TACTICAL_SHOT'] // Story 32.1-32.6: use weaponType, not projectileType
+const ALL_EXPECTED_IDS = [...RETAINED_IDS, ...STUB_IDS, ...NON_PROJECTILE_IDS]
+// Only projectile weapons are checked against the REQUIRED_FIELDS schema
+const PROJECTILE_WEAPON_IDS = [...RETAINED_IDS, ...STUB_IDS]
 
-const ALL_EXPECTED_IDS = [
-  'LASER_FRONT', 'SPREAD_SHOT', 'MISSILE_HOMING', 'PLASMA_BOLT',
-  ...NEW_WEAPON_IDS,
-]
+const REMOVED_IDS = ['MISSILE_HOMING', 'PLASMA_BOLT', 'RAILGUN', 'TRI_SHOT', 'SHOTGUN', 'SATELLITE', 'DRONE']
 
-describe('weaponDefs — weapon roster (Story 11.3)', () => {
-  it('has at least 8 unique weapon types defined', () => {
-    expect(Object.keys(WEAPONS).length).toBeGreaterThanOrEqual(8)
+// Story 32.9: weaponType taxonomy (code-review fix — validate values, not just type)
+const EXPECTED_WEAPON_TYPES = {
+  LASER_FRONT:     'projectile',
+  SPREAD_SHOT:     'projectile',
+  BEAM:            'beam_continuous',
+  EXPLOSIVE_ROUND: 'projectile_explosion',
+  DIAGONALS:       'projectile',
+  LASER_CROSS:     'laser_cross',
+  AURA:            'aura',
+  SHOCKWAVE:       'shockwave',
+  MINE_AROUND:     'mine_around',
+  TACTICAL_SHOT:   'tactical_shot',
+}
+
+// Story 31.1: color family assignments
+const EXPECTED_COLORS = {
+  LASER_FRONT:     '#00e5ff',  // COLD
+  BEAM:            '#0096c7',  // COLD
+  DIAGONALS:       '#d8f0ff',  // COLD — near-white for glowing ray appearance
+  LASER_CROSS:     '#9b5de5',  // ARCANE
+  AURA:            '#c084fc',  // ARCANE
+  SPREAD_SHOT:     '#ffd60a',  // VOLATILE
+  SHOCKWAVE:       '#f9e547',  // VOLATILE
+  EXPLOSIVE_ROUND: '#f4c430',  // VOLATILE
+  MINE_AROUND:     '#06d6a0',  // BIO
+  TACTICAL_SHOT:   '#2dc653',  // BIO
+}
+
+describe('weaponDefs — weapon roster (Story 31.1)', () => {
+  it('has exactly 10 weapon types defined', () => {
+    expect(Object.keys(WEAPONS).length).toBe(10)
   })
 
   it('includes all expected weapon IDs', () => {
@@ -27,7 +60,28 @@ describe('weaponDefs — weapon roster (Story 11.3)', () => {
     }
   })
 
-  describe.each(ALL_EXPECTED_IDS)('%s — required fields', (weaponId) => {
+  it('removed 7 obsolete weapons', () => {
+    for (const id of REMOVED_IDS) {
+      expect(WEAPONS).not.toHaveProperty(id)
+    }
+  })
+
+  // Story 32.8: upgrades[] and rarityDamageMultipliers removed from all weapons (dead code)
+  it('no weapon has upgrades[] array (procedural upgrade system handles all upgrades)', () => {
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      expect(def, `${id} should not have upgrades field`).not.toHaveProperty('upgrades')
+    }
+  })
+
+  it('no weapon has rarityDamageMultipliers field (removed dead code)', () => {
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      expect(def, `${id} should not have rarityDamageMultipliers field`).not.toHaveProperty('rarityDamageMultipliers')
+    }
+  })
+
+  // Story 32.1: Only projectile weapons are checked against the REQUIRED_FIELDS schema
+  // LASER_CROSS uses a different schema (weaponType, armLength, etc.) — tested in weaponDefs.laserCross.test.js
+  describe.each(PROJECTILE_WEAPON_IDS)('%s — required fields', (weaponId) => {
     it('has all required fields', () => {
       const def = WEAPONS[weaponId]
       for (const field of REQUIRED_FIELDS) {
@@ -37,35 +91,6 @@ describe('weaponDefs — weapon roster (Story 11.3)', () => {
 
     it('id matches its object key', () => {
       expect(WEAPONS[weaponId].id).toBe(weaponId)
-    })
-
-    it('has 8 upgrade tiers (levels 2-9)', () => {
-      const upgrades = WEAPONS[weaponId].upgrades
-      expect(upgrades.length).toBe(8)
-      upgrades.forEach((u, i) => {
-        expect(u.level).toBe(i + 2)
-        expect(u.damage).toBeGreaterThan(0)
-        expect(u.cooldown).toBeGreaterThan(0)
-        expect(typeof u.statPreview).toBe('string')
-      })
-    })
-
-    it('has monotonically increasing damage curve', () => {
-      const def = WEAPONS[weaponId]
-      let prevDamage = def.baseDamage
-      for (const u of def.upgrades) {
-        expect(u.damage).toBeGreaterThanOrEqual(prevDamage)
-        prevDamage = u.damage
-      }
-    })
-
-    it('has monotonically decreasing cooldown curve', () => {
-      const def = WEAPONS[weaponId]
-      let prevCooldown = def.baseCooldown
-      for (const u of def.upgrades) {
-        expect(u.cooldown).toBeLessThanOrEqual(prevCooldown)
-        prevCooldown = u.cooldown
-      }
     })
 
     it('has projectileMeshScale as array of 3 numbers', () => {
@@ -80,81 +105,76 @@ describe('weaponDefs — weapon roster (Story 11.3)', () => {
     })
   })
 
-  // Archetype-specific tests
-  describe('RAILGUN — Frontal/Piercing archetype', () => {
-    it('has pierceCount field', () => {
-      expect(WEAPONS.RAILGUN.pierceCount).toBeGreaterThan(0)
-    })
-
-    it('has projectilePattern "piercing"', () => {
-      expect(WEAPONS.RAILGUN.projectilePattern).toBe('piercing')
-    })
-
-    it('has high base damage and slow cooldown (sniper profile)', () => {
-      expect(WEAPONS.RAILGUN.baseDamage).toBeGreaterThanOrEqual(30)
-      expect(WEAPONS.RAILGUN.baseCooldown).toBeGreaterThanOrEqual(1.0)
-    })
+  // critChance floor (AC #5) — only applies to projectile weapons (non-projectile weapons use composedWeaponMods.critChance)
+  it('all projectile weapons have critChance >= 0.015', () => {
+    for (const id of PROJECTILE_WEAPON_IDS) {
+      const def = WEAPONS[id]
+      expect(def.critChance, `${id} critChance below 0.015 floor`).toBeGreaterThanOrEqual(0.015)
+    }
   })
 
-  describe('TRI_SHOT — Spread archetype', () => {
-    it('has projectilePattern "spread"', () => {
-      expect(WEAPONS.TRI_SHOT.projectilePattern).toBe('spread')
-    })
-
-    it('has spreadAngle defined', () => {
-      expect(WEAPONS.TRI_SHOT.spreadAngle).toBeGreaterThan(0)
-    })
-
-    it('has tighter spread than SPREAD_SHOT', () => {
-      expect(WEAPONS.TRI_SHOT.spreadAngle).toBeLessThan(WEAPONS.SPREAD_SHOT.spreadAngle)
-    })
+  // Stubs — Story 32.6: TACTICAL_SHOT → non-projectile; 0 remaining projectile stubs
+  it('no remaining projectile stubs (all moved to non-projectile)', () => {
+    expect(STUB_IDS.length).toBe(0)
   })
 
-  describe('SHOTGUN — Spread/Pellet archetype', () => {
-    it('has projectilePattern "pellet"', () => {
-      expect(WEAPONS.SHOTGUN.projectilePattern).toBe('pellet')
-    })
-
-    it('has pelletCount >= 5', () => {
-      expect(WEAPONS.SHOTGUN.pelletCount).toBeGreaterThanOrEqual(5)
-    })
-
-    it('has wide spreadAngle', () => {
-      expect(WEAPONS.SHOTGUN.spreadAngle).toBeGreaterThanOrEqual(0.3)
-    })
-
-    it('has short projectile lifetime (close range)', () => {
-      expect(WEAPONS.SHOTGUN.projectileLifetime).toBeLessThanOrEqual(1.5)
-    })
+  // Story 32.8: implemented flag removed from all weapons
+  it('no weapon has implemented field', () => {
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      expect(def, `${id} should not have implemented field`).not.toHaveProperty('implemented')
+    }
   })
 
-  describe('SATELLITE — Orbital archetype', () => {
-    it('has projectilePattern "orbital"', () => {
-      expect(WEAPONS.SATELLITE.projectilePattern).toBe('orbital')
-    })
-
-    it('has orbitalRadius > 0', () => {
-      expect(WEAPONS.SATELLITE.orbitalRadius).toBeGreaterThan(0)
-    })
-
-    it('has orbitalSpeed > 0', () => {
-      expect(WEAPONS.SATELLITE.orbitalSpeed).toBeGreaterThan(0)
-    })
+  // Story 32.9: every weapon must have the correct weaponType per taxonomy (code-review: value validation)
+  it('every weapon has the correct weaponType per taxonomy', () => {
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      expect(def, `${id} missing weaponType field`).toHaveProperty('weaponType')
+      expect(def.weaponType, `${id} weaponType mismatch`).toBe(EXPECTED_WEAPON_TYPES[id])
+    }
   })
 
-  describe('DRONE — Orbital/Follow archetype', () => {
-    it('has projectilePattern "drone"', () => {
-      expect(WEAPONS.DRONE.projectilePattern).toBe('drone')
-    })
-
-    it('has followOffset as array of 3 numbers', () => {
-      const offset = WEAPONS.DRONE.followOffset
-      expect(Array.isArray(offset)).toBe(true)
-      expect(offset.length).toBe(3)
-    })
+  // Color compliance (AC #6)
+  it('all 10 weapon projectileColor values match expected hex (family compliance)', () => {
+    for (const [id, expectedColor] of Object.entries(EXPECTED_COLORS)) {
+      expect(WEAPONS[id].projectileColor, `${id} wrong color`).toBe(expectedColor)
+    }
   })
 
-  describe('BEAM — Continuous damage archetype', () => {
+  it('all weapons have unique projectile colors', () => {
+    const colors = Object.values(WEAPONS).map(w => w.projectileColor)
+    const unique = new Set(colors)
+    expect(unique.size).toBe(colors.length)
+  })
+
+  it('all projectileColor values are valid hex colors', () => {
+    const hexRegex = /^#[0-9a-fA-F]{6}$/
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      expect(def.projectileColor, `${id} has invalid hex color`).toMatch(hexRegex)
+    }
+  })
+
+  it('no weapon color overlaps the enemy spectrum (#ef233c / #ff4f1f)', () => {
+    function hexToRgb(hex) {
+      const val = parseInt(hex.slice(1), 16)
+      return [(val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff]
+    }
+    function colorDistance(hex1, hex2) {
+      const [r1, g1, b1] = hexToRgb(hex1)
+      const [r2, g2, b2] = hexToRgb(hex2)
+      return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2)
+    }
+    const MIN_DISTANCE = 80
+    const ENEMY_COLORS = ['#ef233c', '#ff4f1f']
+    for (const [id, def] of Object.entries(WEAPONS)) {
+      for (const enemyColor of ENEMY_COLORS) {
+        const dist = colorDistance(def.projectileColor, enemyColor)
+        expect(dist, `${id} (${def.projectileColor}) too close to enemy ${enemyColor} — distance ${dist.toFixed(0)}`).toBeGreaterThanOrEqual(MIN_DISTANCE)
+      }
+    }
+  })
+
+  // Archetype tests for retained weapons
+  describe('BEAM — Continuous damage archetype (AC #7)', () => {
     it('has projectilePattern "beam"', () => {
       expect(WEAPONS.BEAM.projectilePattern).toBe('beam')
     })
@@ -166,9 +186,17 @@ describe('weaponDefs — weapon roster (Story 11.3)', () => {
     it('has beamRange > 0', () => {
       expect(WEAPONS.BEAM.beamRange).toBeGreaterThan(0)
     })
+
+    it('has COLD family color #0096c7', () => {
+      expect(WEAPONS.BEAM.projectileColor).toBe('#0096c7')
+    })
+
+    it('has thin mesh scale [0.12, 0.12, 8.0]', () => {
+      expect(WEAPONS.BEAM.projectileMeshScale).toEqual([0.12, 0.12, 8.0])
+    })
   })
 
-  describe('EXPLOSIVE_ROUND — Area damage archetype', () => {
+  describe('EXPLOSIVE_ROUND — Area damage archetype (AC #8)', () => {
     it('has projectilePattern "explosion"', () => {
       expect(WEAPONS.EXPLOSIVE_ROUND.projectilePattern).toBe('explosion')
     })
@@ -180,74 +208,29 @@ describe('weaponDefs — weapon roster (Story 11.3)', () => {
     it('has explosionDamage > 0', () => {
       expect(WEAPONS.EXPLOSIVE_ROUND.explosionDamage).toBeGreaterThan(0)
     })
+
+    it('has VOLATILE family color #f4c430', () => {
+      expect(WEAPONS.EXPLOSIVE_ROUND.projectileColor).toBe('#f4c430')
+    })
+
+    it('has mesh scale [1.4, 1.4, 1.4]', () => {
+      expect(WEAPONS.EXPLOSIVE_ROUND.projectileMeshScale).toEqual([1.4, 1.4, 1.4])
+    })
   })
 
-  // Visual distinction test
-  it('all weapons have unique projectile colors', () => {
-    const colors = Object.values(WEAPONS).map(w => w.projectileColor)
-    const unique = new Set(colors)
-    expect(unique.size).toBe(colors.length)
+  describe('SPREAD_SHOT — Spread archetype', () => {
+    it('has projectilePattern "spread"', () => {
+      expect(WEAPONS.SPREAD_SHOT.projectilePattern).toBe('spread')
+    })
+
+    it('has spreadAngle defined', () => {
+      expect(WEAPONS.SPREAD_SHOT.spreadAngle).toBeGreaterThan(0)
+    })
   })
 
-  // All new weapons use slot "any"
-  it('all new weapons use slot "any"', () => {
-    for (const id of NEW_WEAPON_IDS) {
+  it('all weapons use slot "any"', () => {
+    for (const id of ALL_EXPECTED_IDS) {
       expect(WEAPONS[id].slot).toBe('any')
     }
-  })
-
-  // Story 12.2: Projectile visibility enhancements
-  describe('projectile visibility (Story 12.2)', () => {
-    const BOSS_COLOR = '#ff6600'
-
-    // Parse hex color to RGB components
-    function hexToRgb(hex) {
-      const val = parseInt(hex.slice(1), 16)
-      return [(val >> 16) & 0xff, (val >> 8) & 0xff, val & 0xff]
-    }
-
-    // Euclidean distance in RGB space (0-441 range)
-    function colorDistance(hex1, hex2) {
-      const [r1, g1, b1] = hexToRgb(hex1)
-      const [r2, g2, b2] = hexToRgb(hex2)
-      return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2)
-    }
-
-    it('no player weapon shares the boss projectile color (#ff6600)', () => {
-      for (const [id, def] of Object.entries(WEAPONS)) {
-        expect(def.projectileColor, `${id} uses boss projectile color`).not.toBe(BOSS_COLOR)
-      }
-    })
-
-    it('all player weapons have sufficient color distance from boss (#ff6600)', () => {
-      const MIN_DISTANCE = 80 // minimum RGB Euclidean distance (catches orange/red-orange proximity, allows pure red)
-      for (const [id, def] of Object.entries(WEAPONS)) {
-        const dist = colorDistance(def.projectileColor, BOSS_COLOR)
-        expect(dist, `${id} (${def.projectileColor}) too close to boss ${BOSS_COLOR} — distance ${dist.toFixed(0)}`).toBeGreaterThanOrEqual(MIN_DISTANCE)
-      }
-    })
-
-    it('all projectileColor values are valid hex colors', () => {
-      const hexRegex = /^#[0-9a-fA-F]{6}$/
-      for (const [id, def] of Object.entries(WEAPONS)) {
-        expect(def.projectileColor, `${id} has invalid hex color`).toMatch(hexRegex)
-      }
-    })
-
-    it('upgrade visual colors are progressively brighter for weapons that have them', () => {
-      // Weapons with upgradeVisuals.color at levels 5 and 9 should have brighter colors at level 9
-      for (const [id, def] of Object.entries(WEAPONS)) {
-        const lvl5 = def.upgrades.find(u => u.level === 5 && u.upgradeVisuals?.color)
-        const lvl9 = def.upgrades.find(u => u.level === 9 && u.upgradeVisuals?.color)
-        if (lvl5 && lvl9) {
-          // Level 9 color should have higher total RGB than level 5 (brighter)
-          const rgb5 = parseInt(lvl5.upgradeVisuals.color.slice(1), 16)
-          const r5 = (rgb5 >> 16) & 0xff, g5 = (rgb5 >> 8) & 0xff, b5 = rgb5 & 0xff
-          const rgb9 = parseInt(lvl9.upgradeVisuals.color.slice(1), 16)
-          const r9 = (rgb9 >> 16) & 0xff, g9 = (rgb9 >> 8) & 0xff, b9 = rgb9 & 0xff
-          expect(r9 + g9 + b9, `${id} level 9 should be brighter than level 5`).toBeGreaterThanOrEqual(r5 + g5 + b5)
-        }
-      }
-    })
   })
 })

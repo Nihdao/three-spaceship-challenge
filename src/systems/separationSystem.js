@@ -2,6 +2,25 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 import { createSpatialHash } from './spatialHash.js'
 
 /**
+ * Module-level pre-allocated structures — Story 41.3.
+ * Consistent with the pattern established in 41.1 (GameLoop) and 41.2 (useEnemies/useWeapons).
+ * Safe because applySeparation() is called synchronously once per frame from the GameLoop.
+ */
+const _processedPairs = new Set()
+const _enemyMap = new Map()
+
+// Story 43.3: Reusable stub pool for spatialHash.insert() — eliminates 1 object allocation per
+// enemy per frame. Pool grows lazily when enemy count exceeds current pool size; never shrinks.
+const _sepStubs = []
+
+function _getStub(i) {
+  if (i >= _sepStubs.length) {
+    _sepStubs.push({ id: '', numericId: 0, x: 0, z: 0, radius: 0 })
+  }
+  return _sepStubs[i]
+}
+
+/**
  * Creates a separation system that applies soft-body push forces between enemies
  * to prevent visual stacking. Uses a dedicated spatial hash for efficient O(n) neighbor
  * queries instead of O(n²) brute-force comparisons.
@@ -27,25 +46,26 @@ export function createSeparationSystem() {
     if (enemies.length >= 2) {
       // Build id→enemy map for O(1) lookup — avoids O(n) Array.find() in the inner loop
       // With 200 enemies and 800 pairs, this saves ~160k iterations per frame
-      const enemyMap = new Map()
+      _enemyMap.clear()
       for (let i = 0; i < enemies.length; i++) {
-        enemyMap.set(enemies[i].id, enemies[i])
+        _enemyMap.set(enemies[i].id, enemies[i])
       }
 
-      // Rebuild spatial hash with current enemy positions
+      // Rebuild spatial hash with current enemy positions — Story 43.3: reuse stub objects
       spatialHash.clear()
       for (let i = 0; i < enemies.length; i++) {
         const e = enemies[i]
-        spatialHash.insert({
-          id: e.id,
-          x: e.x,
-          z: e.z,
-          radius: GAME_CONFIG.ENEMY_SEPARATION_RADIUS,
-        })
+        const s = _getStub(i)
+        s.id = e.id
+        s.numericId = e.numericId
+        s.x = e.x
+        s.z = e.z
+        s.radius = GAME_CONFIG.ENEMY_SEPARATION_RADIUS
+        spatialHash.insert(s)
       }
 
       // Apply separation forces — each pair processed exactly once
-      const processed = new Set()
+      _processedPairs.clear()
       for (let i = 0; i < enemies.length; i++) {
         const enemyA = enemies[i]
         const neighbors = spatialHash.queryNearby(
@@ -58,14 +78,14 @@ export function createSeparationSystem() {
           const neighbor = neighbors[j]
           if (neighbor.id === enemyA.id) continue
 
-          // Canonical pair key (order-independent deduplication)
-          const a = enemyA.id
-          const b = neighbor.id
-          const pairKey = a < b ? `${a}|${b}` : `${b}|${a}`
-          if (processed.has(pairKey)) continue
-          processed.add(pairKey)
+          // Integer pair key — requires numericId in the spatialHash.insert stub above and at spawn (useEnemies.jsx). See Story 41.3.
+          const aNum = enemyA.numericId
+          const bNum = neighbor.numericId
+          const pairKey = Math.min(aNum, bNum) * 100000 + Math.max(aNum, bNum)
+          if (_processedPairs.has(pairKey)) continue
+          _processedPairs.add(pairKey)
 
-          const enemyB = enemyMap.get(neighbor.id)
+          const enemyB = _enemyMap.get(neighbor.id)
           if (!enemyB) continue
 
           const dx = enemyA.x - enemyB.x

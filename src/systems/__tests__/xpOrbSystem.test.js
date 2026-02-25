@@ -14,6 +14,11 @@ describe('XP Magnetization Config (Story 11.1)', () => {
   it('XP_MAGNET_ACCELERATION_CURVE is a positive number', () => {
     expect(GAME_CONFIG.XP_MAGNET_ACCELERATION_CURVE).toBeGreaterThan(0)
   })
+
+  it('XP_MAGNET_MIN_SPEED is positive and less than XP_MAGNET_SPEED (Story 44.3)', () => {
+    expect(GAME_CONFIG.XP_MAGNET_MIN_SPEED).toBeGreaterThan(0)
+    expect(GAME_CONFIG.XP_MAGNET_MIN_SPEED).toBeLessThan(GAME_CONFIG.XP_MAGNET_SPEED)
+  })
 })
 
 describe('xpOrbSystem', () => {
@@ -161,14 +166,17 @@ describe('xpOrbSystem', () => {
         expect(orb.isMagnetized).toBe(false)
       })
 
-      it('de-magnetizes orbs that leave MAGNET_RADIUS', () => {
+      it('keeps orbs magnetized after they leave MAGNET_RADIUS (sticky)', () => {
         spawnOrb(5, 0, 10)
         updateMagnetization(0, 0, 1/60) // magnetize
         expect(getOrbs()[0].isMagnetized).toBe(true)
         // Move orb far away manually
         getOrbs()[0].x = 100
         updateMagnetization(0, 0, 1/60)
-        expect(getOrbs()[0].isMagnetized).toBe(false)
+        // Should STAY magnetized (sticky behavior)
+        expect(getOrbs()[0].isMagnetized).toBe(true)
+        // Should still move toward player via XP_MAGNET_MIN_SPEED floor
+        expect(getOrbs()[0].x).toBeLessThan(100)
       })
 
       it('moves magnetized orbs toward player', () => {
