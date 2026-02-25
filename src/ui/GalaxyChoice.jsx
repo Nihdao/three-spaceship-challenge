@@ -3,6 +3,99 @@ import useGame from '../stores/useGame.jsx'
 import { getAvailableGalaxies, getGalaxyById } from '../entities/galaxyDefs.js'
 import { playSFX } from '../audio/audioManager.js'
 
+// ─── styles ───────────────────────────────────────────────────────────────
+const S = {
+  backBtn: {
+    padding: '8px 16px',
+    background: 'rgba(13, 11, 20, 0.82)',
+    border: '1px solid var(--rs-border-hot)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-text)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.72rem',
+    letterSpacing: '0.1em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+  title: {
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: '2.5rem',
+    letterSpacing: '0.15em',
+    color: 'var(--rs-text)',
+    margin: 0,
+    lineHeight: 1,
+    userSelect: 'none',
+  },
+  titleAccent: {
+    width: '32px',
+    height: '2px',
+    background: 'var(--rs-orange)',
+    marginTop: '6px',
+  },
+  galaxyCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 16px',
+    background: 'var(--rs-bg-raised)',
+    border: '1px solid var(--rs-border)',
+    borderLeft: '3px solid transparent',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+    width: '100%',
+    textAlign: 'left',
+  },
+  galaxyCardSelected: {
+    borderColor: 'var(--rs-orange)',
+    background: 'rgba(255,79,31,0.06)',
+  },
+  detailPanel: {
+    flex: 1,
+    background: 'var(--rs-bg-surface)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  galaxyNameLabel: {
+    fontSize: '1.5rem',
+    fontFamily: 'Bebas Neue, sans-serif',
+    letterSpacing: '0.1em',
+    lineHeight: 1,
+  },
+  systemsBadge: {
+    fontSize: '0.65rem',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    padding: '2px 8px',
+    clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
+    userSelect: 'none',
+  },
+  separator: {
+    borderTop: '1px solid var(--rs-border)',
+    marginBottom: '16px',
+  },
+  travelBtn: {
+    width: '100%',
+    padding: '12px 0',
+    background: 'transparent',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: '1.5rem',
+    letterSpacing: '0.15em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, background 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+}
+
 export default function GalaxyChoice() {
   const selectedGalaxyId = useGame((s) => s.selectedGalaxyId)
   const availableGalaxies = getAvailableGalaxies()
@@ -40,11 +133,23 @@ export default function GalaxyChoice() {
   if (!selectedGalaxy) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center font-game animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
       {/* BACK button */}
       <button
         onClick={handleBack}
-        className="absolute top-8 left-8 px-4 py-2 text-sm tracking-widest text-game-text-muted hover:text-game-text transition-colors select-none"
+        style={S.backBtn}
+        className="absolute top-8 left-8"
+        onMouseEnter={(e) => {
+          playSFX('button-hover')
+          e.currentTarget.style.borderColor = 'var(--rs-orange)'
+          e.currentTarget.style.color = 'var(--rs-text)'
+          e.currentTarget.style.transform = 'translateX(4px)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'var(--rs-border-hot)'
+          e.currentTarget.style.color = 'var(--rs-text)'
+          e.currentTarget.style.transform = 'translateX(0)'
+        }}
       >
         &larr; BACK
       </button>
@@ -53,12 +158,10 @@ export default function GalaxyChoice() {
 
         {/* LEFT: Galaxy List */}
         <div className="w-72 flex flex-col">
-          <h2
-            className="text-xl font-bold tracking-[0.15em] text-game-text mb-4 select-none"
-            style={{ textShadow: '0 0 20px rgba(255,0,255,0.3)' }}
-          >
-            SELECT GALAXY
-          </h2>
+          <div style={{ marginBottom: '16px' }}>
+            <h2 style={S.title}>SELECT GALAXY</h2>
+            <div style={S.titleAccent} />
+          </div>
 
           <div className="flex flex-col gap-2">
             {availableGalaxies.map((galaxy) => {
@@ -67,28 +170,34 @@ export default function GalaxyChoice() {
                 <button
                   key={galaxy.id}
                   onClick={() => handleSelectGalaxy(galaxy)}
-                  className={`
-                    flex items-center gap-3 p-4 rounded-lg border text-left transition-all duration-150 select-none cursor-pointer
-                    ${isSelected
-                      ? 'border-game-accent/70 bg-game-bg/70 ring-1 ring-game-accent/30'
-                      : 'border-game-border/40 bg-game-bg/40 hover:border-game-accent/40 hover:bg-game-bg/60'
-                    }
-                  `}
-                  style={isSelected ? { boxShadow: `0 0 16px ${galaxy.colorTheme}30` } : {}}
+                  style={{
+                    ...S.galaxyCard,
+                    ...(isSelected ? S.galaxyCardSelected : {}),
+                    borderLeft: `3px solid ${galaxy.colorTheme}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    playSFX('button-hover')
+                    e.currentTarget.style.borderTopColor = 'var(--rs-orange)'
+                    e.currentTarget.style.borderRightColor = 'var(--rs-orange)'
+                    e.currentTarget.style.borderBottomColor = 'var(--rs-orange)'
+                    e.currentTarget.style.transform = 'translateX(4px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    const borderVal = isSelected ? 'var(--rs-orange)' : 'var(--rs-border)'
+                    e.currentTarget.style.borderTopColor = borderVal
+                    e.currentTarget.style.borderRightColor = borderVal
+                    e.currentTarget.style.borderBottomColor = borderVal
+                    e.currentTarget.style.transform = 'translateX(0)'
+                  }}
                 >
-                  {/* Color accent dot */}
-                  <div
-                    className="w-2 h-10 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: galaxy.colorTheme, boxShadow: `0 0 8px ${galaxy.colorTheme}80` }}
-                  />
                   <div className="flex-1 min-w-0">
                     <p
                       className="text-sm font-bold tracking-wide"
-                      style={{ color: isSelected ? galaxy.colorTheme : 'rgba(255,255,255,0.8)' }}
+                      style={{ color: isSelected ? galaxy.colorTheme : 'var(--rs-text)' }}
                     >
                       {galaxy.name}
                     </p>
-                    <p className="text-[11px] text-game-text-muted mt-0.5 leading-snug">
+                    <p className="text-[11px] mt-0.5 leading-snug" style={{ color: 'var(--rs-text-muted)' }}>
                       {galaxy.description}
                     </p>
                   </div>
@@ -99,21 +208,15 @@ export default function GalaxyChoice() {
         </div>
 
         {/* RIGHT: Galaxy Detail Panel */}
-        <div
-          className="flex-1 bg-game-bg/60 border border-game-border/40 rounded-lg p-6 flex flex-col backdrop-blur-sm"
-          style={{ boxShadow: `0 0 24px ${selectedGalaxy.colorTheme}10` }}
-        >
+        <div style={S.detailPanel} className="flex-1 flex flex-col">
           {/* Galaxy Name */}
           <div className="flex items-baseline justify-between mb-2">
-            <h3
-              className="text-2xl font-bold tracking-[0.1em]"
-              style={{ color: selectedGalaxy.colorTheme, textShadow: `0 0 20px ${selectedGalaxy.colorTheme}50` }}
-            >
+            <h3 style={{ ...S.galaxyNameLabel, color: selectedGalaxy.colorTheme }}>
               {selectedGalaxy.name.toUpperCase()}
             </h3>
             <span
-              className="text-xs font-bold tracking-widest px-2 py-0.5 rounded"
               style={{
+                ...S.systemsBadge,
                 color: selectedGalaxy.colorTheme,
                 border: `1px solid ${selectedGalaxy.colorTheme}50`,
                 backgroundColor: `${selectedGalaxy.colorTheme}15`,
@@ -124,25 +227,33 @@ export default function GalaxyChoice() {
           </div>
 
           {/* Description */}
-          <p className="text-sm text-game-text-muted mb-4 leading-relaxed">
+          <p className="text-sm mb-4 leading-relaxed" style={{ color: 'var(--rs-text-muted)' }}>
             {selectedGalaxy.description}
           </p>
 
           {/* Separator */}
-          <div className="border-t border-game-border/20 mb-4" />
+          <div style={S.separator} />
 
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* CONFIRM Button */}
+          {/* TRAVEL Button */}
           <button
             onClick={handleStart}
-            onMouseEnter={() => playSFX('button-hover')}
-            className="w-full py-3 text-lg font-bold tracking-[0.15em] rounded-lg transition-all duration-150 select-none border hover:scale-[1.02]"
             style={{
+              ...S.travelBtn,
               color: selectedGalaxy.colorTheme,
-              borderColor: `${selectedGalaxy.colorTheme}70`,
+              border: `1px solid ${selectedGalaxy.colorTheme}`,
               backgroundColor: `${selectedGalaxy.colorTheme}15`,
+            }}
+            onMouseEnter={(e) => {
+              playSFX('button-hover')
+              e.currentTarget.style.transform = 'translateX(4px)'
+              e.currentTarget.style.backgroundColor = `${selectedGalaxy.colorTheme}25`
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateX(0)'
+              e.currentTarget.style.backgroundColor = `${selectedGalaxy.colorTheme}15`
             }}
           >
             TRAVEL

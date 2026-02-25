@@ -1,6 +1,6 @@
 # Story 35.1: Fog of War Exploration Module
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -22,28 +22,29 @@ So that exploration feels meaningful and progressive.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `src/systems/fogSystem.js` (AC: 1, 2)
-  - [ ] Subtask 1.1: Define constants: `FOG_GRID_SIZE = 60`, `WORLD_SIZE = 4000`, `CELL_SIZE = WORLD_SIZE / FOG_GRID_SIZE`
-  - [ ] Subtask 1.2: Allocate module-level `const _grid = new Uint8Array(FOG_GRID_SIZE * FOG_GRID_SIZE)` (pre-allocated, zero GC)
-  - [ ] Subtask 1.3: Implement `resetFogGrid()` — `_grid.fill(0)`
-  - [ ] Subtask 1.4: Implement `markDiscovered(wx, wz, radius)` per the algorithm in Dev Notes
-  - [ ] Subtask 1.5: Implement `getDiscoveredCells()` — returns `_grid` reference (read-only by convention)
-  - [ ] Subtask 1.6: Export `{ resetFogGrid, markDiscovered, getDiscoveredCells, FOG_GRID_SIZE, CELL_SIZE }`
+- [x] Task 1: Create `src/systems/fogSystem.js` (AC: 1, 2)
+  - [x] Subtask 1.1: Define constants: `FOG_GRID_SIZE = 60`, `WORLD_SIZE = 4000`, `CELL_SIZE = WORLD_SIZE / FOG_GRID_SIZE`
+  - [x] Subtask 1.2: Allocate module-level `const _grid = new Uint8Array(FOG_GRID_SIZE * FOG_GRID_SIZE)` (pre-allocated, zero GC)
+  - [x] Subtask 1.3: Implement `resetFogGrid()` — `_grid.fill(0)`
+  - [x] Subtask 1.4: Implement `markDiscovered(wx, wz, radius)` per the algorithm in Dev Notes
+  - [x] Subtask 1.5: Implement `getDiscoveredCells()` — returns `_grid` reference (read-only by convention)
+  - [x] Subtask 1.6: Export `{ resetFogGrid, markDiscovered, getDiscoveredCells, FOG_GRID_SIZE, CELL_SIZE }`
 
-- [ ] Task 2: Integrate into `src/GameLoop.jsx` (AC: 3, 4, 5)
-  - [ ] Subtask 2.1: Add import `{ resetFogGrid, markDiscovered }` from `./systems/fogSystem.js` at the top of the file (with other system imports)
-  - [ ] Subtask 2.2: Add `const fogFrameCountRef = useRef(0)` alongside other refs (before `useFrame`)
-  - [ ] Subtask 2.3: In the `tunnel → gameplay` transition block (~line 107-142), add `resetFogGrid()` call alongside `resetParticles()` / `resetLoot()`
-  - [ ] Subtask 2.4: In the full game reset block (~line 145-164), add `resetFogGrid()` call alongside `resetParticles()` / `resetLoot()`
-  - [ ] Subtask 2.5: After section 7g (planet scanning, ~line 753), add the frame-throttled fog update (see Dev Notes)
+- [x] Task 2: Integrate into `src/GameLoop.jsx` (AC: 3, 4, 5)
+  - [x] Subtask 2.1: Add import `{ resetFogGrid, markDiscovered }` from `./systems/fogSystem.js` at the top of the file (with other system imports)
+  - [x] Subtask 2.2: Add `const fogFrameCountRef = useRef(0)` alongside other refs (before `useFrame`)
+  - [x] Subtask 2.3: In the `tunnel → gameplay` transition block (~line 107-142), add `resetFogGrid()` call alongside `resetParticles()` / `resetLoot()`
+  - [x] Subtask 2.4: In the full game reset block (~line 145-164), add `resetFogGrid()` call alongside `resetParticles()` / `resetLoot()`
+  - [x] Subtask 2.5: After section 7g (planet scanning, ~line 753), add the frame-throttled fog update (see Dev Notes)
 
-- [ ] Task 3: Write unit tests for fogSystem.js (AC: 1, 2)
-  - [ ] Test `resetFogGrid()` produces all-zero Uint8Array(3600)
-  - [ ] Test `markDiscovered(0, 0, 500)` marks cells near center (index 30*60+30 = 1830 must be 1)
-  - [ ] Test cells outside radius remain 0
-  - [ ] Test monotonic: `markDiscovered` then `markDiscovered` at different position — prior marked cells stay 1
-  - [ ] Test `getDiscoveredCells()` returns Uint8Array with length `FOG_GRID_SIZE * FOG_GRID_SIZE`
-  - [ ] Test boundary: `markDiscovered(-2000, -2000, 100)` marks corner cells without overflow/crash
+- [x] Task 3: Write unit tests for fogSystem.js (AC: 1, 2)
+  - **Note (AC 3/4/5):** GameLoop integration ACs have no automated test coverage — no `useFrame` test infrastructure exists project-wide. Verified by code inspection: `resetFogGrid()` present at GameLoop lines 152 (tunnel→gameplay) and 183 (full reset); fog throttle at lines 870–872 with `!bossActive` guard.
+  - [x] Test `resetFogGrid()` produces all-zero Uint8Array(3600)
+  - [x] Test `markDiscovered(0, 0, 500)` marks cells near center (index 30*60+30 = 1830 must be 1)
+  - [x] Test cells outside radius remain 0
+  - [x] Test monotonic: `markDiscovered` then `markDiscovered` at different position — prior marked cells stay 1
+  - [x] Test `getDiscoveredCells()` returns Uint8Array with length `FOG_GRID_SIZE * FOG_GRID_SIZE`
+  - [x] Test boundary: `markDiscovered(-2000, -2000, 100)` marks corner cells without overflow/crash
 
 ## Dev Notes
 
@@ -107,7 +108,9 @@ export { FOG_GRID_SIZE, CELL_SIZE }
 
 **1. Import** — add with the other system imports (around line 21-29):
 ```js
-import { resetFogGrid, markDiscovered } from './systems/fogSystem.js'
+import { resetFogGrid, markDiscovered as markFogDiscovered } from './systems/fogSystem.js'
+// ⚠️ Alias required: useArmory.getState().markDiscovered already exists in GameLoop scope.
+// Do NOT import as bare `markDiscovered` — it shadows the armory action silently.
 ```
 
 **2. Ref** — add alongside `prevPhaseRef`, `trailEmitAccRef` etc. (around line 88-96):
@@ -133,7 +136,7 @@ resetFogGrid()                     // Story 35.1: new run = fresh exploration
 // Skipped during boss phase to avoid marking unchecked boss arena zones
 fogFrameCountRef.current++
 if (fogFrameCountRef.current % 10 === 0 && !bossActive) {
-  markDiscovered(playerPos[0], playerPos[2], GAME_CONFIG.MINIMAP_VISIBLE_RADIUS)
+  markFogDiscovered(playerPos[0], playerPos[2], GAME_CONFIG.MINIMAP_VISIBLE_RADIUS)
 }
 ```
 
@@ -192,6 +195,27 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+_No debug issues encountered._
+
 ### Completion Notes List
 
+- Created `src/systems/fogSystem.js` as pure JS module singleton (Uint8Array 60×60 grid, zero GC pressure). Pattern mirrors `xpOrbSystem.js`.
+- Integrated into `GameLoop.jsx`: import, `fogFrameCountRef` ref, `resetFogGrid()` in both reset blocks (tunnel→gameplay + full game reset), frame-throttled `markFogDiscovered()` every 10 frames after section 7g, skipped during boss phase.
+- `markDiscovered` aliased as `markFogDiscovered` in GameLoop import to avoid name clash with `useArmory.getState().markDiscovered`.
+- 8 unit tests written and passing; 6 required test cases from story + 2 boundary extras. No regressions introduced (pre-existing failures in Story 32.1 tests are unrelated).
+- **Code Review (2026-02-23):** 2 MEDIUM + 3 LOW findings — all fixed. Dev Notes updated with correct `markFogDiscovered` alias + warning. Added `radius=0` test (now 9/9). `getDiscoveredCells()` contract comment expanded. `WORLD_SIZE` maintenance note added. GameLoop AC 3/4/5 coverage gap documented (no useFrame test infra project-wide; verified by code inspection).
+
 ### File List
+
+- `src/systems/fogSystem.js` — **CREATED**
+- `src/systems/__tests__/fogSystem.test.js` — **CREATED**
+- `src/GameLoop.jsx` — **MODIFIED** (import, ref, 2× resetFogGrid, fog frame-update block)
+- `_bmad-output/implementation-artifacts/35-1-fog-of-war-exploration-module.md` — **MODIFIED** (story tasks, status)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — **MODIFIED** (status: done)
+
+## Change Log
+
+| Date | Change |
+|---|---|
+| 2026-02-23 | Story 35.1 implemented: fogSystem.js module + GameLoop integration + 8 unit tests |
+| 2026-02-23 | Code review: 2M+3L fixed — alias docs, radius=0 test (9 tests), mutation contract, WORLD_SIZE note, AC3/4/5 coverage gap noted. Status → done |

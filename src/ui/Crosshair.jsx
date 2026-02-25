@@ -2,13 +2,19 @@ import { useControlsStore } from '../stores/useControlsStore.jsx'
 import useGame from '../stores/useGame.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
+// Exported for testing — pure logic, no side effects
+export function shouldShowCrosshair(phase, isPaused) {
+  return (phase === 'gameplay' || phase === 'boss') && !isPaused
+}
+
 // Story 21.2: Crosshair overlay that follows mouse cursor during gameplay
 export default function Crosshair() {
   const phase = useGame((s) => s.phase)
+  const isPaused = useGame((s) => s.isPaused)
   const mouseScreenPos = useControlsStore((s) => s.mouseScreenPos)
 
-  // Only show during active combat phases (AC 3)
-  if (phase !== 'gameplay' && phase !== 'boss') return null
+  // Only show during active combat phases when not paused (AC 1, AC 3)
+  if (!shouldShowCrosshair(phase, isPaused)) return null
 
   return (
     <div

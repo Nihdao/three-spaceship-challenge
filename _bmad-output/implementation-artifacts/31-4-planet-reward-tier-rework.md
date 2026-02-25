@@ -1,6 +1,6 @@
 # Story 31.4: Planet Reward Tier Rework
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -26,11 +26,11 @@ so that platinum planets are genuinely exciting moments worth pursuing.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Update `generatePlanetReward()` signature in `progressionSystem.js` (AC: #6)
-  - [ ] Change signature: `export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0)`
+- [x] Task 1: Update `generatePlanetReward()` signature in `progressionSystem.js` (AC: #6)
+  - [x] Change signature: `export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0)`
 
-- [ ] Task 2: Implement tier-based count + effectiveLuck (AC: #1, #2, #3)
-  - [ ] Replace `const count = GAME_CONFIG.PLANET_SCAN_REWARD_CHOICES` with:
+- [x] Task 2: Implement tier-based count + effectiveLuck (AC: #1, #2, #3)
+  - [x] Replace `const count = GAME_CONFIG.PLANET_SCAN_REWARD_CHOICES` with:
     ```js
     let count, effectiveLuck
     if (tier === 'silver') {
@@ -46,51 +46,29 @@ so that platinum planets are genuinely exciting moments worth pursuing.
       effectiveLuck = luckStat
     }
     ```
-  - [ ] Replace the hardcoded `0` in `applyRarityToChoices(filtered.slice(0, count), 0)` with `effectiveLuck`
-  - [ ] Store return value in `const result` (not directly returned — needed for platinum post-processing)
+  - [x] Replace the hardcoded `0` in `applyRarityToChoices(filtered.slice(0, count), 0)` with `effectiveLuck`
+  - [x] Store return value in `const result` (not directly returned — needed for platinum post-processing)
 
-- [ ] Task 3: Implement platinum guaranteed RARE+ enforcement (AC: #4)
-  - [ ] After `applyRarityToChoices()`, add post-processing block:
-    ```js
-    if (tier === 'platinum') {
-      const allCommon = result.every(c => c.rarity === 'COMMON')
-      if (allCommon) {
-        const rarityTier = getRarityTier('RARE')
-        result[0] = {
-          ...result[0],
-          rarity: 'RARE',
-          rarityColor: rarityTier.color,
-          rarityName: rarityTier.name,
-          rarityMultiplier: rarityTier.bonusMultiplier,
-        }
-      }
-    }
-    return result
-    ```
-  - [ ] `getRarityTier` is already imported at line 4 — no new import needed
+- [x] Task 3: Implement platinum guaranteed RARE+ enforcement (AC: #4)
+  - [x] After `applyRarityToChoices()`, add post-processing block for `tier === 'legendary'`
+  - [x] `getRarityTier` is already imported — no new import needed
 
-- [ ] Task 4: Update `PlanetRewardModal.jsx` caller (AC: #6)
-  - [ ] In `useEffect` (lines 32–38), add luckStat read before `setChoices()`:
-    ```js
-    const luckStat = (usePlayer.getState().getLuckStat?.() ?? 0) + (useBoons.getState().modifiers.luckBonus ?? 0)
-    setChoices(generatePlanetReward(rewardTier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat))
-    ```
-  - [ ] `usePlayer` (line 3) and `useBoons` (line 5) are already imported — no new imports needed
+- [x] Task 4: Update `PlanetRewardModal.jsx` caller (AC: #6)
+  - [x] In `useEffect`, added luckStat read before `setChoices()`
+  - [x] `usePlayer` and `useBoons` already imported — no new imports needed
 
-- [ ] Task 5: Update `src/systems/__tests__/progressionSystem.test.js` (AC: #7)
-  - [ ] Fix test "returns exactly 3 choices" (line ~236): silver now returns 2 — update to `toHaveLength(2)` or split
-  - [ ] Fix test "handles edge case: all weapons maxed, all boons equipped" (line ~285):
-    - Replace `{ weaponId: 'MISSILE_HOMING', level: 9 }` → `{ weaponId: 'BEAM', level: 9 }`
-    - Replace `{ weaponId: 'PLASMA_BOLT', level: 9 }` → `{ weaponId: 'EXPLOSIVE_ROUND', level: 9 }`
-    - This test uses platinum tier — still returns stat_boost pads; `toHaveLength` stays valid but may return 3 or 4 depending on P4; use `toBeGreaterThanOrEqual(2)` or call with luckStat=0 to force 3
-  - [ ] Add test: `silver always returns 2 choices` (run 10 times, all `choices.length === 2`)
-  - [ ] Add test: `gold always returns 3 choices` (run 10 times, all `choices.length === 3`)
-  - [ ] Add test: `platinum with luckStat=0 always returns 3` (run 20 times, all `choices.length === 3`)
-  - [ ] Add test: `platinum guaranteed RARE+ — never all COMMON` (run 20 times, `choices.some(c => c.rarity !== 'COMMON')` always true)
+- [x] Task 5: Update `src/systems/__tests__/progressionSystem.test.js` (AC: #7)
+  - [x] Fix test "returns exactly 3 choices" → renamed "standard tier returns exactly 2 choices", `toHaveLength(2)`
+  - [x] Fix test "handles edge case" → explicit `luckStat=0` param, `toHaveLength(3)` (weapon IDs already correct from 31.1)
+  - [x] Fix "works with empty banishedItems (default)" → `toHaveLength(2)` (standard=silver=2)
+  - [x] Add test: `standard (silver) always returns exactly 2 choices` (10 runs)
+  - [x] Add test: `rare (gold) always returns exactly 3 choices` (10 runs)
+  - [x] Add test: `legendary (platinum) with luckStat=0 always returns exactly 3` (20 runs)
+  - [x] Add test: `legendary (platinum) guaranteed RARE+ — never all COMMON` (20 runs)
 
-- [ ] Task 6: Final validation (AC: #7)
-  - [ ] `npx vitest run src/systems/__tests__/progressionSystem.test.js` — zero failures
-  - [ ] `npx vitest run` — zero failures globally
+- [x] Task 6: Final validation (AC: #7)
+  - [x] `npx vitest run src/systems/__tests__/progressionSystem.test.js` — 50/50 pass
+  - [x] `npx vitest run` — 2355/2356 pass (1 pre-existing timeout unrelated to 31.4)
 
 ## Dev Notes
 
@@ -255,4 +233,31 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- Implemented tier-based count/effectiveLuck in `generatePlanetReward()`: standard→2 choices/luckStat=0, rare→3/real luckStat, legendary→3+P4/real luckStat
+- Tier names kept as `standard/rare/legendary` (matching planetDefs.js + useLevel.jsx); these correspond conceptually to silver/gold/platinum per story ACs
+- Platinum RARE+ enforcement uses `tier === 'legendary'` conditional post-processing `applyRarityToChoices()`
+- Removed unused `GAME_CONFIG` import from progressionSystem.js (only usage was the removed `PLANET_SCAN_REWARD_CHOICES` constant)
+- PlanetRewardModal.jsx now injects luckStat=(getLuckStat()??0)+(modifiers.luckBonus??0) into generatePlanetReward call
+- 3 stale tests fixed + 4 new tier-behavior tests added; 50/50 progressionSystem tests pass; 2355/2356 global (1 pre-existing StatsScreen timeout)
+
+### Senior Developer Review (AI) — 2026-02-23
+
+**Reviewer:** Adam (claude-sonnet-4-6)
+**Outcome:** APPROVED with fixes applied
+
+**Issues Fixed (4):**
+- [HIGH] Missing test: legendary P4 with luckStat=8 → added probabilistic test (same pattern as generateChoices) → 52/52 pass
+- [MEDIUM] Dead code: `[...newItems, ...rest]` for legendary was immediately destroyed by `shuffle()` — simplified to `filtered = pool`, guarantee check is sole mechanism for AC #5
+- [MEDIUM] No rarity quality test for gold planet rewards — added statistical test (luckStat=20 vs luckStat=0 across 50 runs)
+- [MEDIUM] Platinum 4th choice displayed `[4]` keyboard hint but Digit4 not handled — hidden `[4]` for index ≥ 3 in render
+
+**Issues Noted (not fixed, out of scope):**
+- [LOW] JSDoc missing `@param luckStat` on generatePlanetReward
+- [LOW] AC #1 describes "favors upgrades" but filter includes `new_boon` (pre-existing)
+- [LOW] Mixed silver/gold/platinum vs standard/rare/legendary naming between ACs and code
+
 ### File List
+
+- src/systems/progressionSystem.js
+- src/ui/PlanetRewardModal.jsx
+- src/systems/__tests__/progressionSystem.test.js

@@ -5,6 +5,7 @@ import { GAME_CONFIG } from '../../config/gameConfig.js'
 describe('usePlayer — Permanent Upgrades (Story 7.2)', () => {
   beforeEach(() => {
     usePlayer.getState().reset()
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
   })
 
   describe('initial state', () => {

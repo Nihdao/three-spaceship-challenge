@@ -1,34 +1,24 @@
-// Default rarity damage multipliers — Story 22.3
-// Per-weapon customization: override any tier for weapons that scale more/less dramatically
-const DEFAULT_RARITY_DMG = { COMMON: 1.0, RARE: 1.15, EPIC: 1.30, LEGENDARY: 1.50 }
-
 export const WEAPONS = {
   LASER_FRONT: {
     id: 'LASER_FRONT',
     name: 'Front Laser',
     description: 'Fires a laser beam forward',
     baseDamage: 10,
-    baseCooldown: 0.5,     // seconds
-    baseSpeed: 300,         // units/sec
+    baseCooldown: 0.5,
+    baseSpeed: 300,
+    weaponType: 'projectile',             // Story 32.9: schema alignment
     projectileType: 'beam',
-    projectileRadius: 1.5,          // collision radius for spatial hash (= beam half-length: 3.0/2) (Story 2.9)
-    projectileLifetime: 3.0,        // seconds before auto-despawn
-    projectileColor: '#00ffff',     // cyan beam per UX neon palette
-    projectileMeshScale: [0.75, 0.75, 3.0], // elongated beam shape (Story 2.9)
+    projectileRadius: 1.5,
+    projectileLifetime: 3.0,
+    projectileColor: '#00e5ff',        // COLD family (Story 31.1)
+    projectileMeshScale: [0.75, 0.75, 3.0],
     sfxKey: 'laser-fire',
-    knockbackStrength: 1,         // Story 27.4: light knockback (1 units direct displacement)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',            // 'fixed' for slot 1, 'any' for slots 2-4
-    upgrades: [
-      { level: 2, damage: 12, cooldown: 0.48, statPreview: 'Damage: 10 → 12' },
-      { level: 3, damage: 15, cooldown: 0.45, statPreview: 'Damage: 12 → 15' },
-      { level: 4, damage: 18, cooldown: 0.42, statPreview: 'Damage: 15 → 18' },
-      { level: 5, damage: 22, cooldown: 0.38, statPreview: 'Damage: 18 → 22', upgradeVisuals: { color: '#44ffff' } },
-      { level: 6, damage: 27, cooldown: 0.34, statPreview: 'Damage: 22 → 27' },
-      { level: 7, damage: 33, cooldown: 0.30, statPreview: 'Damage: 27 → 33' },
-      { level: 8, damage: 40, cooldown: 0.26, statPreview: 'Damage: 33 → 40', upgradeVisuals: { meshScale: [0.9, 0.9, 3.6] } },
-      { level: 9, damage: 50, cooldown: 0.22, statPreview: 'Damage: 40 → 50', upgradeVisuals: { color: '#88ffff', meshScale: [1.0, 1.0, 4.0] } },
-    ],
+    knockbackStrength: 1,
+    baseArea: 1.0,
+    critChance: 0.05,
+    poolLimit: 15,
+    rarityWeight: 10,
+    slot: 'any',
   },
 
   SPREAD_SHOT: {
@@ -38,238 +28,21 @@ export const WEAPONS = {
     baseDamage: 6,
     baseCooldown: 0.7,
     baseSpeed: 250,
+    weaponType: 'projectile',             // Story 32.9: schema alignment
     projectileType: 'bullet',
     projectilePattern: 'spread',
-    spreadAngle: 0.26,              // ~15 degrees
+    spreadAngle: 0.26,
     projectileRadius: 0.8,
     projectileLifetime: 2.0,
-    projectileColor: '#ffcc00',     // Story 12.2: brighter yellow (was #ff8800 orange)
+    projectileColor: '#ffd60a',        // VOLATILE family (Story 31.1)
     projectileMeshScale: [0.5, 0.5, 1.5],
     sfxKey: 'laser-fire',
-    knockbackStrength: 1.5,         // Story 27.4: medium knockback per pellet (1.5 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
+    knockbackStrength: 1.5,
+    baseArea: 0.8,
+    critChance: 0.05,
+    poolLimit: 30,
+    rarityWeight: 8,
     slot: 'any',
-    upgrades: [
-      { level: 2, damage: 8, cooldown: 0.65, statPreview: 'Damage: 6 → 8' },
-      { level: 3, damage: 10, cooldown: 0.60, statPreview: 'Damage: 8 → 10' },
-      { level: 4, damage: 12, cooldown: 0.55, statPreview: 'Damage: 10 → 12' },
-      { level: 5, damage: 15, cooldown: 0.50, statPreview: 'Damage: 12 → 15', upgradeVisuals: { color: '#ffdd33' } },
-      { level: 6, damage: 18, cooldown: 0.46, statPreview: 'Damage: 15 → 18' },
-      { level: 7, damage: 22, cooldown: 0.42, statPreview: 'Damage: 18 → 22' },
-      { level: 8, damage: 27, cooldown: 0.38, statPreview: 'Damage: 22 → 27', upgradeVisuals: { meshScale: [0.6, 0.6, 1.8] } },
-      { level: 9, damage: 33, cooldown: 0.34, statPreview: 'Damage: 27 → 33', upgradeVisuals: { color: '#ffee66', meshScale: [0.7, 0.7, 2.0] } },
-    ],
-  },
-
-  MISSILE_HOMING: {
-    id: 'MISSILE_HOMING',
-    name: 'Homing Missile',
-    description: 'Launches a slow missile that tracks enemies',
-    baseDamage: 25,
-    baseCooldown: 2.0,
-    baseSpeed: 120,
-    projectileType: 'missile',
-    homing: true,
-    projectileRadius: 1.2,
-    projectileLifetime: 5.0,
-    projectileColor: '#ff5555',     // Story 12.2: brighter red (was #ff3333)
-    projectileMeshScale: [0.6, 0.6, 2.0],
-    sfxKey: 'laser-fire',
-    knockbackStrength: 2.5,         // Story 27.4: explosive knockback (2.5 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',
-    upgrades: [
-      { level: 2, damage: 30, cooldown: 1.8, statPreview: 'Damage: 25 → 30' },
-      { level: 3, damage: 38, cooldown: 1.6, statPreview: 'Damage: 30 → 38' },
-      { level: 4, damage: 46, cooldown: 1.45, statPreview: 'Damage: 38 → 46' },
-      { level: 5, damage: 55, cooldown: 1.30, statPreview: 'Damage: 46 → 55', upgradeVisuals: { color: '#ff7777' } },
-      { level: 6, damage: 65, cooldown: 1.15, statPreview: 'Damage: 55 → 65' },
-      { level: 7, damage: 78, cooldown: 1.00, statPreview: 'Damage: 65 → 78' },
-      { level: 8, damage: 92, cooldown: 0.85, statPreview: 'Damage: 78 → 92', upgradeVisuals: { meshScale: [0.72, 0.72, 2.4] } },
-      { level: 9, damage: 110, cooldown: 0.70, statPreview: 'Damage: 92 → 110', upgradeVisuals: { color: '#ff9999', meshScale: [0.84, 0.84, 2.8] } },
-    ],
-  },
-
-  PLASMA_BOLT: {
-    id: 'PLASMA_BOLT',
-    name: 'Plasma Bolt',
-    description: 'Fires a slow, high-damage energy bolt',
-    baseDamage: 20,
-    baseCooldown: 1.2,
-    baseSpeed: 180,
-    projectileType: 'bolt',
-    projectileRadius: 1.0,
-    projectileLifetime: 3.5,
-    projectileColor: '#ff00ff',     // Story 12.2: bright magenta (was #aa00ff)
-    projectileMeshScale: [0.7, 0.7, 2.0],
-    sfxKey: 'laser-fire',
-    knockbackStrength: 1.75,         // Story 27.4: medium-heavy knockback (1.75 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',
-    upgrades: [
-      { level: 2, damage: 25, cooldown: 1.1, statPreview: 'Damage: 20 → 25' },
-      { level: 3, damage: 32, cooldown: 1.0, statPreview: 'Damage: 25 → 32' },
-      { level: 4, damage: 40, cooldown: 0.92, statPreview: 'Damage: 32 → 40' },
-      { level: 5, damage: 50, cooldown: 0.84, statPreview: 'Damage: 40 → 50', upgradeVisuals: { color: '#ff44ff' } },
-      { level: 6, damage: 62, cooldown: 0.76, statPreview: 'Damage: 50 → 62' },
-      { level: 7, damage: 76, cooldown: 0.68, statPreview: 'Damage: 62 → 76' },
-      { level: 8, damage: 92, cooldown: 0.60, statPreview: 'Damage: 76 → 92', upgradeVisuals: { meshScale: [0.84, 0.84, 2.4] } },
-      { level: 9, damage: 112, cooldown: 0.52, statPreview: 'Damage: 92 → 112', upgradeVisuals: { color: '#ff88ff', meshScale: [0.98, 0.98, 2.8] } },
-    ],
-  },
-
-  // Story 11.3: New weapons below
-
-  RAILGUN: {
-    id: 'RAILGUN',
-    name: 'Railgun',
-    description: 'Piercing shot that damages all enemies in line',
-    baseDamage: 35,
-    baseCooldown: 1.5,
-    baseSpeed: 400,
-    projectileType: 'railgun',
-    projectilePattern: 'piercing',
-    pierceCount: 5,
-    projectileRadius: 0.5,
-    projectileLifetime: 2.5,
-    projectileColor: '#4488ff',
-    projectileMeshScale: [0.3, 0.3, 6.0],
-    sfxKey: 'railgun-fire',
-    knockbackStrength: 4,         // Story 27.4: very strong knockback (4 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',
-    upgrades: [
-      { level: 2, damage: 42, cooldown: 1.44, statPreview: 'Damage: 35 → 42' },
-      { level: 3, damage: 52, cooldown: 1.35, statPreview: 'Damage: 42 → 52' },
-      { level: 4, damage: 64, cooldown: 1.26, statPreview: 'Damage: 52 → 64' },
-      { level: 5, damage: 78, cooldown: 1.14, statPreview: 'Damage: 64 → 78', upgradeVisuals: { color: '#6699ff' } },
-      { level: 6, damage: 95, cooldown: 1.03, statPreview: 'Damage: 78 → 95' },
-      { level: 7, damage: 115, cooldown: 0.92, statPreview: 'Damage: 95 → 115' },
-      { level: 8, damage: 138, cooldown: 0.80, statPreview: 'Damage: 115 → 138', upgradeVisuals: { meshScale: [0.36, 0.36, 7.2] } },
-      { level: 9, damage: 165, cooldown: 0.68, statPreview: 'Damage: 138 → 165', upgradeVisuals: { color: '#88bbff', meshScale: [0.42, 0.42, 8.4] }, pierceCount: 10 },
-    ],
-  },
-
-  TRI_SHOT: {
-    id: 'TRI_SHOT',
-    name: 'Tri-Shot',
-    description: 'Fires 3 projectiles in a tight cone pattern',
-    baseDamage: 8,
-    baseCooldown: 0.6,
-    baseSpeed: 280,
-    projectileType: 'bullet',
-    projectilePattern: 'spread',
-    spreadAngle: 0.15,
-    projectileRadius: 0.6,
-    projectileLifetime: 2.0,
-    projectileColor: '#88ff00',     // Story 12.2: lime green (was #ff6600, conflicted with boss orange)
-    projectileMeshScale: [0.4, 0.4, 1.2],
-    sfxKey: 'trishot-fire',
-    knockbackStrength: 1.25,         // Story 27.4: light-medium knockback (1.25 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',
-    upgrades: [
-      { level: 2, damage: 10, cooldown: 0.58, statPreview: 'Damage: 8 → 10' },
-      { level: 3, damage: 12, cooldown: 0.54, statPreview: 'Damage: 10 → 12' },
-      { level: 4, damage: 15, cooldown: 0.50, statPreview: 'Damage: 12 → 15' },
-      { level: 5, damage: 18, cooldown: 0.46, statPreview: 'Damage: 15 → 18', upgradeVisuals: { color: '#aaff33' } },
-      { level: 6, damage: 22, cooldown: 0.41, statPreview: 'Damage: 18 → 22' },
-      { level: 7, damage: 27, cooldown: 0.37, statPreview: 'Damage: 22 → 27' },
-      { level: 8, damage: 33, cooldown: 0.32, statPreview: 'Damage: 27 → 33', upgradeVisuals: { meshScale: [0.48, 0.48, 1.44] } },
-      { level: 9, damage: 40, cooldown: 0.27, statPreview: 'Damage: 33 → 40', upgradeVisuals: { color: '#ccff66', meshScale: [0.56, 0.56, 1.68] } },
-    ],
-  },
-
-  SHOTGUN: {
-    id: 'SHOTGUN',
-    name: 'Shotgun',
-    description: 'Fires a burst of pellets in a wide cone',
-    baseDamage: 4,
-    baseCooldown: 1.0,
-    baseSpeed: 200,
-    projectileType: 'pellet',
-    projectilePattern: 'pellet',
-    pelletCount: 7,
-    spreadAngle: 0.45,
-    projectileRadius: 0.4,
-    projectileLifetime: 1.0,
-    projectileColor: '#ffff00',
-    projectileMeshScale: [0.3, 0.3, 0.5],
-    sfxKey: 'shotgun-fire',
-    knockbackStrength: 3,         // Story 27.4: strong knockback (3 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',
-    upgrades: [
-      { level: 2, damage: 5, cooldown: 0.96, statPreview: 'Damage: 4 → 5' },
-      { level: 3, damage: 6, cooldown: 0.90, statPreview: 'Damage: 5 → 6' },
-      { level: 4, damage: 8, cooldown: 0.84, statPreview: 'Damage: 6 → 8' },
-      { level: 5, damage: 10, cooldown: 0.76, statPreview: 'Damage: 8 → 10', upgradeVisuals: { color: '#ffff44' } },
-      { level: 6, damage: 12, cooldown: 0.69, statPreview: 'Damage: 10 → 12' },
-      { level: 7, damage: 15, cooldown: 0.61, statPreview: 'Damage: 12 → 15' },
-      { level: 8, damage: 18, cooldown: 0.53, statPreview: 'Damage: 15 → 18', upgradeVisuals: { meshScale: [0.36, 0.36, 0.6] } },
-      { level: 9, damage: 22, cooldown: 0.45, statPreview: 'Damage: 18 → 22', upgradeVisuals: { color: '#ffff88', meshScale: [0.42, 0.42, 0.7] } },
-    ],
-  },
-
-  SATELLITE: {
-    id: 'SATELLITE',
-    name: 'Satellite',
-    description: 'Orbital sphere that auto-fires at nearby enemies',
-    baseDamage: 12,
-    baseCooldown: 0.8,
-    baseSpeed: 250,
-    projectileType: 'orbital',
-    projectilePattern: 'orbital',
-    orbitalRadius: 12,
-    orbitalSpeed: 2.0,
-    projectileRadius: 0.6,
-    projectileLifetime: 2.0,
-    projectileColor: '#bb66ff',     // Story 12.2 review: purple (was #ffaa00 orange, too close to boss #ff6600)
-    projectileMeshScale: [0.6, 0.6, 0.6],
-    sfxKey: 'satellite-fire',
-    knockbackStrength: 1,         // Story 27.4: light knockback (1 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',
-    upgrades: [
-      { level: 2, damage: 15, cooldown: 0.77, statPreview: 'Damage: 12 → 15' },
-      { level: 3, damage: 18, cooldown: 0.72, statPreview: 'Damage: 15 → 18' },
-      { level: 4, damage: 22, cooldown: 0.67, statPreview: 'Damage: 18 → 22' },
-      { level: 5, damage: 27, cooldown: 0.61, statPreview: 'Damage: 22 → 27', upgradeVisuals: { color: '#cc88ff' } },
-      { level: 6, damage: 33, cooldown: 0.55, statPreview: 'Damage: 27 → 33' },
-      { level: 7, damage: 40, cooldown: 0.49, statPreview: 'Damage: 33 → 40' },
-      { level: 8, damage: 48, cooldown: 0.43, statPreview: 'Damage: 40 → 48', upgradeVisuals: { meshScale: [0.72, 0.72, 0.72] } },
-      { level: 9, damage: 58, cooldown: 0.36, statPreview: 'Damage: 48 → 58', upgradeVisuals: { color: '#ddaaff', meshScale: [0.84, 0.84, 0.84] } },
-    ],
-  },
-
-  DRONE: {
-    id: 'DRONE',
-    name: 'Drone',
-    description: 'Companion that follows and fires independently',
-    baseDamage: 10,
-    baseCooldown: 0.7,
-    baseSpeed: 260,
-    projectileType: 'drone',
-    projectilePattern: 'drone',
-    followOffset: [8, 0, -8],
-    projectileRadius: 0.5,
-    projectileLifetime: 2.0,
-    projectileColor: '#00ffaa',
-    projectileMeshScale: [0.4, 0.4, 1.0],
-    sfxKey: 'drone-fire',
-    knockbackStrength: 1,         // Story 27.4: light knockback (1 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
-    slot: 'any',
-    upgrades: [
-      { level: 2, damage: 12, cooldown: 0.67, statPreview: 'Damage: 10 → 12' },
-      { level: 3, damage: 15, cooldown: 0.63, statPreview: 'Damage: 12 → 15' },
-      { level: 4, damage: 18, cooldown: 0.59, statPreview: 'Damage: 15 → 18' },
-      { level: 5, damage: 22, cooldown: 0.54, statPreview: 'Damage: 18 → 22', upgradeVisuals: { color: '#44ffcc' } },
-      { level: 6, damage: 27, cooldown: 0.48, statPreview: 'Damage: 22 → 27' },
-      { level: 7, damage: 33, cooldown: 0.43, statPreview: 'Damage: 27 → 33' },
-      { level: 8, damage: 40, cooldown: 0.37, statPreview: 'Damage: 33 → 40', upgradeVisuals: { meshScale: [0.48, 0.48, 1.2] } },
-      { level: 9, damage: 48, cooldown: 0.32, statPreview: 'Damage: 40 → 48', upgradeVisuals: { color: '#88ffdd', meshScale: [0.56, 0.56, 1.4] } },
-    ],
   },
 
   BEAM: {
@@ -279,28 +52,22 @@ export const WEAPONS = {
     baseDamage: 8,
     baseCooldown: 0.1,
     baseSpeed: 600,
+    weaponType: 'beam_continuous',         // Story 32.9: schema alignment
     projectileType: 'beam_continuous',
     projectilePattern: 'beam',
     beamDuration: 2.0,
     beamRange: 100,
     projectileRadius: 1.0,
     projectileLifetime: 0.12,
-    projectileColor: '#ff0088',
-    projectileMeshScale: [0.5, 0.5, 8.0],
+    projectileColor: '#0096c7',        // COLD family (Story 31.1)
+    projectileMeshScale: [0.12, 0.12, 8.0],  // very thin beam (Story 31.1)
     sfxKey: 'beam-fire',
-    knockbackStrength: 0.375,        // Story 27.4: minimal knockback (0.375 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
+    knockbackStrength: 0.375,
+    baseArea: 0.12,
+    critChance: 0.02,
+    poolLimit: 50,
+    rarityWeight: 4,
     slot: 'any',
-    upgrades: [
-      { level: 2, damage: 10, cooldown: 0.096, statPreview: 'DPS: 80 → 104' },
-      { level: 3, damage: 12, cooldown: 0.090, statPreview: 'DPS: 104 → 133' },
-      { level: 4, damage: 15, cooldown: 0.084, statPreview: 'DPS: 133 → 179' },
-      { level: 5, damage: 18, cooldown: 0.076, statPreview: 'DPS: 179 → 237', upgradeVisuals: { color: '#ff44aa' } },
-      { level: 6, damage: 22, cooldown: 0.069, statPreview: 'DPS: 237 → 319' },
-      { level: 7, damage: 27, cooldown: 0.061, statPreview: 'DPS: 319 → 443' },
-      { level: 8, damage: 33, cooldown: 0.053, statPreview: 'DPS: 443 → 623', upgradeVisuals: { meshScale: [0.6, 0.6, 9.6] } },
-      { level: 9, damage: 40, cooldown: 0.045, statPreview: 'DPS: 623 → 889', upgradeVisuals: { color: '#ff77cc', meshScale: [0.7, 0.7, 11.2] } },
-    ],
   },
 
   EXPLOSIVE_ROUND: {
@@ -310,27 +77,136 @@ export const WEAPONS = {
     baseDamage: 15,
     baseCooldown: 1.5,
     baseSpeed: 150,
+    weaponType: 'projectile_explosion',   // Story 32.9: schema alignment
     projectileType: 'explosion',
     projectilePattern: 'explosion',
     explosionRadius: 15,
     explosionDamage: 10,
     projectileRadius: 1.2,
     projectileLifetime: 3.0,
-    projectileColor: '#ff2244',     // Story 12.2 review: crimson (was #ff4400 red-orange, too close to boss #ff6600)
-    projectileMeshScale: [1.2, 1.2, 1.2],
+    projectileColor: '#f4c430',        // VOLATILE family (Story 31.1)
+    projectileMeshScale: [1.4, 1.4, 1.4],    // Story 31.1
     sfxKey: 'explosive-fire',
-    knockbackStrength: 2,         // Story 27.4: moderate knockback (2 units direct)
-    rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG },
+    knockbackStrength: 2,
+    baseArea: 15,
+    critChance: 0.05,
+    poolLimit: 8,
+    rarityWeight: 7,
     slot: 'any',
-    upgrades: [
-      { level: 2, damage: 18, cooldown: 1.44, statPreview: 'Damage: 15 → 18' },
-      { level: 3, damage: 22, cooldown: 1.35, statPreview: 'Damage: 18 → 22' },
-      { level: 4, damage: 27, cooldown: 1.26, statPreview: 'Damage: 22 → 27' },
-      { level: 5, damage: 33, cooldown: 1.14, statPreview: 'Damage: 27 → 33', upgradeVisuals: { color: '#ff4466' } },
-      { level: 6, damage: 40, cooldown: 1.03, statPreview: 'Damage: 33 → 40' },
-      { level: 7, damage: 48, cooldown: 0.92, statPreview: 'Damage: 40 → 48' },
-      { level: 8, damage: 58, cooldown: 0.80, statPreview: 'Damage: 48 → 58', upgradeVisuals: { meshScale: [1.44, 1.44, 1.44] } },
-      { level: 9, damage: 70, cooldown: 0.68, statPreview: 'Damage: 58 → 70', upgradeVisuals: { color: '#ff6688', meshScale: [1.68, 1.68, 1.68] } },
-    ],
+  },
+
+  // ─── New weapon stubs (Epic 32 will implement rendering) ───────────────────
+
+  LASER_CROSS: {
+    id: 'LASER_CROSS',
+    name: 'Laser Cross',
+    description: 'Rotating cross beams that damage all nearby enemies',
+    baseDamage: 2,             // per tick (0.1s) = 20 DPS at level 1
+    weaponType: 'laser_cross', // discriminator for non-projectile handling
+    rotationSpeed: 1.5,        // rad/sec (~4.2s per full revolution)
+    activeTime: 3.0,           // seconds arms are visible
+    inactiveTime: 1.5,         // seconds arms are hidden
+    armLength: 24,             // world units (half from center to tip = 12)
+    armWidth: 1.0,             // collision + visual width
+    projectileColor: '#9b5de5',// ARCANE family — used by renderer
+    sfxKey: 'laser-cross-fire',// placeholder SFX (console.warn if missing)
+    knockbackStrength: 0,      // no knockback from continuous aura
+    critChance: 0.03,
+    rarityWeight: 0,              // disabled — excluded from level-up pool and armory
+    slot: 'any',
+  },
+
+  AURA: {
+    id: 'AURA',
+    name: 'Aura',
+    description: 'Permanent aura that damages all nearby enemies',
+    baseDamage: 5,                // per tick (0.25s) = 20 DPS at level 1
+    weaponType: 'aura',           // discriminator — skips projectile logic in useWeapons.tick()
+    auraRadius: 15,               // world units (base disc radius, before zoneMultiplier)
+    tickRate: 0.25,               // seconds between damage ticks (informational; GameLoop uses local constant)
+    projectileColor: '#c084fc',   // ARCANE family — used by MagneticFieldRenderer
+    sfxKey: 'magnetic-pulse',     // placeholder — never triggered (passive weapon)
+    knockbackStrength: 0,         // no knockback from aura field
+    slot: 'any',
+  },
+
+  DIAGONALS: {
+    id: 'DIAGONALS',
+    name: 'Diagonals',
+    description: '4 diagonal shots in an X pattern, rotated toward cursor',
+    baseDamage: 7,
+    baseCooldown: 0.55,
+    baseSpeed: 280,
+    weaponType: 'projectile',             // Story 32.9: schema alignment (Dev Notes taxonomy)
+    projectileType: 'bullet',
+    projectilePattern: 'diagonals',
+    projectileRadius: 2.0,
+    projectileLifetime: 2.5,
+    projectileColor: '#d8f0ff',        // near-white pale blue — glowing ray appearance
+    projectileMeshScale: [1.2, 1.2, 1.2],
+    sfxKey: 'laser-fire',
+    knockbackStrength: 1.5,
+    baseArea: 0.6,
+    critChance: 0.08,
+    poolLimit: 16,
+    rarityWeight: 5,
+    slot: 'any',
+  },
+
+  SHOCKWAVE: {
+    id: 'SHOCKWAVE',
+    name: 'Shockwave',
+    description: '3 expanding arc waves centered on cursor with strong knockback',
+    baseDamage: 40,
+    baseCooldown: 2.5,
+    weaponType: 'shockwave',        // discriminator — skip in useWeapons.tick(), managed in GameLoop 7a-quater
+    waveCount: 3,                   // arcs per burst
+    waveDelay: 0.2,                 // seconds between arc spawns in a burst
+    waveSectorAngle: Math.PI * 2 / 3, // ~120° arc width (2.094 rad)
+    waveExpandSpeed: 100,           // units/sec expansion rate
+    waveMaxRadius: 22,              // world units (base, before zoneMultiplier)
+    poolLimit: 9,                   // max active arcs (3 bursts × 3 arcs)
+    projectileColor: '#f9e547',     // VOLATILE family — bright yellow arc
+    sfxKey: 'shockwave-fire',       // placeholder SFX
+    knockbackStrength: 5,           // strong radial knockback (read by applyKnockbackImpulse)
+    slot: 'any',
+  },
+
+  MINE_AROUND: {
+    id: 'MINE_AROUND',
+    name: 'Mine Field',
+    description: '3 orbiting mines that explode on enemy proximity',
+    baseDamage: 50,
+    weaponType: 'mine_around',
+    mineCount: 3,
+    orbitalRadius: 15,
+    orbitalSpeed: 0.8,                 // rad/sec — full orbit ≈ 7.9s
+    mineDetectionRadius: 4,
+    explosionRadius: 10,
+    mineRespawnTime: 5,
+    poolLimit: 3,
+    projectileColor: '#b06cf0',        // ARCANE family
+    sfxKey: 'mine-explosion',
+    knockbackStrength: 4,
+    slot: 'any',
+  },
+
+  TACTICAL_SHOT: {
+    id: 'TACTICAL_SHOT',
+    name: 'Tactical Strike',
+    description: 'Instant strike on a random nearby enemy with AOE splash',
+    baseDamage: 35,
+    baseCooldown: 1.2,
+    weaponType: 'tactical_shot',       // discriminator — bypasses cooldown/projectile in useWeapons.tick()
+    detectionRadius: 60,               // world units — max range for target selection
+    strikeAoeRadius: 6,                // world units — AOE splash radius (base, before zoneMultiplier)
+    strikeVfxDuration: 0.3,            // seconds — flash + ring animation lifetime
+    splashDamageRatio: 0.5,            // splash damage = baseDamage * damageMultiplier * 0.5
+    poolLimit: 4,                      // max simultaneous VFX instances
+    projectileColor: '#2dc653',        // green — distinct from all existing weapons
+    sfxKey: 'tactical-shot',           // placeholder SFX (audioManager handles missing files)
+    knockbackStrength: 2,              // radial knockback on primary target only
+    rarityWeight: 6,                   // Story 32.6 code-review fix — consistent with other special-mechanic weapons
+    slot: 'any',
   },
 }

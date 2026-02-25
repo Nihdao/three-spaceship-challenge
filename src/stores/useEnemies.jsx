@@ -12,6 +12,18 @@ const SNIPER_MAX_RANGE = 40
 // Sweep despawn margin beyond play area
 const SWEEP_DESPAWN_MARGIN = 50
 
+// Pre-allocated structures for damageEnemiesBatch (Story 41.2 AC 5)
+const _damageMap = new Map()
+const _killIds = new Set()
+
+// Leash system (Story 36.1)
+const LEASH_ELIGIBLE = new Set(['chase', 'shockwave', 'sniper_mobile'])
+const LEASH_DIST_SQ = GAME_CONFIG.ENEMY_LEASH_DISTANCE * GAME_CONFIG.ENEMY_LEASH_DISTANCE
+
+// Double-buffer for teleport events (Story 43.1) — avoids .slice() allocation
+let _activeBuffer = []
+let _readBuffer = []
+
 // Enemy projectile default lifetime
 const ENEMY_PROJECTILE_LIFETIME = 5.0
 
@@ -47,7 +59,6 @@ const useEnemies = create((set, get) => ({
   nextShockwaveId: 0,
   enemyProjectiles: [],
   nextEnemyProjId: 0,
-  _teleportEvents: [],
 
   // --- Actions ---
   spawnEnemy: (typeId, x, z) => {
@@ -86,9 +97,28 @@ const useEnemies = create((set, get) => ({
 
   // Batch spawn — single set() call for multiple enemies (called by GameLoop)
   spawnEnemies: (instructions) => {
+    if (instructions.length === 0) return
+
     const state = get()
-    const available = GAME_CONFIG.MAX_ENEMIES_ON_SCREEN - state.enemies.length
-    if (available <= 0 || instructions.length === 0) return
+    let currentEnemies = state.enemies
+
+    // Evict oldest non-protected enemies if pool is full (Story 36.2)
+    let hadEviction = false
+    let evictedCount = 0
+    const slotsNeeded = Math.max(0, currentEnemies.length + instructions.length - GAME_CONFIG.MAX_ENEMIES_ON_SCREEN)
+    if (slotsNeeded > 0) {
+      for (let i = 0; i < currentEnemies.length && evictedCount < slotsNeeded; i++) {
+        const e = currentEnemies[i]
+        if (e.behavior !== 'boss' && ENEMIES[e.typeId]?.tier !== 'ELITE') {
+          e._evict = true
+          evictedCount++
+        }
+      }
+      hadEviction = evictedCount > 0
+    }
+
+    const available = GAME_CONFIG.MAX_ENEMIES_ON_SCREEN - currentEnemies.length + evictedCount
+    if (available <= 0) return
 
     const batch = []
     let nextId = state.nextId
@@ -109,6 +139,7 @@ const useEnemies = create((set, get) => ({
       const hp = Math.round(def.hp * hpMult)
       const enemy = {
         id: `enemy_${nextId}`,
+        numericId: nextId,
         typeId,
         x,
         z,
@@ -131,11 +162,15 @@ const useEnemies = create((set, get) => ({
       nextId++
     }
 
-    if (batch.length > 0) {
-      set({
-        enemies: [...state.enemies, ...batch],
-        nextId,
-      })
+    if (batch.length > 0 || hadEviction) {
+      const result = []
+      for (let i = 0; i < currentEnemies.length; i++) {
+        if (!currentEnemies[i]._evict) result.push(currentEnemies[i])
+      }
+      for (let i = 0; i < batch.length; i++) {
+        result.push(batch[i])
+      }
+      set({ enemies: result, nextId })
     }
   },
 
@@ -263,9 +298,10 @@ const useEnemies = create((set, get) => ({
   // --- Tick (called by GameLoop each frame) ---
   // Mutates enemy positions in-place for zero GC pressure.
   // Readers use getState() in useFrame, not React subscriptions.
-  tick: (delta, playerPosition) => {
+  tick: (delta, playerPosition, options = {}) => {
     const { enemies } = get()
     if (enemies.length === 0) return
+    const leashEnabled = options.leashEnabled !== false
 
     const px = playerPosition[0]
     const pz = playerPosition[2]
@@ -415,7 +451,7 @@ const useEnemies = create((set, get) => ({
           e.x = Math.max(-bound, Math.min(bound, newX))
           e.z = Math.max(-bound, Math.min(bound, newZ))
 
-          get()._teleportEvents.push({ oldX, oldZ, newX: e.x, newZ: e.z })
+          _activeBuffer.push({ oldX, oldZ, newX: e.x, newZ: e.z })
 
           // Reset timer
           e.teleportTimer = def.teleportCooldown
@@ -443,15 +479,39 @@ const useEnemies = create((set, get) => ({
       }
     }
 
+    // --- Leash system (Story 36.1) ---
+    if (leashEnabled) {
+      for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i]
+        if (!LEASH_ELIGIBLE.has(e.behavior)) continue
+        const dx = px - e.x
+        const dz = pz - e.z
+        if (dx * dx + dz * dz <= LEASH_DIST_SQ) continue
+        // Teleport: record departure, compute new position, push arrival
+        const oldX = e.x
+        const oldZ = e.z
+        const angle = Math.random() * Math.PI * 2
+        const spawnDist = GAME_CONFIG.SPAWN_DISTANCE_MIN + Math.random() * (GAME_CONFIG.SPAWN_DISTANCE_MAX - GAME_CONFIG.SPAWN_DISTANCE_MIN)
+        e.x = Math.max(-bound, Math.min(bound, px + Math.cos(angle) * spawnDist))
+        e.z = Math.max(-bound, Math.min(bound, pz + Math.sin(angle) * spawnDist))
+        _activeBuffer.push({ oldX, oldZ, newX: e.x, newZ: e.z })
+      }
+    }
+
     // Remove despawned enemies (sweep timeout / out of bounds)
     if (hasDespawns) {
       set({ enemies: enemies.filter(e => !e._despawn) })
     }
   },
 
-  damageEnemy: (enemyId, damage) => {
+  // Returns full enemy snapshot on kill (callers need id, xpReward, etc.)
+  // — differs from damageEnemiesBatch which returns minimal { x, z, typeId, color }
+  damageEnemy: (enemyId, damage, clockMs) => {
     const { enemies } = get()
-    const idx = enemies.findIndex((e) => e.id === enemyId)
+    let idx = -1
+    for (let k = 0; k < enemies.length; k++) {
+      if (enemies[k].id === enemyId) { idx = k; break }
+    }
     if (idx === -1) return { killed: false, enemy: null }
 
     const enemy = enemies[idx]
@@ -459,46 +519,58 @@ const useEnemies = create((set, get) => ({
     enemy.hitFlashTimer = GAME_CONFIG.HIT_FLASH.DURATION
     if (enemy.hp <= 0) {
       const deadEnemy = { ...enemy }
-      set({ enemies: enemies.filter((_, i) => i !== idx) })
+      const remaining = []
+      for (let k = 0; k < enemies.length; k++) {
+        if (k !== idx) remaining.push(enemies[k])
+      }
+      set({ enemies: remaining })
       return { killed: true, enemy: deadEnemy }
     }
-    enemy.lastHitTime = performance.now()
+    // IMPORTANT: if clockMs is undefined (caller outside GameLoop), performance.now() is used.
+    // EnemyRenderer reads clock.elapsedTime * 1000 — the domain mismatch produces a huge
+    // negative hitAge, which EnemyRenderer guards against with hitAge >= 0. No permanent flash.
+    enemy.lastHitTime = clockMs ?? performance.now()
     return { killed: false, enemy }
   },
 
-  damageEnemiesBatch: (hits) => {
+  damageEnemiesBatch: (hits, clockMs) => {
     if (hits.length === 0) return []
 
     const { enemies } = get()
     const results = []
 
-    // Accumulate damage per enemy
-    const damageMap = new Map()
+    // Accumulate damage per enemy (reuse pre-allocated Map — Story 41.2)
+    _damageMap.clear()
     for (let i = 0; i < hits.length; i++) {
       const { enemyId, damage } = hits[i]
-      damageMap.set(enemyId, (damageMap.get(enemyId) || 0) + damage)
+      _damageMap.set(enemyId, (_damageMap.get(enemyId) || 0) + damage)
     }
 
-    // Apply accumulated damage
-    const killIds = new Set()
-    for (const [enemyId, totalDamage] of damageMap) {
-      const enemy = enemies.find((e) => e.id === enemyId)
+    // Apply accumulated damage (reuse pre-allocated Set — Story 41.2)
+    _killIds.clear()
+    for (const [enemyId, totalDamage] of _damageMap) {
+      let enemy = null
+      for (let k = 0; k < enemies.length; k++) {
+        if (enemies[k].id === enemyId) { enemy = enemies[k]; break }
+      }
       if (!enemy) continue
 
       enemy.hp -= totalDamage
       enemy.hitFlashTimer = GAME_CONFIG.HIT_FLASH.DURATION
       if (enemy.hp <= 0) {
-        killIds.add(enemyId)
-        results.push({ killed: true, enemy: { ...enemy } })
+        _killIds.add(enemyId)
+        results.push({ killed: true, enemy: { x: enemy.x, z: enemy.z, typeId: enemy.typeId, color: enemy.color } })
       } else {
-        enemy.lastHitTime = performance.now()
+        // See damageEnemy note: performance.now() fallback produces huge negative hitAge
+        // in EnemyRenderer, guarded by hitAge >= 0 check there.
+        enemy.lastHitTime = clockMs ?? performance.now()
         results.push({ killed: false, enemy })
       }
     }
 
     // Single set() call — remove killed enemies
-    if (killIds.size > 0) {
-      set({ enemies: enemies.filter((e) => !killIds.has(e.id)) })
+    if (_killIds.size > 0) {
+      set({ enemies: enemies.filter((e) => !_killIds.has(e.id)) })
     }
 
     return results
@@ -506,27 +578,37 @@ const useEnemies = create((set, get) => ({
 
   killEnemy: (id) => {
     const { enemies } = get()
-    const filtered = enemies.filter((e) => e.id !== id)
+    const filtered = []
+    for (let k = 0; k < enemies.length; k++) {
+      if (enemies[k].id !== id) filtered.push(enemies[k])
+    }
     set({ enemies: filtered })
   },
 
   consumeTeleportEvents: () => {
-    const events = get()._teleportEvents
-    if (events.length === 0) return []
-    const copy = events.slice()
-    events.length = 0
-    return copy
+    if (_activeBuffer.length === 0) {
+      _readBuffer.length = 0
+      return _readBuffer
+    }
+    const tmp = _readBuffer
+    _readBuffer = _activeBuffer
+    _activeBuffer = tmp
+    _activeBuffer.length = 0
+    return _readBuffer
   },
 
-  reset: () => set({
-    enemies: [],
-    nextId: 0,
-    shockwaves: [],
-    nextShockwaveId: 0,
-    enemyProjectiles: [],
-    nextEnemyProjId: 0,
-    _teleportEvents: [],
-  }),
+  reset: () => {
+    _activeBuffer.length = 0
+    _readBuffer.length = 0
+    set({
+      enemies: [],
+      nextId: 0,
+      shockwaves: [],
+      nextShockwaveId: 0,
+      enemyProjectiles: [],
+      nextEnemyProjId: 0,
+    })
+  },
 }))
 
 export default useEnemies

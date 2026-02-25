@@ -1,6 +1,6 @@
 # Story 31.1: Weapon Stat Schema & Roster Cleanup
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -37,37 +37,37 @@ so that the data layer is ready before implementing new weapon mechanics and the
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Remove 7 obsolete weapons from `weaponDefs.js` (AC: #1, #2, #3)
-  - [ ] Delete `MISSILE_HOMING`, `PLASMA_BOLT`, `RAILGUN`, `TRI_SHOT`, `SHOTGUN`, `SATELLITE`, `DRONE` entries
-  - [ ] Remove the `DEFAULT_RARITY_DMG` constant
-  - [ ] Remove `rarityDamageMultipliers` fields from `LASER_FRONT`, `SPREAD_SHOT`, `BEAM`, `EXPLOSIVE_ROUND`
-  - [ ] Remove `upgrades[]` arrays from all 4 retained weapons
+- [x] Task 1: Remove 7 obsolete weapons from `weaponDefs.js` (AC: #1, #2, #3)
+  - [x] Delete `MISSILE_HOMING`, `PLASMA_BOLT`, `RAILGUN`, `TRI_SHOT`, `SHOTGUN`, `SATELLITE`, `DRONE` entries
+  - [x] Remove the `DEFAULT_RARITY_DMG` constant
+  - [x] Remove `rarityDamageMultipliers` fields from `LASER_FRONT`, `SPREAD_SHOT`, `BEAM`, `EXPLOSIVE_ROUND`
+  - [x] Remove `upgrades[]` arrays from all 4 retained weapons
 
-- [ ] Task 2: Add new stat fields to 4 retained weapons (AC: #4, #5, #6, #7, #8)
-  - [ ] `LASER_FRONT`: add `baseArea=1.0, critChance=0.05, poolLimit=15, rarityWeight=10`; update `projectileColor='#00e5ff'`
-  - [ ] `SPREAD_SHOT`: add `baseArea=0.8, critChance=0.05, poolLimit=30, rarityWeight=8`; update `projectileColor='#ffd60a'`
-  - [ ] `BEAM`: add `baseArea=0.12, critChance=0.02, poolLimit=50, rarityWeight=4`; update `projectileColor='#0096c7'`, `projectileMeshScale=[0.12, 0.12, 8.0]`
-  - [ ] `EXPLOSIVE_ROUND`: add `baseArea=15, critChance=0.05, poolLimit=8, rarityWeight=7`; update `projectileColor='#f4c430'`, `projectileMeshScale=[1.4, 1.4, 1.4]`, add `pulseAnimation=true`
+- [x] Task 2: Add new stat fields to 4 retained weapons (AC: #4, #5, #6, #7, #8)
+  - [x] `LASER_FRONT`: add `baseArea=1.0, critChance=0.05, poolLimit=15, rarityWeight=10`; update `projectileColor='#00e5ff'`
+  - [x] `SPREAD_SHOT`: add `baseArea=0.8, critChance=0.05, poolLimit=30, rarityWeight=8`; update `projectileColor='#ffd60a'`
+  - [x] `BEAM`: add `baseArea=0.12, critChance=0.02, poolLimit=50, rarityWeight=4`; update `projectileColor='#0096c7'`, `projectileMeshScale=[0.12, 0.12, 8.0]`
+  - [x] `EXPLOSIVE_ROUND`: add `baseArea=15, critChance=0.05, poolLimit=8, rarityWeight=7`; update `projectileColor='#f4c430'`, `projectileMeshScale=[1.4, 1.4, 1.4]`, add `pulseAnimation=true`
 
-- [ ] Task 3: Add 6 new weapon stubs (AC: #9, #4, #5, #6)
-  - [ ] `LASER_CROSS`: `baseDamage=8, baseCooldown=4.0, baseArea=1.0, critChance=0.03, poolLimit=4, rarityWeight=6`, `projectileColor='#9b5de5'`, `projectileType='laser_cross'`, stub fields: `rotationSpeed`, `activeTime`, `inactiveTime`, `armLength`, `implemented=false`
-  - [ ] `MAGNETIC_FIELD`: `baseDamage=3, baseCooldown=0.25, baseArea=18, critChance=0.015, poolLimit=1, rarityWeight=5`, `projectileColor='#c084fc'`, `projectileType='aura'`, stub fields: `auraRadius`, `damagePerSecond`, `tickRate`, `implemented=false`
-  - [ ] `DIAGONALS`: `baseDamage=12, baseCooldown=0.80, baseArea=0.6, critChance=0.08, poolLimit=20, rarityWeight=7`, `projectileColor='#48cae4'`, `projectileType='bullet'`, stub fields: `diagonalCount=4`, `spreadRotation=true`, `implemented=false`
-  - [ ] `SHOCKWAVE`: `baseDamage=12, baseCooldown=1.20, baseArea=25, critChance=0.05, poolLimit=9, rarityWeight=6`, `projectileColor='#f9e547'`, `projectileType='shockwave'`, `knockbackStrength=5.0`, stub fields: `waveCount=3`, `waveSectorAngle=2.0`, `waveExpandSpeed=80`, `waveMaxRadius=25`, `waveDelay=0.06`, `implemented=false`
-  - [ ] `MINE_AROUND`: `baseDamage=40, baseCooldown=3.0, baseArea=12, critChance=0.10, poolLimit=3, rarityWeight=5`, `projectileColor='#06d6a0'`, `projectileType='mine'`, `knockbackStrength=4.0`, stub fields: `mineCount=3`, `orbitalRadius=15`, `mineDetectionRadius=4`, `explosionRadius=12`, `mineRespawnTime=3.0`, `implemented=false`
-  - [ ] `TACTICAL_SHOT`: `baseDamage=18, baseCooldown=1.20, baseArea=6, critChance=0.15, poolLimit=5, rarityWeight=6`, `projectileColor='#2dc653'`, `projectileType='tactical_strike'`, `knockbackStrength=2.0`, stub fields: `detectionRadius=60`, `strikeAoeRadius=6`, `strikeVfxDuration=0.3`, `implemented=false`
+- [x] Task 3: Add 6 new weapon stubs (AC: #9, #4, #5, #6)
+  - [x] `LASER_CROSS`: `baseDamage=8, baseCooldown=4.0, baseArea=1.0, critChance=0.03, poolLimit=4, rarityWeight=6`, `projectileColor='#9b5de5'`, `projectileType='laser_cross'`, stub fields: `rotationSpeed`, `activeTime`, `inactiveTime`, `armLength`, `implemented=false`
+  - [x] `MAGNETIC_FIELD`: `baseDamage=3, baseCooldown=0.25, baseArea=18, critChance=0.015, poolLimit=1, rarityWeight=5`, `projectileColor='#c084fc'`, `projectileType='aura'`, stub fields: `auraRadius`, `damagePerSecond`, `tickRate`, `implemented=false`
+  - [x] `DIAGONALS`: `baseDamage=12, baseCooldown=0.80, baseArea=0.6, critChance=0.08, poolLimit=20, rarityWeight=7`, `projectileColor='#48cae4'`, `projectileType='bullet'`, stub fields: `diagonalCount=4`, `spreadRotation=true`, `implemented=false`
+  - [x] `SHOCKWAVE`: `baseDamage=12, baseCooldown=1.20, baseArea=25, critChance=0.05, poolLimit=9, rarityWeight=6`, `projectileColor='#f9e547'`, `projectileType='shockwave'`, `knockbackStrength=5.0`, stub fields: `waveCount=3`, `waveSectorAngle=2.0`, `waveExpandSpeed=80`, `waveMaxRadius=25`, `waveDelay=0.06`, `implemented=false`
+  - [x] `MINE_AROUND`: `baseDamage=40, baseCooldown=3.0, baseArea=12, critChance=0.10, poolLimit=3, rarityWeight=5`, `projectileColor='#06d6a0'`, `projectileType='mine'`, `knockbackStrength=4.0`, stub fields: `mineCount=3`, `orbitalRadius=15`, `mineDetectionRadius=4`, `explosionRadius=12`, `mineRespawnTime=3.0`, `implemented=false`
+  - [x] `TACTICAL_SHOT`: `baseDamage=18, baseCooldown=1.20, baseArea=6, critChance=0.15, poolLimit=5, rarityWeight=6`, `projectileColor='#2dc653'`, `projectileType='tactical_strike'`, `knockbackStrength=2.0`, stub fields: `detectionRadius=60`, `strikeAoeRadius=6`, `strikeVfxDuration=0.3`, `implemented=false`
 
-- [ ] Task 4: Update `weaponDefs.test.js` (AC: #10)
-  - [ ] Remove `MISSILE_HOMING`, `PLASMA_BOLT`, `RAILGUN`, `TRI_SHOT`, `SHOTGUN`, `SATELLITE`, `DRONE` from `ALL_EXPECTED_IDS`
-  - [ ] Remove `upgrades` from `REQUIRED_FIELDS`; add `baseArea`, `critChance`, `poolLimit`, `rarityWeight`
-  - [ ] Remove archetype describe blocks for RAILGUN, TRI_SHOT, SHOTGUN, SATELLITE, DRONE
-  - [ ] Remove the "8 upgrade tiers" test (upgrades[] no longer exists)
-  - [ ] Remove the "monotonically increasing damage" and "decreasing cooldown" tests (no upgrade curves)
-  - [ ] Add test: all weapons have `critChance >= 0.015`
-  - [ ] Add test: all 6 new stubs exist with `implemented === false`
-  - [ ] Add test: all 10 weapon `projectileColor` values match their expected hex (family compliance)
-  - [ ] Update color uniqueness test to cover all 10 weapons
-  - [ ] Run `npx vitest run src/entities/__tests__/weaponDefs.test.js` — all pass
+- [x] Task 4: Update `weaponDefs.test.js` (AC: #10)
+  - [x] Remove `MISSILE_HOMING`, `PLASMA_BOLT`, `RAILGUN`, `TRI_SHOT`, `SHOTGUN`, `SATELLITE`, `DRONE` from `ALL_EXPECTED_IDS`
+  - [x] Remove `upgrades` from `REQUIRED_FIELDS`; add `baseArea`, `critChance`, `poolLimit`, `rarityWeight`
+  - [x] Remove archetype describe blocks for RAILGUN, TRI_SHOT, SHOTGUN, SATELLITE, DRONE
+  - [x] Remove the "8 upgrade tiers" test (upgrades[] no longer exists)
+  - [x] Remove the "monotonically increasing damage" and "decreasing cooldown" tests (no upgrade curves)
+  - [x] Add test: all weapons have `critChance >= 0.015`
+  - [x] Add test: all 6 new stubs exist with `implemented === false`
+  - [x] Add test: all 10 weapon `projectileColor` values match their expected hex (family compliance)
+  - [x] Update color uniqueness test to cover all 10 weapons
+  - [x] Run `npx vitest run src/entities/__tests__/weaponDefs.test.js` — all pass
 
 ## Dev Notes
 
@@ -197,6 +197,27 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+None.
+
 ### Completion Notes List
 
+- Rewrote `weaponDefs.js` entirely: removed 7 obsolete weapons (MISSILE_HOMING, PLASMA_BOLT, RAILGUN, TRI_SHOT, SHOTGUN, SATELLITE, DRONE), removed DEFAULT_RARITY_DMG constant, removed rarityDamageMultipliers and upgrades[] from all retained weapons.
+- Added new stat schema (baseArea, critChance, poolLimit, rarityWeight) to 4 retained weapons with updated color family assignments (COLD/VOLATILE families).
+- BEAM: color updated #ff0088→#0096c7, meshScale updated [0.5,0.5,8.0]→[0.12,0.12,8.0] (very thin beam).
+- EXPLOSIVE_ROUND: color updated #ff2244→#f4c430 (VOLATILE gold), meshScale [1.2,1.2,1.2]→[1.4,1.4,1.4], pulseAnimation:true added (data-only flag).
+- Added 6 new weapon stubs: LASER_CROSS, MAGNETIC_FIELD, DIAGONALS, SHOCKWAVE, MINE_AROUND, TACTICAL_SHOT — all with implemented:false and all required fields populated.
+- Rewrote `weaponDefs.test.js` (66 tests, all pass): new schema fields validated, color family compliance, critChance floor, stub existence, enemy spectrum distance checks.
+- Accepted technical debt: 60 new test failures in 9 external files (useEnemies.knockback, progressionSystem, useWeapons.newPatterns, Armory tests) that reference removed weapon IDs. Per Dev Notes, NOT fixed in 31.1 — will be resolved in 31.2/31.3.
+- Pre-existing failures (13 tests in 4 files — audioManager, MainMenu, StatsScreen, waveSystem) were present before this story and are unchanged.
+- **Code review pass (2026-02-22):** Added `knockbackStrength` to `REQUIRED_FIELDS` in test (was in story spec stub template but missing from CI guard). 66/66 tests still pass.
+- **Weapon design refinements (2026-02-22):** Updated descriptions and stub fields for all 6 new weapons to match finalized design intent: LASER_CROSS (X cross centered on ship, armLength=25, activeTime=3s); MAGNETIC_FIELD (2-3 concentric rings, ringCount=3); DIAGONALS (angles=[45,135,225,315] relative to facing, removed ambiguous spreadRotation); SHOCKWAVE (waveMaxRadius=70, waveSectorAngle=π, waveCount=1 — large semi-circular arc); MINE_AROUND (orbitalSpeed=0.8 rad/s, mineCount=4, continuous orbit); TACTICAL_SHOT (instant lightning strike, no projectile travel, aoeLinger=4.0s, aoeLingerDamage=3, targets=nearest).
+
 ### File List
+
+- src/entities/weaponDefs.js (modified — full rewrite)
+- src/entities/__tests__/weaponDefs.test.js (modified — full rewrite)
+
+### Change Log
+
+- 2026-02-22: Story 31.1 implemented — weapon stat schema & roster cleanup. Removed 7 weapons, added new stat fields (baseArea/critChance/poolLimit/rarityWeight) to 4 retained weapons, added 6 new weapon stubs, rewrote test file (66 tests all pass).
+- 2026-02-22: Code review pass — added `knockbackStrength` to REQUIRED_FIELDS (test coverage gap fix). Refined descriptions and stub fields for 6 new weapon stubs to match finalized design intent (see Completion Notes). 66/66 tests pass.

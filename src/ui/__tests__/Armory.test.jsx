@@ -32,9 +32,10 @@ describe('MainMenu — ARMORY button (Story 25.4)', () => {
 // ────────────────────────────────────────────────
 
 describe('Armory — weapons tab (Story 25.4)', () => {
-  it('getArmoryTabData returns all 11 weapons', () => {
+  it('getArmoryTabData returns 9 enabled weapons (DIAGONALS excluded, rarityWeight:0)', () => {
     const { weaponIds } = getArmoryTabData()
-    expect(weaponIds).toHaveLength(11)
+    expect(weaponIds).toHaveLength(9)
+    expect(weaponIds).not.toContain('DIAGONALS')
   })
 
   it('all weapon IDs are valid WEAPONS keys', () => {
@@ -55,12 +56,12 @@ describe('Armory — weapons tab (Story 25.4)', () => {
     }
   })
 
-  it('includes LASER_FRONT, SPREAD_SHOT, MISSILE_HOMING, RAILGUN', () => {
+  it('includes LASER_FRONT, SPREAD_SHOT, BEAM, EXPLOSIVE_ROUND', () => {
     const { weaponIds } = getArmoryTabData()
     expect(weaponIds).toContain('LASER_FRONT')
     expect(weaponIds).toContain('SPREAD_SHOT')
-    expect(weaponIds).toContain('MISSILE_HOMING')
-    expect(weaponIds).toContain('RAILGUN')
+    expect(weaponIds).toContain('BEAM')
+    expect(weaponIds).toContain('EXPLOSIVE_ROUND')
   })
 })
 
@@ -131,23 +132,23 @@ describe('Armory — WeaponCard display data (Story 25.4)', () => {
   })
 
   it('discovered weapon shows real description', () => {
-    const data = getWeaponCardDisplayData('RAILGUN', true)
+    const data = getWeaponCardDisplayData('BEAM', true)
     expect(data.description).not.toBe('Undiscovered weapon')
     expect(data.description.length).toBeGreaterThan(0)
   })
 
   it('undiscovered weapon shows "Undiscovered weapon"', () => {
-    const data = getWeaponCardDisplayData('RAILGUN', false)
+    const data = getWeaponCardDisplayData('BEAM', false)
     expect(data.description).toBe('Undiscovered weapon')
   })
 
   it('undiscovered weapon icon is ❓', () => {
-    const data = getWeaponCardDisplayData('SHOTGUN', false)
+    const data = getWeaponCardDisplayData('BEAM', false)
     expect(data.icon).toBe('❓')
   })
 
   it('discovered weapon icon is a non-empty string', () => {
-    const data = getWeaponCardDisplayData('SHOTGUN', true)
+    const data = getWeaponCardDisplayData('BEAM', true)
     expect(typeof data.icon).toBe('string')
     expect(data.icon.length).toBeGreaterThan(0)
     expect(data.icon).not.toBe('❓')

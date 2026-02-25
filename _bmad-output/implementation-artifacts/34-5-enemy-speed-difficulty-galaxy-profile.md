@@ -1,6 +1,6 @@
 # Story 34.5: Enemy Speed & Difficulty from Galaxy Profile
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -18,27 +18,27 @@ so that different galaxies can have distinct feels without modifying hardcoded c
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Update `systemScaling` computation in `GameLoop.jsx` (AC: #1, #2, #3)
-  - [ ] 1.1 Locate the `systemScaling` line at ~line 286: `const systemScaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || ...`
-  - [ ] 1.2 Replace with the galaxy-aware block (see Dev Notes for exact code)
-  - [ ] 1.3 Read `selectedGalaxyId` from `useGame.getState()` and call `getGalaxyById()`
-  - [ ] 1.4 Guard: if `gc?.difficultyScalingPerSystem` exists, use galaxy formula; else fall back
+- [x] Task 1 — Update `systemScaling` computation in `GameLoop.jsx` (AC: #1, #2, #3)
+  - [x] 1.1 Locate the `systemScaling` line at ~line 286: `const systemScaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || ...`
+  - [x] 1.2 Replace with the galaxy-aware block (see Dev Notes for exact code)
+  - [x] 1.3 Read `selectedGalaxyId` from `useGame.getState()` and call `getGalaxyById()`
+  - [x] 1.4 Guard: if `gc?.difficultyScalingPerSystem` exists, use galaxy formula; else fall back
 
-- [ ] Task 2 — Verify `getGalaxyById` import in `GameLoop.jsx` (AC: #1)
-  - [ ] 2.1 Check first 30 lines of `GameLoop.jsx` for `import { getGalaxyById } from './entities/galaxyDefs.js'`
-  - [ ] 2.2 If missing (Story 34.2 not yet done), add it alongside existing entity imports
+- [x] Task 2 — Verify `getGalaxyById` import in `GameLoop.jsx` (AC: #1)
+  - [x] 2.1 Check first 30 lines of `GameLoop.jsx` for `import { getGalaxyById } from './entities/galaxyDefs.js'`
+  - [x] 2.2 If missing (Story 34.2 not yet done), add it alongside existing entity imports
 
-- [ ] Task 3 — Write `src/stores/__tests__/useEnemies.galaxyScaling.test.js` (AC: #1, #2, #3)
-  - [ ] 3.1 Test: system 1 — hp/damage/xpReward ×1.0, speed ×1.5 (enemySpeedMult only)
-  - [ ] 3.2 Test: system 2 — hp ×1.25, speed ×1.65 (1.10^1 × 1.5), damage ×1.20, xpReward ×1.15
-  - [ ] 3.3 Test: system 3 — hp ×1.5625, speed ≈1.815 (1.10^2 × 1.5)
-  - [ ] 3.4 Test: FODDER_BASIC effective speed at system 1 = 17 × 1.5 = 25.5 ≥ 25 (AC #1)
-  - [ ] 3.5 Test: fallback — when `gc` is null, returns `GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]`
-  - [ ] 3.6 Test: fallback — when `gc` has no `difficultyScalingPerSystem`, returns hardcoded scaling
+- [x] Task 3 — Write `src/stores/__tests__/useEnemies.galaxyScaling.test.js` (AC: #1, #2, #3)
+  - [x] 3.1 Test: system 1 — hp/damage/xpReward ×1.0, speed ×1.5 (enemySpeedMult only)
+  - [x] 3.2 Test: system 2 — hp ×1.25, speed ×1.65 (1.10^1 × 1.5), damage ×1.20, xpReward ×1.15
+  - [x] 3.3 Test: system 3 — hp ×1.5625, speed ≈1.815 (1.10^2 × 1.5)
+  - [x] 3.4 Test: FODDER_BASIC effective speed at system 1 = 17 × 1.5 = 25.5 ≥ 25 (AC #1)
+  - [x] 3.5 Test: fallback — when `gc` is null, returns `GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]`
+  - [x] 3.6 Test: fallback — when `gc` has no `difficultyScalingPerSystem`, returns hardcoded scaling
 
-- [ ] Task 4 — Run all tests (AC: all)
-  - [ ] 4.1 `npx vitest run` — all existing tests pass
-  - [ ] 4.2 `useEnemies.galaxyScaling.test.js` runs green
+- [x] Task 4 — Run all tests (AC: all)
+  - [x] 4.1 `npx vitest run` — all existing tests pass
+  - [x] 4.2 `useEnemies.galaxyScaling.test.js` runs green
 
 ## Dev Notes
 
@@ -279,6 +279,21 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+(none)
+
 ### Completion Notes List
 
+- **Task 2**: `getGalaxyById` was already imported at line 30 of `GameLoop.jsx` (added by Story 34.2) — no change needed.
+- **Task 1**: Replaced the `systemScaling` one-liner (line 299) with the galaxy-aware block. Reads `selectedGalaxyId` from `useGame.getState()`, calls `getGalaxyById()`, and uses `Math.pow(s.stat, systemIndex)` formula for exponential per-system scaling. Falls back to `GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM` when no galaxy or no `difficultyScalingPerSystem`.
+- **Task 3**: Created `useEnemies.galaxyScaling.test.js` with 15 tests covering all 3 AC scenarios (system 1/2/3 multipliers, FODDER_BASIC speed ≥ 25, and null/bare-galaxy fallbacks).
+- **Task 4**: Full suite — 136 test files, 2318 tests, 0 failures.
+
 ### File List
+
+- `src/GameLoop.jsx` (modified — replaced systemScaling one-liner with galaxy-aware block, ~line 299; cache optimization added)
+- `src/stores/__tests__/useEnemies.galaxyScaling.test.js` (new — 16 tests for AC #1, #2, #3)
+
+### Change Log
+
+- 2026-02-23: Story 34.5 implemented — enemy speed and per-system difficulty scaling now driven by galaxy profile (`galaxyDefs.js`). `GameLoop.jsx` `systemScaling` block replaced with exponential formula using `difficultyScalingPerSystem` fields; fallback to `GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM` when galaxy has no scaling config. 15 new tests added.
+- 2026-02-23: Code review (AI) — 2 MEDIUM fixed: (1) per-frame object allocation eliminated via `systemScalingCacheKeyRef`/`systemScalingCachedRef` — `getGalaxyById()` and Math.pow now called only on system transition, not at 60fps; (2) cache invalidated on new game start in the new-game reset block. 1 LOW fixed: added missing xpReward system 3 test (1.15^2 = 1.3225) → 16 tests total.

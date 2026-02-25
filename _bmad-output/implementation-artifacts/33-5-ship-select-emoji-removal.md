@@ -1,6 +1,6 @@
 # Story 33.5: Ship Select — Suppression des Emojis dans les Stats
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,45 +30,45 @@ so that no emojis appear anywhere in the ship selection screen.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Vérifier que Story 33.1 est implémentée (prérequis)
-  - [ ] Confirmer que `src/ui/icons/index.jsx` existe et exporte : `ShieldCrossIcon`, `SwordIcon`, `SpeedIcon`, `SkullIcon`, `ClockIcon`, `ZoneIcon`, `StarIcon`, `RerollIcon`, `SkipIcon`, `BanishIcon`
-  - [ ] Confirmer que `StatLine.jsx` ligne 17 gère `typeof icon === 'function'`
-  - [ ] Confirmer que `src/style.css` définit `--rs-hp`, `--rs-orange`, `--rs-teal`, `--rs-danger`, `--rs-text-dim`
+- [x] Task 1: Vérifier que Story 33.1 est implémentée (prérequis)
+  - [x] Confirmer que `src/ui/icons/index.jsx` existe et exporte : `ShieldCrossIcon`, `SwordIcon`, `SpeedIcon`, `SkullIcon`, `ClockIcon`, `ZoneIcon`, `StarIcon`, `RerollIcon`, `SkipIcon`, `BanishIcon`
+  - [x] Confirmer que `StatLine.jsx` ligne 17 gère `typeof icon === 'function'`
+  - [x] Confirmer que `src/style.css` définit `--rs-hp`, `--rs-orange`, `--rs-teal`, `--rs-danger`, `--rs-text-dim`
 
-- [ ] Task 2: Ajouter les imports et constantes dans `ShipSelect.jsx`
-  - [ ] Lire `src/ui/ShipSelect.jsx` en entier avant modification
-  - [ ] Ajouter l'import en tête de fichier : `import { ShieldCrossIcon, SwordIcon, SpeedIcon, SkullIcon, ClockIcon, ZoneIcon, StarIcon, RerollIcon, SkipIcon, BanishIcon } from './icons/index.jsx'`
-  - [ ] Définir `TRAIT_ICON_MAP` au niveau module (après imports, avant `ShipSelect`) — voir Dev Notes
+- [x] Task 2: Ajouter les imports et constantes dans `ShipSelect.jsx`
+  - [x] Lire `src/ui/ShipSelect.jsx` en entier avant modification
+  - [x] Ajouter l'import en tête de fichier : `import { ShieldCrossIcon, SwordIcon, SpeedIcon, SkullIcon, ClockIcon, ZoneIcon, StarIcon, RerollIcon, SkipIcon, BanishIcon } from './icons/index.jsx'`
+  - [x] Définir `TRAIT_ICON_MAP` au niveau module (après imports, avant `ShipSelect`) — voir Dev Notes
 
-- [ ] Task 3: Remplacer les 15 props `icon` des StatLine (lignes 310–401)
-  - [ ] HP ligne 314 : `icon="❤️"` → wrapper `() => <ShieldCrossIcon size={14} color="var(--rs-hp)" />`
-  - [ ] REGEN ligne 320 : `icon="🔄"` → `icon="+"`
-  - [ ] ARMOR ligne 326 : `icon="🛡️"` → `icon={ShieldCrossIcon}`
-  - [ ] DAMAGE ligne 333 : `icon="⚔️"` → wrapper `() => <SwordIcon size={14} color="var(--rs-orange)" />`
-  - [ ] ATTACK SPEED ligne 339 : `icon="⏱️"` → `icon={ClockIcon}`
-  - [ ] ZONE ligne 345 : `icon="💥"` → `icon={ZoneIcon}`
-  - [ ] SPEED ligne 350 : `icon="⚡"` → wrapper `() => <SpeedIcon size={14} color="var(--rs-teal)" />`
-  - [ ] MAGNET ligne 355 : `icon="🧲"` → `icon="·"`
-  - [ ] LUCK ligne 360 : `icon="🍀"` → `icon={StarIcon}`
-  - [ ] EXP BONUS ligne 365 : `icon="✨"` → `icon={StarIcon}`
-  - [ ] CURSE ligne 371 : `icon="☠️"` → wrapper `() => <SkullIcon size={14} color="var(--rs-danger)" />`
-  - [ ] REVIVAL ligne 378 : `icon="💚"` → `icon={ShieldCrossIcon}`
-  - [ ] REROLL ligne 384 : `icon="🎲"` → `icon={RerollIcon}`
-  - [ ] SKIP ligne 390 : `icon="⏭️"` → `icon={SkipIcon}`
-  - [ ] BANISH ligne 397 : `icon="🚫"` → `icon={BanishIcon}`
+- [x] Task 3: Remplacer les 15 props `icon` des StatLine (lignes 310–401)
+  - [x] HP ligne 314 : `icon="❤️"` → wrapper `() => <ShieldCrossIcon size={14} color="var(--rs-hp)" />`
+  - [x] REGEN ligne 320 : `icon="🔄"` → `icon="+"`
+  - [x] ARMOR ligne 326 : `icon="🛡️"` → `icon={ShieldCrossIcon}`
+  - [x] DAMAGE ligne 333 : `icon="⚔️"` → wrapper `() => <SwordIcon size={14} color="var(--rs-orange)" />`
+  - [x] ATTACK SPEED ligne 339 : `icon="⏱️"` → `icon={ClockIcon}`
+  - [x] ZONE ligne 345 : `icon="💥"` → `icon={ZoneIcon}`
+  - [x] SPEED ligne 350 : `icon="⚡"` → wrapper `() => <SpeedIcon size={14} color="var(--rs-teal)" />`
+  - [x] MAGNET ligne 355 : `icon="🧲"` → `icon="·"`
+  - [x] LUCK ligne 360 : `icon="🍀"` → `icon={StarIcon}`
+  - [x] EXP BONUS ligne 365 : `icon="✨"` → `icon={StarIcon}`
+  - [x] CURSE ligne 371 : `icon="☠️"` → wrapper `() => <SkullIcon size={14} color="var(--rs-danger)" />`
+  - [x] REVIVAL ligne 378 : `icon="💚"` → `icon={ShieldCrossIcon}`
+  - [x] REROLL ligne 384 : `icon="🎲"` → `icon={RerollIcon}`
+  - [x] SKIP ligne 390 : `icon="⏭️"` → `icon={SkipIcon}`
+  - [x] BANISH ligne 397 : `icon="🚫"` → `icon={BanishIcon}`
 
-- [ ] Task 4: Remplacer le badge `🔒` et adapter la section Traits
-  - [ ] Ligne 261 : remplacer le string `'🔒'` par le composant LOCKED text — voir Dev Notes
-  - [ ] Lignes 408–420 : remplacer `<span className="flex-shrink-0">{info.icon}</span>` par le rendu via `TRAIT_ICON_MAP` — voir Dev Notes
+- [x] Task 4: Remplacer le badge `🔒` et adapter la section Traits
+  - [x] Ligne 261 : remplacer le string `'🔒'` par le composant LOCKED text — voir Dev Notes
+  - [x] Lignes 408–420 : remplacer `<span className="flex-shrink-0">{info.icon}</span>` par le rendu via `TRAIT_ICON_MAP` — voir Dev Notes
 
-- [ ] Task 5: QA et vérification
-  - [ ] `vitest run` passe (`ShipSelect.enrichedStats.test.js` — ne teste pas les icônes)
-  - [ ] Vérifier visuellement : HP en rouge (#rs-hp), DAMAGE en orange, SPEED en teal, CURSE en rouge danger
-  - [ ] Vérifier que les 11 icônes currentColor s'affichent en couleur muted du texte
-  - [ ] Vérifier `+` et `·` pour REGEN et MAGNET — lisibles et alignés avec les autres
-  - [ ] Vérifier que le badge `LOCKED` remplace bien `🔒` sur les ships verrouillés
-  - [ ] Vérifier les traits `highRisk` (SwordIcon) et `tanky` (ShieldCrossIcon) dans la section Traits
-  - [ ] Vérifier navigation clavier, sélection ship, level-up, skin selector — comportement inchangé
+- [x] Task 5: QA et vérification
+  - [x] `vitest run` passe (`ShipSelect.enrichedStats.test.js` — ne teste pas les icônes) — 2295 tests ✅
+  - [x] Vérifier visuellement : HP en rouge (#rs-hp), DAMAGE en orange, SPEED en teal, CURSE en rouge danger
+  - [x] Vérifier que les 11 icônes currentColor s'affichent en couleur muted du texte
+  - [x] Vérifier `+` et `·` pour REGEN et MAGNET — lisibles et alignés avec les autres
+  - [x] Vérifier que le badge `LOCKED` remplace bien `🔒` sur les ships verrouillés
+  - [x] Vérifier les traits `highRisk` (SwordIcon) et `tanky` (ShieldCrossIcon) dans la section Traits
+  - [x] Vérifier navigation clavier, sélection ship, level-up, skin selector — comportement inchangé
 
 ## Dev Notes
 
@@ -279,6 +279,23 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+_No issues encountered._
+
 ### Completion Notes List
 
+- Prérequis 33.1 entièrement satisfaits : icons/index.jsx, StatLine typeof-function, CSS vars --rs-*.
+- 15 props `icon` des StatLine remplacées : 4 wrappers avec couleur explicite (HP, DAMAGE, SPEED, CURSE), 9 composants directs currentColor, 2 chaînes Unicode (REGEN `+`, MAGNET `·`).
+- Badge `🔒` remplacé par label `LOCKED` en Space Mono avec var(--rs-text-dim).
+- `TRAIT_ICON_MAP` ajouté au niveau module : highRisk → SwordIcon, tanky → ShieldCrossIcon. Les traitIds sans mapping affichent `·`.
+- `shipDefs.js` non modifié — `TRAIT_INFO.icon` conservé mais ignoré dans le rendu.
+- 2295 tests passent sans régression.
+- **Code review fix**: 4 arrow function wrappers pour icônes colorées (HP, DAMAGE, SPEED, CURSE) déplacés en constantes module-level (`HPIcon`, `DamageIcon`, `SpeedStatIcon`, `CurseIcon`) — évite la création de nouvelles instances par render et donne un displayName aux composants. `userSelect: 'none'` redondant retiré du span LOCKED (parent button a déjà `select-none`).
+
 ### File List
+
+- src/ui/ShipSelect.jsx
+
+## Change Log
+
+- 2026-02-23: Story 33.5 implémentée — suppression des emojis dans ShipSelect.jsx. Import de 10 composants SVG depuis icons/index.jsx, TRAIT_ICON_MAP module-level, 15 StatLine icons remplacées (4 wrappers couleur + 9 currentColor + 2 Unicode), badge LOCKED texte, rendu Traits via map SVG.
+- 2026-02-23: Code review — 4 icon wrappers hoistés en constantes module-level (HPIcon, DamageIcon, SpeedStatIcon, CurseIcon) ; userSelect:none redondant retiré du span LOCKED.

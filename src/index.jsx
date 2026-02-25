@@ -11,9 +11,11 @@ import { Leva } from "leva";
 // Story 21.2: Wrapper component to access game phase for cursor style
 function App() {
   const phase = useGame((s) => s.phase)
+  const isPaused = useGame((s) => s.isPaused)
 
   // Story 21.2: Hide OS cursor during gameplay/boss, show during UI phases
-  const cursorStyle = (phase === 'gameplay' || phase === 'boss') ? 'none' : 'default'
+  // Story 42.5: Also show cursor when paused (AC 2)
+  const cursorStyle = (phase === 'gameplay' || phase === 'boss') && !isPaused ? 'none' : 'default'
 
   // Also apply cursor style globally to body element (for HTML overlays)
   useEffect(() => {

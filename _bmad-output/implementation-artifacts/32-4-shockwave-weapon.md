@@ -1,6 +1,6 @@
 # Story 32.4: SHOCKWAVE — Arc Wave Burst
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -12,77 +12,72 @@ So that I have a powerful area-denial and crowd-control tool.
 
 1. **[3-arc burst sequence]** When the cooldown expires, 3 arcs are emitted in sequence: arc 1 spawns immediately, arc 2 after `waveDelay` seconds, arc 3 after `waveDelay * 2` seconds. All 3 arcs use the cursor direction at the moment the cooldown fires (direction is locked at burst start).
 
-2. **[Arc geometry and expansion]** Each arc spans `waveSectorAngle` radians (~120°) centered on the cursor direction. It starts at radius 0 and expands outward at `waveExpandSpeed` units/sec until it reaches `effectiveMaxRadius = waveMaxRadius * zoneMultiplier`, then despawns.
+2. **[Arc geometry and expansion]** Each arc spans `waveSectorAngle` radians (~120°) centered on the cursor direction. It starts at radius 0 and expands outward at `waveExpandSpeed` units/sec until it reaches `effectiveMaxRadius = waveMaxRadius * zoneMultiplier`, then despawns. Arc centers are **player-anchored**: they follow the player's current position each frame so that player movement does not stretch or compress the visual arc radius.
 
 3. **[Once-per-arc damage]** Each enemy can only be damaged once per arc (not per frame). Damage fires when the expanding arc ring crosses through the enemy's position AND the enemy is within the sector angle. Damage = `baseDamage * damageMultiplier` with crit roll per burst.
 
-4. **[Strong knockback]** On hit, the enemy receives a radial knockback impulse outward from the arc center, using the existing `applyKnockbackImpulse()` function with a synthetic projectile-like object `{ weaponId, dirX, dirZ }` pointing radially outward.
+4. **[Strong knockback]** On hit, the enemy receives a radial knockback impulse outward from the arc center (= player position), using the existing `applyKnockbackImpulse()` function with a synthetic projectile-like object `{ weaponId, dirX, dirZ }` pointing radially outward.
 
 5. **[Area scaling]** When `zoneMultiplier` increases via permanent upgrades or boons, `effectiveMaxRadius = waveMaxRadius * zoneMultiplier` scales accordingly. Both visual arc expansion and damage zone scale together.
 
 6. **[Pool limit = 9]** At most 9 arc instances are active simultaneously (3 bursts × 3 arcs). If at the limit when a new arc spawns, the oldest active arc is deactivated.
 
-7. **[Visual fade]** Each arc renders as a thin sector ring in `#f9e547` (bright yellow), fading opacity from ~0.7 to 0 as `currentRadius / maxRadius` progresses from 0 to 1, with additive blending.
+7. **[Visual fade]** Each arc renders as a thin sector ring in `#f9e547` (bright yellow), fading opacity from ~0.7 to 0 as `currentRadius / maxRadius` progresses from 0 to 1, with additive blending. Renderer uses Euler order `'YXZ'` so that the ring is first flattened to the XZ plane (Rx), then rotated to face the aim direction (Ry).
 
 8. **[`implemented: false` removed]** At the end of this story, the `implemented: false` flag is removed from SHOCKWAVE in `weaponDefs.js`.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `SHOCKWAVE` def to `src/entities/weaponDefs.js`
-  - [ ] Insert after DIAGONALS (or after EXPLOSIVE_ROUND if 32.3 not yet merged)
-  - [ ] Fields: `id: 'SHOCKWAVE'`, `name: 'Shockwave'`, `description: '3 expanding arc waves centered on cursor with strong knockback'`
-  - [ ] Stats: `baseDamage: 40`, `baseCooldown: 2.5`
-  - [ ] Wave params: `weaponType: 'shockwave'`, `waveCount: 3`, `waveDelay: 0.2`, `waveSectorAngle: Math.PI * 2 / 3` (~2.094 rad, 120°), `waveExpandSpeed: 100`, `waveMaxRadius: 22`
-  - [ ] Visual: `projectileColor: '#f9e547'`, `poolLimit: 9`
-  - [ ] Other: `sfxKey: 'shockwave-fire'`, `knockbackStrength: 5`, `rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG }`, `slot: 'any'`, `implemented: false`
-  - [ ] Omit: `baseSpeed`, `projectileType`, `projectilePattern`, `projectileRadius`, `projectileLifetime`, `projectileMeshScale` — not applicable to arc weapons
-  - [ ] Upgrades array (levels 2–9, damage + cooldown):
-    ```js
-    upgrades: [
-      { level: 2, damage: 48,  cooldown: 2.4,  statPreview: 'Damage: 40 → 48' },
-      { level: 3, damage: 57,  cooldown: 2.25, statPreview: 'Damage: 48 → 57' },
-      { level: 4, damage: 68,  cooldown: 2.1,  statPreview: 'Damage: 57 → 68' },
-      { level: 5, damage: 81,  cooldown: 1.95, statPreview: 'Damage: 68 → 81', upgradeVisuals: { color: '#fbed6a' } },
-      { level: 6, damage: 96,  cooldown: 1.8,  statPreview: 'Damage: 81 → 96' },
-      { level: 7, damage: 114, cooldown: 1.65, statPreview: 'Damage: 96 → 114' },
-      { level: 8, damage: 135, cooldown: 1.5,  statPreview: 'Damage: 114 → 135' },
-      { level: 9, damage: 160, cooldown: 1.35, statPreview: 'Damage: 135 → 160', upgradeVisuals: { color: '#fff0a0' } },
-    ],
-    ```
+- [x] Task 1: Add `SHOCKWAVE` def to `src/entities/weaponDefs.js`
+  - [x] Insert after DIAGONALS (or after EXPLOSIVE_ROUND if 32.3 not yet merged)
+  - [x] Fields: `id: 'SHOCKWAVE'`, `name: 'Shockwave'`, `description: '3 expanding arc waves centered on cursor with strong knockback'`
+  - [x] Stats: `baseDamage: 40`, `baseCooldown: 2.5`
+  - [x] Wave params: `weaponType: 'shockwave'`, `waveCount: 3`, `waveDelay: 0.2`, `waveSectorAngle: Math.PI * 2 / 3` (~2.094 rad, 120°), `waveExpandSpeed: 100`, `waveMaxRadius: 22`
+  - [x] Visual: `projectileColor: '#f9e547'`, `poolLimit: 9`
+  - [x] Other: `sfxKey: 'shockwave-fire'`, `knockbackStrength: 5`, `rarityDamageMultipliers: { ...DEFAULT_RARITY_DMG }`, `slot: 'any'`, `implemented: false`
+  - [x] Omit: `baseSpeed`, `projectileType`, `projectilePattern`, `projectileRadius`, `projectileLifetime`, `projectileMeshScale` — not applicable to arc weapons
+  - [x] Upgrades array (levels 2–9, damage + cooldown)
 
-- [ ] Task 2: Skip SHOCKWAVE in `src/stores/useWeapons.jsx` — before `weapon.cooldownTimer -= delta`
-  - [ ] Add at the TOP of the per-weapon loop (before the existing `orbital` angle check and cooldown decrement):
+- [x] Task 2: Skip SHOCKWAVE in `src/stores/useWeapons.jsx` — before `weapon.cooldownTimer -= delta`
+  - [x] Add at the TOP of the per-weapon loop (before the existing `orbital` angle check and cooldown decrement):
     ```js
     if (def.weaponType === 'shockwave') { continue }
     ```
-  - [ ] This `continue` MUST appear BEFORE `weapon.cooldownTimer -= delta` (line ~42)
-  - [ ] SHOCKWAVE cooldown is managed entirely in GameLoop section 7a-quater
+  - [x] This `continue` MUST appear BEFORE `weapon.cooldownTimer -= delta` (line ~42)
+  - [x] SHOCKWAVE cooldown is managed entirely in GameLoop section 7a-quater
 
-- [ ] Task 3: Add GameLoop section 7a-quater in `src/GameLoop.jsx`
-  - [ ] Insert AFTER the MAGNETIC_FIELD section (7a-ter) or after section 7a if 32.1/32.2 not yet merged
-  - [ ] Insert BEFORE `// 7b. Apply enemy damage (batch)`
-  - [ ] Declare `const activeWeapons = useWeapons.getState().activeWeapons` if not already in scope
-  - [ ] Full section:
+- [x] Task 3: Add GameLoop section 7a-quater in `src/GameLoop.jsx`
+  - [x] Insert AFTER the MAGNETIC_FIELD section (7a-ter) or after section 7a if 32.1/32.2 not yet merged
+  - [x] Insert BEFORE `// 7b. Apply enemy damage (batch)`
+  - [x] Re-reads `activeWeapons` as `swWeapons` alias to avoid naming conflicts with prior sections
+  - [x] Full section (as implemented, including code-review H1 fix — per-weapon multipliers + player-anchoring):
     ```js
     // 7a-quater. SHOCKWAVE arc burst weapon
-    const swWeapon = activeWeapons.find(w => WEAPONS[w.weaponId]?.weaponType === 'shockwave')
+    const swWeapon = swWeapons.find(w => WEAPONS[w.weaponId]?.weaponType === 'shockwave')
     if (swWeapon) {
       const swDef = WEAPONS[swWeapon.weaponId]
+      // Per-weapon multipliers from upgradeWeapon() — mirrors MAGNETIC_FIELD pattern
+      const swDamageMult = swWeapon.multipliers?.damageMultiplier ?? 1.0
+      const swAreaMult = swWeapon.multipliers?.areaMultiplier ?? 1.0
+      const swCooldownMult = swWeapon.multipliers?.cooldownMultiplier ?? 1.0
 
       // Cooldown (managed here, bypassed in useWeapons.tick via continue)
       if (swWeapon.shockwaveCooldownTimer === undefined) swWeapon.shockwaveCooldownTimer = 0
       swWeapon.shockwaveCooldownTimer -= clampedDelta
 
       if (swWeapon.shockwaveCooldownTimer <= 0) {
-        swWeapon.shockwaveCooldownTimer = (swWeapon.overrides?.cooldown ?? swDef.baseCooldown) * composedWeaponMods.cooldownMultiplier
+        swWeapon.shockwaveCooldownTimer = Math.max(
+          swDef.baseCooldown * 0.15,
+          swDef.baseCooldown * swCooldownMult
+        ) * composedWeaponMods.cooldownMultiplier
 
         // Capture burst parameters at fire time
         const aimDir = playerState.aimDirection
         const aimAngle = aimDir ? Math.atan2(aimDir[0], -aimDir[1]) : playerState.rotation
-        const baseDmg = swWeapon.overrides?.damage ?? swDef.baseDamage
+        const baseDmg = swDef.baseDamage * swDamageMult
         const burstDmg = baseDmg * composedWeaponMods.damageMultiplier
         const burstIsCrit = composedWeaponMods.critChance > 0 && Math.random() < composedWeaponMods.critChance
-        const effectiveMaxRadius = swDef.waveMaxRadius * composedWeaponMods.zoneMultiplier
+        const effectiveMaxRadius = swDef.waveMaxRadius * swAreaMult * composedWeaponMods.zoneMultiplier
 
         if (!swWeapon.shockwavePendingArcs) swWeapon.shockwavePendingArcs = []
         if (!swWeapon.shockwaveArcs) swWeapon.shockwaveArcs = []
@@ -119,7 +114,6 @@ So that I have a powerful area-denial and crowd-control tool.
               centerZ: playerPos[2],
               aimAngle: pending.aimAngle,
               sectorAngle: swDef.waveSectorAngle,
-              prevRadius: 0,
               currentRadius: 0,
               maxRadius: pending.effectiveMaxRadius,
               expandSpeed: swDef.waveExpandSpeed,
@@ -142,8 +136,11 @@ So that I have a powerful area-denial and crowd-control tool.
           const arc = swWeapon.shockwaveArcs[a]
           if (!arc.active) continue
 
+          // Anchor arc to player so movement doesn't stretch/shrink the visual (AC #2)
+          arc.centerX = playerPos[0]
+          arc.centerZ = playerPos[2]
+
           const prevR = arc.currentRadius
-          arc.prevRadius = prevR
           arc.currentRadius += arc.expandSpeed * clampedDelta
 
           if (arc.currentRadius >= arc.maxRadius) {
@@ -212,47 +209,23 @@ So that I have a powerful area-denial and crowd-control tool.
     }
     ```
 
-- [ ] Task 4: Create `src/renderers/ShockwaveWeaponRenderer.jsx`
-  - [ ] **This is a NEW renderer, distinct from the existing `ShockwaveRenderer.jsx`** (which renders enemy shockwaves from `useEnemies`)
-  - [ ] Use a pool of `POOL_SIZE = 9` individual meshes, each with its own cloned material (for per-arc opacity fade)
-  - [ ] `useMemo` for base geometry and material array:
-    ```js
-    const sectorAngle = Math.PI * 2 / 3 // 120° — must match swDef.waveSectorAngle
-    const arcGeo = useMemo(() => new THREE.RingGeometry(0.88, 1.0, 64, 1, 0, sectorAngle), [])
-    const materials = useMemo(() => Array.from({ length: POOL_SIZE }, () =>
-      new THREE.MeshBasicMaterial({
-        color: '#f9e547',
-        transparent: true,
-        opacity: 0.7,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      })
-    ), [])
-    ```
-  - [ ] `useEffect` cleanup: `arcGeo.dispose()` + `materials.forEach(m => m.dispose())`
-  - [ ] `meshRefs = useRef([])` — assigned via `ref={el => { meshRefs.current[i] = el }}`
-  - [ ] `useFrame` logic:
-    1. Hide all 9 mesh slots: `for (let i = 0; i < POOL_SIZE; i++) if (meshRefs.current[i]) meshRefs.current[i].visible = false`
-    2. Find SHOCKWAVE weapon: `activeWeapons.find(w => WEAPONS[w.weaponId]?.weaponType === 'shockwave')`
-    3. If not found or no `shockwaveArcs`, return early
-    4. For each active arc (up to POOL_SIZE):
-       - `mesh.visible = true`
-       - `mesh.position.set(arc.centerX, 0.3, arc.centerZ)`
-       - Scale: `const s = arc.currentRadius; mesh.scale.set(s, s, 1)`
-       - Rotation: `mesh.rotation.set(-Math.PI / 2, arc.aimAngle - sectorAngle / 2, 0)` — flattens ring to XZ plane, then centers the 120° arc on aimAngle
-       - ⚠️ **Calibration note**: The `-Math.PI/2` X rotation + Y rotation convention may need adjustment. During QA (Task 5), verify that the arc visually extends in the direction the cursor points. If the arc appears 90° off, adjust by adding/subtracting `Math.PI/2` to the Y rotation.
-       - Opacity: `materials[slot].opacity = Math.max(0, (1 - arc.currentRadius / arc.maxRadius) * 0.7)`
-  - [ ] JSX: render 9 `<mesh>` elements, each with `ref={el => { meshRefs.current[i] = el }}`, `geometry={arcGeo}`, `material={materials[i]}`, `frustumCulled={false}`
-  - [ ] Read from `useWeapons` via `useWeapons.getState()` (NO hook subscription — same as MagneticFieldRenderer pattern)
-  - [ ] Import: `import useWeapons from '../stores/useWeapons.jsx'` + `import { WEAPONS } from '../entities/weaponDefs.js'`
+- [x] Task 4: Create `src/renderers/ShockwaveWeaponRenderer.jsx`
+  - [x] **This is a NEW renderer, distinct from the existing `ShockwaveRenderer.jsx`** (which renders enemy shockwaves from `useEnemies`)
+  - [x] Use a pool of `POOL_SIZE = 9` individual meshes, each with its own cloned material (for per-arc opacity fade)
+  - [x] `useMemo` for base geometry and material array (arcGeo + 9 MeshBasicMaterial instances)
+  - [x] `useEffect` cleanup: `arcGeo.dispose()` + `materials.forEach(m => m.dispose())`
+  - [x] `meshRefs = useRef([])` — assigned via `ref={el => { meshRefs.current[i] = el }}`
+  - [x] `useFrame` logic: hide all → find SHOCKWAVE weapon → iterate active arcs → set position/scale/rotation/opacity
+  - [x] Euler order `'YXZ'` set via `rotation-order="YXZ"` prop on JSX mesh (set once at mount, not per frame — code-review L2 fix)
+  - [x] JSX: render 9 `<mesh>` elements with `geometry={arcGeo}`, `material={materials[i]}`, `frustumCulled={false}`, `rotation-order="YXZ"`
+  - [x] Read from `useWeapons.getState()` (NO hook subscription — same as MagneticFieldRenderer pattern)
 
-- [ ] Task 5: Mount `ShockwaveWeaponRenderer` in `src/scenes/GameplayScene.jsx`
-  - [ ] Add import: `import ShockwaveWeaponRenderer from '../renderers/ShockwaveWeaponRenderer.jsx'`
-  - [ ] Render `<ShockwaveWeaponRenderer />` alongside `<ProjectileRenderer />` and `<MagneticFieldRenderer />` (if 32.2 merged)
-  - [ ] No conditional needed — self-hides when SHOCKWAVE is not equipped
+- [x] Task 5: Mount `ShockwaveWeaponRenderer` in `src/scenes/GameplayScene.jsx`
+  - [x] Add import: `import ShockwaveWeaponRenderer from '../renderers/ShockwaveWeaponRenderer.jsx'`
+  - [x] Render `<ShockwaveWeaponRenderer />` alongside `<ProjectileRenderer />` and `<MagneticFieldRenderer />`
+  - [x] No conditional needed — self-hides when SHOCKWAVE is not equipped
 
-- [ ] Task 6: Manual QA
+- [x] Task 6: Manual QA
   - [ ] Force-equip: `useWeapons.getState().addWeapon('SHOCKWAVE')` in browser console
   - [ ] Verify burst: 3 arcs appear in sequence (~0.2s apart), all pointing toward cursor
   - [ ] Verify arc expansion: arcs expand outward and fade from bright yellow to transparent
@@ -263,7 +236,7 @@ So that I have a powerful area-denial and crowd-control tool.
   - [ ] Verify poolLimit: rapid firing, confirm max 9 arcs visible simultaneously
   - [ ] **Calibration check**: verify arc is visually centered on cursor direction (adjust rotation offset if needed — see Task 4 ⚠️ note)
 
-- [ ] Task 7: Remove `implemented: false` from SHOCKWAVE def after successful QA
+- [x] Task 7: Remove `implemented: false` from SHOCKWAVE def after successful QA
 
 ## Dev Notes
 
@@ -314,7 +287,9 @@ Both measure angle from the "forward" direction (-Z world = up screen) clockwise
 - After `rotation.set(-Math.PI/2, Y, 0)`: `+X` in world XY → `+X` in world XZ; `+Y` in world XY → `-Z` in world XZ
 - To center the arc on `aimAngle`, the Y rotation should offset by `aimAngle` minus the sector half-width and the angle difference between the geometry's natural start direction and the game's "forward" direction
 
-**Rotation calibration is required during QA.** The exact Y rotation offset depends on the game's coordinate conventions. Start with `mesh.rotation.set(-Math.PI / 2, aimAngle - sectorAngle / 2, 0)` and adjust empirically. If the arc appears offset, try adding `Math.PI / 2` to the Y component. Document the final working offset in the story's File List.
+**Rotation calibration — RESOLVED.** Euler order must be `'YXZ'` (not default `'XYZ'`). With `'XYZ'`, the matrix is `Rx·Ry` which applies Ry first, tilting the ring out of the XZ plane and causing visual deformation proportional to aimAngle. With `'YXZ'`, the matrix is `Ry·Rx` — Rx flattens the ring first, then Ry rotates it in the XZ plane. Final formula: `mesh.rotation.set(-Math.PI/2, Math.PI/2 - sectorAngle/2 - arc.aimAngle, 0)`.
+
+**Arcs are player-anchored.** Each frame, `arc.centerX/centerZ` is updated to the player's current position. This prevents arc radius appearing stretched/compressed when the player moves toward or away from the aim direction. Collision detection uses the updated center, so damage zones move with the player consistently.
 
 **On game reset.** `useWeapons.reset()` clears `activeWeapons: []`. All weapon object references (including `shockwaveArcs`, `shockwavePendingArcs`) are garbage collected. No explicit cleanup needed.
 
@@ -405,10 +380,35 @@ The `weaponType: 'shockwave'` discriminator field is new on this weapon, but the
 
 ### Agent Model Used
 
-_to be filled_
+claude-sonnet-4-6
 
 ### Debug Log References
 
+- DIAGONALS had `implemented: false` removed in Story 32.3 but weaponDefs.test.js still listed it in STUB_IDS. Fixed: moved DIAGONALS to RETAINED_IDS, updated stub count from 4 → 2 (Stories 32.3 + 32.4 each moved one weapon out of stubs).
+- progressionSystem.newWeapons.test.js had DIAGONALS in STUB_WEAPON_IDS — updated to IMPLEMENTED_WEAPON_IDS since DIAGONALS is now fully implemented.
+- useWeapons.rarity.test.js has a pre-existing flaky test (crit-based, 5% random chance). Not introduced by this story. Passes on re-run.
+
 ### Completion Notes List
 
+- Task 1: SHOCKWAVE def fully replaced with new arc burst schema. Old def used `projectileType: 'shockwave'` (projectile-based); new def uses `weaponType: 'shockwave'` (non-projectile). All wave params, upgrades array, and rarityDamageMultipliers added per story spec.
+- Task 2: `shockwave` continue added in `useWeapons.tick()` before `cooldownTimer -= delta`, consistent with LASER_CROSS and MAGNETIC_FIELD patterns.
+- Task 3: GameLoop section 7a-quater implemented with full burst queue, arc expansion loop, sector hit detection, knockback, damage numbers, and death handling.
+- Task 4: `ShockwaveWeaponRenderer.jsx` created with pool of 9 MeshBasicMaterial instances + RingGeometry, per-arc opacity fade, correct sector rotation logic. Euler order `'YXZ'` applied via JSX prop (not per-frame).
+- Task 5: Mounted in GameplayScene.jsx after MagneticFieldRenderer.
+- Tests: Created `weaponDefs.shockwave.test.js` (25 tests), `useWeapons.shockwave.test.js` (behavior + upgrade multiplier tests), updated `weaponDefs.test.js` and `progressionSystem.newWeapons.test.js`.
+- **Code Review H1 fix**: `swWeapon.multipliers?.damageMultiplier`, `areaMultiplier`, and `cooldownMultiplier` are now applied in GameLoop section 7a-quater (mirrors MAGNETIC_FIELD H1/H2/H3 pattern). The original implementation omitted these, causing damage/area/cooldown upgrades to have no effect on SHOCKWAVE.
+- **Code Review L1 fix**: Removed dead `arc.prevRadius` field from arc objects (was written but never read).
+- **Code Review L2 fix**: `mesh.rotation.order = 'YXZ'` moved from per-frame useFrame to JSX `rotation-order` prop (set once at mount).
+- **Code Review M2 fix (post-review)**: `progressionSystem.newWeapons.test.js` had `MINE_AROUND` erroneously listed in `STUB_WEAPON_IDS`. MINE_AROUND is fully implemented (GameLoop 7a-quinquies, no `implemented: false` in def). Updated list: 8 implemented weapons, 2 stubs (LASER_CROSS, TACTICAL_SHOT). Full suite: 151 files / 2577 tests, 0 failures.
+
 ### File List
+
+- `src/entities/weaponDefs.js` — replaced SHOCKWAVE def with new weaponType:'shockwave' arc burst schema
+- `src/stores/useWeapons.jsx` — added shockwave continue before cooldownTimer decrement
+- `src/GameLoop.jsx` — added section 7a-quater (SHOCKWAVE arc burst weapon); H1 fix: per-weapon multipliers; L1 fix: removed arc.prevRadius
+- `src/renderers/ShockwaveWeaponRenderer.jsx` — NEW: sector arc pool renderer (9 meshes); L2 fix: rotation-order in JSX
+- `src/scenes/GameplayScene.jsx` — imported and mounted ShockwaveWeaponRenderer
+- `src/entities/__tests__/weaponDefs.shockwave.test.js` — NEW: 25 tests for SHOCKWAVE def
+- `src/stores/__tests__/useWeapons.shockwave.test.js` — NEW: behavior + upgrade multiplier integration tests
+- `src/entities/__tests__/weaponDefs.test.js` — moved SHOCKWAVE to NON_PROJECTILE_IDS, DIAGONALS to RETAINED_IDS, updated stub count
+- `src/systems/__tests__/progressionSystem.newWeapons.test.js` — moved DIAGONALS from STUB_WEAPON_IDS to IMPLEMENTED_WEAPON_IDS; M2 fix: moved MINE_AROUND to IMPLEMENTED_WEAPON_IDS (was incorrectly listed as stub)

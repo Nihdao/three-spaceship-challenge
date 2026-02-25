@@ -1,12 +1,89 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { FragmentIcon } from './icons/index.jsx'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { playSFX } from '../audio/audioManager.js'
 import { saveGameState } from '../utils/saveGame.js'
-import { UPGRADES } from '../entities/upgradeDefs.js'
 import { DILEMMAS } from '../entities/dilemmaDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+
+// ─── styles ─────────────────────────────────────────────────────────────────
+
+const S = {
+  panel: {
+    background: 'var(--rs-bg-surface)',
+    borderLeft: '1px solid var(--rs-border)',
+  },
+  title: {
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: 'clamp(18px, 2vw, 28px)',
+    letterSpacing: '0.2em',
+    color: 'var(--rs-text)',
+    margin: 0,
+    lineHeight: 1,
+    textAlign: 'center',
+    userSelect: 'none',
+  },
+  titleAccent: {
+    width: '32px',
+    height: '2px',
+    background: 'var(--rs-orange)',
+    margin: '6px auto 8px',
+  },
+  systemLabel: {
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.65rem',
+    letterSpacing: '0.1em',
+    color: 'var(--rs-text-muted)',
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    marginBottom: 8,
+    userSelect: 'none',
+  },
+  fragLabel: {
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.65rem',
+    letterSpacing: '0.1em',
+    color: 'var(--rs-text-muted)',
+    textTransform: 'uppercase',
+  },
+  dilemmaCard: {
+    border: '1px solid var(--rs-border-hot)',
+    clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
+    padding: 12,
+    background: 'rgba(255,79,31,0.05)',
+  },
+  emptyCard: {
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    padding: '12px',
+    fontFamily: "'Space Mono', monospace",
+    color: 'var(--rs-text-muted)',
+    fontSize: '0.75rem',
+    textAlign: 'center',
+    userSelect: 'none',
+  },
+  btnBase: {
+    background: 'transparent',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    cursor: 'pointer',
+    outline: 'none',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    userSelect: 'none',
+  },
+}
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+const WarningIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"
+    style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }}>
+    <path d="M6 1.5L11 10.5H1L6 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+  </svg>
+)
+
+// ─── exports ─────────────────────────────────────────────────────────────────
 
 export function computeCanEnterSystem(currentDilemma, dilemmaResolved) {
   return !currentDilemma || dilemmaResolved
@@ -14,14 +91,12 @@ export function computeCanEnterSystem(currentDilemma, dilemmaResolved) {
 
 export default function TunnelHub() {
   const fragments = usePlayer((s) => s.fragments)
-  const permanentUpgrades = usePlayer((s) => s.permanentUpgrades)
   const acceptedDilemmas = usePlayer((s) => s.acceptedDilemmas)
   const currentSystem = useLevel((s) => s.currentSystem)
   const fadingRef = useRef(false)
   const timersRef = useRef([])
 
-  // Track purchase flash and dilemma resolution animations
-  const [purchasedId, setPurchasedId] = useState(null)
+  // Track dilemma resolution animation
   const [dilemmaResolved, setDilemmaResolved] = useState(false)
 
   // Cleanup all timers on unmount
@@ -47,15 +122,6 @@ export default function TunnelHub() {
     saveGameState()
   }, [])
 
-  // Available upgrades: not purchased, prerequisite met
-  const availableUpgrades = useMemo(() => {
-    return Object.values(UPGRADES).filter((upgrade) => {
-      if (permanentUpgrades[upgrade.id]) return false
-      if (upgrade.prerequisite && !permanentUpgrades[upgrade.prerequisite]) return false
-      return true
-    })
-  }, [permanentUpgrades])
-
   const safeTimeout = useCallback((fn, ms) => {
     const id = setTimeout(() => {
       timersRef.current = timersRef.current.filter(t => t !== id)
@@ -64,19 +130,6 @@ export default function TunnelHub() {
     timersRef.current.push(id)
     return id
   }, [])
-
-  const handlePurchaseUpgrade = useCallback((upgradeId) => {
-    const upgrade = UPGRADES[upgradeId]
-    if (!upgrade) return
-    if (usePlayer.getState().fragments < upgrade.fragmentCost) return
-
-    const success = usePlayer.getState().applyPermanentUpgrade(upgradeId)
-    if (success) {
-      playSFX('upgrade-purchase')
-      setPurchasedId(upgradeId)
-      safeTimeout(() => setPurchasedId(null), 400)
-    }
-  }, [safeTimeout])
 
   const handleAcceptDilemma = useCallback((dilemmaId) => {
     const success = usePlayer.getState().acceptDilemma(dilemmaId)
@@ -137,12 +190,6 @@ export default function TunnelHub() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (fadingRef.current) return
-      // Number keys 1-5 for upgrades
-      const num = parseInt(e.key, 10)
-      if (num >= 1 && num <= 5 && num <= availableUpgrades.length) {
-        handlePurchaseUpgrade(availableUpgrades[num - 1].id)
-        return
-      }
       // Y/A for accept dilemma
       if ((e.key === 'y' || e.key === 'Y' || e.key === 'a' || e.key === 'A') && currentDilemma && !dilemmaResolved) {
         handleAcceptDilemma(currentDilemma.id)
@@ -160,29 +207,27 @@ export default function TunnelHub() {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [availableUpgrades, currentDilemma, dilemmaResolved, handlePurchaseUpgrade, handleAcceptDilemma, handleRefuseDilemma, handleEnterSystem])
+  }, [currentDilemma, dilemmaResolved, handleAcceptDilemma, handleRefuseDilemma, handleEnterSystem])
 
   return (
     <>
       <div
-        className={`fixed inset-0 z-50 flex font-game animate-fade-in${exitAnimationActive ? ' tunnel-exit-fade' : ''}`}
+        className={`fixed inset-0 z-50 flex animate-fade-in${exitAnimationActive ? ' tunnel-exit-fade' : ''}`}
+        style={{ fontFamily: "'Rajdhani', sans-serif" }}
         onAnimationEnd={exitAnimationActive ? handleExitAnimationEnd : undefined}
       >
         {/* Left — transparent for 3D */}
         <div className="w-2/3" />
 
-        {/* Right — dark panel */}
-        <div className="w-1/3 bg-[#0a0a0f]/90 border-l border-game-border flex flex-col p-5 overflow-y-auto">
+        {/* Right — Redshift panel */}
+        <div className="w-1/3 flex flex-col p-5 overflow-y-auto" style={S.panel}>
+
           {/* Header */}
-          <h1
-            className="text-game-text font-bold tracking-[0.2em] select-none text-center mb-2"
-            style={{ fontSize: 'clamp(18px, 2vw, 28px)' }}
-          >
-            WORMHOLE TUNNEL
-          </h1>
+          <h1 style={S.title}>WORMHOLE TUNNEL</h1>
+          <div style={S.titleAccent} />
 
           {/* System info */}
-          <div className="text-game-text-muted text-xs tracking-widest text-center mb-2 select-none">
+          <div style={S.systemLabel}>
             ENTERING SYSTEM {currentSystem + 1}
           </div>
 
@@ -191,40 +236,72 @@ export default function TunnelHub() {
             className="flex items-center justify-center gap-2 mb-4 select-none"
             style={{ fontSize: 'clamp(16px, 1.8vw, 24px)' }}
           >
-            <span className="text-[#cc66ff]">&#9670;</span>
-            <span className="text-game-text font-semibold tabular-nums">{fragments}</span>
-            <span className="text-game-text-muted text-xs tracking-widest">FRAGMENTS</span>
+            <FragmentIcon size={14} color="var(--rs-violet)" />
+            <span className="tabular-nums" style={{ color: 'var(--rs-text)', fontWeight: 600 }}>{fragments}</span>
+            <span style={S.fragLabel}>FRAGMENTS</span>
           </div>
 
-          {/* Dilemma section — prominent */}
-          <div className="mb-4" role="region" aria-label="Dilemma">
-            <h2 className="text-[#ff9944] text-sm font-bold tracking-[0.3em] mb-2 select-none text-center">&#9888; DILEMMA</h2>
+          {/* Spacer top — pushes dilemma to vertical center */}
+          <div className="flex-1" />
+
+          {/* Dilemma section — centered */}
+          <div role="region" aria-label="Dilemma">
+            <h2
+              className="mb-2 select-none text-center"
+              style={{ color: 'var(--rs-orange)', fontFamily: "'Space Mono', monospace", fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.3em' }}
+            >
+              <WarningIcon /> DILEMMA
+            </h2>
             {!currentDilemma || dilemmaResolved ? (
-              <div className="border border-game-border rounded p-3 text-game-text-muted text-xs text-center select-none">
+              <div style={S.emptyCard}>
                 {dilemmaResolved ? 'Dilemma resolved' : 'No dilemma available'}
               </div>
             ) : (
-              <div className="border-2 border-[#ff9944]/60 rounded-lg p-3 bg-[#ff9944]/5 transition-all duration-300">
-                <div className="text-game-text text-sm font-bold mb-1.5 select-none text-center">{currentDilemma.name}</div>
-                <div className="text-game-text text-xs text-center mb-2.5 select-none leading-relaxed">
+              <div style={S.dilemmaCard}>
+                <div className="text-sm font-bold mb-1.5 select-none text-center" style={{ color: 'var(--rs-text)' }}>{currentDilemma.name}</div>
+                <div className="text-xs text-center mb-2.5 select-none leading-relaxed" style={{ color: 'var(--rs-text)' }}>
                   {currentDilemma.description}
                 </div>
                 <div className="flex gap-2">
+                  {/* Accept button */}
                   <button
-                    className="flex-1 py-1.5 text-xs font-semibold tracking-wider border-2 border-game-success/50 rounded
-                      text-game-success hover:bg-game-success/10 hover:border-game-success transition-all duration-150
-                      cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-game-success"
+                    className="flex-1 py-1.5 text-xs font-semibold tracking-wider select-none"
+                    style={{
+                      ...S.btnBase,
+                      border: '1px solid var(--rs-success)',
+                      color: 'var(--rs-success)',
+                    }}
                     onClick={() => handleAcceptDilemma(currentDilemma.id)}
-                    onMouseEnter={() => playSFX('button-hover')}
+                    onMouseEnter={(e) => {
+                      playSFX('button-hover')
+                      e.currentTarget.style.borderColor = 'var(--rs-success)'
+                      e.currentTarget.style.transform = 'translateX(4px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--rs-success)'
+                      e.currentTarget.style.transform = 'translateX(0)'
+                    }}
                   >
                     [Y] Accept
                   </button>
+                  {/* Refuse button */}
                   <button
-                    className="flex-1 py-1.5 text-xs font-semibold tracking-wider border-2 border-game-danger/50 rounded
-                      text-game-danger hover:bg-game-danger/10 hover:border-game-danger transition-all duration-150
-                      cursor-pointer select-none outline-none focus-visible:ring-2 focus-visible:ring-game-danger"
+                    className="flex-1 py-1.5 text-xs font-semibold tracking-wider select-none"
+                    style={{
+                      ...S.btnBase,
+                      border: '1px solid var(--rs-danger)',
+                      color: 'var(--rs-danger)',
+                    }}
                     onClick={handleRefuseDilemma}
-                    onMouseEnter={() => playSFX('button-hover')}
+                    onMouseEnter={(e) => {
+                      playSFX('button-hover')
+                      e.currentTarget.style.borderColor = 'var(--rs-danger)'
+                      e.currentTarget.style.transform = 'translateX(4px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--rs-danger)'
+                      e.currentTarget.style.transform = 'translateX(0)'
+                    }}
                   >
                     [N] Refuse
                   </button>
@@ -233,71 +310,42 @@ export default function TunnelHub() {
             )}
           </div>
 
-          {/* Upgrades section */}
-          <div className="mb-3" role="region" aria-label="Upgrades">
-            <h2 className="text-game-text-muted text-xs tracking-[0.3em] mb-1.5 select-none">UPGRADES</h2>
-            {availableUpgrades.length === 0 ? (
-              <div className="border border-game-border rounded p-2 text-game-text-muted text-xs text-center select-none">
-                All upgrades purchased
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-1.5">
-                {availableUpgrades.slice(0, 5).map((upgrade, index) => {
-                  const canAfford = fragments >= upgrade.fragmentCost
-                  const justPurchased = purchasedId === upgrade.id
-                  return (
-                    <button
-                      key={upgrade.id}
-                      className={`text-left border rounded p-2 transition-all duration-150 select-none outline-none
-                        ${justPurchased
-                          ? 'border-game-success bg-game-success/20 scale-[1.02]'
-                          : canAfford
-                            ? 'border-game-border hover:border-game-accent hover:bg-game-accent/10 cursor-pointer focus-visible:ring-2 focus-visible:ring-game-accent'
-                            : 'border-game-border/50 opacity-50 cursor-not-allowed'
-                        }`}
-                      onClick={() => canAfford && handlePurchaseUpgrade(upgrade.id)}
-                      onMouseEnter={() => canAfford && playSFX('button-hover')}
-                      disabled={!canAfford}
-                      tabIndex={canAfford ? 0 : -1}
-                    >
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-game-text text-xs font-semibold truncate">{upgrade.name}</span>
-                        <span className={`text-xs tabular-nums ml-1 shrink-0 ${canAfford ? 'text-[#cc66ff]' : 'text-game-text-muted'}`}>
-                          {upgrade.fragmentCost}&#9670;
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-game-text-muted text-xs truncate">{upgrade.description}</span>
-                        <span className="text-game-text-muted text-xs ml-1 shrink-0">[{index + 1}]</span>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Spacer */}
+          {/* Spacer bottom */}
           <div className="flex-1" />
 
           {/* Enter System button */}
           <div>
             <button
-              className={`w-full py-3 font-semibold tracking-[0.2em] border border-game-border rounded
-                transition-all duration-300 select-none outline-none
-                ${canEnterSystem
-                  ? 'cursor-pointer text-game-text hover:border-game-accent hover:scale-[1.02] hover:bg-game-accent/10 focus-visible:ring-2 focus-visible:ring-game-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0f]'
-                  : 'opacity-50 cursor-not-allowed'
-                }`}
-              style={{ fontSize: 'clamp(14px, 1.5vw, 20px)' }}
+              className="w-full select-none"
+              style={{
+                ...S.btnBase,
+                padding: '12px 0',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 'clamp(12px, 1.5vw, 16px)',
+                letterSpacing: '0.2em',
+                border: canEnterSystem ? '1px solid var(--rs-teal)' : '1px solid var(--rs-border)',
+                color: canEnterSystem ? 'var(--rs-teal)' : 'var(--rs-text-muted)',
+                opacity: canEnterSystem ? 1 : 0.5,
+                cursor: canEnterSystem ? 'pointer' : 'not-allowed',
+              }}
               onClick={handleEnterSystem}
-              onMouseEnter={() => canEnterSystem && playSFX('button-hover')}
+              onMouseEnter={(e) => {
+                if (!canEnterSystem) return
+                playSFX('button-hover')
+                e.currentTarget.style.borderColor = 'var(--rs-teal)'
+                e.currentTarget.style.transform = 'translateX(4px)'
+              }}
+              onMouseLeave={(e) => {
+                if (!canEnterSystem) return
+                e.currentTarget.style.borderColor = 'var(--rs-teal)'
+                e.currentTarget.style.transform = 'translateX(0)'
+              }}
               disabled={!canEnterSystem}
             >
               ENTER SYSTEM &rarr;
             </button>
             {!canEnterSystem && (
-              <p className="text-game-text-muted text-xs text-center mt-1.5 select-none">
+              <p className="text-xs text-center mt-1.5 select-none" style={{ color: 'var(--rs-text-muted)' }}>
                 Resolve the dilemma first
               </p>
             )}

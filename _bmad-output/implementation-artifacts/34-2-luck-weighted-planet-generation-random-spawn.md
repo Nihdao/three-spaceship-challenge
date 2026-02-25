@@ -1,6 +1,6 @@
 # Story 34.2: Luck-Weighted Planet Generation & Random Player Spawn
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -28,43 +28,43 @@ so that every run feels different and investing in luck is visually rewarding.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Rewrite `initializePlanets()` in `useLevel.jsx` (AC: #1, #2, #3, #8)
-  - [ ] 1.1 Change signature to `initializePlanets(galaxyConfig, luckValue = 0)`
-  - [ ] 1.2 Implement luck-weighted type distribution (see Dev Notes for full algorithm)
-  - [ ] 1.3 Generate exactly `galaxyConfig.planetCount` planets (15 for Andromeda)
-  - [ ] 1.4 Remove `GAME_CONFIG.PLANET_COUNT_SILVER/GOLD/PLATINUM` usage — keep spatial constraint constants
+- [x] Task 1 — Rewrite `initializePlanets()` in `useLevel.jsx` (AC: #1, #2, #3, #8)
+  - [x] 1.1 Change signature to `initializePlanets(galaxyConfig, luckValue = 0)`
+  - [x] 1.2 Implement luck-weighted type distribution (see Dev Notes for full algorithm)
+  - [x] 1.3 Generate exactly `galaxyConfig.planetCount` planets (15 for Andromeda)
+  - [x] 1.4 Remove `GAME_CONFIG.PLANET_COUNT_SILVER/GOLD/PLATINUM` usage — keep spatial constraint constants
 
-- [ ] Task 2 — Randomize player spawn in `usePlayer.jsx` (AC: #4, #5, #6)
-  - [ ] 2.1 In `reset()`: replace `position: [0, 0, 0]` with random spawn in `[-1200, +1200]`
-  - [ ] 2.2 In `resetForNewSystem()`: replace `position: [0, 0, 0]` with random spawn in `[-1200, +1200]`
+- [x] Task 2 — Randomize player spawn in `usePlayer.jsx` (AC: #4, #5, #6)
+  - [x] 2.1 In `reset()`: replace `position: [0, 0, 0]` with random spawn in `[-1200, +1200]`
+  - [x] 2.2 In `resetForNewSystem()`: replace `position: [0, 0, 0]` with random spawn in `[-1200, +1200]`
 
-- [ ] Task 3 — Update GameLoop.jsx calls to `initializePlanets()` (AC: #7)
-  - [ ] 3.1 Ensure `getGalaxyById` is imported in `GameLoop.jsx`
-  - [ ] 3.2 At line ~141 (tunnel→gameplay): pass `(getGalaxyById(useGame.getState().selectedGalaxyId), usePlayer.getState().getLuckStat())`
-  - [ ] 3.3 At line ~162 (new game start): same replacement
+- [x] Task 3 — Update GameLoop.jsx calls to `initializePlanets()` (AC: #7)
+  - [x] 3.1 Ensure `getGalaxyById` is imported in `GameLoop.jsx`
+  - [x] 3.2 At line ~141 (tunnel→gameplay): pass `(getGalaxyById(useGame.getState().selectedGalaxyId), usePlayer.getState().getLuckStat())`
+  - [x] 3.3 At line ~162 (new game start): same replacement
 
-- [ ] Task 4 — Rewrite `useLevel.planets.test.js` (AC: #1, #2, #3)
-  - [ ] 4.1 Define `MOCK_GALAXY_CONFIG` fixture matching Andromeda Reach
-  - [ ] 4.2 Update total count test: 15 planets
-  - [ ] 4.3 Add test: all planet typeIds are PLANET_CINDER / PLANET_PULSE / PLANET_VOID
-  - [ ] 4.4 Keep spatial constraint tests — update call signature
-  - [ ] 4.5 Add luck distribution test: run 50 iterations at luck=0 vs luck=8, compare PULSE+VOID averages
+- [x] Task 4 — Rewrite `useLevel.planets.test.js` (AC: #1, #2, #3)
+  - [x] 4.1 Define `MOCK_GALAXY_CONFIG` fixture matching Andromeda Reach
+  - [x] 4.2 Update total count test: 15 planets
+  - [x] 4.3 Add test: all planet typeIds are PLANET_CINDER / PLANET_PULSE / PLANET_VOID
+  - [x] 4.4 Keep spatial constraint tests — update call signature
+  - [x] 4.5 Add luck distribution test: run 50 iterations at luck=0 vs luck=8, compare PULSE+VOID averages
 
-- [ ] Task 5 — Update all other test files calling `initializePlanets()` (AC: #7)
-  - [ ] 5.1 `resetFlow.test.js` lines 22, 51: add `MOCK_GALAXY_CONFIG` and pass to calls
-  - [ ] 5.2 `runContinuity.test.js` line 44: same
-  - [ ] 5.3 `useLevel.systemTransition.test.js` lines 33, 136, 150, 242: same
+- [x] Task 5 — Update all other test files calling `initializePlanets()` (AC: #7)
+  - [x] 5.1 `resetFlow.test.js` lines 22, 51: add `MOCK_GALAXY_CONFIG` and pass to calls
+  - [x] 5.2 `runContinuity.test.js` line 44: same
+  - [x] 5.3 `useLevel.systemTransition.test.js` lines 33, 136, 150, 242: same
 
-- [ ] Task 6 — Update `usePlayer.systemTransition.test.js` position assertions (AC: #5, #6)
-  - [ ] 6.1 Find all tests that assert `position: [0, 0, 0]` after `resetForNewSystem()` and update them to assert within-bounds instead
+- [x] Task 6 — Update `usePlayer.systemTransition.test.js` position assertions (AC: #5, #6)
+  - [x] 6.1 Find all tests that assert `position: [0, 0, 0]` after `resetForNewSystem()` and update them to assert within-bounds instead
 
-- [ ] Task 7 — Add player spawn tests (AC: #4, #5, #6)
-  - [ ] 7.1 Add to appropriate test file: `reset()` sets position within `[-1200, 1200]` range
-  - [ ] 7.2 Add: `reset()` does not always spawn at `[0, 0, 0]` (10 iterations check)
-  - [ ] 7.3 Add: `resetForNewSystem()` sets position within `[-1200, 1200]` range
+- [x] Task 7 — Add player spawn tests (AC: #4, #5, #6)
+  - [x] 7.1 Add to appropriate test file: `reset()` sets position within `[-1200, 1200]` range
+  - [x] 7.2 Add: `reset()` does not always spawn at `[0, 0, 0]` (10 iterations check)
+  - [x] 7.3 Add: `resetForNewSystem()` sets position within `[-1200, 1200]` range
 
-- [ ] Task 8 — Run all tests and verify (AC: all)
-  - [ ] 8.1 `npx vitest run` — all tests must pass
+- [x] Task 8 — Run all tests and verify (AC: all)
+  - [x] 8.1 `npx vitest run` — all tests must pass (66/66 in modified files; pre-existing failures unrelated to this story)
 
 ## Dev Notes
 
@@ -428,6 +428,31 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+None.
+
 ### Completion Notes List
 
+- Task 1: Rewrote `initializePlanets()` in `useLevel.jsx` with new `(galaxyConfig, luckValue = 0)` signature. Luck-weighted per-planet roll replaces old static tier counts. `PLANET_COUNT_SILVER/GOLD/PLATINUM` no longer used in the function.
+- Task 2: Randomized player spawn in both `reset()` and `resetForNewSystem()` using `(Math.random() * 2 - 1) * 1200` for x and z. Y remains 0.
+- Task 3: Added `getGalaxyById` import to `GameLoop.jsx`. Both `initializePlanets()` call sites now pass `galaxyConfig` + `luckValue`, with null-safety guard.
+- Tasks 4–7: Full test rewrite for `useLevel.planets.test.js`; MOCK_GALAXY_CONFIG added to `resetFlow`, `runContinuity`, `useLevel.systemTransition` tests; position assertions in `usePlayer.systemTransition` and `runContinuity` updated to within-bounds; new spawn describe block added.
+- Task 8: 66/66 tests pass in all modified files. Pre-existing failures in `weaponDefs`, `Armory`, `MainMenu`, `progressionSystem` files are from Story 31.1 (in review), unrelated to this story.
+
 ### File List
+
+- src/stores/useLevel.jsx
+- src/stores/usePlayer.jsx
+- src/GameLoop.jsx
+- src/stores/__tests__/useLevel.planets.test.js
+- src/stores/__tests__/resetFlow.test.js
+- src/stores/__tests__/runContinuity.test.js
+- src/stores/__tests__/useLevel.systemTransition.test.js
+- src/stores/__tests__/usePlayer.systemTransition.test.js
+- _bmad-output/implementation-artifacts/34-2-luck-weighted-planet-generation-random-spawn.md
+- _bmad-output/implementation-artifacts/sprint-status.yaml
+
+### Review Fixes Applied
+
+- **[MEDIUM] useLevel.planets.test.js**: Added missing `'no two planets closer than PLANET_MIN_DISTANCE_BETWEEN'` test (Task 4.4 gap — spatial constraint was untested)
+- **[MEDIUM] useLevel.planets.test.js**: Increased luck distribution test from 50 to 200 runs to reduce CI flakiness (P(fail) < 0.0001%)
+- **[MEDIUM] useLevel.jsx**: Added `totalWeight=0` guard with fallback to base weights + `console.warn` (was silently producing all PLANET_VOID)

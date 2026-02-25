@@ -284,6 +284,8 @@ describe('usePlayer — organic movement (Story 14.2)', () => {
     it('produces similar results at 60fps and 30fps', () => {
       // Run at 60 FPS for 1 second
       usePlayer.getState().reset()
+      // Story 34.2: reset() uses random spawn — normalize to origin for deterministic comparison
+      usePlayer.setState({ position: [0, 0, 0], velocity: [0, 0, 0] })
       for (let i = 0; i < 60; i++) {
         usePlayer.getState().tick(1 / 60, moveRight)
       }
@@ -292,6 +294,8 @@ describe('usePlayer — organic movement (Story 14.2)', () => {
 
       // Run at 30 FPS for 1 second
       usePlayer.getState().reset()
+      // Story 34.2: normalize to origin for deterministic comparison
+      usePlayer.setState({ position: [0, 0, 0], velocity: [0, 0, 0] })
       for (let i = 0; i < 30; i++) {
         usePlayer.getState().tick(1 / 30, moveRight)
       }

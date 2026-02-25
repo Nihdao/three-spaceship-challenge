@@ -50,6 +50,9 @@ export function createProjectileSystem() {
         }
       }
 
+      // Store previous position for swept collision detection (anti-tunneling)
+      p.prevX = p.x
+      p.prevZ = p.z
       p.x += p.dirX * p.speed * delta
       p.z += p.dirZ * p.speed * delta
       p.elapsedTime += delta

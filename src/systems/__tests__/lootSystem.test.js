@@ -3,6 +3,7 @@ import { rollDrops, resetAll, registerLootType, spawnLoot, _getRegistryForTestin
 import * as xpOrbSystem from '../xpOrbSystem.js'
 import * as healGemSystem from '../healGemSystem.js'
 import * as fragmentGemSystem from '../fragmentGemSystem.js'
+import * as rareItemSystem from '../rareItemSystem.js'
 import { GAME_CONFIG } from '../../config/gameConfig.js'
 import { ENEMIES } from '../../entities/enemyDefs.js'
 
@@ -28,57 +29,84 @@ describe('lootSystem', () => {
   })
 
   describe('rollDrops', () => {
+    it('scatters drop positions away from enemy death point', () => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.8)
+
+      rollDrops('FODDER_BASIC', 10, 20)
+
+      const [sx, sz] = spawnOrbSpy.mock.calls[0]
+      const dist = Math.hypot(sx - 10, sz - 20)
+      // _scatterPos radius is always 0.6 + Math.random() * 0.4, so dist >= 0.6
+      expect(dist).toBeGreaterThan(0.5)
+    })
+
     it('always spawns standard XP orb when xpReward > 0 and rare roll fails', () => {
-      vi.spyOn(Math, 'random').mockReturnValue(0.99) // All rolls fail
+      vi.spyOn(Math, 'random').mockReturnValue(0.99) // All rolls fail (scatter calls also return 0.99)
 
       rollDrops('FODDER_BASIC', 10, 20)
 
       const expectedXP = ENEMIES.FODDER_BASIC.xpReward
-      expect(spawnOrbSpy).toHaveBeenCalledWith(10, 20, expectedXP, false)
+      expect(spawnOrbSpy).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), expectedXP, false)
       expect(spawnOrbSpy).toHaveBeenCalledTimes(1)
     })
 
     it('spawns rare XP gem (3x value, isRare=true) when rare roll succeeds, replacing standard orb', () => {
       vi.spyOn(Math, 'random')
         .mockReturnValueOnce(0.01) // Rare XP roll succeeds
-        .mockReturnValue(0.99) // Other rolls fail
+        .mockReturnValue(0.99) // Scatter + other rolls (all return 0.99 as fallback)
 
       rollDrops('FODDER_BASIC', 10, 20)
 
       const expectedXP = ENEMIES.FODDER_BASIC.xpReward * GAME_CONFIG.RARE_XP_GEM_MULTIPLIER
-      expect(spawnOrbSpy).toHaveBeenCalledWith(10, 20, expectedXP, true)
+      expect(spawnOrbSpy).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), expectedXP, true)
       expect(spawnOrbSpy).toHaveBeenCalledTimes(1)
     })
 
     it('spawns heal gem when heal roll succeeds (independent of other rolls)', () => {
       vi.spyOn(Math, 'random')
         .mockReturnValueOnce(0.99) // Rare XP fails
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (XP)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (XP)
         .mockReturnValueOnce(0.01) // Heal gem succeeds
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (heal)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (heal)
         .mockReturnValue(0.99) // Fragment fails
 
       rollDrops('FODDER_BASIC', 10, 20)
 
-      expect(spawnHealGemSpy).toHaveBeenCalledWith(10, 20, GAME_CONFIG.HEAL_GEM_RESTORE_AMOUNT)
+      expect(spawnHealGemSpy).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), GAME_CONFIG.HEAL_GEM_RESTORE_AMOUNT)
       expect(spawnHealGemSpy).toHaveBeenCalledTimes(1)
     })
 
     it('spawns fragment gem when fragment roll succeeds (independent of other rolls)', () => {
       vi.spyOn(Math, 'random')
         .mockReturnValueOnce(0.99) // Rare XP fails
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (XP)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (XP)
         .mockReturnValueOnce(0.99) // Heal gem fails
         .mockReturnValueOnce(0.01) // Fragment succeeds
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (fragment)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (fragment)
+        .mockReturnValue(0.99)     // Remaining registry rolls fail
 
       rollDrops('FODDER_BASIC', 10, 20)
 
-      expect(spawnGemSpy).toHaveBeenCalledWith(10, 20, GAME_CONFIG.FRAGMENT_DROP_AMOUNT)
+      expect(spawnGemSpy).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), GAME_CONFIG.FRAGMENT_DROP_AMOUNT)
       expect(spawnGemSpy).toHaveBeenCalledTimes(1)
     })
 
     it('can spawn multiple loot types from one enemy death (rare XP + heal + fragment)', () => {
       vi.spyOn(Math, 'random')
-        .mockReturnValueOnce(0.01) // Rare XP succeeds
+        .mockReturnValueOnce(0.01) // Rare XP roll succeeds
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (XP)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (XP)
         .mockReturnValueOnce(0.01) // Heal gem succeeds
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (heal)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (heal)
         .mockReturnValueOnce(0.01) // Fragment succeeds
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (fragment)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (fragment)
+        .mockReturnValue(0.99)     // Remaining registry rolls fail
 
       rollDrops('FODDER_BASIC', 10, 20)
 
@@ -90,14 +118,21 @@ describe('lootSystem', () => {
     it('can spawn both heal and fragment without rare XP', () => {
       vi.spyOn(Math, 'random')
         .mockReturnValueOnce(0.99) // Rare XP fails
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (XP)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (XP)
         .mockReturnValueOnce(0.01) // Heal gem succeeds
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (heal)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (heal)
         .mockReturnValueOnce(0.01) // Fragment succeeds
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (fragment)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (fragment)
+        .mockReturnValue(0.99)     // Remaining registry rolls fail
 
       rollDrops('FODDER_BASIC', 10, 20)
 
-      // Standard XP orb should still spawn
+      // Standard XP orb should still spawn (at a scattered position)
       const expectedXP = ENEMIES.FODDER_BASIC.xpReward
-      expect(spawnOrbSpy).toHaveBeenCalledWith(10, 20, expectedXP, false)
+      expect(spawnOrbSpy).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), expectedXP, false)
       expect(spawnHealGemSpy).toHaveBeenCalledTimes(1)
       expect(spawnGemSpy).toHaveBeenCalledTimes(1)
     })
@@ -136,12 +171,14 @@ describe('lootSystem', () => {
       const resetOrbsSpy = vi.spyOn(xpOrbSystem, 'resetOrbs')
       const resetHealGemsSpy = vi.spyOn(healGemSystem, 'resetHealGems')
       const resetFragmentsSpy = vi.spyOn(fragmentGemSystem, 'reset')
+      const resetRareItemsSpy = vi.spyOn(rareItemSystem, 'resetRareItems')
 
       resetAll()
 
       expect(resetOrbsSpy).toHaveBeenCalledTimes(1)
       expect(resetHealGemsSpy).toHaveBeenCalledTimes(1)
       expect(resetFragmentsSpy).toHaveBeenCalledTimes(1)
+      expect(resetRareItemsSpy).toHaveBeenCalledTimes(1)
     })
   })
 })
@@ -220,8 +257,12 @@ describe('lootSystem - Registry Pattern (Story 19.5)', () => {
       // Fragment drop: global = 12%, override = 30%
       mathRandomSpy
         .mockReturnValueOnce(0.99) // Rare XP fails
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (XP)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (XP)
         .mockReturnValueOnce(0.99) // Heal gem fails
         .mockReturnValueOnce(0.25) // Fragment: between 12% and 30%
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (fragment)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (fragment)
 
       const enemyWithOverride = {
         dropOverrides: { FRAGMENT_GEM: 0.30 },
@@ -230,7 +271,7 @@ describe('lootSystem - Registry Pattern (Story 19.5)', () => {
       rollDrops('SHOCKWAVE_BLOB', 10, 20, enemyWithOverride)
 
       // With override 30%, roll of 0.25 should succeed
-      expect(spawnGemSpy).toHaveBeenCalledWith(10, 20, GAME_CONFIG.FRAGMENT_DROP_AMOUNT)
+      expect(spawnGemSpy).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), GAME_CONFIG.FRAGMENT_DROP_AMOUNT)
     })
 
     it('should use global drop chance when enemy has no override', () => {
@@ -239,8 +280,10 @@ describe('lootSystem - Registry Pattern (Story 19.5)', () => {
       // Roll between global 12% and potential override
       mathRandomSpy
         .mockReturnValueOnce(0.99) // Rare XP fails
+        .mockReturnValueOnce(0.5)  // _scatterPos jitter (XP)
+        .mockReturnValueOnce(0.5)  // _scatterPos radius (XP)
         .mockReturnValueOnce(0.99) // Heal gem fails
-        .mockReturnValueOnce(0.25) // Fragment: above 12% global
+        .mockReturnValueOnce(0.25) // Fragment: above 12% global → fails
 
       rollDrops('FODDER_BASIC', 10, 20, {}) // No dropOverrides
 
@@ -252,9 +295,15 @@ describe('lootSystem - Registry Pattern (Story 19.5)', () => {
       vi.clearAllMocks()
 
       mathRandomSpy
-        .mockReturnValueOnce(0.99) // Rare XP fails
-        .mockReturnValueOnce(0.035) // Heal: below override 15%
-        .mockReturnValueOnce(0.20) // Fragment: below override 25%
+        .mockReturnValueOnce(0.99)   // Rare XP fails
+        .mockReturnValueOnce(0.5)    // _scatterPos jitter (XP)
+        .mockReturnValueOnce(0.5)    // _scatterPos radius (XP)
+        .mockReturnValueOnce(0.035)  // Heal: below override 15%
+        .mockReturnValueOnce(0.5)    // _scatterPos jitter (heal)
+        .mockReturnValueOnce(0.5)    // _scatterPos radius (heal)
+        .mockReturnValueOnce(0.20)   // Fragment: below override 25%
+        .mockReturnValueOnce(0.5)    // _scatterPos jitter (fragment)
+        .mockReturnValueOnce(0.5)    // _scatterPos radius (fragment)
 
       const enemyWithMultipleOverrides = {
         dropOverrides: {

@@ -8,7 +8,7 @@ export const GAME_CONFIG = {
 
   // Player
   PLAYER_BASE_HP: 100,
-  PLAYER_BASE_SPEED: 80, // units/sec (was 150, reduced for tighter control)
+  PLAYER_BASE_SPEED: 48, // units/sec (was 80, reduced ×0.6 for tighter control)
   DASH_COOLDOWN: 3, // seconds
   DASH_DURATION: 0.3, // seconds
   DASH_TRAIL_COLOR: "#ff00ff", // magenta trail during dash
@@ -23,12 +23,12 @@ export const GAME_CONFIG = {
   CROSSHAIR_GLOW_OPACITY: 0.8, // Glow effect opacity
 
   // Entities
-  MAX_ENEMIES_ON_SCREEN: 100,
-  MAX_PROJECTILES: 200,
+  MAX_ENEMIES_ON_SCREEN: 60,
+  MAX_PROJECTILES: 120,
   MAX_XP_ORBS: 50,
 
   // Collision
-  SPATIAL_HASH_CELL_SIZE: 2, // world units
+  SPATIAL_HASH_CELL_SIZE: 4, // world units
   PLAYER_COLLISION_RADIUS: 1.5, // approximate half-width of ship model
 
   // Enemy Separation Physics (Story 23.2)
@@ -52,19 +52,21 @@ export const GAME_CONFIG = {
   XP_ORB_PICKUP_RADIUS: 2.0,
   XP_MAGNET_RADIUS: 15.0, // Magnetization activation radius (> pickup radius)
   XP_MAGNET_SPEED: 120, // Orb movement speed when magnetized (units/sec)
+  XP_MAGNET_MIN_SPEED: 75, // Guaranteed minimum speed for sticky-magnetized collectibles (units/sec)
   XP_MAGNET_ACCELERATION_CURVE: 2.0, // Ease-in exponent: 1.0=linear, 2.0=quadratic
-  XP_ORB_MESH_SCALE: [0.8, 0.8, 0.8],
+  XP_ORB_MESH_SCALE: [2.67, 2.67, 2.67],
   XP_ORB_COLOR: "#00ffcc", // Cyan-green for standard orbs
 
   // Rare XP Gems (Story 19.1)
   RARE_XP_GEM_DROP_CHANCE: 0.05, // 5% chance for rare gem instead of standard orb
   RARE_XP_GEM_MULTIPLIER: 3, // Rare gems worth 3x base XP
   RARE_XP_GEM_COLOR: "#ffdd00", // Golden-yellow color for rare gems
-  RARE_XP_GEM_SCALE_MULTIPLIER: 1.3, // 1.3x larger than standard orbs
+  RARE_XP_GEM_SCALE_MULTIPLIER: 0.71, // Same apparent size as standard orbs (geo is larger, compensated)
   RARE_XP_GEM_PULSE_SPEED: 3.0, // Pulse animation speed (radians/sec)
 
   // Heal Gems (Story 19.2)
-  HEAL_GEM_DROP_CHANCE: 0.04, // 4% chance to drop on enemy death
+  HEAL_GEM_DROP_CHANCE: 0.0074, // base ~0.74%; scales with luck up to HEAL_GEM_DROP_CAP
+  HEAL_GEM_DROP_CAP: 0.01,      // hard cap ~1% at max luck (luck × 0.35 → ×1.35)
   HEAL_GEM_RESTORE_AMOUNT: 20, // HP restored per heal gem
   HEAL_GEM_COLOR: '#ff3366', // Red-pink color
   MAX_HEAL_GEMS: 30, // Maximum heal gems on field
@@ -72,12 +74,23 @@ export const GAME_CONFIG = {
 
   // Fragment Gems (Story 19.3)
   FRAGMENT_DROP_CHANCE: 0.12, // 12% chance to drop on enemy death
-  FRAGMENT_DROP_AMOUNT: 1, // Fragments awarded per gem
+  FRAGMENT_DROP_AMOUNT: 5, // Fragments awarded per gem
   FRAGMENT_GEM_COLOR: '#cc66ff', // Purple color
-  FRAGMENT_GEM_SCALE: [1.0, 1.0, 1.0], // Visual scale
+  FRAGMENT_GEM_SCALE: [2.86, 2.86, 2.86], // Visual scale (~0.8 effective radius)
   FRAGMENT_GEM_PULSE_SPEED: 2.5, // Pulse animation speed (radians/sec)
-  MAX_FRAGMENT_GEMS: 20, // Maximum fragment gems on field
+  MAX_FRAGMENT_GEMS: 30, // Maximum fragment gems on field
   FRAGMENT_GEM_PICKUP_RADIUS: 2.0, // Pickup collision radius
+
+  // Rare Items (Story 44.5)
+  MAX_RARE_ITEMS: 5,
+  RARE_ITEM_PICKUP_RADIUS: 2.5,
+  MAGNET_ITEM_DROP_CHANCE: 0.0033, // base ~0.33%; scales with luck up to MAGNET_ITEM_DROP_CAP
+  MAGNET_ITEM_DROP_CAP: 0.0045,    // hard cap ~0.45% at max luck
+  SHIELD_ITEM_DROP_CHANCE: 0.0022, // base ~0.22%; scales with luck up to SHIELD_ITEM_DROP_CAP
+  SHIELD_ITEM_DROP_CAP: 0.003,     // hard cap ~0.30% at max luck
+  SHIELD_ITEM_DURATION: 6.0,
+  BOMB_ITEM_RADIUS: 18.0,
+  BOMB_ITEM_BOSS_DAMAGE_PERCENT: 0.25,
 
   // Progression — Story 11.2: Rebalanced for faster early-mid game progression
   // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~30% growth per level from level 6+
@@ -108,15 +121,18 @@ export const GAME_CONFIG = {
   PLAYER_BANK_SPEED: 8, // how fast bank angle responds
 
   // Minimap (Story 24.1)
-  MINIMAP_VISIBLE_RADIUS: 500, // world units visible around player on minimap (1000x1000 window = 25% of play area)
+  MINIMAP_VISIBLE_RADIUS: 250, // world units visible around player on minimap (500x500 window = 25% of play area)
+
+  // Leash system (Story 36.1)
+  ENEMY_LEASH_DISTANCE: 200, // MINIMAP_VISIBLE_RADIUS (250) * 1.5 — enemies outside radar zone are leashed back
 
   // Play area
-  PLAY_AREA_SIZE: 2000, // half-width of square play area (updated from 200 in Story 1.3)
+  PLAY_AREA_SIZE: 1000, // half-width of square play area
   BOUNDARY_WARNING_DISTANCE: 100, // updated from 20 in Story 1.3
 
   // Spawning (Story 2.2, updated Story 28.4)
-  SPAWN_INTERVAL_BASE: 2.0, // seconds between spawns at start (down from 5.0)
-  SPAWN_INTERVAL_MIN: 0.8, // fastest spawn rate (down from 1.5)
+  SPAWN_INTERVAL_BASE: 4.0, // seconds between spawns at start (halved spawn density)
+  SPAWN_INTERVAL_MIN: 2.0, // fastest spawn rate (halved spawn density)
   SPAWN_RAMP_RATE: 0.025, // interval decrease per second of game time (up from 0.01, 2.5× faster decay)
   SPAWN_DISTANCE_MIN: 80, // minimum spawn distance from player
   SPAWN_DISTANCE_MAX: 120, // maximum spawn distance from player
@@ -181,6 +197,8 @@ export const GAME_CONFIG = {
   PLANET_SCAN_REWARD_CHOICES: 3,
 
   // Wormhole (Story 6.1, Story 17.6: faster activation)
+  // DEPRECATED (Story 34.4): No longer used — wormhole spawn is now scan-based.
+  // Safe to remove in a future cleanup pass.
   WORMHOLE_SPAWN_TIMER_THRESHOLD: 0.01,
   WORMHOLE_ACTIVATION_RADIUS: 25,
   WORMHOLE_SHOCKWAVE_DURATION: 0.8, // Story 17.6: Reduced from 1.5 for faster wormhole opening
@@ -222,9 +240,9 @@ export const GAME_CONFIG = {
   BOSS_NAME: "TITAN CRUISER",
 
   // Boss Overhaul (Story 22.4)
-  BOSS_BASE_HP: 20000, // Base HP for boss in System 1 (scales with system difficulty)
+  BOSS_BASE_HP: 10000, // Base HP for boss in System 1 (scales with system difficulty)
   BOSS_SCALE_MULTIPLIER: 4, // Boss model size multiplier (4x regular enemy)
-  BOSS_LOOT_FRAGMENTS: 50, // Guaranteed Fragment drop count on boss defeat
+  BOSS_LOOT_FRAGMENTS: 150, // Guaranteed Fragment drop count on boss defeat
   BOSS_LOOT_XP_MULTIPLIER: 10, // XP reward multiplier on boss defeat (10x base XP)
   BOSS_EXPLOSION_SCALE: 5, // Large explosion VFX scale on boss death
 
@@ -233,7 +251,7 @@ export const GAME_CONFIG = {
   BOSS_DEATH_EXPLOSION_INTERVAL: 0.2,
   BOSS_DEATH_FINAL_EXPLOSION_SCALE: 5.0, // Story 22.4: Larger explosion for tough boss
   BOSS_DEFEAT_TRANSITION_DELAY: 3.0,
-  BOSS_FRAGMENT_REWARD: 100,
+  BOSS_FRAGMENT_REWARD: 300, // NOTE: currently unused — boss fragment award uses BOSS_LOOT_FRAGMENTS (GameLoop.jsx:1254)
 
   // Boss spawn in gameplay (Story 17.4, Story 17.6: faster spawn)
   BOSS_SPAWN: {

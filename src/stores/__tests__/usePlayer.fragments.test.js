@@ -5,10 +5,12 @@ import { GAME_CONFIG } from '../../config/gameConfig.js'
 describe('usePlayer — Fragments (Story 7.1)', () => {
   beforeEach(() => {
     usePlayer.getState().reset()
+    // Fragments are permanent cross-run currency; zero them via setState for test isolation
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
   })
 
   describe('initial state', () => {
-    it('starts with 0 fragments', () => {
+    it('starts with 0 fragments (no localStorage data)', () => {
       expect(usePlayer.getState().fragments).toBe(0)
     })
   })
@@ -27,10 +29,10 @@ describe('usePlayer — Fragments (Story 7.1)', () => {
   })
 
   describe('reset', () => {
-    it('clears fragments to 0', () => {
+    it('preserves fragments across run resets (permanent cross-run currency)', () => {
       usePlayer.getState().addFragments(200)
       usePlayer.getState().reset()
-      expect(usePlayer.getState().fragments).toBe(0)
+      expect(usePlayer.getState().fragments).toBe(200)
     })
   })
 
@@ -67,7 +69,9 @@ describe('usePlayer — Fragments (Story 7.1)', () => {
     it('resets movement state', () => {
       usePlayer.getState().resetForNewSystem()
       const state = usePlayer.getState()
-      expect(state.position).toEqual([0, 0, 0])
+      // Story 34.2: position is random spawn within [-1200, 1200]
+      expect(Math.abs(state.position[0])).toBeLessThanOrEqual(1200)
+      expect(Math.abs(state.position[2])).toBeLessThanOrEqual(1200)
       expect(state.velocity).toEqual([0, 0, 0])
       expect(state.rotation).toBe(0)
       expect(state.isDashing).toBe(false)

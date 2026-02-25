@@ -8,12 +8,16 @@ describe('Fragment Gem Config (Story 19.3)', () => {
     expect(GAME_CONFIG.FRAGMENT_DROP_CHANCE).toBeLessThanOrEqual(1)
   })
 
-  it('FRAGMENT_DROP_AMOUNT is a positive number', () => {
-    expect(GAME_CONFIG.FRAGMENT_DROP_AMOUNT).toBeGreaterThan(0)
+  it('FRAGMENT_DROP_AMOUNT is 10 (Story 44.1: fragment quantity bump)', () => {
+    expect(GAME_CONFIG.FRAGMENT_DROP_AMOUNT).toBe(10)
   })
 
-  it('MAX_FRAGMENT_GEMS is a positive number', () => {
-    expect(GAME_CONFIG.MAX_FRAGMENT_GEMS).toBeGreaterThan(0)
+  it('MAX_FRAGMENT_GEMS is 30 (Story 44.1: expanded pool)', () => {
+    expect(GAME_CONFIG.MAX_FRAGMENT_GEMS).toBe(30)
+  })
+
+  it('BOSS_LOOT_FRAGMENTS is 150 (Story 44.1: boss value maintained)', () => {
+    expect(GAME_CONFIG.BOSS_LOOT_FRAGMENTS).toBe(150)
   })
 
   it('FRAGMENT_GEM_PICKUP_RADIUS is a positive number', () => {

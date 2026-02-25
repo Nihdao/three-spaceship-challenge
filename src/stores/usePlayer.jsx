@@ -1,5 +1,24 @@
 import { create } from 'zustand'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+
+const STORAGE_KEY_FRAGMENTS = 'SPACESHIP_FRAGMENTS'
+
+function getPersistedFragments() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_FRAGMENTS)
+    if (stored !== null) {
+      const val = parseInt(stored, 10)
+      if (!isNaN(val) && val >= 0) return val
+    }
+  } catch { /* localStorage unavailable */ }
+  return 0
+}
+
+function setPersistedFragments(value) {
+  try {
+    localStorage.setItem(STORAGE_KEY_FRAGMENTS, String(value))
+  } catch { /* localStorage unavailable or quota exceeded */ }
+}
 import { getXPForLevel } from '../utils/xpScaling.js'
 import { UPGRADES } from '../entities/upgradeDefs.js'
 import { DILEMMAS } from '../entities/dilemmaDefs.js'
@@ -41,6 +60,9 @@ const usePlayer = create((set, get) => ({
   dashTimer: 0,
   dashCooldownTimer: 0,
 
+  // --- Shield Item (Story 44.5) ---
+  shieldTimer: 0,
+
   // --- God mode (Story 11.5) ---
   _godMode: false,
 
@@ -50,7 +72,7 @@ const usePlayer = create((set, get) => ({
   cameraShakeIntensity: 0,
 
   // --- Fragments (Story 7.1) ---
-  fragments: 0,
+  fragments: getPersistedFragments(),
   fragmentsEarnedThisRun: 0,
 
   // --- Permanent Upgrades & Dilemmas (Story 7.2) ---
@@ -216,7 +238,16 @@ const usePlayer = create((set, get) => ({
     let invulnerabilityTimer = state.invulnerabilityTimer
     if (invulnerabilityTimer > 0) {
       invulnerabilityTimer = Math.max(0, invulnerabilityTimer - delta)
-      if (invulnerabilityTimer <= 0) {
+      if (invulnerabilityTimer <= 0 && state.shieldTimer <= 0 && !state.isDashing) {
+        isInvulnerable = false
+      }
+    }
+
+    // --- Shield timer (Story 44.5) ---
+    let shieldTimer = state.shieldTimer
+    if (shieldTimer > 0) {
+      shieldTimer = Math.max(0, shieldTimer - delta)
+      if (shieldTimer <= 0 && invulnerabilityTimer <= 0 && !state.isDashing) {
         isInvulnerable = false
       }
     }
@@ -232,8 +263,8 @@ const usePlayer = create((set, get) => ({
       if (dashTimer <= 0) {
         isDashing = false
         dashCooldownTimer = Math.max(0, GAME_CONFIG.DASH_COOLDOWN - remaining)
-        // End invulnerability ONLY if damage i-frames also expired
-        if (invulnerabilityTimer <= 0) {
+        // End invulnerability ONLY if damage i-frames AND shield both expired
+        if (invulnerabilityTimer <= 0 && shieldTimer <= 0) {
           isInvulnerable = false
         }
       }
@@ -257,25 +288,48 @@ const usePlayer = create((set, get) => ({
     // Update previous velocity angle for next frame's banking calculation
     const newPrevVelAngle = speed > 0.1 ? Math.atan2(vx, -vz) : state._prevVelAngle
 
-    set({
-      currentHP,
-      position: [px, 0, pz],
-      velocity: [vx, 0, vz],
-      rotation: yaw,
-      bankAngle: bank,
-      aimDirection: currentAimDirection,
-      _prevVelAngle: newPrevVelAngle,
-      speed,
-      contactDamageCooldown,
-      isInvulnerable,
-      invulnerabilityTimer,
-      isDashing,
-      dashTimer,
-      dashCooldownTimer,
-      damageFlashTimer,
-      cameraShakeTimer,
-      cameraShakeIntensity,
-    })
+    // --- Mutate position & velocity in-place (avoid [px, 0, pz] allocation per frame) ---
+    const pos = state.position
+    const vel = state.velocity
+    const posChanged = px !== pos[0] || pz !== pos[2]
+    const velChanged = vx !== vel[0] || vz !== vel[2]
+    if (posChanged) { pos[0] = px; pos[2] = pz }
+    if (velChanged) { vel[0] = vx; vel[2] = vz }
+
+    // --- Build changed-fields object (only include fields that differ from current state) ---
+    // Story 43.3: use boolean flag instead of Object.keys() to avoid array allocation per frame
+    const changed = {}
+    let hasChange = false
+    if (currentHP !== state.currentHP) { changed.currentHP = currentHP; hasChange = true }
+    if (posChanged) { changed.position = pos; hasChange = true }
+    if (velChanged) { changed.velocity = vel; hasChange = true }
+    if (yaw !== state.rotation) { changed.rotation = yaw; hasChange = true }
+    if (bank !== state.bankAngle) { changed.bankAngle = bank; hasChange = true }
+    // Deep-compare aimDirection: new [dx,dz] array is created every frame when mouse is active,
+    // so reference equality is always false. Compare values to avoid spurious set() each frame.
+    const aimChanged = currentAimDirection !== state.aimDirection && !(
+      currentAimDirection && state.aimDirection &&
+      currentAimDirection[0] === state.aimDirection[0] &&
+      currentAimDirection[1] === state.aimDirection[1]
+    )
+    if (aimChanged) { changed.aimDirection = currentAimDirection; hasChange = true }
+    if (newPrevVelAngle !== state._prevVelAngle) { changed._prevVelAngle = newPrevVelAngle; hasChange = true }
+    if (speed !== state.speed) { changed.speed = speed; hasChange = true }
+    if (contactDamageCooldown !== state.contactDamageCooldown) { changed.contactDamageCooldown = contactDamageCooldown; hasChange = true }
+    if (isInvulnerable !== state.isInvulnerable) { changed.isInvulnerable = isInvulnerable; hasChange = true }
+    if (invulnerabilityTimer !== state.invulnerabilityTimer) { changed.invulnerabilityTimer = invulnerabilityTimer; hasChange = true }
+    if (isDashing !== state.isDashing) { changed.isDashing = isDashing; hasChange = true }
+    if (dashTimer !== state.dashTimer) { changed.dashTimer = dashTimer; hasChange = true }
+    if (dashCooldownTimer !== state.dashCooldownTimer) { changed.dashCooldownTimer = dashCooldownTimer; hasChange = true }
+    if (damageFlashTimer !== state.damageFlashTimer) { changed.damageFlashTimer = damageFlashTimer; hasChange = true }
+    if (cameraShakeTimer !== state.cameraShakeTimer) { changed.cameraShakeTimer = cameraShakeTimer; hasChange = true }
+    if (cameraShakeIntensity !== state.cameraShakeIntensity) { changed.cameraShakeIntensity = cameraShakeIntensity; hasChange = true }
+    if (shieldTimer !== state.shieldTimer) { changed.shieldTimer = shieldTimer; hasChange = true }
+
+    // Skip set() entirely when nothing changed (ship stationary, no active timers)
+    if (hasChange) {
+      set(changed)
+    }
   },
 
   // --- Luck Stat (Story 22.3) ---
@@ -307,6 +361,12 @@ const usePlayer = create((set, get) => ({
     invulnerabilityTimer: duration,
   }),
 
+  // --- Shield Item (Story 44.5) ---
+  activateShield: (duration) => set({
+    isInvulnerable: true,
+    shieldTimer: duration,
+  }),
+
   // --- Strategic Charge Consumption (Story 22.2) ---
   consumeReroll: () => set(state => ({
     rerollCharges: Math.max(0, state.rerollCharges - 1),
@@ -335,10 +395,14 @@ const usePlayer = create((set, get) => ({
     return true
   },
 
-  addFragments: (amount) => set(state => ({
-    fragments: state.fragments + Math.round(amount),
-    fragmentsEarnedThisRun: state.fragmentsEarnedThisRun + Math.round(amount),
-  })),
+  addFragments: (amount) => {
+    const rounded = Math.round(amount)
+    set(state => ({
+      fragments: state.fragments + rounded,
+      fragmentsEarnedThisRun: state.fragmentsEarnedThisRun + rounded,
+    }))
+    setPersistedFragments(get().fragments)
+  },
 
   healFromGem: (healAmount) => {
     const { currentHP, maxHP } = get()
@@ -533,7 +597,7 @@ const usePlayer = create((set, get) => ({
   },
 
   resetForNewSystem: () => set({
-    position: [0, 0, 0],
+    position: [(Math.random() * 2 - 1) * 1200, 0, (Math.random() * 2 - 1) * 1200],
     velocity: [0, 0, 0],
     rotation: 0,
     bankAngle: 0,
@@ -546,6 +610,7 @@ const usePlayer = create((set, get) => ({
     isDashing: false,
     dashTimer: 0,
     dashCooldownTimer: 0,
+    shieldTimer: 0,
     damageFlashTimer: 0,
     cameraShakeTimer: 0,
     cameraShakeIntensity: 0,
@@ -565,7 +630,7 @@ const usePlayer = create((set, get) => ({
     const { currentShipId } = get()
     const ship = SHIPS[currentShipId] || SHIPS[getDefaultShipId()]
     set({
-      position: [0, 0, 0],
+      position: [(Math.random() * 2 - 1) * 1200, 0, (Math.random() * 2 - 1) * 1200],
       velocity: [0, 0, 0],
       rotation: 0,
       bankAngle: 0,
@@ -582,6 +647,7 @@ const usePlayer = create((set, get) => ({
       isDashing: false,
       dashTimer: 0,
       dashCooldownTimer: 0,
+      shieldTimer: 0,
       damageFlashTimer: 0,
       cameraShakeTimer: 0,
       cameraShakeIntensity: 0,
@@ -592,7 +658,7 @@ const usePlayer = create((set, get) => ({
       xpToNextLevel: GAME_CONFIG.XP_LEVEL_CURVE[0],
       pendingLevelUps: 0,
       levelsGainedThisBatch: 0,
-      fragments: 0,
+      // fragments intentionally preserved — permanent cross-run currency (see localStorage persistence above)
       fragmentsEarnedThisRun: 0,
       permanentUpgrades: {},
       acceptedDilemmas: [],

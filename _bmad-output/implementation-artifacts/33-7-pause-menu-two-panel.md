@@ -1,6 +1,6 @@
 # Story 33.7: Pause Menu — Refonte 2 Volets Détaillés
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -38,62 +38,62 @@ so that I can assess my full build state and decide whether to continue or quit.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Prérequis — vérification
-  - [ ] Vérifier que `src/style.css` contient toutes les vars RS requises (confirmé : voir Dev Notes)
-  - [ ] Vérifier si `src/ui/icons/index.jsx` existe (Story 33.1 status) → choisir icônes SVG ou Unicode fallbacks
+- [x] Task 1: Prérequis — vérification
+  - [x] Vérifier que `src/style.css` contient toutes les vars RS requises (confirmé : voir Dev Notes)
+  - [x] Vérifier si `src/ui/icons/index.jsx` existe (Story 33.1 status) → choisir icônes SVG ou Unicode fallbacks
 
-- [ ] Task 2: Lire `src/ui/PauseMenu.jsx` en entier avant modification
-  - [ ] Identifier les lignes exactes : overlay (162-165), modal div (169-177), h1 titre (179-184), section inventory (187-280), section stats (283-300), section actions (303-329), quit dialog (333-384)
-  - [ ] Lister tous les `data-testid` à préserver : `pause-overlay`, `resume-button`, `quit-button`, `confirm-quit-button`, `cancel-quit-button`
+- [x] Task 2: Lire `src/ui/PauseMenu.jsx` en entier avant modification
+  - [x] Identifier les lignes exactes : overlay (162-165), modal div (169-177), h1 titre (179-184), section inventory (187-280), section stats (283-300), section actions (303-329), quit dialog (333-384)
+  - [x] Lister tous les `data-testid` à préserver : `pause-overlay`, `resume-button`, `quit-button`, `confirm-quit-button`, `cancel-quit-button`
 
-- [ ] Task 3: Ajouter subscriptions stores manquantes
-  - [ ] Après `const fragments = usePlayer((s) => s.fragments)` (ligne 80) : ajouter
+- [x] Task 3: Ajouter subscriptions stores manquantes
+  - [x] Après `const fragments = usePlayer((s) => s.fragments)` (ligne 80) : ajouter
     ```jsx
     const rerollCharges = usePlayer((s) => s.rerollCharges)
     const skipCharges = usePlayer((s) => s.skipCharges)
     const banishCharges = usePlayer((s) => s.banishCharges)
     ```
 
-- [ ] Task 4: Modifier l'overlay et le panel
-  - [ ] `backgroundColor: 'rgba(13, 11, 20, 0.85)'` sur l'overlay `data-testid="pause-overlay"`
-  - [ ] Modifier la div modal : width → `clamp(640px, 65vw, 920px)`, ajouter `background: var(--rs-bg-surface)`, `border: 1px solid var(--rs-border)`, `clipPath: polygon(...)`, supprimer `border rounded-lg` Tailwind
+- [x] Task 4: Modifier l'overlay et le panel
+  - [x] `backgroundColor: 'rgba(13, 11, 20, 0.85)'` sur l'overlay `data-testid="pause-overlay"`
+  - [x] Modifier la div modal : width → `clamp(640px, 65vw, 920px)`, ajouter `background: var(--rs-bg-surface)`, `border: 1px solid var(--rs-border)`, `clipPath: polygon(...)`, supprimer `border rounded-lg` Tailwind
 
-- [ ] Task 5: Restructurer le header
-  - [ ] Remplacer `<h1 className="font-bold text-center mb-6" ...>PAUSED</h1>` par un header flex : titre Bebas Neue RS-orange à gauche + bouton RESUME outline-teal à droite
-  - [ ] Supprimer l'actuel bouton RESUME de la section actions (lignes 304-315)
+- [x] Task 5: Restructurer le header
+  - [x] Remplacer `<h1 className="font-bold text-center mb-6" ...>PAUSED</h1>` par un header flex : titre Bebas Neue RS-orange à gauche + bouton RESUME outline-teal à droite
+  - [x] Supprimer l'actuel bouton RESUME de la section actions (lignes 304-315)
 
-- [ ] Task 6: Implémenter le layout 2 volets
-  - [ ] Remplacer `<section aria-label="inventory">` et `<section aria-label="stats">` par un `<div style={{ display: 'flex', alignItems: 'flex-start' }}>` avec 2 divs enfants
-  - [ ] Volet gauche : `width: '45%'`, `paddingRight: 20`, `borderRight: '1px solid var(--rs-border)'`
-  - [ ] Volet droit : `flex: 1`, `paddingLeft: 20`
+- [x] Task 6: Implémenter le layout 2 volets
+  - [x] Remplacer `<section aria-label="inventory">` et `<section aria-label="stats">` par un `<div style={{ display: 'flex', alignItems: 'flex-start' }}>` avec 2 divs enfants
+  - [x] Volet gauche : `width: '45%'`, `paddingRight: 20`, `borderRight: '1px solid var(--rs-border)'`
+  - [x] Volet droit : `flex: 1`, `paddingLeft: 20`
 
-- [ ] Task 7: Volet gauche — refactorer les weapon cards
-  - [ ] Supprimer `width: 'clamp(72px, 7vw, 100px)'` des cards
-  - [ ] Appliquer `borderLeft: '2px solid ${info.color}'`, `paddingLeft: 8`, layout `flex-col gap-1`
-  - [ ] Remplacer les 3 `<span>` de taille variable par : nom (Rajdhani 600 12px, couleur info.color), sous-ligne (Space Mono 11px, var(--rs-text-muted)) : `Lv{level} · {damage}dmg · {cooldown.toFixed(1)}s`
-  - [ ] Idem pour les boon cards avec `borderLeft: '2px solid var(--rs-violet)'`
+- [x] Task 7: Volet gauche — refactorer les weapon cards
+  - [x] Supprimer `width: 'clamp(72px, 7vw, 100px)'` des cards
+  - [x] Appliquer `borderLeft: '2px solid ${info.color}'`, `paddingLeft: 8`, layout `flex-col gap-1`
+  - [x] Remplacer les 3 `<span>` de taille variable par : nom (Rajdhani 600 12px, couleur info.color), sous-ligne (Space Mono 11px, var(--rs-text-muted)) : `Lv{level} · {damage}dmg · {cooldown.toFixed(1)}s`
+  - [x] Idem pour les boon cards avec `borderLeft: '2px solid var(--rs-violet)'`
 
-- [ ] Task 8: Volet droit — implémenter les stats
-  - [ ] Titre `RUN STATS` (pattern SectionTitle — voir Dev Notes)
-  - [ ] 4 StatLine avec icônes (SVG ou Unicode selon disponibilité 33.1) : Time, Kills, Score, Fragments
-  - [ ] Séparateur `borderTop: '1px solid var(--rs-border)'`, `margin: '16px 0'`
-  - [ ] Titre `PLAYER STATS`
-  - [ ] 4 StatLine obligatoires : HP, Level, Speed, Dmg×
-  - [ ] 3 StatLine conditionnelles (si > 0) : Rerolls, Skips, Banishes
+- [x] Task 8: Volet droit — implémenter les stats
+  - [x] Titre `RUN STATS` (pattern SectionTitle — voir Dev Notes)
+  - [x] 4 StatLine avec icônes (SVG ou Unicode selon disponibilité 33.1) : Time, Kills, Score, Fragments
+  - [x] Séparateur `borderTop: '1px solid var(--rs-border)'`, `margin: '16px 0'`
+  - [x] Titre `PLAYER STATS`
+  - [x] 4 StatLine obligatoires : HP, Level, Speed, Dmg×
+  - [x] 3 StatLine conditionnelles (si > 0) : Rerolls, Skips, Banishes
 
-- [ ] Task 9: Zone actions — bouton QUIT centré
-  - [ ] Remplacer `<section aria-label="actions">` par `<div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>`
-  - [ ] Un seul bouton : `[Q] QUIT TO MENU`, `color: var(--rs-danger)`, `border: 1px solid var(--rs-danger)`, fond transparent
-  - [ ] Préserver `data-testid="quit-button"`
+- [x] Task 9: Zone actions — bouton QUIT centré
+  - [x] Remplacer `<section aria-label="actions">` par `<div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>`
+  - [x] Un seul bouton : `[Q] QUIT TO MENU`, `color: var(--rs-danger)`, `border: 1px solid var(--rs-danger)`, fond transparent
+  - [x] Préserver `data-testid="quit-button"`
 
-- [ ] Task 10: QA
-  - [ ] `vitest run` passe
-  - [ ] Vérifier : modal élargi, 2 volets, séparateur vertical, clip-path coin coupé
-  - [ ] Vérifier : RESUME dans le header (outline teal), QUIT en bas (outline danger)
-  - [ ] Vérifier : weapon cards avec border-left colorée, boon cards avec border-left violet
-  - [ ] Vérifier : charges conditionnelles (ne s'affichent qu'en début de run si > 0)
-  - [ ] Vérifier : keyboard handler ESC/R resume, Q quit, ESC cancel confirm, Enter confirm
-  - [ ] Grep : `'💀\|⭐\|♥\|❤️\|⚡\|🗡️\|⏱️\|🎖️'` dans PauseMenu.jsx → vide
+- [x] Task 10: QA
+  - [x] `vitest run` passe
+  - [x] Vérifier : modal élargi, 2 volets, séparateur vertical, clip-path coin coupé
+  - [x] Vérifier : RESUME dans le header (outline teal), QUIT en bas (outline danger)
+  - [x] Vérifier : weapon cards avec border-left colorée, boon cards avec border-left violet
+  - [x] Vérifier : charges conditionnelles (ne s'affichent qu'en début de run si > 0)
+  - [x] Vérifier : keyboard handler ESC/R resume, Q quit, ESC cancel confirm, Enter confirm
+  - [x] Grep : `'💀\|⭐\|♥\|❤️\|⚡\|🗡️\|⏱️\|🎖️'` dans PauseMenu.jsx → vide
 
 ## Dev Notes
 
@@ -169,149 +169,8 @@ return (
         margin: '0 16px',
       }}
     >
-
-      {/* ── Header : Titre + RESUME ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{
-          fontFamily: "'Bebas Neue', sans-serif",
-          fontSize: 'clamp(32px, 3.5vw, 48px)',
-          color: 'var(--rs-orange)',
-          letterSpacing: '0.15em',
-          margin: 0,
-        }}>
-          PAUSED
-        </h1>
-        <button
-          data-testid="resume-button"
-          onClick={handleResume}
-          style={{
-            fontFamily: "'Rajdhani', sans-serif",
-            fontWeight: 700,
-            fontSize: 'clamp(13px, 1.3vw, 16px)',
-            letterSpacing: '0.1em',
-            color: 'var(--rs-teal)',
-            border: '1px solid var(--rs-teal)',
-            background: 'transparent',
-            padding: '8px 20px',
-            cursor: 'pointer',
-          }}
-        >
-          [ESC/R] RESUME
-        </button>
-      </div>
-
-      {/* ── Corps 2 volets ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-
-        {/* ── Volet gauche : Inventaire ── */}
-        <div style={{ width: '45%', paddingRight: 20, borderRight: '1px solid var(--rs-border)' }}>
-
-          {/* WEAPONS */}
-          <p style={sectionTitleStyle}>WEAPONS</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
-            {equippedWeapons.map((weapon, idx) => {
-              const info = getWeaponDisplayInfo(weapon)
-              return (
-                <div key={`${weapon.weaponId}-${idx}`} style={{
-                  borderLeft: `2px solid ${info.color}`,
-                  paddingLeft: 8,
-                  display: 'flex', flexDirection: 'column', gap: 2,
-                }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: info.color }}>
-                    {info.name}
-                  </span>
-                  <span style={{ fontSize: 11, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
-                    Lv{info.level} · {info.damage}dmg · {info.cooldown.toFixed(1)}s
-                  </span>
-                </div>
-              )
-            })}
-            {equippedWeapons.length === 0 && (
-              <span style={{ color: 'var(--rs-text-dim)', fontSize: 11 }}>—</span>
-            )}
-          </div>
-
-          {/* BOONS */}
-          <p style={sectionTitleStyle}>BOONS</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {equippedBoons.map((boon, idx) => {
-              const info = getBoonDisplayInfo(boon)
-              return (
-                <div key={`${boon.boonId}-${idx}`} style={{
-                  borderLeft: '2px solid var(--rs-violet)',
-                  paddingLeft: 8,
-                  display: 'flex', flexDirection: 'column', gap: 2,
-                }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--rs-violet)' }}>
-                    {info.name}
-                  </span>
-                  <span style={{ fontSize: 11, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
-                    Lv{info.level}{info.statPreview ? ` · ${info.statPreview}` : ''}
-                  </span>
-                </div>
-              )
-            })}
-            {equippedBoons.length === 0 && (
-              <span style={{ color: 'var(--rs-text-dim)', fontSize: 11 }}>—</span>
-            )}
-          </div>
-        </div>
-
-        {/* ── Volet droit : Stats ── */}
-        <div style={{ flex: 1, paddingLeft: 20 }}>
-          {/* RUN STATS */}
-          <p style={sectionTitleStyle}>RUN STATS</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-            <StatLine label="Time"      value={formatTimer(totalElapsedTime)} icon="◷" />
-            <StatLine label="Kills"     value={kills.toLocaleString('en-US')}  icon="☠" />
-            <StatLine label="Score"     value={score.toLocaleString('en-US')}  icon="★" />
-            <StatLine label="Fragments" value={fragments.toLocaleString('en-US')} icon="◆" />
-          </div>
-
-          {/* Séparateur */}
-          <div style={{ borderTop: '1px solid var(--rs-border)', margin: '16px 0' }} />
-
-          {/* PLAYER STATS */}
-          <p style={sectionTitleStyle}>PLAYER STATS</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <StatLine label="HP"    value={`${Math.ceil(currentHP)} / ${maxHP}`}   icon="♥" />
-            <StatLine label="Level" value={String(currentLevel)}                    icon="★" />
-            <StatLine label="Speed" value={String(shipBaseSpeed)}                   icon="→" />
-            <StatLine label="Dmg ×" value={`×${damageMultiplier.toFixed(2)}`}       icon="×" />
-            {rerollCharges > 0 && <StatLine label="Rerolls"  value={String(rerollCharges)}  icon="↺" />}
-            {skipCharges   > 0 && <StatLine label="Skips"    value={String(skipCharges)}    icon="»" />}
-            {banishCharges > 0 && <StatLine label="Banishes" value={String(banishCharges)}  icon="✕" />}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Zone actions : QUIT seul ── */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
-        <button
-          data-testid="quit-button"
-          onClick={handleQuit}
-          style={{
-            fontFamily: "'Rajdhani', sans-serif",
-            fontWeight: 700,
-            fontSize: 'clamp(13px, 1.3vw, 16px)',
-            letterSpacing: '0.1em',
-            color: 'var(--rs-danger)',
-            border: '1px solid var(--rs-danger)',
-            background: 'transparent',
-            padding: '8px 24px',
-            cursor: 'pointer',
-          }}
-        >
-          [Q] QUIT TO MENU
-        </button>
-      </div>
-
+      {/* ... */}
     </div>
-
-    {/* ── Dialog confirmation quit — INCHANGÉ ── */}
-    {showQuitConfirm && (
-      /* ... conserver le JSX existant (lignes 333-384) identique ... */
-    )}
   </div>
 )
 ```
@@ -413,6 +272,25 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+Aucun blocage — implémentation directe depuis les specs détaillées.
+
 ### Completion Notes List
 
+- Story 33.1 déjà implémentée : `src/ui/icons/index.jsx` existe avec tous les composants requis (ShieldCrossIcon, ClockIcon, SkullIcon, StarIcon, FragmentIcon, SpeedIcon, SwordIcon, RerollIcon, SkipIcon, BanishIcon). Icônes SVG utilisées directement.
+- StatLine supporte `typeof icon === 'function'` → composants SVG passés directement via prop `icon`.
+- 3 selectors Zustand ajoutés : `rerollCharges`, `skipCharges`, `banishCharges` depuis `usePlayer`.
+- JSX entièrement refondu : layout 2 volets, overlay RS, clipPath coin coupé, header flex (PAUSED + RESUME), volet gauche (weapons/boons avec border-left colorée), volet droit (run stats + player stats avec séparateur), QUIT seul en bas centré.
+- Aucun emoji dans le JSX final (grep confirmé).
+- Dialog confirmation quit conservé tel quel.
+- Toute la logique (handlers, keyboard, isClosing) conservée inchangée.
+- 2343 tests passent (137 fichiers), 0 régression.
+
 ### File List
+
+- `src/ui/PauseMenu.jsx` — modifié (refonte JSX complète + 3 nouveaux selectors + import icons SVG)
+- `src/ui/primitives/StatLine.jsx` — modifié (ajout prop `mono` pour Space Mono sur les valeurs)
+
+## Change Log
+
+- 2026-02-23: Story 33.7 implémentée — Refonte PauseMenu 2 volets Redshift Design System (Agent: claude-sonnet-4-6)
+- 2026-02-23: Code review — 2 fixes appliqués : (1) fontFamily Rajdhani 600 sur weapon/boon card names, (2) prop `mono` StatLine + activation sur toutes les StatLines du volet droit. 2364 tests OK. → done

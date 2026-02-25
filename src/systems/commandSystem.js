@@ -211,7 +211,7 @@ const COMMANDS = {
       for (let safety = 0; safety < 20; safety++) {
         const currentLevel = useWeapons.getState().activeWeapons[slotIndex]?.level ?? 99
         if (currentLevel >= targetLevel) break
-        useWeapons.getState().upgradeWeapon(weaponId)
+        useWeapons.getState().upgradeWeapon(weaponId, { stat: 'damage', finalMagnitude: 0, rarity: 'COMMON' })
       }
       return { success: true, message: `Set ${weaponId} to level ${targetLevel}` }
     },

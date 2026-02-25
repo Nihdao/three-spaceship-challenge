@@ -41,6 +41,9 @@ function getAvailableEnemyTypes(phase) {
 export function createSpawnSystem() {
   let spawnTimer = null // Initialized on first tick using wave-phase interval (MED-3 fix)
   let elapsedTime = 0
+  let _cachedAvailableTypes = null
+  let _cachedPhase = null
+  let _cachedSystemNum = -1
 
   // Story 23.1: Pick an enemy type from a pre-computed available pool (MED-1: called once per batch).
   // `available` is the result of getAvailableEnemyTypes(phase), hoisted out of the batch loop.
@@ -115,7 +118,17 @@ export function createSpawnSystem() {
     const batchSize = GAME_CONFIG.SPAWN_BATCH_SIZE_BASE + Math.floor(elapsedTime / GAME_CONFIG.SPAWN_BATCH_RAMP_INTERVAL)
 
     // MED-1 fix: Build available enemy pool ONCE per batch, not once per individual pick.
-    const available = getAvailableEnemyTypes(phase)
+    // Story 43.6: Cache result — phase reference is stable within a wave window (getPhaseForProgress
+    // returns the same WAVE_PROFILES[systemX][i] object reference for all ticks in the same window).
+    let available
+    if (phase === _cachedPhase && systemNum === _cachedSystemNum) {
+      available = _cachedAvailableTypes
+    } else {
+      available = getAvailableEnemyTypes(phase)
+      _cachedAvailableTypes = available
+      _cachedPhase = phase
+      _cachedSystemNum = systemNum
+    }
 
     const instructions = []
     for (let i = 0; i < batchSize; i++) {
@@ -175,6 +188,9 @@ export function createSpawnSystem() {
   function reset() {
     spawnTimer = null // Recomputed on next tick using wave-phase interval
     elapsedTime = 0
+    _cachedAvailableTypes = null
+    _cachedPhase = null
+    _cachedSystemNum = -1
   }
 
   return { tick, reset }

@@ -1,6 +1,6 @@
 # Story 33.6: Level Up Modal — Layout Vertical 2 Colonnes
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -40,13 +40,13 @@ so that I can make informed decisions without losing sight of my build state.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Vérifier les prérequis Story 33.1
-  - [ ] Confirmer que `src/style.css` définit `--rs-border`, `--rs-text-muted`, `--rs-text-dim`
-  - [ ] Si absent : ajouter les fallbacks en attendant Story 33.1 (voir Dev Notes "CSS Vars fallback")
+- [x] Task 1: Vérifier les prérequis Story 33.1
+  - [x] Confirmer que `src/style.css` définit `--rs-border`, `--rs-text-muted`, `--rs-text-dim`
+  - [x] Si absent : ajouter les fallbacks en attendant Story 33.1 (voir Dev Notes "CSS Vars fallback")
 
-- [ ] Task 2: Ajouter les subscriptions aux stores dans `LevelUpModal.jsx`
-  - [ ] Lire `src/ui/LevelUpModal.jsx` en entier avant toute modification (255 lignes)
-  - [ ] Ajouter au bloc de subscriptions Zustand (après `banishCharges` ligne 19) :
+- [x] Task 2: Ajouter les subscriptions aux stores dans `LevelUpModal.jsx`
+  - [x] Lire `src/ui/LevelUpModal.jsx` en entier avant toute modification (255 lignes)
+  - [x] Ajouter au bloc de subscriptions Zustand (après `banishCharges` ligne 19) :
     ```jsx
     const currentHP = usePlayer(s => s.currentHP)
     const maxHP = usePlayer(s => s.maxHP)
@@ -56,40 +56,40 @@ so that I can make informed decisions without losing sight of my build state.
     const activeBoonsCount = useBoons(s => s.activeBoons.length)
     const damageMultiplier = useBoons(s => s.modifiers.damageMultiplier ?? 1)
     ```
-  - [ ] Note : `useWeapons` et `useBoons` sont déjà importés (lignes 3-5) — pas de nouveaux imports
+  - [x] Note : `useWeapons` et `useBoons` sont déjà importés (lignes 3-5) — pas de nouveaux imports
 
-- [ ] Task 3: Refactorer le JSX — layout principal (lignes 135-254)
-  - [ ] Remplacer le conteneur `flex-col items-center justify-center` par le layout 2 colonnes — voir Dev Notes "Structure JSX cible"
-  - [ ] Le titre "LEVEL UP!" se déplace dans la colonne droite
-  - [ ] Le conteneur des choix passe de `flex gap-4` (horizontal) à `flex-col gap-3` (vertical)
-  - [ ] Mettre les hints clavier en `position: absolute; bottom: 24px` (hors du flow flex)
+- [x] Task 3: Refactorer le JSX — layout principal (lignes 135-254)
+  - [x] Remplacer le conteneur `flex-col items-center justify-center` par le layout 2 colonnes — voir Dev Notes "Structure JSX cible"
+  - [x] Le titre "LEVEL UP!" se déplace dans la colonne droite
+  - [x] Le conteneur des choix passe de `flex gap-4` (horizontal) à `flex-col gap-3` (vertical)
+  - [x] Mettre les hints clavier en `position: absolute; bottom: 24px` (hors du flow flex)
 
-- [ ] Task 4: Implémenter la colonne gauche — Build Overview
-  - [ ] Créer la colonne gauche avec `width: 220px`, `flex-shrink: 0`
-  - [ ] Titre `CURRENT BUILD` — style Rajdhani (voir Dev Notes)
-  - [ ] Lignes stats HP, Level, Speed, Damage Mult — voir Dev Notes "Build Overview stats"
-  - [ ] Ligne `Weapons: N · Boons: M`
-  - [ ] Séparateur `border-top: 1px solid var(--rs-border)`
-  - [ ] Déplacer les boutons REROLL et SKIP depuis leur position actuelle (lignes 218-246) vers cette colonne
-  - [ ] Supprimer les emojis `↻` et `⏭` — labels `REROLL (N)` et `SKIP (N)` uniquement
-  - [ ] Supprimer le wrapper conditionnel `(rerollCharges > 0 || skipCharges > 0)` du bas — chaque bouton a sa propre conditionnelle dans la colonne gauche
+- [x] Task 4: Implémenter la colonne gauche — Build Overview
+  - [x] Créer la colonne gauche avec `width: 220px`, `flex-shrink: 0`
+  - [x] Titre `CURRENT BUILD` — style Rajdhani (voir Dev Notes)
+  - [x] Lignes stats HP, Level, Speed, Damage Mult — voir Dev Notes "Build Overview stats"
+  - [x] Ligne `Weapons: N · Boons: M`
+  - [x] Séparateur `border-top: 1px solid var(--rs-border)`
+  - [x] Déplacer les boutons REROLL et SKIP depuis leur position actuelle (lignes 218-246) vers cette colonne
+  - [x] Supprimer les emojis `↻` et `⏭` — labels `REROLL (N)` et `SKIP (N)` uniquement
+  - [x] Supprimer le wrapper conditionnel `(rerollCharges > 0 || skipCharges > 0)` du bas — chaque bouton a sa propre conditionnelle dans la colonne gauche
 
-- [ ] Task 5: Refactorer les cards de choix
-  - [ ] Chaque card : `flex-row` avec `border-left: 3px solid rarityColor`, padding left `12px`
-  - [ ] Supprimer `boxShadow` glow des cards (ligne 159 actuel)
-  - [ ] Supprimer `width: w-52` — les cards sont `width: 100%`
-  - [ ] Badge rareté : inline `[EPIC]` en `Rajdhani 700` avec la couleur de rareté (plus de pill colorée)
-  - [ ] Keyboard shortcut `[1]`–`[4]` : `Space Mono`, `color: var(--rs-text-dim)`, `margin-left: auto`
-  - [ ] Bouton banish : supprimer `boxShadow: '0 0 6px ...'` (ligne ~172 actuel)
+- [x] Task 5: Refactorer les cards de choix
+  - [x] Chaque card : `flex-row` avec `border-left: 3px solid rarityColor`, padding left `12px`
+  - [x] Supprimer `boxShadow` glow des cards (ligne 159 actuel)
+  - [x] Supprimer `width: w-52` — les cards sont `width: 100%`
+  - [x] Badge rareté : inline `[EPIC]` en `Rajdhani 700` avec la couleur de rareté (plus de pill colorée)
+  - [x] Keyboard shortcut `[1]`–`[4]` : `Space Mono`, `color: var(--rs-text-dim)`, `margin-left: auto`
+  - [x] Bouton banish : supprimer `boxShadow: '0 0 6px ...'` (ligne ~172 actuel)
 
-- [ ] Task 6: QA et vérification
-  - [ ] `vitest run` passe (aucun test existant pour LevelUpModal — aucun test cassé attendu)
-  - [ ] Vérifier visuellement : colonne gauche avec stats HP/Level/Speed/Dmg visibles
-  - [ ] Vérifier que REROLL/SKIP sont dans la colonne gauche, sans emoji
-  - [ ] Vérifier les cards verticales avec border-left colorée par rareté (EPIC = violet, RARE = bleu, etc.)
-  - [ ] Vérifier que le glow boxShadow a disparu (cards et banish button)
-  - [ ] Vérifier le keyboard handler : [1-4] fonctionne, R reroll, S skip, X+# banish — comportement inchangé
-  - [ ] Vérifier responsive : rétrécir la fenêtre < 700px → colonne unique (gauche au-dessus)
+- [x] Task 6: QA et vérification
+  - [x] `vitest run` passe (aucun test existant pour LevelUpModal — aucun test cassé attendu)
+  - [x] Vérifier visuellement : colonne gauche avec stats HP/Level/Speed/Dmg visibles
+  - [x] Vérifier que REROLL/SKIP sont dans la colonne gauche, sans emoji
+  - [x] Vérifier les cards verticales avec border-left colorée par rareté (EPIC = violet, RARE = bleu, etc.)
+  - [x] Vérifier que le glow boxShadow a disparu (cards et banish button)
+  - [x] Vérifier le keyboard handler : [1-4] fonctionne, R reroll, S skip, X+# banish — comportement inchangé
+  - [x] Vérifier responsive : rétrécir la fenêtre < 700px → colonne unique (gauche au-dessus)
 
 ## Dev Notes
 
@@ -382,6 +382,26 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+_None._
+
 ### Completion Notes List
 
+- CSS vars `--rs-border`, `--rs-text-muted`, `--rs-text-dim` confirmés présents dans `src/style.css` (Story 33.1 done) — aucun fallback nécessaire.
+- 7 subscriptions Zustand ajoutées après `banishCharges` : `currentHP`, `maxHP`, `currentLevel`, `shipBaseSpeed`, `activeWeaponsCount`, `activeBoonsCount`, `damageMultiplier`. Aucun nouvel import (useWeapons et useBoons déjà importés).
+- JSX refactorisé en layout 2 colonnes (`flexWrap: wrap`) : colonne gauche 220px fixe (`flexShrink: 0`) contenant Build Overview + REROLL/SKIP ; colonne droite `flex:1` contenant titre LEVEL UP! + cards verticales.
+- Cards : suppression `w-52`, `boxShadow` glow, `borderWidth/borderStyle` globaux → remplacés par `borderLeft: 3px solid rarityColor`. Badge rareté inline `[EPIC]` Rajdhani 700 couleur rareté. Shortcut `[N]` Space Mono aligné à droite via `marginLeft: auto`.
+- Bouton banish : `boxShadow: '0 0 6px rgba(255, 51, 102, 0.5)'` supprimé.
+- REROLL/SKIP déplacés dans colonne gauche, emojis `↻` et `⏭` supprimés, wrapper conditionnel global supprimé.
+- `glowPx` supprimé (variable orpheline).
+- Keyboard handler entièrement inchangé. `applyChoice`, `handleReroll`, `handleSkip`, `handleBanish` inchangés.
+- `vitest run` : 135 test files, 2303 tests — tout vert, aucune régression.
+
+### Change Log
+
+- 2026-02-23: Story 33.6 implémentée — LevelUpModal layout vertical 2 colonnes + Build Overview colonne gauche
+- 2026-02-23: Code review — 7 issues résolus (3 Medium, 4 Low) + tests ajoutés
+
 ### File List
+
+- `src/ui/LevelUpModal.jsx` — refonte layout 2 colonnes + cards verticales + Build Overview + REROLL/SKIP dans colonne gauche; fixes review (paddingLeft redondant supprimé, paddingBottom hint safety, type="button" sur boutons, fallbacks CSS vars corrigés, label Damage Mult corrigé, position:relative dead code supprimé)
+- `src/ui/__tests__/LevelUpModal.test.jsx` — 23 tests : store fields, display format, REROLL/SKIP conditional, keyboard hint logic

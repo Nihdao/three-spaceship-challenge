@@ -1,6 +1,6 @@
 # Story 34.4: Wormhole Scan-Based Trigger
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -20,35 +20,35 @@ so that exploration is the primary objective and the timer is pressure — not t
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Remove timer-based wormhole spawn from `GameLoop.jsx` (AC: #1, #3)
-  - [ ] 1.1 Locate the `// 7f-bis. Wormhole spawn + activation check` block at ~line 554
-  - [ ] 1.2 Remove the inner `if (levelState.wormholeState === 'hidden') { ... spawnWormhole() ... }` block (~lines 556–560)
-  - [ ] 1.3 Update the comment to: `// 7f-bis. Wormhole activation check (spawn now triggered by scan count — Story 34.4)`
-  - [ ] 1.4 The `else if (wormholeState === 'visible')` branch becomes the first branch — verify no structural change needed
-  - [ ] 1.5 Verify game-over timer logic at ~lines 540–548 is untouched
+- [x] Task 1 — Remove timer-based wormhole spawn from `GameLoop.jsx` (AC: #1, #3)
+  - [x] 1.1 Locate the `// 7f-bis. Wormhole spawn + activation check` block at ~line 554
+  - [x] 1.2 Remove the inner `if (levelState.wormholeState === 'hidden') { ... spawnWormhole() ... }` block (~lines 556–560)
+  - [x] 1.3 Update the comment to: `// 7f-bis. Wormhole activation check (spawn now triggered by scan count — Story 34.4)`
+  - [x] 1.4 The `else if (wormholeState === 'visible')` branch becomes the first branch — verify no structural change needed
+  - [x] 1.5 Verify game-over timer logic at ~lines 540–548 is untouched
 
-- [ ] Task 2 — Add scan-based wormhole trigger in `GameLoop.jsx` (AC: #1, #4)
-  - [ ] 2.1 Locate the `// Scan completed successfully` block at ~line 748
-  - [ ] 2.2 After `useGame.getState().triggerPlanetReward(scanResult.tier)`, add the scan-threshold check (see Dev Notes)
-  - [ ] 2.3 Guard: only trigger if `getGalaxyById(...)` returns non-null
-  - [ ] 2.4 Guard: only trigger if `useLevel.getState().wormholeState === 'hidden'` (idempotent — AC #4)
-  - [ ] 2.5 Confirm `getGalaxyById` import is present (added by Story 34.2; add it here if 34.2 not yet done)
+- [x] Task 2 — Add scan-based wormhole trigger in `GameLoop.jsx` (AC: #1, #4)
+  - [x] 2.1 Locate the `// Scan completed successfully` block at ~line 748
+  - [x] 2.2 After `useGame.getState().triggerPlanetReward(scanResult.tier)`, add the scan-threshold check (see Dev Notes)
+  - [x] 2.3 Guard: only trigger if `getGalaxyById(...)` returns non-null
+  - [x] 2.4 Guard: only trigger if `useLevel.getState().wormholeState === 'hidden'` (idempotent — AC #4)
+  - [x] 2.5 Confirm `getGalaxyById` import is present (added by Story 34.2; add it here if 34.2 not yet done)
 
-- [ ] Task 3 — Deprecate `WORMHOLE_SPAWN_TIMER_THRESHOLD` in `gameConfig.js` (AC: #2)
-  - [ ] 3.1 Add `// DEPRECATED (Story 34.4): No longer used — wormhole spawn is now scan-based` comment above the constant
-  - [ ] 3.2 Do NOT delete the constant (safe deprecation, avoid breaking anything)
+- [x] Task 3 — Deprecate `WORMHOLE_SPAWN_TIMER_THRESHOLD` in `gameConfig.js` (AC: #2)
+  - [x] 3.1 Add `// DEPRECATED (Story 34.4): No longer used — wormhole spawn is now scan-based` comment above the constant
+  - [x] 3.2 Do NOT delete the constant (safe deprecation, avoid breaking anything)
 
-- [ ] Task 4 — Write `useLevel.wormholeScanTrigger.test.js` (AC: #1, #4)
-  - [ ] 4.1 Test: threshold math — `Math.ceil(15 * 0.75) === 12`
-  - [ ] 4.2 Test: threshold math edge cases — `Math.ceil(10 * 0.75) === 8`, `Math.ceil(20 * 0.75) === 15`
-  - [ ] 4.3 Test: 11 scanned planets → count is below threshold
-  - [ ] 4.4 Test: 12 scanned planets → count meets threshold, calling `spawnWormhole()` transitions to `visible`
-  - [ ] 4.5 Test: with wormholeState already `visible`, guard `wormholeState === 'hidden'` evaluates to false (idempotent)
-  - [ ] 4.6 Test: with wormholeState `activating`, guard also evaluates to false
+- [x] Task 4 — Write `useLevel.wormholeScanTrigger.test.js` (AC: #1, #4)
+  - [x] 4.1 Test: threshold math — `Math.ceil(15 * 0.75) === 12`
+  - [x] 4.2 Test: threshold math edge cases — `Math.ceil(10 * 0.75) === 8`, `Math.ceil(20 * 0.75) === 15`
+  - [x] 4.3 Test: 11 scanned planets → count is below threshold
+  - [x] 4.4 Test: 12 scanned planets → count meets threshold, calling `spawnWormhole()` transitions to `visible`
+  - [x] 4.5 Test: with wormholeState already `visible`, guard `wormholeState === 'hidden'` evaluates to false (idempotent)
+  - [x] 4.6 Test: with wormholeState `activating`, guard also evaluates to false
 
-- [ ] Task 5 — Run all tests (AC: all)
-  - [ ] 5.1 `npx vitest run` — all tests pass
-  - [ ] 5.2 `useLevel.wormholeScanTrigger.test.js` runs green
+- [x] Task 5 — Run all tests (AC: all)
+  - [x] 5.1 `npx vitest run` — all tests pass
+  - [x] 5.2 `useLevel.wormholeScanTrigger.test.js` runs green
 
 ## Dev Notes
 
@@ -302,6 +302,22 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+None.
+
 ### Completion Notes List
 
+- Removed timer-based wormhole spawn (`if hidden → newTimer >= threshold`) from `GameLoop.jsx` `// 7f-bis` block. The `visible` branch now leads directly.
+- Added scan-based trigger in the `// Scan completed successfully` block: after `triggerPlanetReward`, checks `scanGalaxyConfig.planetCount * wormholeThreshold` via `Math.ceil`, guards on `wormholeState === 'hidden'` (idempotent per AC #4).
+- `getGalaxyById` import confirmed present from Story 34.2 — no change needed.
+- Deprecated `WORMHOLE_SPAWN_TIMER_THRESHOLD` in `gameConfig.js` with inline comment; constant preserved (safe deprecation).
+- Game-over timer logic untouched: timer expiry still triggers game-over if wormhole not yet activating/active (AC #3 preserved with zero code change).
+- Wrote 9 tests in `useLevel.wormholeScanTrigger.test.js` covering threshold math (3), scan counting (3), and idempotency guards (3). All pass.
+- Companion dialogue 'wormhole-spawn': trigger confirmed present in `Interface.jsx:88` via `useEffect` reacting to `wormholeState` change (hidden → visible). Pattern is correct and intentionally decoupled from GameLoop — no change needed. Dev Notes action item resolved.
+- Code review fix: added 2 additional tests — end-to-end AC#1 (12 scanned + hidden → spawnWormhole() → visible) and null galaxyConfig guard (selectedGalaxyId=null → wormhole stays hidden). Total: 11 tests.
+- Full regression suite: 135 test files, 2303 tests — all green.
+
 ### File List
+
+- `src/GameLoop.jsx` — modified (removed timer-based spawn, added scan-based trigger)
+- `src/config/gameConfig.js` — modified (deprecation comment on `WORMHOLE_SPAWN_TIMER_THRESHOLD`)
+- `src/stores/__tests__/useLevel.wormholeScanTrigger.test.js` — NEW (11 tests; 9 original + 2 added by code review)

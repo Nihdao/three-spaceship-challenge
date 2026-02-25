@@ -9,11 +9,12 @@ import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
 import { formatTimer } from './HUD.jsx'
 import StatLine from './primitives/StatLine.jsx'
+import { ShieldCrossIcon, ClockIcon, SkullIcon, StarIcon, FragmentIcon, SpeedIcon, SwordIcon, RerollIcon, SkipIcon, BanishIcon, LightningIcon, LuckIcon, MagnetIcon } from './icons/index.jsx'
 
 // --- Exported logic helpers (testable without DOM) ---
 
 export function shouldShowPauseMenu(phase, isPaused) {
-  return phase === 'gameplay' && isPaused === true
+  return (phase === 'gameplay' || phase === 'boss') && isPaused === true
 }
 
 export function getWeaponDisplayInfo(weapon) {
@@ -25,7 +26,7 @@ export function getWeaponDisplayInfo(weapon) {
     name: def.name,
     level: weapon.level,
     damage,
-    cooldown,
+    cooldown: cooldown ?? null,
     color: def.projectileColor,
   }
 }
@@ -78,6 +79,9 @@ export default function PauseMenu() {
   const shipBaseSpeed = usePlayer((s) => s.shipBaseSpeed)
   const currentLevel = usePlayer((s) => s.currentLevel)
   const fragments = usePlayer((s) => s.fragments)
+  const rerollCharges = usePlayer((s) => s.rerollCharges)
+  const skipCharges = usePlayer((s) => s.skipCharges)
+  const banishCharges = usePlayer((s) => s.banishCharges)
 
   const kills = useGame((s) => s.kills)
   const score = useGame((s) => s.score)
@@ -86,6 +90,12 @@ export default function PauseMenu() {
   const activeWeapons = useWeapons((s) => s.activeWeapons)
   const activeBoons = useBoons((s) => s.activeBoons)
   const damageMultiplier = useBoons((s) => s.modifiers?.damageMultiplier ?? 1)
+  const speedMultiplier = useBoons((s) => s.modifiers?.speedMultiplier ?? 1)
+  const cooldownMultiplier = useBoons((s) => s.modifiers?.cooldownMultiplier ?? 1)
+  const critChance = useBoons((s) => s.modifiers?.critChance ?? 0)
+  const xpMultiplier = useBoons((s) => s.modifiers?.xpMultiplier ?? 1)
+  const fragmentMultiplier = useBoons((s) => s.modifiers?.fragmentMultiplier ?? 1)
+  const pickupRadiusMultiplier = useBoons((s) => s.modifiers?.pickupRadiusMultiplier ?? 1)
 
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
@@ -155,178 +165,192 @@ export default function PauseMenu() {
   const equippedWeapons = activeWeapons.filter((w) => w)
   const equippedBoons = activeBoons.filter((b) => b)
 
+  const sectionTitleStyle = {
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 700,
+    fontSize: 12,
+    letterSpacing: '0.1em',
+    color: 'var(--rs-text-muted)',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    marginTop: 0,
+  }
+
   return (
     <div
       data-testid="pause-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center font-game"
+      className="fixed inset-0 z-50 flex items-center justify-center"
       style={{
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'rgba(13, 11, 20, 0.85)',
         animation: isClosing ? 'fadeOut 150ms ease-out forwards' : 'fadeIn 150ms ease-out',
+        fontFamily: "'Rajdhani', sans-serif",
       }}
     >
-      {/* Main pause modal */}
+      {/* Panel principal */}
       <div
-        className="border rounded-lg shadow-2xl mx-4 p-6"
         style={{
-          width: 'clamp(320px, 40vw, 720px)',
+          width: 'clamp(640px, 65vw, 920px)',
           maxHeight: '90vh',
           overflowY: 'auto',
-          backgroundColor: 'var(--color-game-bg)',
-          borderColor: 'var(--color-game-border)',
+          padding: '24px',
+          background: 'var(--rs-bg-surface)',
+          border: '1px solid var(--rs-border)',
+          clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+          margin: '0 16px',
         }}
       >
-        {/* Title */}
-        <h1
-          className="font-bold text-center mb-6"
-          style={{ fontSize: 'clamp(28px, 3vw, 40px)', color: 'var(--color-game-text)' }}
-        >
-          PAUSED
-        </h1>
-
-        {/* Inventory Section */}
-        <section className="mb-6" aria-label="inventory">
-          <h2
-            className="font-bold mb-3"
-            style={{ fontSize: 'clamp(18px, 2vw, 24px)', color: 'var(--color-game-text)' }}
+        {/* Header : Titre + RESUME */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h1
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: 'clamp(32px, 3.5vw, 48px)',
+              color: 'var(--rs-orange)',
+              letterSpacing: '0.15em',
+              margin: 0,
+            }}
           >
-            INVENTORY
-          </h2>
+            PAUSED
+          </h1>
+          <button
+            data-testid="resume-button"
+            onClick={handleResume}
+            style={{
+              fontFamily: "'Rajdhani', sans-serif",
+              fontWeight: 700,
+              fontSize: 'clamp(13px, 1.3vw, 16px)',
+              letterSpacing: '0.1em',
+              color: 'var(--rs-teal)',
+              border: '1px solid var(--rs-teal)',
+              background: 'transparent',
+              padding: '8px 20px',
+              cursor: 'pointer',
+            }}
+          >
+            [ESC/R] RESUME
+          </button>
+        </div>
 
-          {/* Weapons */}
-          <div className="mb-3">
-            <h3
-              className="font-semibold mb-1.5"
-              style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', color: 'var(--color-game-text-muted)' }}
-            >
-              WEAPONS
-            </h3>
-            <div className="flex flex-wrap gap-2">
+        {/* Corps 2 volets */}
+        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+
+          {/* Volet gauche : Inventaire */}
+          <div style={{ width: '45%', paddingRight: 20, borderRight: '1px solid var(--rs-border)' }}>
+
+            {/* WEAPONS */}
+            <p style={sectionTitleStyle}>WEAPONS</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
               {equippedWeapons.map((weapon, idx) => {
                 const info = getWeaponDisplayInfo(weapon)
                 return (
                   <div
                     key={`${weapon.weaponId}-${idx}`}
-                    className="flex flex-col items-center justify-center rounded"
                     style={{
-                      width: 'clamp(72px, 7vw, 100px)',
-                      padding: 'clamp(4px, 0.4vw, 8px)',
-                      backgroundColor: `${info.color}15`,
-                      border: `1px solid ${info.color}30`,
+                      borderLeft: `2px solid ${info.color}`,
+                      paddingLeft: 8,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
                     }}
                   >
-                    <span className="font-bold truncate leading-tight" style={{ fontSize: 'clamp(9px, 0.9vw, 12px)', color: info.color }}>
+                    <span style={{ fontSize: 13, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: info.color }}>
                       {info.name}
                     </span>
-                    <span className="tabular-nums leading-tight" style={{ fontSize: 'clamp(8px, 0.8vw, 10px)', color: 'var(--color-game-text-muted)' }}>
-                      Lv{info.level}
-                    </span>
-                    <span className="tabular-nums leading-tight" style={{ fontSize: 'clamp(7px, 0.7vw, 9px)', color: 'var(--color-game-text-muted)' }}>
-                      {info.damage}dmg {info.cooldown.toFixed(1)}s
+                    <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
+                      Lv{info.level} · {info.damage}dmg · {info.cooldown != null ? `${info.cooldown.toFixed(1)}s` : '—'}
                     </span>
                   </div>
                 )
               })}
               {equippedWeapons.length === 0 && (
-                <span style={{ color: 'var(--color-game-text-muted)', fontStyle: 'italic', fontSize: 'clamp(10px, 1vw, 13px)' }}>
-                  No weapons equipped
-                </span>
+                <span style={{ color: 'var(--rs-text-dim)', fontSize: 12 }}>—</span>
               )}
             </div>
-          </div>
 
-          {/* Boons */}
-          <div>
-            <h3
-              className="font-semibold mb-1.5"
-              style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', color: 'var(--color-game-text-muted)' }}
-            >
-              BOONS
-            </h3>
-            <div className="flex flex-wrap gap-2">
+            {/* BOONS */}
+            <p style={sectionTitleStyle}>BOONS</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {equippedBoons.map((boon, idx) => {
                 const info = getBoonDisplayInfo(boon)
                 return (
                   <div
                     key={`${boon.boonId}-${idx}`}
-                    className="flex flex-col items-center justify-center rounded"
                     style={{
-                      width: 'clamp(72px, 7vw, 100px)',
-                      padding: 'clamp(4px, 0.4vw, 8px)',
-                      backgroundColor: 'rgba(255, 20, 147, 0.1)',
-                      border: '1px solid rgba(255, 20, 147, 0.2)',
+                      borderLeft: '2px solid var(--rs-violet)',
+                      paddingLeft: 8,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
                     }}
                   >
-                    <span className="font-bold truncate leading-tight" style={{ fontSize: 'clamp(9px, 0.9vw, 12px)', color: 'rgba(255, 182, 219, 1)' }}>
+                    <span style={{ fontSize: 13, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: 'var(--rs-violet)' }}>
                       {info.name}
                     </span>
-                    <span className="tabular-nums leading-tight" style={{ fontSize: 'clamp(8px, 0.8vw, 10px)', color: 'var(--color-game-text-muted)' }}>
-                      Lv{info.level}
+                    <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
+                      Lv{info.level}{info.statPreview ? ` · ${info.statPreview}` : ''}
                     </span>
-                    {info.statPreview && (
-                      <span className="leading-tight text-center" style={{ fontSize: 'clamp(7px, 0.7vw, 9px)', color: 'var(--color-game-text-muted)' }}>
-                        {info.statPreview}
-                      </span>
-                    )}
                   </div>
                 )
               })}
               {equippedBoons.length === 0 && (
-                <span style={{ color: 'var(--color-game-text-muted)', fontStyle: 'italic', fontSize: 'clamp(10px, 1vw, 13px)' }}>
-                  No boons equipped
-                </span>
+                <span style={{ color: 'var(--rs-text-dim)', fontSize: 12 }}>—</span>
               )}
             </div>
           </div>
-        </section>
 
-        {/* Stats Section */}
-        <section className="mb-6" aria-label="stats">
-          <h2
-            className="font-bold mb-3"
-            style={{ fontSize: 'clamp(18px, 2vw, 24px)', color: 'var(--color-game-text)' }}
-          >
-            STATS
-          </h2>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-            <StatLine label="HP" value={`${Math.ceil(currentHP)} / ${maxHP}`} icon="❤️" />
-            <StatLine label="Level" value={String(currentLevel)} icon="🎖️" />
-            <StatLine label="Speed" value={String(shipBaseSpeed)} icon="⚡" />
-            <StatLine label="Damage Mult" value={`×${damageMultiplier.toFixed(2)}`} icon="🗡️" />
-            <StatLine label="Time" value={formatTimer(totalElapsedTime)} icon="⏱️" />
-            <StatLine label="Kills" value={kills.toLocaleString('en-US')} icon="💀" />
-            <StatLine label="Score" value={score.toLocaleString('en-US')} icon="⭐" />
-            <StatLine label="Fragments" value={fragments.toLocaleString('en-US')} icon="◆" />
+          {/* Volet droit : Stats */}
+          <div style={{ flex: 1, paddingLeft: 20 }}>
+
+            {/* RUN STATS */}
+            <p style={sectionTitleStyle}>RUN STATS</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+              <StatLine label="Time"      value={formatTimer(totalElapsedTime)} icon={ClockIcon}     mono />
+              <StatLine label="Kills"     value={kills.toLocaleString('en-US')}  icon={SkullIcon}    mono />
+              <StatLine label="Score"     value={score.toLocaleString('en-US')}  icon={StarIcon}     mono />
+              <StatLine label="Fragments" value={fragments.toLocaleString('en-US')} icon={FragmentIcon} mono />
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--rs-border)', margin: '16px 0' }} />
+
+            {/* PLAYER STATS */}
+            <p style={sectionTitleStyle}>PLAYER STATS</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <StatLine label="HP"      value={`${Math.ceil(currentHP)} / ${maxHP}`}           icon={ShieldCrossIcon} mono />
+              <StatLine label="Level"   value={String(currentLevel)}                             icon={StarIcon}        mono />
+              <StatLine label="Speed"   value={`${shipBaseSpeed} ×${speedMultiplier.toFixed(2)}`} icon={SpeedIcon}       mono />
+              <StatLine label="Dmg"     value={`×${damageMultiplier.toFixed(2)}`}               icon={SwordIcon}       mono />
+              <StatLine label="CD"      value={`×${cooldownMultiplier.toFixed(2)}`}              icon={LightningIcon}   mono />
+              {critChance > 0 && <StatLine label="Crit"   value={`${Math.round(critChance * 100)}%`}     icon={LuckIcon}        mono />}
+              {xpMultiplier !== 1 && <StatLine label="XP"     value={`×${xpMultiplier.toFixed(2)}`}          icon={StarIcon}        mono />}
+              {fragmentMultiplier !== 1 && <StatLine label="Frags"  value={`×${fragmentMultiplier.toFixed(2)}`}  icon={FragmentIcon}    mono />}
+              {pickupRadiusMultiplier !== 1 && <StatLine label="Magnet" value={`×${pickupRadiusMultiplier.toFixed(2)}`} icon={MagnetIcon}      mono />}
+              {rerollCharges > 0 && <StatLine label="Rerolls"  value={String(rerollCharges)}  icon={RerollIcon} mono />}
+              {skipCharges   > 0 && <StatLine label="Skips"    value={String(skipCharges)}    icon={SkipIcon}   mono />}
+              {banishCharges > 0 && <StatLine label="Banishes" value={String(banishCharges)}  icon={BanishIcon} mono />}
+            </div>
           </div>
-        </section>
+        </div>
 
-        {/* Actions Section */}
-        <section className="flex gap-4 justify-center" aria-label="actions">
-          <button
-            data-testid="resume-button"
-            onClick={handleResume}
-            className="px-6 py-3 font-bold rounded transition-colors"
-            style={{
-              backgroundColor: 'var(--color-game-primary)',
-              color: '#000',
-              fontSize: 'clamp(14px, 1.4vw, 18px)',
-            }}
-          >
-            [ESC/R] RESUME
-          </button>
+        {/* Zone actions : QUIT seul */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
           <button
             data-testid="quit-button"
             onClick={handleQuit}
-            className="px-6 py-3 font-bold rounded transition-colors"
             style={{
-              backgroundColor: 'transparent',
-              color: 'var(--color-game-danger)',
-              border: '2px solid var(--color-game-danger)',
-              fontSize: 'clamp(14px, 1.4vw, 18px)',
+              fontFamily: "'Rajdhani', sans-serif",
+              fontWeight: 700,
+              fontSize: 'clamp(13px, 1.3vw, 16px)',
+              letterSpacing: '0.1em',
+              color: 'var(--rs-danger)',
+              border: '1px solid var(--rs-danger)',
+              background: 'transparent',
+              padding: '8px 24px',
+              cursor: 'pointer',
             }}
           >
             [Q] QUIT TO MENU
           </button>
-        </section>
+        </div>
       </div>
 
       {/* Quit Confirmation Dialog */}
@@ -336,29 +360,32 @@ export default function PauseMenu() {
           style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}
         >
           <div
-            className="rounded-lg p-6 max-w-md mx-4"
             style={{
-              backgroundColor: 'var(--color-game-bg)',
-              border: '2px solid var(--color-game-danger)',
+              clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
+              backgroundColor: 'var(--rs-bg-surface)',
+              border: '1px solid var(--rs-border)',
+              padding: '24px',
+              maxWidth: '28rem',
+              margin: '0 16px',
               animation: 'fadeIn 150ms ease-out',
             }}
           >
             <h2
-              className="font-bold mb-4"
-              style={{ fontSize: 'clamp(18px, 2vw, 24px)', color: 'var(--color-game-danger)' }}
+              style={{ fontSize: 'clamp(18px, 2vw, 24px)', color: 'var(--rs-danger)', margin: '0 0 16px 0', fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, letterSpacing: '0.05em' }}
             >
               Quit to menu?
             </h2>
-            <p className="mb-6" style={{ color: 'var(--color-game-text)', fontSize: 'clamp(13px, 1.3vw, 16px)' }}>
+            <p style={{ color: 'var(--rs-text)', fontSize: 'clamp(13px, 1.3vw, 16px)', margin: '0 0 24px 0' }}>
               Progress will be lost.
             </p>
             <div className="flex gap-4 justify-center">
               <button
                 data-testid="confirm-quit-button"
                 onClick={handleConfirmQuit}
-                className="px-6 py-2 font-bold rounded transition-colors"
+                className="px-6 py-2 font-bold transition-colors"
                 style={{
-                  backgroundColor: 'var(--color-game-danger)',
+                  clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+                  backgroundColor: 'var(--rs-danger)',
                   color: '#fff',
                   fontSize: 'clamp(13px, 1.3vw, 16px)',
                 }}
@@ -368,11 +395,12 @@ export default function PauseMenu() {
               <button
                 data-testid="cancel-quit-button"
                 onClick={handleCancelQuit}
-                className="px-6 py-2 font-bold rounded transition-colors"
+                className="px-6 py-2 font-bold transition-colors"
                 style={{
+                  clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
                   backgroundColor: 'transparent',
-                  color: 'var(--color-game-text)',
-                  border: '1px solid var(--color-game-border)',
+                  color: 'var(--rs-text)',
+                  border: '1px solid var(--rs-border)',
                   fontSize: 'clamp(13px, 1.3vw, 16px)',
                 }}
               >

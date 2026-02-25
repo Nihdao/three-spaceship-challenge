@@ -34,27 +34,27 @@ describe('ProgressBar logic', () => {
 
   it('applies hp variant color', () => {
     const props = getProgressBarProps({ value: 50, max: 100, variant: 'hp' })
-    expect(props.fillClassName).toContain('bg-game-hp')
+    expect(props.fillColor).toBe('var(--rs-hp)')
   })
 
   it('applies xp variant color', () => {
     const props = getProgressBarProps({ value: 50, max: 100, variant: 'xp' })
-    expect(props.fillClassName).toContain('bg-game-xp')
+    expect(props.fillColor).toBe('var(--rs-violet)')
   })
 
   it('applies cooldown variant color', () => {
     const props = getProgressBarProps({ value: 50, max: 100, variant: 'cooldown' })
-    expect(props.fillClassName).toContain('bg-game-cooldown')
+    expect(props.fillColor).toBe('var(--rs-dash-cd)')
   })
 
   it('applies boss variant color (same as hp)', () => {
     const props = getProgressBarProps({ value: 50, max: 100, variant: 'boss' })
-    expect(props.fillClassName).toContain('bg-game-hp')
+    expect(props.fillColor).toBe('var(--rs-hp)')
   })
 
   it('falls back to hp color for unknown variant', () => {
     const props = getProgressBarProps({ value: 50, max: 100, variant: 'unknown' })
-    expect(props.fillClassName).toContain('bg-game-hp')
+    expect(props.fillColor).toBe('var(--rs-hp)')
   })
 
   it('handles negative values by clamping to 0%', () => {

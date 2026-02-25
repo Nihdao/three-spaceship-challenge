@@ -1,6 +1,7 @@
 import { spawnOrb, resetOrbs } from './xpOrbSystem.js'
 import { spawnHealGem, resetHealGems } from './healGemSystem.js'
 import { spawnGem, reset as resetFragmentGems } from './fragmentGemSystem.js'
+import { spawnRareItem, resetRareItems } from './rareItemSystem.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { ENEMIES } from '../entities/enemyDefs.js'
 import usePlayer from '../stores/usePlayer.jsx'
@@ -21,8 +22,24 @@ const _registry = new Map()
  * @param {string} config.dropChanceKey - gameConfig.js key for drop chance (e.g., 'HEAL_GEM_DROP_CHANCE')
  * @param {function} config.spawnFn - Spawn function to call on successful drop (x, z, value?) => void
  */
-export function registerLootType(lootId, { dropChanceKey, spawnFn }) {
-  _registry.set(lootId, { dropChanceKey, spawnFn })
+export function registerLootType(lootId, { dropChanceKey, dropChanceCapKey, spawnFn }) {
+  _registry.set(lootId, { dropChanceKey, dropChanceCapKey, spawnFn })
+}
+
+/**
+ * Compute a radially-scattered position for a drop, offset from the enemy death point.
+ * @param {number} x - Origin X
+ * @param {number} z - Origin Z
+ * @param {number} index - Drop index (0 = XP, 1 = first registry item, ...)
+ * @returns {[number, number]} Scattered [sx, sz]
+ */
+const _scatterResult = [0, 0]
+function _scatterPos(x, z, index) {
+  const angle = index * 2.094 + (Math.random() - 0.5) * 0.4
+  const r = 0.6 + Math.random() * 0.4
+  _scatterResult[0] = x + Math.cos(angle) * r
+  _scatterResult[1] = z + Math.sin(angle) * r
+  return _scatterResult
 }
 
 /**
@@ -43,16 +60,19 @@ export function rollDrops(enemyTypeId, x, z, enemyInstance = null) {
   // Story 20.4: Read luck bonus for drop chance increases (additive)
   const luckBonus = usePlayer.getState().permanentUpgradeBonuses.luck
 
+  let dropIdx = 0 // Story 44.4: shared scatter index across all drops
+
   // XP Orb drop (rare or standard) - handled separately, not in registry
   // Rationale: XP is always guaranteed drop (not random), just rare vs standard
   if (xpReward > 0) {
     const isRare = Math.random() < Math.min(1.0, GAME_CONFIG.RARE_XP_GEM_DROP_CHANCE + luckBonus)
+    const [sx, sz] = _scatterPos(x, z, dropIdx++)
     if (isRare) {
       // Rare XP gem: 3x value, replaces standard orb
-      spawnOrb(x, z, xpReward * GAME_CONFIG.RARE_XP_GEM_MULTIPLIER, true)
+      spawnOrb(sx, sz, xpReward * GAME_CONFIG.RARE_XP_GEM_MULTIPLIER, true)
     } else {
       // Standard XP orb
-      spawnOrb(x, z, xpReward, false)
+      spawnOrb(sx, sz, xpReward, false)
     }
   }
 
@@ -61,10 +81,14 @@ export function rollDrops(enemyTypeId, x, z, enemyInstance = null) {
     // Check per-enemy override first, fallback to global config
     // Story 20.4: Add luck bonus to all registry-based drop chances (additive, capped at 1.0)
     const baseDropChance = enemyInstance?.dropOverrides?.[lootId] ?? GAME_CONFIG[config.dropChanceKey]
-    const dropChance = Math.min(1.0, baseDropChance + luckBonus)
+    // Items with a cap use multiplicative luck scaling; others keep legacy additive behaviour
+    const dropChance = config.dropChanceCapKey
+      ? Math.min(GAME_CONFIG[config.dropChanceCapKey], baseDropChance * (1 + luckBonus))
+      : Math.min(1.0, baseDropChance + luckBonus)
 
     if (Math.random() < dropChance) {
-      config.spawnFn(x, z)
+      const [sx, sz] = _scatterPos(x, z, dropIdx++)
+      config.spawnFn(sx, sz)
     }
   }
 }
@@ -95,6 +119,7 @@ export function resetAll() {
   resetOrbs()
   resetHealGems()
   resetFragmentGems()
+  resetRareItems()
 }
 
 /**
@@ -114,6 +139,7 @@ export function _getRegistryForTesting() {
 // HEAL_GEM: Health restore gems (Story 19.2)
 registerLootType('HEAL_GEM', {
   dropChanceKey: 'HEAL_GEM_DROP_CHANCE',
+  dropChanceCapKey: 'HEAL_GEM_DROP_CAP',
   spawnFn: (x, z, value) => {
     const healAmount = value ?? GAME_CONFIG.HEAL_GEM_RESTORE_AMOUNT
     spawnHealGem(x, z, healAmount)
@@ -127,6 +153,20 @@ registerLootType('FRAGMENT_GEM', {
     const fragmentAmount = value ?? GAME_CONFIG.FRAGMENT_DROP_AMOUNT
     spawnGem(x, z, fragmentAmount)
   },
+})
+
+// MAGNET_ITEM: Rare magnet item — activates magnetization for all collectibles (Story 44.5)
+registerLootType('MAGNET_ITEM', {
+  dropChanceKey: 'MAGNET_ITEM_DROP_CHANCE',
+  dropChanceCapKey: 'MAGNET_ITEM_DROP_CAP',
+  spawnFn: (x, z) => spawnRareItem(x, z, 'MAGNET'),
+})
+
+// SHIELD_ITEM: Rare shield item — grants temporary invulnerability (Story 44.5)
+registerLootType('SHIELD_ITEM', {
+  dropChanceKey: 'SHIELD_ITEM_DROP_CHANCE',
+  dropChanceCapKey: 'SHIELD_ITEM_DROP_CAP',
+  spawnFn: (x, z) => spawnRareItem(x, z, 'SHIELD'),
 })
 
 // ============================================================================

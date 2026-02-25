@@ -93,12 +93,13 @@ void main() {
 }
 `
 
+// Module-level constants — avoids re-allocation on re-render
+const WORMHOLE_COLOR = new THREE.Color('#5518aa') // Deep purple (tunnel color)
+const WORMHOLE_COLOR2 = new THREE.Color('#bb88ff') // Bright purple
+
 export default function WormholeRenderer() {
   const portalRef = useRef()
   const particlesRef = useRef()
-
-  const WORMHOLE_COLOR = new THREE.Color('#5518aa') // Deep purple (tunnel color)
-  const WORMHOLE_COLOR2 = new THREE.Color('#bb88ff') // Bright purple
 
   // Rift shader material
   const riftMaterial = useMemo(() => new THREE.ShaderMaterial({
@@ -205,7 +206,7 @@ export default function WormholeRenderer() {
     // Animate particles — orbit around portal (Story 17.4: slow for inactive state)
     if (particlesRef.current.visible && particleGeoRef.current) {
       const posAttr = particleGeoRef.current.getAttribute('position')
-      if (posAttr) {
+      if (posAttr && wormholeState !== 'visible') {
         const count = WORMHOLE_VISUAL.PARTICLE_COUNT
         // Story 17.4: Reduce particle speed during inactive state
         const speedMult = wormholeState === 'inactive' ? GAME_CONFIG.WORMHOLE_INACTIVE.PARTICLE_SPEED : 1.0

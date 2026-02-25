@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   createCollisionSystem,
+  segmentCircleIntersect,
   CATEGORY_PLAYER,
   CATEGORY_ENEMY,
   CATEGORY_PROJECTILE,
@@ -148,5 +149,67 @@ describe('collisionSystem', () => {
       expect(collisions.map(e => e.id)).toContain('enemy1')
       expect(collisions.map(e => e.id)).toContain('enemy2')
     })
+  })
+})
+
+describe('segmentCircleIntersect (anti-tunneling)', () => {
+  it('detects circle at segment midpoint', () => {
+    // Segment (0,0)→(10,0), circle center at (5,0), radius 1
+    expect(segmentCircleIntersect(0, 0, 10, 0, 5, 0, 1)).toBe(true)
+  })
+
+  it('detects circle touching segment from the side', () => {
+    // Segment along X axis, circle 1 unit away on Z — radius 1.5 should reach
+    expect(segmentCircleIntersect(0, 0, 10, 0, 5, 1, 1.5)).toBe(true)
+  })
+
+  it('misses circle too far from segment', () => {
+    // Circle center at (5, 3), radius 1 — too far from X-axis segment
+    expect(segmentCircleIntersect(0, 0, 10, 0, 5, 3, 1)).toBe(false)
+  })
+
+  it('detects circle at segment start point', () => {
+    expect(segmentCircleIntersect(0, 0, 10, 0, 0, 0, 0.5)).toBe(true)
+  })
+
+  it('detects circle at segment end point', () => {
+    expect(segmentCircleIntersect(0, 0, 10, 0, 10, 0, 0.5)).toBe(true)
+  })
+
+  it('misses circle beyond segment end', () => {
+    // Circle at (12, 0) with radius 1 — nearest segment point is (10,0), dist = 2 > 1
+    expect(segmentCircleIntersect(0, 0, 10, 0, 12, 0, 1)).toBe(false)
+  })
+
+  it('misses circle before segment start', () => {
+    expect(segmentCircleIntersect(0, 0, 10, 0, -2, 0, 1)).toBe(false)
+  })
+
+  it('handles degenerate zero-length segment (point-in-circle)', () => {
+    expect(segmentCircleIntersect(5, 5, 5, 5, 5, 5, 1)).toBe(true)
+    expect(segmentCircleIntersect(5, 5, 5, 5, 8, 8, 1)).toBe(false)
+  })
+
+  it('reproduces tunneling scenario — fast laser vs small enemy', () => {
+    // LASER_FRONT: speed 300, radius 1.5. At 60fps: moves 5 units/frame.
+    // FODDER_SWARM: radius 0.75. Enemy at (0, -2.5) — between prev and current.
+    // Prev pos (0,0), current pos (0,-5). Combined radius = 2.25.
+    // Circle-vs-circle at current pos: dist = |(-5)-(-2.5)| = 2.5 > 2.25 → MISS
+    // Circle-vs-circle at prev pos: dist = |0-(-2.5)| = 2.5 > 2.25 → MISS
+    // Swept check: closest point on segment to (-2.5) is (0,-2.5), dist = 0 → HIT
+    const prevX = 0, prevZ = 0
+    const currX = 0, currZ = -5
+    const enemyX = 0, enemyZ = -2.5
+    const projRadius = 1.5, enemyRadius = 0.75
+    const rSum = projRadius + enemyRadius // 2.25
+
+    // Verify circle-vs-circle would miss at both endpoints
+    const distPrev = Math.sqrt((prevX - enemyX) ** 2 + (prevZ - enemyZ) ** 2)
+    const distCurr = Math.sqrt((currX - enemyX) ** 2 + (currZ - enemyZ) ** 2)
+    expect(distPrev).toBeGreaterThan(rSum) // 2.5 > 2.25 — missed
+    expect(distCurr).toBeGreaterThan(rSum) // 2.5 > 2.25 — missed
+
+    // Swept check catches it
+    expect(segmentCircleIntersect(prevX, prevZ, currX, currZ, enemyX, enemyZ, rSum)).toBe(true)
   })
 })

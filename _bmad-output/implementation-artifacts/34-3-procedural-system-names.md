@@ -1,6 +1,6 @@
 # Story 34.3: Procedural System Names
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -24,44 +24,44 @@ so that every run feels like a different expedition.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1 — Add `currentSystemName` and `usedSystemNames` to `useLevel.jsx` state (AC: #1, #5)
-  - [ ] 1.1 Add `currentSystemName: null` to initial state object (alongside existing fields)
-  - [ ] 1.2 Add `usedSystemNames: []` to initial state object
-  - [ ] 1.3 Add both fields to `reset()` (see Dev Notes for exact placement)
-  - [ ] 1.4 Do NOT modify `advanceSystem()` — `usedSystemNames` persists across systems within a run
-- [ ] Task 2 — Implement `initializeSystemName(pool)` action in `useLevel.jsx` (AC: #2, #4)
-  - [ ] 2.1 Guard: if `!pool || pool.length === 0`, return immediately (no-op)
-  - [ ] 2.2 Filter pool to exclude names already in `usedSystemNames`
-  - [ ] 2.3 If filtered pool is empty, use full `pool` (wrap-around fallback)
-  - [ ] 2.4 Pick a random name from the filtered/full pool
-  - [ ] 2.5 `set({ currentSystemName: name, usedSystemNames: [...usedSystemNames, name] })`
-- [ ] Task 3 — Update `SystemNameBanner.jsx` to read from `useLevel.currentSystemName` (AC: #3)
-  - [ ] 3.1 Add `const currentSystemName = useLevel((s) => s.currentSystemName)` hook
-  - [ ] 3.2 Replace `GAME_CONFIG.SYSTEM_NAMES[currentSystem - 1]` lookup with `currentSystemName`
-  - [ ] 3.3 Use `currentSystemName || \`SYSTEM ${currentSystem}\`` as fallback (same pattern as before)
-  - [ ] 3.4 Remove the now-unused `systemName` variable and `console.warn` block
-  - [ ] 3.5 Keep `GAME_CONFIG` import (still needed for `SYSTEM_BANNER` timing constants)
-- [ ] Task 4 — Update `GameLoop.jsx` to call `initializeSystemName` at system-entry sites (AC: #6)
-  - [ ] 4.1 At ~line 141 (tunnel→gameplay): add `useLevel.getState().initializeSystemName(galaxyConfig?.systemNamePool)` after `initializePlanets` call
-  - [ ] 4.2 At ~line 162 (new game start): same addition
-  - [ ] 4.3 `getGalaxyById` and `galaxyConfig` will already be in scope from Story 34.2 changes
-- [ ] Task 5 — Write `useLevel.systemName.test.js` (AC: #1, #2, #4, #5)
-  - [ ] 5.1 Test: initial state has `currentSystemName: null`
-  - [ ] 5.2 Test: initial state has `usedSystemNames: []`
-  - [ ] 5.3 Test: `initializeSystemName(pool)` sets `currentSystemName` to a value from pool
-  - [ ] 5.4 Test: chosen name is added to `usedSystemNames`
-  - [ ] 5.5 Test: 4 successive calls with a 4-name pool yields 4 unique names (no repeat within pool)
-  - [ ] 5.6 Test: wrap-around — 5th call after pool exhaustion still returns a valid name
-  - [ ] 5.7 Test: `reset()` clears `currentSystemName` to null
-  - [ ] 5.8 Test: `reset()` clears `usedSystemNames` to `[]`
-  - [ ] 5.9 Test: no-op when pool is empty array
-  - [ ] 5.10 Test: no-op when pool is null or undefined
-- [ ] Task 6 — Update `SystemNameBanner.test.jsx` (AC: #3)
-  - [ ] 6.1 Remove the 7 tests in `'System name lookup logic'` that assert against `GAME_CONFIG.SYSTEM_NAMES` hardcoded values
-  - [ ] 6.2 Add 3 new tests covering `useLevel.currentSystemName` flow (see Dev Notes)
-  - [ ] 6.3 Keep all timing, phase transition, store integration, and galaxy subtitle tests unchanged
-- [ ] Task 7 — Run all tests and verify (AC: all)
-  - [ ] 7.1 `npx vitest run` — all tests must pass
+- [x] Task 1 — Add `currentSystemName` and `usedSystemNames` to `useLevel.jsx` state (AC: #1, #5)
+  - [x] 1.1 Add `currentSystemName: null` to initial state object (alongside existing fields)
+  - [x] 1.2 Add `usedSystemNames: []` to initial state object
+  - [x] 1.3 Add both fields to `reset()` (see Dev Notes for exact placement)
+  - [x] 1.4 Do NOT modify `advanceSystem()` — `usedSystemNames` persists across systems within a run
+- [x] Task 2 — Implement `initializeSystemName(pool)` action in `useLevel.jsx` (AC: #2, #4)
+  - [x] 2.1 Guard: if `!pool || pool.length === 0`, return immediately (no-op)
+  - [x] 2.2 Filter pool to exclude names already in `usedSystemNames`
+  - [x] 2.3 If filtered pool is empty, use full `pool` (wrap-around fallback)
+  - [x] 2.4 Pick a random name from the filtered/full pool
+  - [x] 2.5 `set({ currentSystemName: name, usedSystemNames: [...usedSystemNames, name] })`
+- [x] Task 3 — Update `SystemNameBanner.jsx` to read from `useLevel.currentSystemName` (AC: #3)
+  - [x] 3.1 Add `const currentSystemName = useLevel((s) => s.currentSystemName)` hook
+  - [x] 3.2 Replace `GAME_CONFIG.SYSTEM_NAMES[currentSystem - 1]` lookup with `currentSystemName`
+  - [x] 3.3 Use `currentSystemName || \`SYSTEM ${currentSystem}\`` as fallback (same pattern as before)
+  - [x] 3.4 Remove the now-unused `systemName` variable and `console.warn` block
+  - [x] 3.5 Keep `GAME_CONFIG` import (still needed for `SYSTEM_BANNER` timing constants)
+- [x] Task 4 — Update `GameLoop.jsx` to call `initializeSystemName` at system-entry sites (AC: #6)
+  - [x] 4.1 At ~line 141 (tunnel→gameplay): add `useLevel.getState().initializeSystemName(galaxyConfig?.systemNamePool)` after `initializePlanets` call
+  - [x] 4.2 At ~line 162 (new game start): same addition
+  - [x] 4.3 `getGalaxyById` and `galaxyConfig` will already be in scope from Story 34.2 changes
+- [x] Task 5 — Write `useLevel.systemName.test.js` (AC: #1, #2, #4, #5)
+  - [x] 5.1 Test: initial state has `currentSystemName: null`
+  - [x] 5.2 Test: initial state has `usedSystemNames: []`
+  - [x] 5.3 Test: `initializeSystemName(pool)` sets `currentSystemName` to a value from pool
+  - [x] 5.4 Test: chosen name is added to `usedSystemNames`
+  - [x] 5.5 Test: 4 successive calls with a 4-name pool yields 4 unique names (no repeat within pool)
+  - [x] 5.6 Test: wrap-around — 5th call after pool exhaustion still returns a valid name
+  - [x] 5.7 Test: `reset()` clears `currentSystemName` to null
+  - [x] 5.8 Test: `reset()` clears `usedSystemNames` to `[]`
+  - [x] 5.9 Test: no-op when pool is empty array
+  - [x] 5.10 Test: no-op when pool is null or undefined
+- [x] Task 6 — Update `SystemNameBanner.test.jsx` (AC: #3)
+  - [x] 6.1 Remove the 7 tests in `'System name lookup logic'` that assert against `GAME_CONFIG.SYSTEM_NAMES` hardcoded values
+  - [x] 6.2 Add 3 new tests covering `useLevel.currentSystemName` flow (see Dev Notes)
+  - [x] 6.3 Keep all timing, phase transition, store integration, and galaxy subtitle tests unchanged
+- [x] Task 7 — Run all tests and verify (AC: all)
+  - [x] 7.1 `npx vitest run` — all tests must pass (83/83 on impacted files; pre-existing failures on unrelated files confirmed pre-existing)
 
 ## Dev Notes
 
@@ -341,4 +341,31 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- Implemented `currentSystemName` + `usedSystemNames` state fields in `useLevel.jsx` (initial state + reset)
+- Implemented `initializeSystemName(pool)` action with wrap-around fallback when pool exhausted
+- Updated `SystemNameBanner.jsx` to read `currentSystemName` from store instead of `GAME_CONFIG.SYSTEM_NAMES`
+- Updated `GameLoop.jsx` two system-entry sites (tunnel→gameplay + new game) to call `initializeSystemName` after `initializePlanets`, using optional chaining `galaxyConfig?.systemNamePool` for null safety
+- Created `src/stores/__tests__/useLevel.systemName.test.js` — 11 tests all passing
+- Updated `SystemNameBanner.test.jsx` — replaced 7 stale `SYSTEM_NAMES` tests with 3 new `currentSystemName` tests (22 tests total, all passing)
+- All 83 impacted tests pass; pre-existing failures on unrelated files confirmed pre-existing (audioManager, commandSystem, waveSystem, Armory, MainMenu)
+
+### Code Review Fixes (AI-Review)
+
+- **[M1 fixed]** Added 2 regression tests to `useLevel.systemName.test.js` verifying `advanceSystem()` does NOT clear `usedSystemNames` (per-run persistence guard)
+- **[M2 fixed]** Removed stale "Dev mode console warning" describe block from `SystemNameBanner.test.jsx` — referenced removed component behavior (SYSTEM_NAMES lookup + console.warn eliminated by Task 3.4)
+- **[L1 fixed]** Removed redundant optional chaining (`?.`) on `systemNamePool` inside non-null guard blocks in `GameLoop.jsx:147,174`
+- All tests pass: 34/34 (13 in useLevel.systemName.test.js + 21 in SystemNameBanner.test.jsx)
+
+### Code Review Fixes (AI-Review Round 2)
+
+- **[M1 fixed]** Fixed wrap-around logic in `initializeSystemName`: after pool exhaustion, `usedSystemNames` now resets to `[name]` instead of growing indefinitely with duplicates. Without this fix, the first wrap-around permanently disabled deduplication for all subsequent calls (filter always returned empty). Added regression test `'wrap-around: usedSystemNames resets to [name] so deduplication resumes after cycle'`.
+- **[L1 fixed]** Fixed hardcoded `SYSTEM 1` fallback in `SystemNameBanner.test.jsx:32` — replaced with dynamic `` `SYSTEM ${currentSystem}` `` to match actual component code.
+- All tests pass: 35/35 (14 in useLevel.systemName.test.js + 21 in SystemNameBanner.test.jsx)
+
 ### File List
+
+- src/stores/useLevel.jsx
+- src/ui/SystemNameBanner.jsx
+- src/GameLoop.jsx
+- src/stores/__tests__/useLevel.systemName.test.js (NEW)
+- src/ui/__tests__/SystemNameBanner.test.jsx

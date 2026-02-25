@@ -1,97 +1,100 @@
 import { create } from 'zustand'
 import { GAME_CONFIG } from '../config/gameConfig.js'
-import { calcDriftOffset, getColorForDamage, updateDamageNumbers } from '../systems/damageNumberSystem.js'
+import { calcDriftOffset, getColorForDamage } from '../systems/damageNumberSystem.js'
 
 // Monotonic ID counter — module-level to survive resets
 let _nextId = 0
 
+// Ring buffer — pre-allocated pool to avoid spread/slice allocations (Story 41.2 AC 4)
+const MAX_DN = GAME_CONFIG.DAMAGE_NUMBERS.MAX_COUNT
+const _pool = new Array(MAX_DN).fill(null)
+let _writeIdx = 0
+
+/** Write a single entry into the ring buffer, overwriting oldest if full. */
+function _poolWrite(entry) {
+  _pool[_writeIdx % MAX_DN] = entry
+  _writeIdx++
+}
+
+/** Build the public damageNumbers array from the ring buffer in chronological order (oldest first). */
+function _poolSnapshot() {
+  const result = []
+  // Start from the oldest surviving slot and iterate forward
+  const start = _writeIdx <= MAX_DN ? 0 : _writeIdx % MAX_DN
+  for (let i = 0; i < MAX_DN; i++) {
+    const entry = _pool[(start + i) % MAX_DN]
+    if (entry !== null) result.push(entry)
+  }
+  return result
+}
+
 const useDamageNumbers = create((set, get) => ({
   damageNumbers: [],
 
-  /**
-   * Spawns a new floating damage number at the given world position.
-   * If MAX_COUNT is reached, removes the oldest number first.
-   *
-   * @param {{ damage: number, worldX: number, worldZ: number, isCrit?: boolean, isPlayerDamage?: boolean, color?: string }} params
-   */
   spawnDamageNumber: ({ damage, worldX, worldZ, isCrit = false, isPlayerDamage = false, color }) => {
-    const cfg = GAME_CONFIG.DAMAGE_NUMBERS
     const resolvedColor = color ?? getColorForDamage(isPlayerDamage, isCrit)
-    const newNumber = {
+    _poolWrite({
       id: _nextId++,
       damage,
       worldX,
-      worldY: 1.0, // slightly above ground plane
+      worldY: 1.0,
       worldZ,
       age: 0,
       isCrit,
       isPlayerDamage,
       color: resolvedColor,
       offsetX: calcDriftOffset(),
-    }
-
-    const { damageNumbers } = get()
-    let updated = [...damageNumbers, newNumber]
-
-    // Enforce max count: remove oldest entries (from front of array)
-    if (updated.length > cfg.MAX_COUNT) {
-      updated = updated.slice(updated.length - cfg.MAX_COUNT)
-    }
-
-    set({ damageNumbers: updated })
+    })
+    set({ damageNumbers: _poolSnapshot() })
   },
 
-  /**
-   * Spawns multiple damage numbers in a single state update — use when several
-   * hits arrive in the same frame (e.g. multi-projectile weapons) to avoid N
-   * redundant set() calls.
-   *
-   * @param {Array<{ damage: number, worldX: number, worldZ: number, isCrit?: boolean, color?: string }>} entries
-   */
   spawnDamageNumbers: (entries) => {
     if (entries.length === 0) return
-    const cfg = GAME_CONFIG.DAMAGE_NUMBERS
-    const newNumbers = entries.map(({ damage, worldX, worldZ, isCrit = false, isPlayerDamage = false, color }) => {
+    for (let i = 0; i < entries.length; i++) {
+      const { damage, worldX, worldZ, isCrit = false, isPlayerDamage = false, color } = entries[i]
       const resolvedColor = color ?? getColorForDamage(isPlayerDamage, isCrit)
-      return {
+      _poolWrite({
         id: _nextId++,
         damage,
         worldX,
-        worldY: 1.0, // slightly above ground plane
+        worldY: 1.0,
         worldZ,
         age: 0,
         isCrit,
         isPlayerDamage,
         color: resolvedColor,
         offsetX: calcDriftOffset(),
-      }
-    })
-
-    const { damageNumbers } = get()
-    let updated = [...damageNumbers, ...newNumbers]
-
-    if (updated.length > cfg.MAX_COUNT) {
-      updated = updated.slice(updated.length - cfg.MAX_COUNT)
+      })
     }
-
-    set({ damageNumbers: updated })
+    set({ damageNumbers: _poolSnapshot() })
   },
 
-  /**
-   * Advances all damage numbers by delta seconds.
-   * Removes numbers that have reached or exceeded LIFETIME.
-   * Delegates to updateDamageNumbers() from damageNumberSystem.
-   *
-   * @param {number} delta - Time delta in seconds
-   */
   tick: (delta) => {
-    const { damageNumbers } = get()
-    if (damageNumbers.length === 0) return
-    set({ damageNumbers: updateDamageNumbers(damageNumbers, delta) })
+    const lifetime = GAME_CONFIG.DAMAGE_NUMBERS.LIFETIME
+    let anyActive = false
+    let changed = false
+    for (let i = 0; i < MAX_DN; i++) {
+      const entry = _pool[i]
+      if (!entry) continue
+      entry.age += delta
+      if (entry.age >= lifetime) {
+        _pool[i] = null
+        changed = true
+      } else {
+        anyActive = true
+        // age mutated in-place — renderer reads imperatively via getState(), no set() needed for animation
+      }
+    }
+    if (changed) {
+      set({ damageNumbers: anyActive ? _poolSnapshot() : [] })
+    }
   },
 
-  /** Clears all active damage numbers (call on game reset / system transition). */
-  reset: () => set({ damageNumbers: [] }),
+  reset: () => {
+    _pool.fill(null)
+    _writeIdx = 0
+    set({ damageNumbers: [] })
+  },
 }))
 
 export default useDamageNumbers

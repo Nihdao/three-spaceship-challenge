@@ -100,5 +100,27 @@ describe('createSpatialHash', () => {
       expect(results).toContain(e1)
       expect(results).toContain(e2)
     })
+
+    it('two instances share _queryResult safely — sequential calls do not interfere', () => {
+      // Simulates game scenario: collision hash queries then separation hash queries same frame
+      const hashA = createSpatialHash(2)
+      const hashB = createSpatialHash(4)
+
+      hashA.insert({ id: 'a', x: 0, z: 0, radius: 1 })
+      hashB.insert({ id: 'b', x: 0, z: 0, radius: 1 })
+
+      // hashA query — returns _queryResult with 'a'
+      const resultsA = hashA.queryNearby(0, 0, 2)
+      expect(resultsA).toHaveLength(1)
+      expect(resultsA[0].id).toBe('a')
+
+      // hashB query — clears and reuses _queryResult (same array reference)
+      const resultsB = hashB.queryNearby(0, 0, 4)
+      expect(resultsB).toHaveLength(1)
+      expect(resultsB[0].id).toBe('b')
+
+      // Both references point to the same array — callers must not hold across calls
+      expect(resultsA).toBe(resultsB)
+    })
   })
 })

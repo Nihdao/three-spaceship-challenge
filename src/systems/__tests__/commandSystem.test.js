@@ -215,10 +215,10 @@ describe('commandSystem — executeCommand', () => {
     it('returns error when slots full', () => {
       // Already have LASER_FRONT from initializeWeapons
       executeCommand('addweapon SPREAD_SHOT')
-      executeCommand('addweapon MISSILE_HOMING')
-      executeCommand('addweapon PLASMA_BOLT')
+      executeCommand('addweapon BEAM')
+      executeCommand('addweapon EXPLOSIVE_ROUND')
       // Now slots are full (4/4)
-      const result = executeCommand('addweapon RAILGUN')
+      const result = executeCommand('addweapon LASER_CROSS')
       expect(result.success).toBe(false)
       expect(result.message).toContain('full')
     })

@@ -13,7 +13,7 @@ export const ARMORY_TABS = ['Weapons', 'Boons']
 export function getArmoryTabData() {
   return {
     tabs: ARMORY_TABS,
-    weaponIds: Object.keys(WEAPONS),
+    weaponIds: Object.keys(WEAPONS).filter(id => (WEAPONS[id].rarityWeight ?? 1) !== 0),
     boonIds: Object.keys(BOONS),
   }
 }
@@ -49,26 +49,70 @@ const BOON_ICONS = {
   PICKUP_RADIUS: '🧲',
 }
 
+function getBadgeText(id) {
+  const parts = id.split('_')
+  if (parts.length === 1) return id.slice(0, 2)
+  return parts.map(word => word[0]).join('').slice(0, 2)
+}
+
 function WeaponCard({ weaponId }) {
   const def = WEAPONS[weaponId]
   const isDiscovered = useArmory(s => s.isDiscovered('weapons', weaponId))
-  const icon = WEAPON_ICONS[weaponId] || '🔫'
 
   return (
-    <div className="border rounded-lg p-3 bg-black/40 backdrop-blur-sm border-game-border select-none">
+    <div
+      className="p-3 select-none"
+      style={{ background: 'var(--rs-bg-raised)', border: '1px solid var(--rs-border)', clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}
+    >
       <div className="flex items-start gap-2">
-        <span className={`text-2xl flex-shrink-0 ${!isDiscovered ? 'opacity-30' : ''}`}>
-          {isDiscovered ? icon : '❓'}
-        </span>
+        {isDiscovered ? (
+          <div style={{
+            width: 28,
+            height: 28,
+            background: 'var(--rs-bg-raised)',
+            border: '1px solid var(--rs-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'Space Mono', monospace",
+            fontWeight: 600,
+            fontSize: 10,
+            color: 'var(--rs-orange)',
+            flexShrink: 0,
+            userSelect: 'none',
+            letterSpacing: '-0.02em',
+          }}>
+            {getBadgeText(weaponId)}
+          </div>
+        ) : (
+          <div style={{
+            width: 28,
+            height: 28,
+            background: 'var(--rs-bg-raised)',
+            border: '1px solid var(--rs-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'Space Mono', monospace",
+            fontWeight: 600,
+            fontSize: 10,
+            color: 'var(--rs-text-dim, var(--rs-text-muted))',
+            flexShrink: 0,
+            userSelect: 'none',
+            opacity: 0.5,
+          }}>
+            ??
+          </div>
+        )}
         <div className="min-w-0 flex-1">
-          <h3 className={`text-sm font-semibold truncate ${isDiscovered ? 'text-game-text' : 'text-game-text-muted'}`}>
+          <h3 className="text-sm font-semibold truncate" style={{ color: isDiscovered ? 'var(--rs-text)' : 'var(--rs-text-muted)' }}>
             {isDiscovered ? def.name : '???'}
           </h3>
-          <p className="text-xs text-game-text-muted mt-0.5 line-clamp-2">
+          <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--rs-text-muted)' }}>
             {isDiscovered ? def.description : 'Undiscovered weapon'}
           </p>
           {isDiscovered && (
-            <span className="text-xs text-[#00ffcc] mt-1 block">✓ Discovered</span>
+            <span className="text-xs mt-1 block" style={{ color: 'var(--rs-teal)' }}>✓ Discovered</span>
           )}
         </div>
       </div>
@@ -79,24 +123,62 @@ function WeaponCard({ weaponId }) {
 function BoonCard({ boonId }) {
   const def = BOONS[boonId]
   const isDiscovered = useArmory(s => s.isDiscovered('boons', boonId))
-  const icon = BOON_ICONS[boonId] || '✨'
   const description = def.tiers[0].description
 
   return (
-    <div className="border rounded-lg p-3 bg-black/40 backdrop-blur-sm border-game-border select-none">
+    <div
+      className="p-3 select-none"
+      style={{ background: 'var(--rs-bg-raised)', border: '1px solid var(--rs-border)', clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)' }}
+    >
       <div className="flex items-start gap-2">
-        <span className={`text-2xl flex-shrink-0 ${!isDiscovered ? 'opacity-30' : ''}`}>
-          {isDiscovered ? icon : '❓'}
-        </span>
+        {isDiscovered ? (
+          <div style={{
+            width: 28,
+            height: 28,
+            background: 'var(--rs-bg-raised)',
+            border: '1px solid var(--rs-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'Space Mono', monospace",
+            fontWeight: 600,
+            fontSize: 10,
+            color: 'var(--rs-violet)',
+            flexShrink: 0,
+            userSelect: 'none',
+            letterSpacing: '-0.02em',
+          }}>
+            {getBadgeText(boonId)}
+          </div>
+        ) : (
+          <div style={{
+            width: 28,
+            height: 28,
+            background: 'var(--rs-bg-raised)',
+            border: '1px solid var(--rs-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'Space Mono', monospace",
+            fontWeight: 600,
+            fontSize: 10,
+            color: 'var(--rs-text-dim, var(--rs-text-muted))',
+            flexShrink: 0,
+            userSelect: 'none',
+            opacity: 0.5,
+          }}>
+            ??
+          </div>
+        )}
         <div className="min-w-0 flex-1">
-          <h3 className={`text-sm font-semibold truncate ${isDiscovered ? 'text-game-text' : 'text-game-text-muted'}`}>
+          <h3 className="text-sm font-semibold truncate" style={{ color: isDiscovered ? 'var(--rs-text)' : 'var(--rs-text-muted)' }}>
             {isDiscovered ? def.name : '???'}
           </h3>
-          <p className="text-xs text-game-text-muted mt-0.5 line-clamp-2">
+          <p className="text-xs mt-0.5 line-clamp-2" style={{ color: 'var(--rs-text-muted)' }}>
             {isDiscovered ? description : 'Undiscovered boon'}
           </p>
           {isDiscovered && (
-            <span className="text-xs text-[#cc66ff] mt-1 block">✓ Discovered</span>
+            <span className="text-xs mt-1 block" style={{ color: 'var(--rs-violet)' }}>✓ Discovered</span>
           )}
         </div>
       </div>
@@ -192,58 +274,105 @@ export default function Armory({ onClose }) {
   const totalBoons = Object.keys(BOONS).length
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game animate-fade-in">
-      {/* Content — no backdrop, 3D background visible directly */}
-      <div className="relative w-full max-w-4xl px-6 py-8 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => { playSFX('button-click'); onClose() }}
-            className="px-4 py-2 text-sm tracking-widest text-game-text-muted hover:text-game-text transition-colors select-none cursor-pointer"
-          >
-            &larr; BACK
-          </button>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center animate-fade-in" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
+      <div style={{
+        background: 'var(--rs-bg-surface)',
+        border: '1px solid var(--rs-border)',
+        clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+        width: 'clamp(640px, 70vw, 960px)',
+        maxHeight: '85vh',
+        overflowY: 'auto',
+        position: 'relative',
+      }}>
 
-          <h1
-            className="text-2xl font-bold tracking-[0.15em] text-game-text select-none"
-            style={{ textShadow: '0 0 30px rgba(204, 102, 255, 0.3)' }}
-          >
-            ARMORY
-          </h1>
+        {/* Zone header — titre + tabs, séparée du contenu par une ligne */}
+        <div style={{ borderBottom: '1px solid var(--rs-border)' }}>
 
-          <div className="text-xs text-game-text-muted select-none w-24 text-right">
-            {totalWeapons} WEAPONS · {totalBoons} BOONS
-          </div>
-        </div>
-
-        {/* Tab navigation */}
-        <div className="flex gap-2 mb-6">
-          {ARMORY_TABS.map(tab => (
+          {/* Ligne 1 : bouton BACK + titre + compteur */}
+          <div className="flex items-center justify-between" style={{ padding: '1.5rem 2rem 0.75rem' }}>
             <button
-              key={tab}
-              onClick={() => { setActiveTab(tab); playSFX('button-hover') }}
-              className={`
-                px-5 py-2 text-sm font-semibold tracking-wider rounded border transition-all duration-150
-                outline-none select-none cursor-pointer
-                ${activeTab === tab
-                  ? 'border-game-accent text-game-text bg-game-accent/10'
-                  : 'border-game-border text-game-text-muted hover:border-game-accent hover:text-game-text'
-                }
-              `}
+              onClick={() => { playSFX('button-click'); onClose() }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--rs-text-muted, #888)',
+                fontSize: '0.875rem',
+                letterSpacing: '0.1em',
+                cursor: 'pointer',
+                padding: '0.25rem 0.5rem',
+                userSelect: 'none',
+              }}
             >
-              {tab}
+              &larr; BACK
             </button>
-          ))}
+
+            <h1
+              className="select-none"
+              style={{
+                fontFamily: 'Bebas Neue, sans-serif',
+                fontSize: '1.5rem',
+                letterSpacing: '0.15em',
+                color: 'var(--rs-text, #e8e6f0)',
+              }}
+            >
+              ARMORY
+            </h1>
+
+            <div
+              className="text-xs select-none"
+              style={{ color: 'var(--rs-text-muted, #888)', minWidth: '6rem', textAlign: 'right' }}
+            >
+              {totalWeapons} WEAPONS · {totalBoons} BOONS
+            </div>
+          </div>
+
+          {/* Ligne 2 : tabs intégrées */}
+          <div style={{ display: 'flex', paddingLeft: '2rem' }}>
+            {ARMORY_TABS.map(tab => (
+              <button
+                key={tab}
+                onClick={() => { setActiveTab(tab); playSFX('button-hover') }}
+                style={{
+                  padding: '0.5rem 1.25rem',
+                  background: 'transparent',
+                  border: 'none',
+                  borderBottom: activeTab === tab
+                    ? '2px solid var(--rs-orange)'
+                    : '2px solid transparent',
+                  color: activeTab === tab
+                    ? 'var(--rs-text, #e8e6f0)'
+                    : 'var(--rs-text-muted, #888)',
+                  fontFamily: 'inherit',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  letterSpacing: '0.05em',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.15s, color 0.15s',
+                  outline: 'none',
+                  userSelect: 'none',
+                }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
         </div>
 
-        {/* Tab content */}
-        {activeTab === 'Weapons' && <WeaponsGrid />}
-        {activeTab === 'Boons' && <BoonsGrid />}
+        {/* Contenu des onglets */}
+        <div style={{ padding: '1.5rem 2rem' }}>
+          {activeTab === 'Weapons' && <WeaponsGrid />}
+          {activeTab === 'Boons' && <BoonsGrid />}
+        </div>
 
         {/* Keyboard hint */}
-        <p className="text-game-text-muted text-xs mt-6 opacity-30 text-center select-none">
+        <p
+          className="text-xs text-center select-none"
+          style={{ color: 'var(--rs-text-muted, #888)', opacity: 0.3, padding: '0 2rem 1rem' }}
+        >
           ESC to close · TAB to switch tabs
         </p>
+
       </div>
     </div>
   )

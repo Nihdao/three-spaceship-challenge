@@ -115,12 +115,56 @@ describe('useCompanion — clearQueue() (between-system reset)', () => {
   it('PRESERVES shownEvents — planet-radar one-shot survives system transition', () => {
     useCompanion.getState().markShown('planet-radar')
     useCompanion.getState().markShown('low-hp-warning')
+    useCompanion.getState().markShown('near-wormhole-threshold')
 
     // Simulate between-system reset (GameLoop line 131)
     useCompanion.getState().clearQueue()
 
     expect(useCompanion.getState().hasShown('planet-radar')).toBe(true)
     expect(useCompanion.getState().hasShown('low-hp-warning')).toBe(true)
+    expect(useCompanion.getState().hasShown('near-wormhole-threshold')).toBe(true)
+  })
+})
+
+describe('useCompanion — near-wormhole-threshold one-shot (Story 37.2, AC #5)', () => {
+  it('fires once when guard passes, then blocks on subsequent attempts', () => {
+    // First occurrence: hasShown is false → guard passes, event fires
+    if (!useCompanion.getState().hasShown('near-wormhole-threshold')) {
+      useCompanion.getState().trigger('near-wormhole-threshold')
+      useCompanion.getState().markShown('near-wormhole-threshold')
+    }
+    expect(useCompanion.getState().current).not.toBeNull()
+    expect(useCompanion.getState().hasShown('near-wormhole-threshold')).toBe(true)
+
+    // Second attempt (e.g. re-entering threshold condition): guard blocks
+    useCompanion.getState().dismiss()
+    if (!useCompanion.getState().hasShown('near-wormhole-threshold')) {
+      useCompanion.getState().trigger('near-wormhole-threshold')
+      useCompanion.getState().markShown('near-wormhole-threshold')
+    }
+    expect(useCompanion.getState().current).toBeNull()
+  })
+
+  it('survives system transition — guard still holds in systems 2 and 3', () => {
+    // Fired in system 1
+    useCompanion.getState().trigger('near-wormhole-threshold')
+    useCompanion.getState().markShown('near-wormhole-threshold')
+
+    // System transition (GameLoop clearQueue — preserves shownEvents)
+    useCompanion.getState().clearQueue()
+
+    // Still marked in system 2
+    expect(useCompanion.getState().hasShown('near-wormhole-threshold')).toBe(true)
+  })
+
+  it('resets on new run — fires again in the next run', () => {
+    useCompanion.getState().trigger('near-wormhole-threshold')
+    useCompanion.getState().markShown('near-wormhole-threshold')
+
+    // New run (GameLoop reset — clears shownEvents)
+    useCompanion.getState().reset()
+
+    expect(useCompanion.getState().hasShown('near-wormhole-threshold')).toBe(false)
   })
 })
 
@@ -141,11 +185,13 @@ describe('useCompanion — reset() (new game run)', () => {
   it('CLEARS shownEvents — one-shots reset for new run', () => {
     useCompanion.getState().markShown('planet-radar')
     useCompanion.getState().markShown('low-hp-warning')
+    useCompanion.getState().markShown('near-wormhole-threshold')
 
     // Simulate full game restart (GameLoop line 155)
     useCompanion.getState().reset()
 
     expect(useCompanion.getState().hasShown('planet-radar')).toBe(false)
     expect(useCompanion.getState().hasShown('low-hp-warning')).toBe(false)
+    expect(useCompanion.getState().hasShown('near-wormhole-threshold')).toBe(false)
   })
 })

@@ -9,6 +9,7 @@ import { GAME_CONFIG } from '../../config/gameConfig.js'
 describe('Tunnel Hub — Store Integration (Story 13.1)', () => {
   beforeEach(() => {
     usePlayer.getState().reset()
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
     useLevel.getState().reset()
     useGame.getState().reset()
   })
@@ -181,10 +182,13 @@ describe('Tunnel Hub — Store Integration (Story 13.1)', () => {
       expect(usePlayer.getState().currentLevel).toBe(5)
     })
 
-    it('resets position to origin', () => {
+    it('resets position within [-1200, 1200] range (Story 34.2)', () => {
       usePlayer.setState({ position: [50, 0, -30] })
       usePlayer.getState().resetForNewSystem()
-      expect(usePlayer.getState().position).toEqual([0, 0, 0])
+      const [x, y, z] = usePlayer.getState().position
+      expect(y).toBe(0)
+      expect(Math.abs(x)).toBeLessThanOrEqual(1200)
+      expect(Math.abs(z)).toBeLessThanOrEqual(1200)
     })
   })
 
@@ -257,7 +261,7 @@ describe('Tunnel Hub — Store Integration (Story 13.1)', () => {
 
       usePlayer.getState().reset()
 
-      expect(usePlayer.getState().fragments).toBe(0)
+      expect(usePlayer.getState().fragments).toBe(470) // 500 - 30 (SPEED_BOOST_1 cost); fragments persist across run resets
       expect(usePlayer.getState().permanentUpgrades).toEqual({})
       expect(usePlayer.getState().acceptedDilemmas).toEqual([])
     })

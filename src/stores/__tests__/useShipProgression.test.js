@@ -164,21 +164,21 @@ describe('useShipProgression', () => {
       expect(useShipProgression.getState().getShipStatMultiplier('BALANCED')).toBe(1.0)
     })
 
-    it('returns 1.03 at level 2 (+3%)', () => {
-      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED', 2)).toBeCloseTo(1.03)
+    it('returns 1.08 at level 2 (+8%)', () => {
+      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED', 2)).toBeCloseTo(1.08)
     })
 
-    it('returns 1.12 at level 5 (+12%)', () => {
-      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED', 5)).toBeCloseTo(1.12)
+    it('returns 1.32 at level 5 (+32%)', () => {
+      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED', 5)).toBeCloseTo(1.32)
     })
 
-    it('returns 1.24 at level 9 (+24%)', () => {
-      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED', 9)).toBeCloseTo(1.24)
+    it('returns 1.64 at level 9 (+64%)', () => {
+      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED', 9)).toBeCloseTo(1.64)
     })
 
     it('uses ship current level when no level param provided', () => {
       useShipProgression.setState({ shipLevels: { BALANCED: 5, GLASS_CANNON: 1, TANK: 1 } })
-      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED')).toBeCloseTo(1.12)
+      expect(useShipProgression.getState().getShipStatMultiplier('BALANCED')).toBeCloseTo(1.32)
     })
   })
 
@@ -319,9 +319,9 @@ describe('usePlayer — ship level integration (Story 25.1)', () => {
     const bonuses = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0, expBonus: 1.0, curse: 0, revival: 0, reroll: 0, skip: 0, banish: 0 }
     usePlayer.getState().initializeRunStats(bonuses)
 
-    // BALANCED ship: HP 100, level 5 → 100 * 1.12 = 112
-    expect(usePlayer.getState().maxHP).toBeCloseTo(112)
-    expect(usePlayer.getState().currentHP).toBeCloseTo(112)
+    // BALANCED ship: HP 100, level 5 → 100 * 1.32 = 132
+    expect(usePlayer.getState().maxHP).toBeCloseTo(132)
+    expect(usePlayer.getState().currentHP).toBeCloseTo(132)
   })
 
   it('initializeRunStats stacks level multiplier with permanent HP bonus', () => {
@@ -330,8 +330,8 @@ describe('usePlayer — ship level integration (Story 25.1)', () => {
     const bonuses = { attackPower: 1.0, armor: 0, maxHP: 20, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0, expBonus: 1.0, curse: 0, revival: 0, reroll: 0, skip: 0, banish: 0 }
     usePlayer.getState().initializeRunStats(bonuses)
 
-    // Level 5 (1.12x): 100 * 1.12 + 20 = 112 + 20 = 132
-    expect(usePlayer.getState().maxHP).toBeCloseTo(132)
+    // Level 5 (1.32x): 100 * 1.32 + 20 = 132 + 20 = 152
+    expect(usePlayer.getState().maxHP).toBeCloseTo(152)
   })
 
   it('initializeRunStats applies ship level multiplier to shipBaseSpeed', () => {
@@ -340,8 +340,8 @@ describe('usePlayer — ship level integration (Story 25.1)', () => {
     const bonuses = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0, expBonus: 1.0, curse: 0, revival: 0, reroll: 0, skip: 0, banish: 0 }
     usePlayer.getState().initializeRunStats(bonuses)
 
-    // BALANCED ship: speed 50, level 5 → 50 * 1.12 = 56
-    expect(usePlayer.getState().shipBaseSpeed).toBeCloseTo(56)
+    // BALANCED ship: speed 50, level 5 → 50 * 1.32 = 66
+    expect(usePlayer.getState().shipBaseSpeed).toBeCloseTo(66)
   })
 
   it('initializeRunStats applies ship level multiplier to shipBaseDamageMultiplier', () => {
@@ -350,8 +350,8 @@ describe('usePlayer — ship level integration (Story 25.1)', () => {
     const bonuses = { attackPower: 1.0, armor: 0, maxHP: 0, regen: 0, attackSpeed: 1.0, zone: 1.0, magnet: 1.0, luck: 0, expBonus: 1.0, curse: 0, revival: 0, reroll: 0, skip: 0, banish: 0 }
     usePlayer.getState().initializeRunStats(bonuses)
 
-    // BALANCED ship: damage 1.0, level 9 (1.24x) → 1.0 * 1.24 = 1.24
-    expect(usePlayer.getState().shipBaseDamageMultiplier).toBeCloseTo(1.24)
+    // BALANCED ship: damage 1.0, level 9 (1.64x) → 1.0 * 1.64 = 1.64
+    expect(usePlayer.getState().shipBaseDamageMultiplier).toBeCloseTo(1.64)
   })
 })
 

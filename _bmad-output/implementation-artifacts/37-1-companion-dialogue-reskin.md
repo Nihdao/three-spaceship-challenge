@@ -1,6 +1,6 @@
 # Story 37.1: CompanionDialogue Reskin — Redshift Design System
 
-Status: backlog
+Status: done
 
 ## Story
 
@@ -30,9 +30,9 @@ So that the UI feels cohesive and intentional rather than generic.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Vérifier les variables CSS dans `src/style.css`
-  - [ ] Chercher `--rs-bg-surface`, `--rs-violet`, `--rs-text`, `--rs-border` dans le `@theme {}` block
-  - [ ] Si manquantes, les ajouter :
+- [x] Task 1: Vérifier les variables CSS dans `src/style.css`
+  - [x] Chercher `--rs-bg-surface`, `--rs-violet`, `--rs-text`, `--rs-border` dans le `@theme {}` block
+  - [x] Si manquantes, les ajouter :
     ```css
     --rs-bg-surface:  #1a1528;
     --rs-violet:      #9b5de5;
@@ -40,30 +40,30 @@ So that the UI feels cohesive and intentional rather than generic.
     --rs-border:      #2e2545;
     ```
 
-- [ ] Task 2: Lire `CompanionDialogue.jsx` intégralement
-  - [ ] Identifier tous les inline styles du panel principal
-  - [ ] Identifier les styles du nom du companion
-  - [ ] Identifier les styles du corps de texte
-  - [ ] Identifier les styles de l'avatar
+- [x] Task 2: Lire `CompanionDialogue.jsx` intégralement
+  - [x] Identifier tous les inline styles du panel principal
+  - [x] Identifier les styles du nom du companion
+  - [x] Identifier les styles du corps de texte
+  - [x] Identifier les styles de l'avatar
 
-- [ ] Task 3: Corriger les 7 anti-patterns identifiés
-  - [ ] `fontFamily: 'Inter, system-ui, sans-serif'` (x2 potentiellement) → `'Rajdhani, sans-serif'`
-  - [ ] `background: 'rgba(0,0,0,0.75)'` → `'var(--rs-bg-surface)'`
-  - [ ] `backdropFilter: 'blur(4px)'` → supprimer la propriété
-  - [ ] `border: '1px solid rgba(255,255,255,0.1)'` → `borderLeft: '3px solid var(--rs-violet)'`
-  - [ ] `borderRadius: '0.75rem'` → `clipPath` angulaire (supprimer borderRadius)
-  - [ ] `color: '#cc66ff'` → `'var(--rs-violet)'`
-  - [ ] Ajouter `fontFamily: 'Rajdhani, sans-serif'` sur le corps si absent
+- [x] Task 3: Corriger les 7 anti-patterns identifiés
+  - [x] `fontFamily: 'Inter, system-ui, sans-serif'` (x2 potentiellement) → `'Rajdhani, sans-serif'`
+  - [x] `background: 'rgba(0,0,0,0.75)'` → `'var(--rs-bg-surface)'`
+  - [x] `backdropFilter: 'blur(4px)'` → supprimer la propriété
+  - [x] `border: '1px solid rgba(255,255,255,0.1)'` → `borderLeft: '3px solid var(--rs-violet)'`
+  - [x] `borderRadius: '0.75rem'` → `clipPath` angulaire (supprimer borderRadius)
+  - [x] `color: '#cc66ff'` → `'var(--rs-violet)'`
+  - [x] Ajouter `fontFamily: 'Rajdhani, sans-serif'` sur le corps si absent
 
-- [ ] Task 4: Mettre à jour l'avatar
-  - [ ] `border: '2px solid var(--rs-violet)'`
-  - [ ] `borderRadius: '0.25rem'`
+- [x] Task 4: Mettre à jour l'avatar
+  - [x] `border: '2px solid var(--rs-violet)'`
+  - [x] `borderRadius: '0.25rem'`
 
-- [ ] Task 5: Vérification finale
-  - [ ] Aucun hex hardcodé dans le fichier (sauf dans les valeurs calculées dynamiques s'il y en a)
-  - [ ] Aucun `Inter` ou `system-ui` dans le fichier
-  - [ ] Les animations slide-in et fade-out sont préservées
-  - [ ] Test visuel : le composant est lisible avec le jeu en arrière-plan
+- [x] Task 5: Vérification finale
+  - [x] Aucun hex hardcodé dans le fichier (sauf dans les valeurs calculées dynamiques s'il y en a)
+  - [x] Aucun `Inter` ou `system-ui` dans le fichier
+  - [x] Les animations slide-in et fade-out sont préservées
+  - [x] Test visuel : le composant est lisible avec le jeu en arrière-plan
 
 ## Technical Notes
 
@@ -110,3 +110,28 @@ So that the UI feels cohesive and intentional rather than generic.
 
 **Note sur clipPath vs borderRadius :**
 `clip-path` et `border-radius` ne s'appliquent pas au même niveau. Après avoir ajouté `clipPath`, s'assurer que `borderRadius` est bien absent (sinon il peut interférer visuellement). Aussi, vérifier que le `backdropFilter` (blur) était bien sur le panel et pas sur un parent — le supprimer uniquement du bon élément.
+
+## Dev Agent Record
+
+### Implementation Plan
+- Story purement visuelle (reskin CSS/inline styles) — aucun test unitaire requis
+- Un seul fichier modifié : `src/ui/CompanionDialogue.jsx`
+- Toutes les variables CSS `--rs-*` étaient déjà présentes dans `src/style.css`
+
+### Completion Notes
+- ✅ 7 anti-patterns corrigés en une passe dans `CompanionDialogue.jsx`
+- ✅ `CompanionAvatar` : `borderRadius` passé de `0.5rem` à `0.25rem`, `border: '2px solid var(--rs-violet)'` ajouté
+- ✅ Panel : `background` → `var(--rs-bg-surface)`, `backdropFilter` supprimé, `border` → `borderLeft`, `borderRadius` → `clipPath` angulaire, `fontFamily` → Rajdhani
+- ✅ Nom : `color` → `var(--rs-violet)`, `fontFamily` → Rajdhani, `textTransform: 'uppercase'` ajouté
+- ✅ Corps : `color` → `var(--rs-text)`, `fontFamily` → Rajdhani, `fontWeight: 400`
+- ✅ Animations `animate-companion-slide-in` / `animate-companion-fade-out` inchangées
+- ✅ Grep de vérification : zéro hex, rgba(), Inter, system-ui, blur() dans le fichier final
+
+## File List
+
+- `src/ui/CompanionDialogue.jsx` — modified (reskin Redshift Design System)
+
+## Change Log
+
+- 2026-02-22: Story 37.1 implemented — CompanionDialogue reskinned with Redshift Design System (Rajdhani, var(--rs-*), clipPath angular shape, violet border-left)
+- 2026-02-23: Code review fix — CompanionAvatar emoji fallback now has matching Redshift border (2px solid var(--rs-violet)) and borderRadius (0.25rem) for visual consistency when navi.png fails to load

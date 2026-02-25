@@ -7,11 +7,13 @@ describe('useUpgrades — refundAll()', () => {
   beforeEach(() => {
     useUpgrades.getState().reset()
     usePlayer.getState().reset()
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
   })
 
   afterEach(() => {
     useUpgrades.getState().reset()
     usePlayer.getState().reset()
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
   })
 
   it('should calculate total Fragments spent correctly for single upgrade', () => {

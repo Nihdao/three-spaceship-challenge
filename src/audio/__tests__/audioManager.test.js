@@ -90,12 +90,12 @@ describe('audioManager', () => {
   describe('VOLUME_CATEGORIES', () => {
     it('exports correct default levels per UX audio spec', () => {
       const vc = audioManager.VOLUME_CATEGORIES
-      expect(vc.music).toBe(1.0)
+      expect(vc.music).toBe(0.35)           // Story 28.3: rebalanced down from 1.0
       expect(vc.sfxAction).toBe(0.8)
-      expect(vc.sfxFeedbackPositive).toBe(0.9)
-      expect(vc.sfxFeedbackNegative).toBe(1.0)
-      expect(vc.ui).toBe(0.5)
-      expect(vc.events).toBe(1.2)
+      expect(vc.sfxFeedbackPositive).toBe(1.0) // Story 28.3: up from 0.9
+      expect(vc.sfxFeedbackNegative).toBe(1.2) // Story 28.3: up from 1.0
+      expect(vc.ui).toBe(0.7)              // Story 28.3: up from 0.5
+      expect(vc.events).toBe(1.5)          // Story 28.3: up from 1.2
     })
   })
 
@@ -106,7 +106,7 @@ describe('audioManager', () => {
       const howl = mockData.instances[0]
       expect(howl._options.src).toEqual(['menu.mp3'])
       expect(howl._options.loop).toBe(true)
-      expect(howl._options.volume).toBe(1.0)
+      expect(howl._options.volume).toBe(0.35) // Story 28.3: musicVolume = VOLUME_CATEGORIES.music = 0.35
       expect(howl._playing).toBe(true)
     })
 
@@ -151,7 +151,7 @@ describe('audioManager', () => {
       audioManager.playMusic('test.mp3')
       const howl = mockData.instances[0]
       audioManager.fadeOutMusic(500)
-      expect(howl._fadeFrom).toBe(1.0)
+      expect(howl._fadeFrom).toBe(0.35) // Story 28.3: musicVolume = 0.35
       expect(howl._fadeTo).toBe(0)
       expect(howl._fadeDuration).toBe(500)
     })
@@ -181,7 +181,7 @@ describe('audioManager', () => {
       expect(newTrack._options.src).toEqual(['new.mp3'])
       expect(newTrack._options.loop).toBe(true)
       expect(newTrack._playing).toBe(true)
-      expect(newTrack._fadeTo).toBe(1.0)
+      expect(newTrack._fadeTo).toBe(0.35) // Story 28.3: musicVolume = 0.35
     })
 
     it('cleans up stale fading tracks before starting crossfade', () => {
@@ -221,8 +221,8 @@ describe('audioManager', () => {
       audioManager.setSFXVolume(0.5)
       // laser-fire: sfxAction (0.8) * 0.5 = 0.4
       expect(laserHowl._volume).toBeCloseTo(0.4)
-      // button-click: ui (0.5) * 0.5 = 0.25
-      expect(clickHowl._volume).toBeCloseTo(0.25)
+      // button-click: ui (0.7) * 0.5 = 0.35  (Story 28.3: ui rebalanced from 0.5 to 0.7)
+      expect(clickHowl._volume).toBeCloseTo(0.35)
     })
   })
 
@@ -236,10 +236,10 @@ describe('audioManager', () => {
       expect(mockData.instances).toHaveLength(3)
       // laser-fire: sfxAction = 0.8
       expect(mockData.instances[0]._options.volume).toBeCloseTo(0.8)
-      // game-over-impact: events = 1.2
-      expect(mockData.instances[1]._options.volume).toBeCloseTo(1.2)
-      // button-hover: ui = 0.5
-      expect(mockData.instances[2]._options.volume).toBeCloseTo(0.5)
+      // game-over-impact: events = 1.5  (Story 28.3: up from 1.2)
+      expect(mockData.instances[1]._options.volume).toBeCloseTo(1.5)
+      // button-hover: ui = 0.7  (Story 28.3: up from 0.5)
+      expect(mockData.instances[2]._options.volume).toBeCloseTo(0.7)
     })
 
     it('sets preload: true on all Howl instances', () => {
@@ -275,8 +275,8 @@ describe('audioManager', () => {
       audioManager.preloadSounds({ 'game-over-impact': 'sfx/impact.mp3' })
 
       audioManager.playSFX('game-over-impact')
-      // Music should be ducked to 30% of musicVolume
-      expect(musicHowl._volume).toBeCloseTo(0.3)
+      // Music should be ducked to 30% of musicVolume (0.35 * 0.3 = 0.105)  (Story 28.3)
+      expect(musicHowl._volume).toBeCloseTo(0.35 * 0.3)
     })
 
     it('does not duck music for non-events category sounds', () => {
@@ -285,7 +285,7 @@ describe('audioManager', () => {
       audioManager.preloadSounds({ 'laser-fire': 'sfx/laser.mp3' })
 
       audioManager.playSFX('laser-fire')
-      expect(musicHowl._volume).toBe(1.0)
+      expect(musicHowl._volume).toBe(0.35) // Story 28.3: musicVolume = 0.35, no ducking for sfxAction
     })
   })
 
@@ -321,7 +321,7 @@ describe('audioManager', () => {
     })
 
     it('returns default music volume', () => {
-      expect(audioManager.getMusicVolume()).toBe(1.0)
+      expect(audioManager.getMusicVolume()).toBe(0.35) // Story 28.3: musicVolume = VOLUME_CATEGORIES.music = 0.35
     })
 
     it('returns updated music volume after set', () => {
@@ -356,7 +356,7 @@ describe('audioManager', () => {
       localStorage.removeItem('audioSettings')
       audioManager.loadAudioSettings()
       expect(audioManager.getMasterVolume()).toBe(1)
-      expect(audioManager.getMusicVolume()).toBe(1.0)
+      expect(audioManager.getMusicVolume()).toBe(0.35) // Story 28.3: musicVolume = VOLUME_CATEGORIES.music = 0.35
       expect(audioManager.getSfxVolume()).toBe(1)
     })
 

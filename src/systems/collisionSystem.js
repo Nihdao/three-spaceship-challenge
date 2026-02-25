@@ -12,6 +12,7 @@ export const CATEGORY_SHOCKWAVE = 'shockwave'
 export const CATEGORY_ENEMY_PROJECTILE = 'enemy_projectile'
 export const CATEGORY_HEAL_GEM = 'healGem'
 export const CATEGORY_FRAGMENT_GEM = 'fragmentGem'
+export const CATEGORY_RARE_ITEM = 'rareItem'
 
 // Collision matrix — defines which category pairs can collide
 // Key format: "categoryA:categoryB" (sorted alphabetically for consistency)
@@ -26,10 +27,27 @@ const COLLISION_PAIRS = new Set([
   `${CATEGORY_ENEMY_PROJECTILE}:${CATEGORY_PLAYER}`, // enemy projectile↔player (damage)
   `${CATEGORY_HEAL_GEM}:${CATEGORY_PLAYER}`,    // player↔healGem (pickup)
   `${CATEGORY_FRAGMENT_GEM}:${CATEGORY_PLAYER}`, // player↔fragmentGem (pickup)
+  `${CATEGORY_PLAYER}:${CATEGORY_RARE_ITEM}`,    // player↔rareItem (pickup)
 ])
 
 function _pairKey(catA, catB) {
   return catA < catB ? `${catA}:${catB}` : `${catB}:${catA}`
+}
+
+/**
+ * Swept segment-vs-circle collision test (anti-tunneling).
+ * Returns true if line segment (ax,az)→(bx,bz) passes within distance r of point (cx,cz).
+ * Cost: ~10 arithmetic ops — no sqrt, no allocation.
+ */
+export function segmentCircleIntersect(ax, az, bx, bz, cx, cz, r) {
+  const abx = bx - ax, abz = bz - az
+  const acx = cx - ax, acz = cz - az
+  const abLenSq = abx * abx + abz * abz
+  if (abLenSq === 0) return acx * acx + acz * acz <= r * r
+  let t = (acx * abx + acz * abz) / abLenSq
+  if (t < 0) t = 0; else if (t > 1) t = 1
+  const dx = cx - (ax + t * abx), dz = cz - (az + t * abz)
+  return dx * dx + dz * dz <= r * r
 }
 
 /**

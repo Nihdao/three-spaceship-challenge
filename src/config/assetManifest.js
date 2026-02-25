@@ -41,6 +41,8 @@ export const ASSET_MANIFEST = {
       xpRarePickup: 'audio/sfx/xp-rare-pickup.wav',
       // Story 19.3: Fragment gem pickup SFX
       fragmentPickup: 'audio/sfx/fragment-pickup.wav',
+      // Story 44.5: Rare item pickup SFX
+      rareItemCollect: 'audio/sfx/rare-item-collect.wav',
       // Story 11.3: New weapon SFX
       railgunFire: 'audio/sfx/railgun-fire.wav',
       trishotFire: 'audio/sfx/trishot-fire.wav',

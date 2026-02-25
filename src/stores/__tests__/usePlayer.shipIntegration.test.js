@@ -10,6 +10,7 @@ describe('usePlayer — ship stats integration (Story 9.3)', () => {
   beforeEach(() => {
     usePlayer.getState().setCurrentShipId(getDefaultShipId())
     usePlayer.getState().reset()
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
   })
 
   // --- Task 1: Verify reset() initializes all ship stats ---
@@ -161,7 +162,7 @@ describe('usePlayer — ship stats integration (Story 9.3)', () => {
       const s = usePlayer.getState()
       expect(s.currentXP).toBe(0)
       expect(s.currentLevel).toBe(1)
-      expect(s.fragments).toBe(0)
+      expect(s.fragments).toBe(100) // fragments persist across run resets (permanent cross-run currency)
     })
 
     it('rapid cycling: BALANCED → GLASS_CANNON → BALANCED produces consistent state', () => {

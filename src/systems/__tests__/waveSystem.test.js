@@ -79,18 +79,21 @@ describe('waveSystem — spawn rate scaling by phase (Story 23.1)', () => {
     expect(interval2).toBeLessThan(interval1)
   })
 
-  it('system3 Hard Spike 1 spawns more than system1 Hard Spike 1 over 30s', () => {
-    // system1 Hard Spike 1: 1.5x → interval 3.33s
-    // system3 Hard Spike 1: 2.2x → interval 2.27s
+  it('system3 Easy Start spawns more than system1 Easy Start over 30s', () => {
+    // At t=10s, effectiveBase=1.75. system1 Easy Start mult=1.0 → interval=1.75s.
+    // system3 Easy Start mult=2.5 → interval=max(0.8, 0.7)=0.8s (already at minimum).
+    // Mock Math.random for deterministic enemy type selection (always FODDER_BASIC, 1 per event).
+    const mock = vi.spyOn(Math, 'random').mockReturnValue(0.01)
 
     const ss1 = createSpawnSystem()
-    ss1.tick(150, 0, 0) // 25% = Hard Spike 1
+    ss1.tick(10, 0, 0) // advance 10s into Easy Start
     const count1 = countSpawns(ss1, 30, { systemNum: 1 })
 
     const ss3 = createSpawnSystem()
-    ss3.tick(150, 0, 0)
+    ss3.tick(10, 0, 0)
     const count3 = countSpawns(ss3, 30, { systemNum: 3 })
 
+    mock.mockRestore()
     expect(count3).toBeGreaterThan(count1)
   })
 })

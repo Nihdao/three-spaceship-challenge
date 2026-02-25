@@ -213,6 +213,62 @@ So that its visual identity matches its explosive, volatile nature.
 **Then** the explosion AOE ring expands outward as a flat disc (not a sphere)
 **And** the disc fades from `#f4c430` to transparent as it expands to `explosionRadius`
 
+### Story 32.8: Dead Code Cleanup — Remove Unused Weapon Fields
+
+As a developer,
+I want to remove dead code fields from all weapon definitions,
+So that the weapon schema is minimal, consistent, and doesn't mislead future contributors.
+
+**Acceptance Criteria:**
+
+**Given** the 6 new weapons (LASER_CROSS, MAGNETIC_FIELD, DIAGONALS, SHOCKWAVE, MINE_AROUND, TACTICAL_SHOT)
+**When** I inspect their definitions in `weaponDefs.js`
+**Then** `upgrades[]` arrays are removed from all 6 (never read by game code — procedural system handles upgrades)
+**And** `rarityDamageMultipliers` is removed from all 5 that have it (LASER_CROSS, MAGNETIC_FIELD, SHOCKWAVE, MINE_AROUND, TACTICAL_SHOT)
+**And** the `DEFAULT_RARITY_DMG` export constant is removed entirely (no consumers)
+
+**Given** LASER_CROSS
+**When** I inspect its definition
+**Then** `implemented: false` is removed (was supposed to be removed in Story 32.1 AC#8 but was missed)
+
+**Given** all 10 weapons
+**When** I inspect the file
+**Then** every weapon has exactly the fields consumed by game code — no orphan fields remain
+**And** existing tests in `weaponDefs.test.js` are updated to reflect the removal (no test expects `upgrades` or `rarityDamageMultipliers`)
+
+### Story 32.9: Legacy Weapon Schema Alignment — Add `weaponType` Discriminator
+
+As a developer,
+I want the 4 legacy weapons (LASER_FRONT, SPREAD_SHOT, BEAM, EXPLOSIVE_ROUND) to have a `weaponType` field,
+So that the schema is uniform across all 10 weapons and `useWeapons.tick()` can be simplified with a single dispatch pattern.
+
+**Acceptance Criteria:**
+
+**Given** LASER_FRONT
+**When** I inspect its definition
+**Then** it has `weaponType: 'projectile'`
+
+**Given** SPREAD_SHOT
+**When** I inspect its definition
+**Then** it has `weaponType: 'projectile'`
+
+**Given** BEAM
+**When** I inspect its definition
+**Then** it has `weaponType: 'beam_continuous'`
+
+**Given** EXPLOSIVE_ROUND
+**When** I inspect its definition
+**Then** it has `weaponType: 'projectile_explosion'`
+
+**Given** `useWeapons.tick()`
+**When** processing weapons
+**Then** existing behavior is unchanged — the `weaponType` field is additive (no logic change in this story, enables future refactors)
+
+**Given** `weaponDefs.test.js`
+**When** all tests run
+**Then** a new test validates every weapon has a `weaponType` string field
+**And** all existing tests pass
+
 ## Technical Notes
 
 **Rendering approach per weapon:**

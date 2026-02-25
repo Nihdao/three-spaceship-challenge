@@ -16,6 +16,12 @@ import { GAME_CONFIG } from '../../config/gameConfig.js'
  * while run-persistent state (player build, score, kills) is preserved.
  */
 
+const MOCK_GALAXY_CONFIG = {
+  planetCount: 7,
+  planetRarity: { standard: 4, rare: 2, legendary: 1 },
+  luckRarityBias: { standard: -0.15, rare: 0.10, legendary: 0.05 },
+}
+
 // Simulates the tunnel→gameplay transition block from GameLoop.jsx lines 75-91
 function simulateSystemTransition(spawnSystem, projectileSystem) {
   useEnemies.getState().reset()
@@ -30,7 +36,7 @@ function simulateSystemTransition(spawnSystem, projectileSystem) {
   if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
   useGame.getState().setSystemTimer(0)
 
-  useLevel.getState().initializePlanets()
+  useLevel.getState().initializePlanets(MOCK_GALAXY_CONFIG)
 }
 
 describe('Story 18.2 — System-Specific State Reset', () => {
@@ -133,7 +139,7 @@ describe('Story 18.2 — System-Specific State Reset', () => {
 
   describe('AC #5: Planet state reset (via advanceSystem + initializePlanets)', () => {
     it('clears planets and activeScanPlanetId via advanceSystem', () => {
-      useLevel.getState().initializePlanets()
+      useLevel.getState().initializePlanets(MOCK_GALAXY_CONFIG)
       useLevel.setState({ activeScanPlanetId: 'PLANET_PULSE_0' })
       expect(useLevel.getState().planets.length).toBeGreaterThan(0)
 
@@ -147,7 +153,7 @@ describe('Story 18.2 — System-Specific State Reset', () => {
       useLevel.getState().advanceSystem()
       expect(useLevel.getState().planets).toEqual([])
 
-      useLevel.getState().initializePlanets()
+      useLevel.getState().initializePlanets(MOCK_GALAXY_CONFIG)
       expect(useLevel.getState().planets.length).toBeGreaterThan(0)
     })
   })
@@ -239,7 +245,7 @@ describe('Story 18.2 — System-Specific State Reset', () => {
       useGame.getState().setSystemTimer(300)
       useGame.getState().addScore(500)
       useGame.getState().incrementKills()
-      useLevel.getState().initializePlanets()
+      useLevel.getState().initializePlanets(MOCK_GALAXY_CONFIG)
       useLevel.setState({
         difficulty: 3,
         wormholeState: 'active',

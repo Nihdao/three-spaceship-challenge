@@ -37,6 +37,41 @@ export function resolveBoonNames(activeBoons) {
     .join(', ')
 }
 
+const S = {
+  mainTitle: {
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: 'clamp(3rem, 8vw, 5rem)',
+    letterSpacing: '0.15em',
+    color: 'var(--rs-text)',
+    textAlign: 'center',
+    margin: 0,
+    lineHeight: 1,
+    userSelect: 'none',
+  },
+  highScoreLabel: {
+    color: 'var(--rs-gold)',
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: 'clamp(1rem, 2vw, 1.75rem)',
+    letterSpacing: '0.2em',
+    userSelect: 'none',
+    marginTop: '24px',
+  },
+  actionBtn: {
+    padding: '12px 24px',
+    background: 'transparent',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-text-muted)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: 'clamp(12px, 1.3vw, 16px)',
+    letterSpacing: '0.1em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+}
+
 export default function VictoryScreen() {
   // stage: 0=dark, 1=titleVisible, 2=statsVisible, 3=actionsVisible
   const [stage, setStage] = useState(0)
@@ -130,8 +165,8 @@ export default function VictoryScreen() {
     <>
       {/* Dark overlay background */}
       <div
-        className="fixed inset-0 z-50 bg-black pointer-events-none"
-        style={{ opacity: 0.9 }}
+        className="fixed inset-0 z-50 pointer-events-none"
+        style={{ backgroundColor: 'var(--rs-bg)', opacity: 0.95 }}
       />
 
       {/* Fade overlay for action transitions */}
@@ -141,15 +176,12 @@ export default function VictoryScreen() {
       />
 
       {/* Content overlay */}
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center font-game pointer-events-none">
+      <div className="fixed inset-0 z-[51] flex flex-col items-center justify-center pointer-events-none" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
         {/* Victory title */}
         {stage >= 1 && (
           <h1
-            className="text-game-text text-center font-bold select-none animate-fade-in"
-            style={{
-              fontSize: 'clamp(28px, 4vw, 56px)',
-              letterSpacing: '0.2em',
-            }}
+            className="animate-fade-in"
+            style={S.mainTitle}
           >
             {messageRef.current}
           </h1>
@@ -158,54 +190,84 @@ export default function VictoryScreen() {
         {/* New high score celebration */}
         {stage >= 2 && stats.isNewHighScore && (
           <p
-            className="mt-6 text-game-accent font-bold tracking-[0.2em] select-none animate-pulse"
-            style={{ fontSize: 'clamp(16px, 2vw, 28px)' }}
+            className="animate-pulse"
+            style={S.highScoreLabel}
           >
             NEW HIGH SCORE!
           </p>
         )}
 
-        {/* Stats section */}
+        {/* Stats + Actions panel */}
         {stage >= 2 && (
           <div
-            className="mt-10 w-full animate-slide-up"
-            style={{ maxWidth: 'clamp(260px, 30vw, 400px)' }}
+            className="animate-fade-in"
+            style={{
+              marginTop: 16,
+              background: 'var(--rs-bg-surface)',
+              border: '1px solid var(--rs-border)',
+              clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+              padding: 24,
+              maxWidth: 'clamp(320px, 40vw, 480px)',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 24,
+            }}
           >
-            <div className="flex flex-col gap-2">
-              <StatLine label="SCORE" value={stats.score.toLocaleString()} />
-              <StatLine label="SYSTEMS CLEARED" value={stats.currentSystem} />
-              <StatLine label="TIME SURVIVED" value={timeSurvived} />
-              <StatLine label="ENEMIES KILLED" value={stats.kills} />
-              <StatLine label="LEVEL REACHED" value={stats.currentLevel} />
-              <StatLine label="WEAPONS" value={weaponNames || 'None'} />
-              <StatLine label="BOONS" value={boonNames || 'None'} />
+            {/* Stats section */}
+            <div className="w-full animate-slide-up">
+              <div className="flex flex-col gap-2">
+                <StatLine label="SCORE" value={stats.score.toLocaleString()} />
+                <StatLine label="SYSTEMS CLEARED" value={stats.currentSystem} />
+                <StatLine label="TIME SURVIVED" value={timeSurvived} />
+                <StatLine label="ENEMIES KILLED" value={stats.kills} />
+                <StatLine label="LEVEL REACHED" value={stats.currentLevel} />
+                <StatLine label="WEAPONS" value={weaponNames || 'None'} />
+                <StatLine label="BOONS" value={boonNames || 'None'} />
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Action buttons */}
-        {stage >= 3 && (
-          <div className="mt-10 flex gap-6 animate-fade-in pointer-events-auto">
-            <button
-              className="px-6 py-3 font-semibold tracking-widest border border-game-border rounded
-                transition-all duration-150 select-none cursor-pointer outline-none
-                text-game-text hover:border-game-accent hover:scale-105 hover:bg-game-accent/10"
-              style={{ fontSize: 'clamp(13px, 1.3vw, 18px)' }}
-              onClick={handleNewRun}
-              onMouseEnter={() => playSFX('button-hover')}
-            >
-              [R] NEW RUN
-            </button>
-            <button
-              className="px-6 py-3 font-semibold tracking-widest border border-game-border rounded
-                transition-all duration-150 select-none cursor-pointer outline-none
-                text-game-text hover:border-game-accent hover:scale-105 hover:bg-game-accent/10"
-              style={{ fontSize: 'clamp(13px, 1.3vw, 18px)' }}
-              onClick={handleMenu}
-              onMouseEnter={() => playSFX('button-hover')}
-            >
-              [M] MENU
-            </button>
+            {/* Action buttons */}
+            {stage >= 3 && (
+              <div className="flex gap-6 animate-fade-in pointer-events-auto">
+                <button
+                  type="button"
+                  style={S.actionBtn}
+                  onClick={handleNewRun}
+                  onMouseEnter={(e) => {
+                    playSFX('button-hover')
+                    e.currentTarget.style.borderColor = 'var(--rs-orange)'
+                    e.currentTarget.style.color = 'var(--rs-text)'
+                    e.currentTarget.style.transform = 'translateX(4px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--rs-border)'
+                    e.currentTarget.style.color = 'var(--rs-text-muted)'
+                    e.currentTarget.style.transform = 'translateX(0)'
+                  }}
+                >
+                  [R] NEW RUN
+                </button>
+                <button
+                  type="button"
+                  style={S.actionBtn}
+                  onClick={handleMenu}
+                  onMouseEnter={(e) => {
+                    playSFX('button-hover')
+                    e.currentTarget.style.borderColor = 'var(--rs-orange)'
+                    e.currentTarget.style.color = 'var(--rs-text)'
+                    e.currentTarget.style.transform = 'translateX(4px)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--rs-border)'
+                    e.currentTarget.style.color = 'var(--rs-text-muted)'
+                    e.currentTarget.style.transform = 'translateX(0)'
+                  }}
+                >
+                  [M] MENU
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

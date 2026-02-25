@@ -299,58 +299,124 @@ development_status:
   # Epic 31: Weapon Roster & Upgrade System Overhaul
   epic-31: in-progress
   31-1-weapon-stat-schema-roster-cleanup: done
-  31-2-procedural-upgrade-system: ready-for-dev
-  31-3-levelup-formula-rework: ready-for-dev
-  31-4-planet-reward-tier-rework: ready-for-dev
+  31-2-procedural-upgrade-system: done
+  31-3-levelup-formula-rework: done
+  31-4-planet-reward-tier-rework: done
   epic-31-retrospective: optional
 
   # Epic 32: New Weapon Mechanics
   epic-32: in-progress
-  32-1-laser-cross-weapon: ready-for-dev
-  32-2-magnetic-field-weapon: ready-for-dev
-  32-3-diagonals-weapon: ready-for-dev
-  32-4-shockwave-weapon: ready-for-dev
-  32-5-mine-around-weapon: ready-for-dev
-  32-6-tactical-shot-weapon: ready-for-dev
-  32-7-explosive-round-pulse-visual: ready-for-dev
+  32-1-laser-cross-weapon: done
+  32-2-magnetic-field-weapon: done
+  32-3-diagonals-weapon: done
+  32-4-shockwave-weapon: done
+  32-5-mine-around-weapon: done
+  32-6-tactical-shot-weapon: done
+  32-7-explosive-round-pulse-visual: done
+  32-8-dead-code-cleanup-unused-weapon-fields: done
+  32-9-legacy-weapon-schema-alignment: done
   epic-32-retrospective: optional
 
   # Epic 33: UI Design Identity — Redshift Design System
   epic-33: in-progress
   33-1-svg-icon-system: done
   33-2-hud-icon-replacement: done
-  33-3-permanent-upgrades-panel: ready-for-dev
-  33-4-armory-panel: ready-for-dev
-  33-5-ship-select-emoji-removal: ready-for-dev
-  33-6-levelup-vertical-layout: ready-for-dev
-  33-7-pause-menu-two-panel: ready-for-dev
+  33-3-permanent-upgrades-panel: done
+  33-4-armory-panel: done
+  33-5-ship-select-emoji-removal: done
+  33-6-levelup-vertical-layout: done
+  33-7-pause-menu-two-panel: done
   epic-33-retrospective: optional
 
   # Epic 34: Galaxy System Foundation
   epic-34: in-progress
   34-1-galaxy-profile-planet-redesign: done
-  34-2-luck-weighted-planet-generation-random-spawn: ready-for-dev
-  34-3-procedural-system-names: ready-for-dev
-  34-4-wormhole-scan-based-trigger: ready-for-dev
-  34-5-enemy-speed-difficulty-galaxy-profile: ready-for-dev
+  34-2-luck-weighted-planet-generation-random-spawn: done
+  34-3-procedural-system-names: done
+  34-4-wormhole-scan-based-trigger: done
+  34-5-enemy-speed-difficulty-galaxy-profile: done
   epic-34-retrospective: optional
 
   # Epic 35: Exploration & Navigation
   epic-35: in-progress
-  35-1-fog-of-war-exploration-module: ready-for-dev
-  35-2-large-map-overlay: ready-for-dev
-  35-3-minimap-reskin-square-triangle-wormhole-arrow: ready-for-dev
-  35-4-quest-tracker-hud: backlog
+  35-1-fog-of-war-exploration-module: done
+  35-2-large-map-overlay: done
+  35-3-minimap-reskin-square-triangle-wormhole-arrow: done
+  35-4-quest-tracker-hud: done
   epic-35-retrospective: optional
 
   # Epic 36: Enemy Pressure Systems
   epic-36: in-progress
-  36-1-enemy-leash-teleport-system: ready-for-dev
-  36-2-enemy-pool-eviction-overflow: ready-for-dev
+  36-1-enemy-leash-teleport-system: done
+  36-2-enemy-pool-eviction-overflow: done
   epic-36-retrospective: optional
 
   # Epic 37: Companion & UI Polish
   epic-37: in-progress
-  37-1-companion-dialogue-reskin: review
-  37-2-companion-dialogues-exploration-scan: ready-for-dev
+  37-1-companion-dialogue-reskin: done
+  37-2-companion-dialogues-exploration-scan: done
   epic-37-retrospective: optional
+
+  # Epic 38: Game Icons Integration — game-icons.net Library
+  epic-38: done
+  38-1-game-icons-migration: done
+  epic-38-retrospective: optional
+
+  # Epic 39: Redshift UI — Full Design System Pass
+  epic-39: in-progress
+  39-1-mainmenu-redshift-pass: done
+  39-2-planetrewardmodal-levelup-alignment: done
+  39-3-tunnelhub-redshift-pass: done
+  39-4-reviveprompt-optionsmodal-pass: done
+  39-5-shipselect-redshift-pass: done
+  39-6-galaxychoice-redshift-pass: done
+  39-7-gameover-victory-redshift-pass: done
+  39-8-statsscreen-xpbar-redshift-pass: done
+  39-9-polish-hud-levelup-upgrades-armory-statline-pausemenu: done
+  epic-39-retrospective: optional
+
+  # Epic 40: Bugfixes — Pause/LevelUp Visuals, Music Retry, Planet Aura Color
+  epic-40: done
+  40-1-fix-damage-numbers-camera-shake-during-pause: done
+  40-2-fix-gameplay-music-not-restarting-after-retry: done
+  40-3-fix-planet-capture-aura-color: done
+  epic-40-retrospective: optional
+
+  # Epic 41: Performance Optimization — GC Pressure, Re-renders & Future-Proof Renderers
+  epic-41: in-progress
+  41-1-gameloop-zero-allocation-frame-tick: done
+  41-2-store-tick-guards-conditional-set: done
+  41-3-spatial-systems-integer-keys-preallocated-structures: done
+  41-4-hud-rerender-reduction-timer-throttle-minimap-extraction: done
+  41-5-renderer-micro-optimizations-geometry-ready-architecture: done
+  epic-41-retrospective: optional
+
+  # Epic 42: UI Harmonization — Deep Cleanup & Structural Consistency
+  epic-42: in-progress
+  42-1-purge-legacy-theme-tailwind-heritage: done
+  42-2-restore-options-main-menu: done
+  42-3-unify-fragment-icon-svg: done
+  42-4-containerize-floating-screens: done
+  42-5-hide-crosshair-show-cursor-on-pause: done
+  42-6-increase-minimum-font-sizes: done
+  42-7-purge-hardcoded-hex-colors-hud: review
+  epic-42-retrospective: optional
+
+  # Epic 43: Performance — Residual GC Pressure, Spawn Spikes & Renderer Leaks
+  epic-43: in-progress
+  43-1-spawn-eviction-zero-allocation-refactor: done
+  43-2-gameloop-residual-allocations-cleanup: done
+  43-3-separation-pool-useplayer-set-optimization: done
+  43-4-planet-material-disposal-gpu-memory-leaks: done
+  43-5-renderer-static-color-upload-unnecessary-work: done
+  43-6-leva-production-guard-spawnsystem-cache: done
+  epic-43-retrospective: optional
+
+  # Epic 44: Collectibles Overhaul — Fragments, Visuels, Attraction & Items Rares
+  epic-44: in-progress
+  44-1-fragment-quantity-bump: done
+  44-2-collectible-geometry-reskin: done
+  44-3-permanent-magnetization: done
+  44-4-drop-scatter-anti-overlap: done
+  44-5-rare-item-pickups-magnet-bomb-shield: done
+  epic-44-retrospective: optional

@@ -40,16 +40,16 @@ export default function XPBarFullWidth() {
   return (
     <div className="fixed top-0 left-0 w-full z-50" style={{ height: '12px' }}>
       {/* Background track */}
-      <div className="w-full h-full bg-black/30">
+      <div className="w-full h-full" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
         {/* Fill bar — uses scaleX for GPU-accelerated animation */}
         <div
-          className={`h-full origin-left transition-transform duration-300 ease-out${pulse ? ' animate-pulse-glow' : ''}${flashing ? '' : ''}`}
+          className={`h-full origin-left transition-transform duration-300 ease-out${pulse ? ' animate-pulse-glow' : ''}`}
           style={{
             transform: `scaleX(${flashing ? 1 : progress / 100})`,
             background: flashing
-              ? 'linear-gradient(90deg, #ffffff, #06B6D4)'
-              : 'linear-gradient(90deg, #10B981, #06B6D4)',
-            boxShadow: pulse ? '0 0 12px rgba(6, 182, 212, 0.5)' : 'none',
+              ? 'linear-gradient(90deg, var(--rs-text), var(--rs-violet))'
+              : 'linear-gradient(90deg, var(--rs-violet), #7b3fe4)',
+            boxShadow: pulse ? '0 0 12px rgba(155, 93, 229, 0.6)' : 'none',
             opacity: flashing ? 0.9 : 1,
           }}
         />

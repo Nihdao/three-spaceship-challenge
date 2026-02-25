@@ -252,4 +252,72 @@ describe('spawnSystem', () => {
       }
     })
   })
+
+  // Story 43.6 — phase cache (getAvailableEnemyTypes memoization)
+  describe('phase cache (Story 43.6)', () => {
+    it('cache hit: available types not recomputed for consecutive same-phase spawns', () => {
+      const realValues = Object.values.bind(Object)
+      let enemiesLookups = 0
+      const spy = vi.spyOn(Object, 'values').mockImplementation((obj) => {
+        if (obj === ENEMIES) enemiesLookups++
+        return realValues(obj)
+      })
+
+      // First spawn: cache miss — getAvailableEnemyTypes must iterate ENEMIES
+      ss.tick(FIRST_SPAWN_TRIGGER, 0, 0)
+      expect(enemiesLookups).toBe(1)
+
+      enemiesLookups = 0
+
+      // Second spawn in same phase (Easy Start): cache HIT — no recomputation
+      ss.tick(FIRST_SPAWN_TRIGGER, 0, 0)
+      expect(enemiesLookups).toBe(0)
+
+      spy.mockRestore()
+    })
+
+    it('reset() clears cache — recomputes available types on post-reset spawn', () => {
+      const realValues = Object.values.bind(Object)
+      let enemiesLookups = 0
+      const spy = vi.spyOn(Object, 'values').mockImplementation((obj) => {
+        if (obj === ENEMIES) enemiesLookups++
+        return realValues(obj)
+      })
+
+      // First spawn populates cache
+      ss.tick(FIRST_SPAWN_TRIGGER, 0, 0)
+      expect(enemiesLookups).toBe(1)
+
+      ss.reset()
+      enemiesLookups = 0
+
+      // Post-reset spawn: cache cleared → must recompute
+      ss.tick(FIRST_SPAWN_TRIGGER, 0, 0)
+      expect(enemiesLookups).toBe(1)
+
+      spy.mockRestore()
+    })
+
+    it('cache invalidates when systemNum changes', () => {
+      const realValues = Object.values.bind(Object)
+      let enemiesLookups = 0
+      const spy = vi.spyOn(Object, 'values').mockImplementation((obj) => {
+        if (obj === ENEMIES) enemiesLookups++
+        return realValues(obj)
+      })
+
+      // Spawn with systemNum=1 populates cache for system1 phase object
+      ss.tick(FIRST_SPAWN_TRIGGER, 0, 0, { systemNum: 1 })
+      expect(enemiesLookups).toBe(1)
+
+      ss.reset()
+      enemiesLookups = 0
+
+      // Spawn with systemNum=2: different WAVE_PROFILES entry → different phase object → cache miss
+      ss.tick(FIRST_SPAWN_TRIGGER, 0, 0, { systemNum: 2 })
+      expect(enemiesLookups).toBe(1)
+
+      spy.mockRestore()
+    })
+  })
 })

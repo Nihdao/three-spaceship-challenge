@@ -7,6 +7,7 @@ import { getGalaxyById } from '../entities/galaxyDefs.js'
 export default function SystemNameBanner() {
   const phase = useGame((s) => s.phase)
   const currentSystem = useLevel((s) => s.currentSystem)
+  const currentSystemName = useLevel((s) => s.currentSystemName)
   const selectedGalaxyId = useGame((s) => s.selectedGalaxyId) // Story 25.3
   const [isVisible, setIsVisible] = useState(false)
 
@@ -31,12 +32,7 @@ export default function SystemNameBanner() {
 
   if (!isVisible) return null
 
-  // Get system name with validation
-  const systemName = GAME_CONFIG.SYSTEM_NAMES[currentSystem - 1]
-  if (!systemName && import.meta.env.DEV) {
-    console.warn(`[SystemNameBanner] No system name configured for system ${currentSystem}. Using fallback.`)
-  }
-  const rawSystemName = systemName || `SYSTEM ${currentSystem}`
+  const rawSystemName = currentSystemName || `SYSTEM ${currentSystem}`
 
   // Story 25.3: Galaxy info for subtitle display
   const galaxy = selectedGalaxyId ? getGalaxyById(selectedGalaxyId) : null

@@ -1,6 +1,12 @@
 import PlayerShip from '../renderers/PlayerShip.jsx'
 import DamageNumberRenderer from '../ui/DamageNumberRenderer.jsx'
 import ProjectileRenderer from '../renderers/ProjectileRenderer.jsx'
+import LaserCrossRenderer from '../renderers/LaserCrossRenderer.jsx'
+import MagneticFieldRenderer from '../renderers/MagneticFieldRenderer.jsx'
+import ShockwaveWeaponRenderer from '../renderers/ShockwaveWeaponRenderer.jsx'
+import MineAroundRenderer from '../renderers/MineAroundRenderer.jsx'
+import TacticalShotRenderer from '../renderers/TacticalShotRenderer.jsx'
+import ExplosiveRoundRenderer from '../renderers/ExplosiveRoundRenderer.jsx'
 import EnemyRenderer from '../renderers/EnemyRenderer.jsx'
 import EnemyProjectileRenderer from '../renderers/EnemyProjectileRenderer.jsx'
 import ShockwaveRenderer from '../renderers/ShockwaveRenderer.jsx'
@@ -9,6 +15,7 @@ import TrailRenderer from '../renderers/TrailRenderer.jsx'
 import XPOrbRenderer from '../renderers/XPOrbRenderer.jsx'
 import HealGemRenderer from '../renderers/HealGemRenderer.jsx'
 import FragmentGemRenderer from '../renderers/FragmentGemRenderer.jsx'
+import RareItemRenderer from '../renderers/RareItemRenderer.jsx'
 import EnvironmentRenderer from '../renderers/EnvironmentRenderer.jsx'
 import PlanetRenderer from '../renderers/PlanetRenderer.jsx'
 import PlanetAuraRenderer from '../renderers/PlanetAuraRenderer.jsx'
@@ -35,10 +42,18 @@ const _fill = GAME_CONFIG.PLAYER_SHIP_LIGHTING
 const _fog = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.AMBIENT_FOG.GAMEPLAY
 const _bgColor = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.BACKGROUND.DEFAULT.color
 
-export default function GameplayScene() {
+function BossLayer() {
   const { isActive, bossDefeated } = useBoss()
-  const showBoss = isActive || bossDefeated
+  if (!isActive && !bossDefeated) return null
+  return (
+    <>
+      <BossRenderer />
+      <BossProjectileRenderer />
+    </>
+  )
+}
 
+export default function GameplayScene() {
   return (
     <>
       <Controls />
@@ -65,6 +80,23 @@ export default function GameplayScene() {
 
       {/* Projectiles */}
       <ProjectileRenderer />
+      {/* EXPLOSIVE_ROUND sphere + ring VFX (Story 32.7) */}
+      <ExplosiveRoundRenderer />
+
+      {/* LASER_CROSS rotating arms (Story 32.1) — self-hides when weapon not equipped */}
+      <LaserCrossRenderer />
+
+      {/* MAGNETIC_FIELD aura disc (Story 32.2) — self-hides when weapon not equipped */}
+      <MagneticFieldRenderer />
+
+      {/* SHOCKWAVE arc bursts (Story 32.4) — self-hides when weapon not equipped */}
+      <ShockwaveWeaponRenderer />
+
+      {/* MINE_AROUND orbiting mines (Story 32.5) — self-hides when weapon not equipped */}
+      <MineAroundRenderer />
+
+      {/* TACTICAL_SHOT remote strike VFX (Story 32.6) — self-hides when weapon not equipped */}
+      <TacticalShotRenderer />
 
       {/* Enemies */}
       <EnemyRenderer />
@@ -72,12 +104,7 @@ export default function GameplayScene() {
       <ShockwaveRenderer />
 
       {/* Boss (Story 17.4) - rendered when active or defeated */}
-      {showBoss && (
-        <>
-          <BossRenderer />
-          <BossProjectileRenderer />
-        </>
-      )}
+      <BossLayer />
 
       {/* XP orbs */}
       <XPOrbRenderer />
@@ -87,6 +114,9 @@ export default function GameplayScene() {
 
       {/* Fragment gems (Story 19.3) */}
       <FragmentGemRenderer />
+
+      {/* Rare item pickups: Magnet, Bomb, Shield (Story 44.5) */}
+      <RareItemRenderer />
 
       {/* Death explosion particles */}
       <ParticleRenderer />

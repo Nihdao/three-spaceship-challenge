@@ -9,6 +9,46 @@ import { getSkinForShip } from '../entities/shipSkinDefs.js'
 import { playSFX } from '../audio/audioManager.js'
 import StatLine from './primitives/StatLine.jsx'
 import ShipModelPreview from './ShipModelPreview.jsx'
+import {
+  ShieldCrossIcon,
+  SwordIcon,
+  SpeedIcon,
+  SkullIcon,
+  ClockIcon,
+  ZoneIcon,
+  StarIcon,
+  RerollIcon,
+  SkipIcon,
+  BanishIcon,
+  RegenIcon,
+  MagnetIcon,
+  ArmorIcon,
+  LuckIcon,
+  FragmentIcon,
+} from './icons/index.jsx'
+
+const TRAIT_ICON_MAP = {
+  highRisk: SwordIcon,
+  tanky: ShieldCrossIcon,
+}
+
+// Module-level icon wrappers with semantic colors — defined at module scope to avoid
+// creating new function instances on every render (which would break React reconciliation).
+const HPIcon = () => <ShieldCrossIcon size={14} color="var(--rs-hp)" />
+const RegenColorIcon = () => <RegenIcon size={14} color="var(--rs-success)" />
+const ArmorColorIcon = () => <ArmorIcon size={14} color="var(--rs-teal)" />
+const DamageIcon = () => <SwordIcon size={14} color="var(--rs-orange)" />
+const AttackSpeedIcon = () => <ClockIcon size={14} color="var(--rs-orange)" />
+const ZoneColorIcon = () => <ZoneIcon size={14} color="var(--rs-violet)" />
+const SpeedStatIcon = () => <SpeedIcon size={14} color="var(--rs-teal)" />
+const MagnetColorIcon = () => <MagnetIcon size={14} color="var(--rs-violet)" />
+const LuckColorIcon = () => <LuckIcon size={14} color="var(--rs-gold)" />
+const ExpBonusIcon = () => <StarIcon size={14} color="var(--rs-gold)" />
+const CurseIcon = () => <SkullIcon size={14} color="var(--rs-danger)" />
+const RevivalIcon = () => <ShieldCrossIcon size={14} color="var(--rs-success)" />
+const RerollColorIcon = () => <RerollIcon size={14} color="var(--rs-text-muted)" />
+const SkipColorIcon = () => <SkipIcon size={14} color="var(--rs-text-muted)" />
+const BanishColorIcon = () => <BanishIcon size={14} color="var(--rs-text-muted)" />
 
 const shipList = Object.values(SHIPS)
 
@@ -28,6 +68,176 @@ const DEFAULT_BONUSES = {
   reroll: 0,
   skip: 0,
   banish: 0,
+}
+
+// ─── Redshift Design System styles ────────────────────────────────────────────
+const S = {
+  backBtn: {
+    padding: '8px 16px',
+    background: 'rgba(13, 11, 20, 0.82)',
+    border: '1px solid var(--rs-border-hot)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-text)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.72rem',
+    letterSpacing: '0.1em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+  title: {
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: '2.5rem',
+    letterSpacing: '0.15em',
+    color: 'var(--rs-text)',
+    margin: 0,
+    lineHeight: 1,
+    userSelect: 'none',
+  },
+  titleAccent: {
+    width: '32px', height: '2px',
+    background: 'var(--rs-orange)',
+    marginTop: '6px',
+  },
+  shipCard: {
+    position: 'relative',
+    padding: '12px',
+    background: 'var(--rs-bg-raised)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+    width: '100%',
+    textAlign: 'left',
+  },
+  shipCardSelected: {
+    borderColor: 'var(--rs-orange)',
+    background: 'rgba(255,79,31,0.06)',
+  },
+  shipCardLocked: {
+    position: 'relative',
+    padding: '12px',
+    background: 'var(--rs-bg-raised)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    opacity: 0.4,
+    filter: 'grayscale(1)',
+    cursor: 'not-allowed',
+    outline: 'none',
+    userSelect: 'none',
+    width: '100%',
+    textAlign: 'left',
+  },
+  detailPanel: {
+    width: '320px',
+    background: 'var(--rs-bg-surface)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  previewContainer: {
+    aspectRatio: '4/3',
+    marginBottom: '12px',
+    overflow: 'hidden',
+  },
+  shipName: {
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: '1.5rem',
+    letterSpacing: '0.1em',
+    color: 'var(--rs-text)',
+    lineHeight: 1,
+  },
+  levelBadge: (color) => ({
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    padding: '2px 8px',
+    color: color,
+    border: `1px solid ${color}60`,
+    clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
+    background: `${color}15`,
+    userSelect: 'none',
+  }),
+  maxBadge: {
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    padding: '2px 8px',
+    color: 'var(--rs-gold)',
+    border: '1px solid rgba(255,214,10,0.4)',
+    clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
+    background: 'rgba(255,214,10,0.1)',
+    userSelect: 'none',
+  },
+  maxLevelDisplay: {
+    width: '100%',
+    padding: '8px 0',
+    marginBottom: '8px',
+    textAlign: 'center',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    color: 'var(--rs-gold)',
+    border: '1px solid rgba(255,214,10,0.3)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    background: 'rgba(255,214,10,0.06)',
+    userSelect: 'none',
+  },
+  btnLevelUp: {
+    width: '100%',
+    padding: '8px 0',
+    marginBottom: '8px',
+    background: 'rgba(0,180,216,0.08)',
+    border: '1px solid var(--rs-teal)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-teal)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, color 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
+  btnLevelUpDisabled: {
+    width: '100%',
+    padding: '8px 0',
+    marginBottom: '8px',
+    background: 'var(--rs-bg-raised)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-text-muted)',
+    fontFamily: "'Space Mono', monospace",
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    letterSpacing: '0.12em',
+    cursor: 'not-allowed',
+    opacity: 0.5,
+    outline: 'none',
+    userSelect: 'none',
+  },
+  btnSelect: {
+    width: '100%',
+    padding: '12px 0',
+    background: 'rgba(255,79,31,0.1)',
+    border: '1px solid var(--rs-orange)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    color: 'var(--rs-text)',
+    fontFamily: 'Bebas Neue, sans-serif',
+    fontSize: '1.5rem',
+    letterSpacing: '0.15em',
+    cursor: 'pointer',
+    transition: 'border-color 150ms, background 150ms, transform 150ms',
+    outline: 'none',
+    userSelect: 'none',
+  },
 }
 
 export default function ShipSelect() {
@@ -212,11 +422,23 @@ export default function ShipSelect() {
   }, [unlockedIndices])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center font-game animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in" style={{ fontFamily: "'Rajdhani', sans-serif" }}>
       {/* BACK button */}
       <button
         onClick={handleBack}
-        className="absolute top-8 left-8 px-4 py-2 text-sm tracking-widest text-game-text-muted hover:text-game-text transition-colors select-none"
+        className="absolute top-8 left-8"
+        style={S.backBtn}
+        onMouseEnter={(e) => {
+          playSFX('button-hover')
+          e.currentTarget.style.borderColor = 'var(--rs-orange)'
+          e.currentTarget.style.color = 'var(--rs-text)'
+          e.currentTarget.style.transform = 'translateX(4px)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'var(--rs-border-hot)'
+          e.currentTarget.style.color = 'var(--rs-text)'
+          e.currentTarget.style.transform = 'translateX(0)'
+        }}
       >
         &larr; BACK
       </button>
@@ -224,85 +446,79 @@ export default function ShipSelect() {
       <div className="flex gap-8 w-full h-full max-w-5xl p-8 pt-20">
         {/* LEFT: Ship Grid */}
         <div className="flex-1 overflow-y-auto">
-          <h2
-            className="text-2xl font-bold tracking-[0.15em] text-game-text mb-6 select-none"
-            style={{ textShadow: '0 0 30px rgba(255, 0, 255, 0.2)' }}
-          >
-            SELECT YOUR SHIP
-          </h2>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={S.title}>SELECT YOUR SHIP</h2>
+            <div style={S.titleAccent} />
+          </div>
           <div className="grid grid-cols-3 gap-4 p-1">
             {shipList.map((ship, i) => (
               <button
                 key={ship.id}
                 onClick={() => handleShipClick(ship.id)}
                 disabled={ship.locked}
-                onMouseEnter={() => {
+                onMouseEnter={(e) => {
                   if (!ship.locked) {
                     playSFX('button-hover')
                     setSelectedShipId(ship.id)
                     setFocusIndex(i)
+                    e.currentTarget.style.borderColor = 'var(--rs-orange)'
+                    e.currentTarget.style.transform = 'translateX(4px)'
                   }
                 }}
-                className={`
-                  relative p-3 border rounded-lg transition-all duration-150 select-none
-                  ${ship.locked
-                    ? 'opacity-40 grayscale cursor-not-allowed border-game-border/30 bg-white/[0.03]'
-                    : 'cursor-pointer border-game-border/70 bg-white/[0.08] hover:border-game-accent/50 hover:bg-white/[0.12]'
+                onMouseLeave={(e) => {
+                  if (!ship.locked) {
+                    e.currentTarget.style.borderColor = selectedShipIdRef.current === ship.id
+                      ? 'var(--rs-orange)'
+                      : 'var(--rs-border)'
+                    e.currentTarget.style.transform = 'translateX(0)'
                   }
-                  ${selectedShipId === ship.id && !ship.locked
-                    ? 'border-game-accent ring-1 ring-game-accent/40 bg-game-accent/15'
-                    : ''
-                  }
-                `}
+                }}
+                style={ship.locked ? S.shipCardLocked : { ...S.shipCard, ...(selectedShipId === ship.id ? S.shipCardSelected : {}) }}
               >
                 {/* Ship thumbnail */}
-                <div className="aspect-square bg-game-text-muted/5 rounded mb-2 flex items-center justify-center text-3xl overflow-hidden">
-                  {ship.locked
-                    ? '🔒'
-                    : <ShipModelPreview modelPath={ship.modelPath} />
-                  }
+                <div className="aspect-square mb-2 flex items-center justify-center text-3xl overflow-hidden" style={{ backgroundColor: 'rgba(122, 109, 138, 0.05)' }}>
+                  {ship.locked ? (
+                    <span style={{
+                      fontSize: 10,
+                      fontFamily: "'Space Mono', monospace",
+                      color: 'var(--rs-text-dim, rgba(255,255,255,0.3))',
+                      letterSpacing: '0.05em',
+                    }}>
+                      LOCKED
+                    </span>
+                  ) : (
+                    <ShipModelPreview modelPath={ship.modelPath} />
+                  )}
                 </div>
-                <p className="text-game-text font-semibold tracking-wide text-xs">{ship.name}</p>
+                <p className="font-semibold tracking-wide text-xs" style={{ color: 'var(--rs-text)' }}>{ship.name}</p>
               </button>
             ))}
           </div>
         </div>
 
         {/* RIGHT: Ship Detail Panel */}
-        <div className="w-80 bg-game-bg/60 border border-game-border/40 rounded-lg p-6 flex flex-col backdrop-blur-sm">
+        <div style={S.detailPanel}>
           {/* Ship 3D Preview */}
           <div
-            className="aspect-[4/3] rounded-lg mb-3 overflow-hidden"
-            style={{ backgroundColor: `${selectedShip.colorTheme}10`, borderColor: `${selectedShip.colorTheme}30`, borderWidth: 1 }}
+            style={{ ...S.previewContainer, backgroundColor: `${selectedShip.colorTheme}10` }}
           >
             <ShipModelPreview modelPath={selectedShip.modelPath} rotate skinData={selectedSkinData} />
           </div>
 
           {/* Ship Name, Level Badge & Description */}
           <div className="flex items-baseline justify-between mb-2">
-            <h3
-              className="text-xl font-bold tracking-[0.1em] text-game-text"
-              style={{ textShadow: `0 0 20px ${selectedShip.colorTheme}40` }}
-            >
-              {selectedShip.name}
-            </h3>
-            <span
-              className="text-xs font-bold tracking-widest px-2 py-0.5 rounded"
-              style={{
-                color: isMaxLevel ? '#ffd700' : selectedShip.colorTheme,
-                border: `1px solid ${isMaxLevel ? '#ffd70060' : selectedShip.colorTheme + '60'}`,
-                backgroundColor: isMaxLevel ? '#ffd70015' : selectedShip.colorTheme + '15',
-              }}
-            >
-              {isMaxLevel ? 'MAX' : `LV.${shipLevel}`}
-            </span>
+            <h3 style={S.shipName}>{selectedShip.name}</h3>
+            {isMaxLevel
+              ? <span style={S.maxBadge}>MAX</span>
+              : <span style={S.levelBadge(selectedShip.colorTheme)}>{`LV.${shipLevel}`}</span>
+            }
           </div>
-          <p className="text-sm text-game-text-muted mb-2 leading-relaxed">
+          <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--rs-text-muted)' }}>
             {selectedShip.description}
           </p>
 
           {/* Separator */}
-          <div className="border-t border-game-border/20 mb-4" />
+          <div style={{ borderTop: '1px solid var(--rs-border)', marginBottom: '16px' }} />
 
           {/* Stats — Enriched with all 15 stats + permanent upgrade bonuses */}
           <div className="space-y-0.5 mb-3 max-h-52 overflow-y-auto">
@@ -311,107 +527,113 @@ export default function ShipSelect() {
               label="HP"
               value={Math.round(effectiveStats.maxHP)}
               bonusValue={bonuses.maxHP}
-              icon="❤️"
+              icon={HPIcon}
             />
             <StatLine compact
               label="REGEN"
               value={effectiveStats.regen > 0 ? `${effectiveStats.regen.toFixed(1)}/s` : '0/s'}
               bonusValue={bonuses.regen}
-              icon="🔄"
+              icon={RegenColorIcon}
             />
             <StatLine compact
               label="ARMOR"
               value={effectiveStats.armor > 0 ? `+${effectiveStats.armor}` : '+0'}
               bonusValue={bonuses.armor}
-              icon="🛡️"
+              icon={ArmorColorIcon}
             />
             {/* Percentage stats — pass percentage delta from effectiveStats for consistency */}
             <StatLine compact
               label="DAMAGE"
               value={effectiveStats.damageMultiplier > 1.0 ? `+${((effectiveStats.damageMultiplier - 1.0) * 100).toFixed(0)}%` : '+0%'}
               bonusValue={(bonuses.attackPower ?? 1.0) > 1.0 ? ((bonuses.attackPower - 1.0) * 100).toFixed(0) : undefined}
-              icon="⚔️"
+              icon={DamageIcon}
             />
             <StatLine compact
               label="ATTACK SPEED"
               value={effectiveStats.attackSpeed > 0 ? `-${effectiveStats.attackSpeed.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.attackSpeed > 0 ? effectiveStats.attackSpeed.toFixed(0) : undefined}
-              icon="⏱️"
+              icon={AttackSpeedIcon}
             />
             <StatLine compact
               label="ZONE"
               value={effectiveStats.zone > 0 ? `+${effectiveStats.zone.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.zone > 0 ? effectiveStats.zone.toFixed(0) : undefined}
-              icon="💥"
+              icon={ZoneColorIcon}
             />
             <StatLine compact
               label="SPEED"
               value={parseFloat(effectiveStats.speed.toFixed(1))}
-              icon="⚡"
+              icon={SpeedStatIcon}
             />
             <StatLine compact
               label="MAGNET"
               value={effectiveStats.magnet > 0 ? `+${effectiveStats.magnet.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.magnet > 0 ? effectiveStats.magnet.toFixed(0) : undefined}
-              icon="🧲"
+              icon={MagnetColorIcon}
             />
             <StatLine compact
               label="LUCK"
               value={effectiveStats.luck > 0 ? `+${effectiveStats.luck}%` : '+0%'}
               bonusValue={bonuses.luck}
-              icon="🍀"
+              icon={LuckColorIcon}
             />
             <StatLine compact
               label="EXP BONUS"
               value={effectiveStats.expBonus > 0 ? `+${effectiveStats.expBonus.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.expBonus > 0 ? effectiveStats.expBonus.toFixed(0) : undefined}
-              icon="✨"
+              icon={ExpBonusIcon}
             />
             <StatLine compact
               label="CURSE"
               value={effectiveStats.curse > 0 ? `+${effectiveStats.curse}%` : '+0%'}
               bonusValue={bonuses.curse}
-              icon="☠️"
+              icon={CurseIcon}
             />
             {/* Meta stats — flat values */}
             <StatLine compact
               label="REVIVAL"
               value={effectiveStats.revival}
               bonusValue={bonuses.revival}
-              icon="💚"
+              icon={RevivalIcon}
             />
             <StatLine compact
               label="REROLL"
               value={effectiveStats.reroll}
               bonusValue={bonuses.reroll}
-              icon="🎲"
+              icon={RerollColorIcon}
             />
             <StatLine compact
               label="SKIP"
               value={effectiveStats.skip}
               bonusValue={bonuses.skip}
-              icon="⏭️"
+              icon={SkipColorIcon}
             />
             <StatLine compact
               label="BANISH"
               value={effectiveStats.banish}
               bonusValue={bonuses.banish}
-              icon="🚫"
+              icon={BanishColorIcon}
             />
           </div>
 
           {/* Unique Traits */}
           {selectedShip.traits && selectedShip.traits.length > 0 && (
             <>
-              <div className="border-t border-game-border/20 mb-3" />
-              <p className="text-game-text-muted text-[10px] tracking-widest uppercase mb-2">Traits</p>
+              <div style={{ borderTop: '1px solid var(--rs-border)', marginBottom: '12px' }} />
+              <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--rs-text-muted)' }}>Traits</p>
               <div className="space-y-1.5 mb-4">
                 {selectedShip.traits.map(traitId => {
                   const info = TRAIT_INFO[traitId]
                   if (!info) return null
+                  const TraitIcon = TRAIT_ICON_MAP[traitId]
                   return (
-                    <div key={traitId} className="flex items-center gap-1.5 text-sm text-game-text" title={info.description}>
-                      <span className="flex-shrink-0">{info.icon}</span>
+                    <div key={traitId} className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--rs-text)' }} title={info.description}>
+                      <span className="flex-shrink-0">
+                        {TraitIcon
+                          ? <TraitIcon size={14} color="currentColor" />
+                          : '·'
+                        }
+                      </span>
                       <span>{info.label}</span>
                     </div>
                   )
@@ -426,14 +648,14 @@ export default function ShipSelect() {
             const displaySkin = availableSkins.find(s => s.id === displaySkinId)
             return (
               <>
-                <div className="border-t border-game-border/20 mb-3" />
+                <div style={{ borderTop: '1px solid var(--rs-border)', marginBottom: '12px' }} />
                 <div className="flex items-baseline justify-between mb-2">
-                  <p className="text-game-text-muted text-[10px] tracking-widest uppercase">Skin</p>
+                  <p className="text-[10px] tracking-widest uppercase" style={{ color: 'var(--rs-text-muted)' }}>Skin</p>
                   {/* Fixed info line: name + lock condition */}
                   <div className="text-right">
-                    <span className="text-game-text text-[10px]">{displaySkin?.name}</span>
+                    <span className="text-[10px]" style={{ color: 'var(--rs-text)' }}>{displaySkin?.name}</span>
                     {displaySkin?.locked && (
-                      <span className="ml-1.5 text-game-text-muted text-[10px]">— LV.{displaySkin.requiredLevel} req.</span>
+                      <span className="ml-1.5 text-[10px]" style={{ color: 'var(--rs-text-muted)' }}>— LV.{displaySkin.requiredLevel} req.</span>
                     )}
                   </div>
                 </div>
@@ -447,20 +669,24 @@ export default function ShipSelect() {
                     >
                       <button
                         onClick={() => handleSkinSelect(skin.id)}
-                        className={`
-                          w-8 h-8 rounded-lg border-2 transition-all flex-shrink-0
-                          ${skin.locked
-                            ? 'opacity-30 cursor-not-allowed border-game-border/30'
-                            : 'cursor-pointer hover:scale-110 border-game-border/50'
-                          }
-                          ${selectedSkinId === skin.id && !skin.locked
-                            ? 'border-game-accent ring-2 ring-game-accent/40 scale-110'
-                            : ''
-                          }
-                        `}
-                        style={skin.tintColor ? { backgroundColor: skin.tintColor } : { backgroundColor: 'rgba(255,255,255,0.12)' }}
+                        className="w-8 h-8 border-2 transition-all flex-shrink-0"
+                        style={{
+                          ...(skin.tintColor ? { backgroundColor: skin.tintColor } : { backgroundColor: 'rgba(255,255,255,0.12)' }),
+                          clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
+                          borderColor: selectedSkinId === skin.id && !skin.locked
+                            ? 'var(--rs-orange)'
+                            : skin.locked
+                              ? 'rgba(46,37,69,0.3)'
+                              : 'rgba(46,37,69,0.5)',
+                          boxShadow: selectedSkinId === skin.id && !skin.locked
+                            ? '0 0 0 2px rgba(255,79,31,0.4)'
+                            : 'none',
+                          opacity: skin.locked ? 0.3 : 1,
+                          cursor: skin.locked ? 'not-allowed' : 'pointer',
+                          transform: selectedSkinId === skin.id && !skin.locked ? 'scale(1.1)' : undefined,
+                        }}
                       />
-                      <span className="text-[9px] leading-none text-game-text-muted h-3">
+                      <span className="text-[9px] leading-none h-3" style={{ color: 'var(--rs-text-muted)' }}>
                         {skin.locked ? `LV.${skin.requiredLevel}` : ''}
                       </span>
                     </div>
@@ -476,36 +702,43 @@ export default function ShipSelect() {
 
           {/* LEVEL UP button or MAX LEVEL badge */}
           {isMaxLevel ? (
-            <div className="w-full py-2 mb-2 text-center text-xs font-bold tracking-widest text-yellow-400 border border-yellow-400/30 rounded-lg bg-yellow-400/10 select-none">
+            <div style={S.maxLevelDisplay}>
               ★ MAX LEVEL
             </div>
           ) : (
             <button
               onClick={handleLevelUp}
               disabled={!canAffordLevelUp}
-              className={`
-                w-full py-2 mb-2 text-sm font-bold tracking-widest rounded-lg
-                border transition-all duration-150 select-none
-                ${canAffordLevelUp
-                  ? 'border-cyan-400/60 text-cyan-300 bg-cyan-400/10 hover:bg-cyan-400/20 hover:scale-105 cursor-pointer'
-                  : 'border-game-border/30 text-game-text-muted bg-white/[0.03] cursor-not-allowed opacity-50'
-                }
-              `}
+              style={canAffordLevelUp ? S.btnLevelUp : S.btnLevelUpDisabled}
+              onMouseEnter={canAffordLevelUp ? (e) => {
+                playSFX('button-hover')
+                e.currentTarget.style.transform = 'translateX(4px)'
+                e.currentTarget.style.borderColor = 'var(--rs-teal)'
+                e.currentTarget.style.color = 'var(--rs-text)'
+              } : undefined}
+              onMouseLeave={canAffordLevelUp ? (e) => {
+                e.currentTarget.style.transform = 'translateX(0)'
+                e.currentTarget.style.borderColor = 'var(--rs-teal)'
+                e.currentTarget.style.color = 'var(--rs-teal)'
+              } : undefined}
             >
-              LEVEL UP ({nextLevelCost?.toLocaleString()} <span style={{ color: '#cc66ff' }}>◆</span>)
+              LEVEL UP ({nextLevelCost?.toLocaleString()} <FragmentIcon size={14} color="var(--rs-violet)" style={{ display: 'inline-block', verticalAlign: 'middle' }} />)
             </button>
           )}
 
           {/* SELECT button */}
           <button
             onClick={handleStart}
-            className="
-              w-full py-3 text-lg font-bold tracking-widest
-              border border-game-accent text-game-text
-              bg-game-accent/10 rounded-lg
-              hover:bg-game-accent/20 hover:scale-105
-              transition-all duration-150 select-none
-            "
+            style={S.btnSelect}
+            onMouseEnter={(e) => {
+              playSFX('button-hover')
+              e.currentTarget.style.transform = 'translateX(4px)'
+              e.currentTarget.style.background = 'rgba(255,79,31,0.2)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateX(0)'
+              e.currentTarget.style.background = 'rgba(255,79,31,0.1)'
+            }}
           >
             SELECT
           </button>

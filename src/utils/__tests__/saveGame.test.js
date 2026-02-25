@@ -29,6 +29,7 @@ afterEach(() => {
 describe('saveGameState (Story 7.1)', () => {
   beforeEach(() => {
     usePlayer.getState().reset()
+    usePlayer.setState({ fragments: 0, fragmentsEarnedThisRun: 0 })
     useLevel.getState().reset()
     useGame.getState().reset()
     useWeapons.getState().reset()
@@ -46,7 +47,8 @@ describe('saveGameState (Story 7.1)', () => {
       GAME_CONFIG.TUNNEL_AUTOSAVE_KEY,
       expect.any(String)
     )
-    const data = JSON.parse(mockLocalStorage.setItem.mock.calls[0][1])
+    const autosaveCall = mockLocalStorage.setItem.mock.calls.find(([key]) => key === GAME_CONFIG.TUNNEL_AUTOSAVE_KEY)
+    const data = JSON.parse(autosaveCall[1])
     expect(data.version).toBe(1)
     expect(data.currentSystem).toBe(2)
     expect(data.fragments).toBe(150)

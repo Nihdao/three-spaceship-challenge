@@ -49,6 +49,8 @@ const SFX_MAP = {
   'xp_rare_pickup': ASSET_MANIFEST.gameplay.audio.xpRarePickup,
   // Story 19.3: Fragment gem pickup SFX
   'fragment_pickup': ASSET_MANIFEST.gameplay.audio.fragmentPickup,
+  // Story 44.5: Rare item pickup SFX
+  'rare-item-collect': ASSET_MANIFEST.gameplay.audio.rareItemCollect,
   // Story 30.1: Companion dialogue notification
   'ui-message': ASSET_MANIFEST.gameplay.audio.uiMessage,
 }
@@ -112,8 +114,14 @@ export default function useAudio() {
             return
           }
 
-          if (prevPhase === 'menu' || prevPhase === 'shipSelect' || prevPhase === 'galaxyChoice') {
-            // Menu/ShipSelect/GalaxyChoice → systemEntry: crossfade to randomly selected track
+          if (
+            prevPhase === 'menu' ||
+            prevPhase === 'shipSelect' ||
+            prevPhase === 'galaxyChoice' ||
+            prevPhase === 'gameOver' ||   // Story 40.2: retry from game over
+            prevPhase === 'victory'       // Story 40.2: retry from victory screen
+          ) {
+            // Menu/ShipSelect/GalaxyChoice/GameOver/Victory → systemEntry: crossfade to randomly selected track
             crossfadeMusic(selectedTrack, 1000)
           } else if (prevPhase === 'tunnel') {
             // Tunnel → systemEntry: crossfade to new random track for new system
@@ -121,7 +129,7 @@ export default function useAudio() {
           }
         } else if (phase === 'gameplay') {
           // systemEntry → gameplay: music continues, no change
-          // gameOver/victory → gameplay: music already handled by systemEntry transition
+          // gameOver/victory → gameplay: music handled by systemEntry transition (Story 40.2)
         } else if (phase === 'boss') {
           // Crossfade to boss music
           crossfadeMusic(ASSET_MANIFEST.tier2.audio.bossMusic, 1500)

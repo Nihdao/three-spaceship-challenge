@@ -67,9 +67,8 @@ export function updateMagnetization(px, pz, delta, pickupRadiusMultiplier = 1.0)
 
     if (distSq <= magnetRadiusSq) {
       orb.isMagnetized = true
-    } else {
-      orb.isMagnetized = false
     }
+    // No else — once magnetized, stays magnetized until collected or reset
 
     if (orb.isMagnetized) {
       const dist = Math.sqrt(distSq)
@@ -77,8 +76,8 @@ export function updateMagnetization(px, pz, delta, pickupRadiusMultiplier = 1.0)
         const dirX = dx / dist
         const dirZ = dz / dist
         const normalizedDist = dist / magnetRadius
-        const speedFactor = Math.pow(1 - normalizedDist, accelCurve)
-        const speed = magnetSpeed * speedFactor
+        const speedFactor = Math.max(0, Math.pow(Math.max(0, 1 - normalizedDist), accelCurve))
+        const speed = Math.max(GAME_CONFIG.XP_MAGNET_MIN_SPEED, magnetSpeed * speedFactor)
         orb.x += dirX * speed * delta
         orb.z += dirZ * speed * delta
       }
@@ -92,6 +91,12 @@ export function getOrbs() {
 
 export function getActiveCount() {
   return activeCount
+}
+
+export function forceActivateMagnet() {
+  for (let i = 0; i < activeCount; i++) {
+    orbs[i].isMagnetized = true
+  }
 }
 
 export function resetOrbs() {

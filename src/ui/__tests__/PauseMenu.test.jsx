@@ -40,8 +40,8 @@ describe('PauseMenu logic', () => {
       expect(shouldShowPauseMenu('gameOver', true)).toBe(false)
     })
 
-    it('returns false when phase is boss even if paused', () => {
-      expect(shouldShowPauseMenu('boss', true)).toBe(false)
+    it('returns true when phase is boss and paused — boss pause now supported (Story 42.5)', () => {
+      expect(shouldShowPauseMenu('boss', true)).toBe(true)
     })
 
     it('returns false when phase is planetReward even if paused', () => {

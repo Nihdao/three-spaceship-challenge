@@ -1,7 +1,7 @@
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
-import { GAME_CONFIG } from '../config/gameConfig.js'
 import { rollRarity, getRarityTier } from './raritySystem.js'
+import { rollUpgrade } from './upgradeSystem.js'
 
 const MAX_WEAPON_SLOTS = 4
 const MAX_BOON_SLOTS = 3
@@ -16,6 +16,17 @@ function shuffle(arr) {
     arr[j] = tmp
   }
   return arr
+}
+
+// Weighted random pick from new-weapon candidates — internal helper, not exported (Story 31.3)
+function pickWeightedWeapon(candidates) {
+  const totalWeight = candidates.reduce((sum, c) => sum + (WEAPONS[c.id]?.rarityWeight ?? 1), 0)
+  let r = Math.random() * totalWeight
+  for (const candidate of candidates) {
+    r -= (WEAPONS[candidate.id]?.rarityWeight ?? 1)
+    if (r <= 0) return candidate
+  }
+  return candidates[candidates.length - 1] // safety fallback
 }
 
 /**
@@ -33,44 +44,57 @@ function shuffle(arr) {
 export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0) {
   const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
 
-  shuffle(pool)
+  // P4: probability of 4th choice (Story 31.3 AC#1)
+  const P4 = luckStat === 0 ? 0 : Math.min(luckStat / (luckStat + 8), 0.85)
+  const desiredCount = (Math.random() < P4) ? 4 : 3
+  // Note: Dev Notes spec reads `pool.length >= 3 ? desiredCount : pool.length` which has an
+  // edge-case bug when pool.length >= 3 but < desiredCount (returns desiredCount=4 with only 3 items,
+  // causing the loop to break early). This implementation is equivalent for pool.length >= 4 and
+  // correct for pool.length = 3 with desiredCount = 4.
+  const effectiveCount = Math.min(desiredCount, Math.max(3, pool.length))
 
-  // Pick 3-4 choices
-  const count = Math.min(4, Math.max(3, pool.length))
+  // Separate upgrade candidates vs new-weapon candidates (Story 31.3 AC#2)
+  const upgradePool = pool.filter(c => c.type !== 'new_weapon')
+  const newWeaponPool = pool.filter(c => c.type === 'new_weapon')
 
-  if (pool.length >= count) {
-    return applyRarityToChoices(pool.slice(0, count), luckStat)
-  }
+  // P_upgrade per-slot probability (Story 31.3 AC#2, #3)
+  const slotsAvailable = equippedWeapons.length < MAX_WEAPON_SLOTS
+  const x = (currentLevel % 2 === 0) ? 2 : 1
+  const P_upgrade = !slotsAvailable
+    ? 1.0
+    : Math.max(0.10, (0.5 + 0.1 * x) - luckStat * 0.04)
 
-  // Fallback: pad with additional upgrade tiers for equipped weapons
-  const choices = [...pool]
-  const usedKeys = new Set(choices.map(c => `${c.type}_${c.id}_${c.level}`))
+  // Build choices slot by slot — no duplicates (items removed after pick) (Story 31.3 AC#5)
+  const choices = []
+  let availableUpgrades = [...upgradePool]
+  let availableNewWeapons = [...newWeaponPool]
 
-  for (const weapon of equippedWeapons) {
-    if (choices.length >= 3) break
-    const def = WEAPONS[weapon.weaponId]
-    if (!def?.upgrades) continue
-    // Offer upgrade tiers beyond the one already in pool
-    for (let tierIdx = weapon.level; tierIdx < def.upgrades.length; tierIdx++) {
-      if (choices.length >= 3) break
-      const upgrade = def.upgrades[tierIdx]
-      const key = `weapon_upgrade_${weapon.weaponId}_${upgrade.level}`
-      if (usedKeys.has(key)) continue
-      usedKeys.add(key)
-      choices.push({
-        type: 'weapon_upgrade',
-        id: weapon.weaponId,
-        name: def.name,
-        description: def.description,
-        level: upgrade.level,
-        icon: null,
-        statPreview: upgrade.statPreview || `Damage: → ${upgrade.damage}`,
-      })
+  for (let i = 0; i < effectiveCount; i++) {
+    const wantUpgrade = Math.random() < P_upgrade
+
+    if (wantUpgrade && availableUpgrades.length > 0) {
+      const idx = Math.floor(Math.random() * availableUpgrades.length)
+      choices.push(availableUpgrades.splice(idx, 1)[0])
+    } else if (!wantUpgrade && availableNewWeapons.length > 0) {
+      const picked = pickWeightedWeapon(availableNewWeapons)
+      availableNewWeapons = availableNewWeapons.filter(c => c !== picked)
+      choices.push(picked)
+    } else if (availableUpgrades.length > 0) {
+      // Fallback: wanted new weapon but pool empty
+      const idx = Math.floor(Math.random() * availableUpgrades.length)
+      choices.push(availableUpgrades.splice(idx, 1)[0])
+    } else if (availableNewWeapons.length > 0) {
+      // Fallback: upgradePool exhausted, pick new weapon instead
+      const picked = pickWeightedWeapon(availableNewWeapons)
+      availableNewWeapons = availableNewWeapons.filter(c => c !== picked)
+      choices.push(picked)
+    } else {
+      break // Both pools exhausted
     }
   }
 
-  // Ultimate fallback: generic no-op choices (extreme edge case — all maxed out)
-  while (choices.length < 3) {
+  // Pad with stat_boost only in extreme edge case (all maxed)
+  while (choices.length < Math.min(3, effectiveCount)) {
     choices.push({
       type: 'stat_boost',
       id: `stat_boost_${choices.length}`,
@@ -82,7 +106,7 @@ export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, 
     })
   }
 
-  return applyRarityToChoices(choices.slice(0, Math.min(4, Math.max(3, choices.length))), luckStat)
+  return applyRarityToChoices(choices, luckStat)
 }
 
 /**
@@ -96,22 +120,19 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banished
   const banishedWeaponIds = banishedItems.filter(item => item.type === 'weapon').map(item => item.itemId)
   const banishedBoonIds = banishedItems.filter(item => item.type === 'boon').map(item => item.itemId)
 
-  // Weapon upgrades
+  // Story 31.2: Weapon upgrades — any equipped weapon below MAX_WEAPON_LEVEL is always upgradeable
   for (const weapon of equippedWeapons) {
     const def = WEAPONS[weapon.weaponId]
     if (!def) continue
     if (weapon.level >= MAX_WEAPON_LEVEL) continue
-    const upgradeIndex = weapon.level - 1
-    const nextUpgrade = def.upgrades?.[upgradeIndex]
-    if (!nextUpgrade) continue
     pool.push({
       type: 'weapon_upgrade',
       id: weapon.weaponId,
       name: def.name,
       description: def.description,
-      level: nextUpgrade.level,
+      level: weapon.level + 1,
       icon: null,
-      statPreview: nextUpgrade.statPreview || `Damage: ${weapon.level === 1 ? def.baseDamage : (def.upgrades[upgradeIndex - 1]?.damage ?? def.baseDamage)} → ${nextUpgrade.damage ?? def.baseDamage}`,
+      statPreview: null, // filled by rollUpgrade in applyRarityToChoices
     })
   }
 
@@ -121,6 +142,7 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banished
       if (equippedWeaponIds.includes(weaponId)) continue
       if (banishedWeaponIds.includes(weaponId)) continue // Story 22.2: Exclude banished weapons
       const def = WEAPONS[weaponId]
+      if ((def.rarityWeight ?? 1) === 0) continue // Exclude disabled weapons (rarityWeight: 0)
       pool.push({
         type: 'new_weapon',
         id: weaponId,
@@ -174,7 +196,7 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banished
 
 /**
  * Roll and apply rarity to a slice of choices (Story 22.3).
- * Each choice gets exactly one rarity — same item cannot appear at multiple rarities.
+ * Story 31.2: weapon_upgrade choices get rollUpgrade for statPreview.
  */
 function applyRarityToChoices(choices, luckStat) {
   return choices.map(choice => {
@@ -183,11 +205,26 @@ function applyRarityToChoices(choices, luckStat) {
       return { ...choice, rarity: 'COMMON', rarityColor: '#ffffff', rarityName: 'Common', rarityMultiplier: 1.0 }
     }
 
+    // Story 31.2: weapon_upgrade rolls its own rarity inside rollUpgrade — skip the top-level rollRarity
+    if (choice.type === 'weapon_upgrade') {
+      const upgradeResult = rollUpgrade(choice.id, luckStat)
+      const upgradeTier = getRarityTier(upgradeResult.rarity)
+      return {
+        ...choice,
+        rarity: upgradeResult.rarity,
+        rarityColor: upgradeTier.color,
+        rarityName: upgradeTier.name,
+        rarityMultiplier: upgradeTier.bonusMultiplier,
+        statPreview: upgradeResult.statPreview,
+        upgradeResult,
+      }
+    }
+
     const rarityId = rollRarity(luckStat)
     const rarityTier = getRarityTier(rarityId)
 
     let scaledStatPreview = choice.statPreview
-    if (choice.type === 'new_weapon' || choice.type === 'weapon_upgrade') {
+    if (choice.type === 'new_weapon') {
       scaledStatPreview = applyRarityToWeaponPreview(choice, rarityId, rarityTier)
     } else if (choice.type === 'new_boon' || choice.type === 'boon_upgrade') {
       scaledStatPreview = applyRarityToBoonPreview(choice, rarityTier)
@@ -208,20 +245,8 @@ function applyRarityToWeaponPreview(choice, rarityId, rarityTier) {
   const def = WEAPONS[choice.id]
   if (!def) return choice.statPreview
 
-  const multiplier = def.rarityDamageMultipliers?.[rarityId] ?? rarityTier.bonusMultiplier
-
-  if (choice.type === 'new_weapon') {
-    const scaledDamage = Math.round(def.baseDamage * multiplier)
-    return `Damage: ${scaledDamage}`
-  } else {
-    // weapon_upgrade: scale the next upgrade's damage
-    const upgrade = def.upgrades?.find(u => u.level === choice.level)
-    if (!upgrade) return choice.statPreview
-    const prevUpgrade = def.upgrades?.find(u => u.level === choice.level - 1)
-    const baseDamage = prevUpgrade?.damage ?? def.baseDamage
-    const scaledDamage = Math.round(upgrade.damage * multiplier)
-    return `Damage: ${baseDamage} → ${scaledDamage}`
-  }
+  // Story 31.2: Show base stats without rarityDamageMultipliers (removed in 31.1)
+  return `Damage: ${def.baseDamage} | Crit: ${((def.critChance ?? 0) * 100).toFixed(1)}%`
 }
 
 function applyRarityToBoonPreview(choice, rarityTier) {
@@ -257,29 +282,43 @@ function applyRarityToBoonPreview(choice, rarityTier) {
 /**
  * Generate planet scan reward choices filtered by tier quality.
  * Returns same format as generateChoices() for UI compatibility.
+ * Tiers: 'standard' (silver/2 choices), 'rare' (gold/3 choices), 'legendary' (platinum/3+P4 choices).
  */
-export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = []) {
+export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0) {
   const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
-  const count = GAME_CONFIG.PLANET_SCAN_REWARD_CHOICES
+
+  let count, effectiveLuck
+  if (tier === 'standard') {
+    // Silver: 2 choices, no luck influence (AC: #1)
+    count = 2
+    effectiveLuck = 0
+  } else if (tier === 'rare') {
+    // Gold: 3 choices, real luckStat (AC: #2)
+    count = 3
+    effectiveLuck = luckStat
+  } else {
+    // Legendary/Platinum: 3+P4 choices, real luckStat (AC: #3)
+    const P4 = luckStat === 0 ? 0 : Math.min(luckStat / (luckStat + 8), 0.85)
+    count = Math.random() < P4 ? 4 : 3
+    effectiveLuck = luckStat
+  }
 
   let filtered
   if (tier === 'standard') {
-    // Prefer upgrades for equipped weapons + common boons
+    // Prefer upgrades for equipped weapons + boons
     filtered = pool.filter(c => c.type === 'weapon_upgrade' || c.type === 'new_boon' || c.type === 'boon_upgrade')
-    if (filtered.length < count) filtered = pool // fallback to full pool
+    if (filtered.length < count) filtered = pool
   } else if (tier === 'rare') {
-    // Balanced — allow everything
+    // Balanced — full pool
     filtered = pool
   } else {
-    // Legendary — prioritize new weapons + new boons
-    const newItems = pool.filter(c => c.type === 'new_weapon' || c.type === 'new_boon')
-    const rest = pool.filter(c => c.type !== 'new_weapon' && c.type !== 'new_boon')
-    filtered = [...newItems, ...rest]
+    // Legendary: full pool — post-shuffle guarantee check enforces new-item priority (AC: #5)
+    filtered = pool
   }
 
   shuffle(filtered)
 
-  // Legendary: guarantee at least one new_weapon or new_boon if available
+  // Legendary: guarantee at least one new_weapon or new_boon if available (AC: #5)
   if (tier === 'legendary') {
     const topSlice = filtered.slice(0, count)
     const hasNew = topSlice.some(c => c.type === 'new_weapon' || c.type === 'new_boon')
@@ -304,6 +343,22 @@ export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equ
     })
   }
 
-  // Story 22.3: Apply rarity to planet reward choices (luckStat=0 — no luck for scan rewards)
-  return applyRarityToChoices(filtered.slice(0, count), 0)
+  const result = applyRarityToChoices(filtered.slice(0, count), effectiveLuck)
+
+  // Legendary (platinum): guaranteed RARE+ enforcement (AC: #4)
+  if (tier === 'legendary') {
+    const allCommon = result.every(c => c.rarity === 'COMMON')
+    if (allCommon) {
+      const rarityTier = getRarityTier('RARE')
+      result[0] = {
+        ...result[0],
+        rarity: 'RARE',
+        rarityColor: rarityTier.color,
+        rarityName: rarityTier.name,
+        rarityMultiplier: rarityTier.bonusMultiplier,
+      }
+    }
+  }
+
+  return result
 }

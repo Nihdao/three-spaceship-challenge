@@ -111,7 +111,7 @@ describe('galaxyDefs — Andromeda Reach gameplay profile (Story 34.1)', () => {
   })
 
   it('has correct wormholeThreshold', () => {
-    expect(galaxy.wormholeThreshold).toBe(0.75)
+    expect(galaxy.wormholeThreshold).toBe(0.666)
   })
 
   it('has correct planetRarity distribution', () => {

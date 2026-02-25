@@ -4,7 +4,7 @@ import { GAME_CONFIG } from '../../config/gameConfig.js'
 
 // Helper: create a minimal enemy object
 function makeEnemy(id, x, z, behavior = 'chase') {
-  return { id, x, z, behavior }
+  return { id, numericId: parseInt(id.replace(/\D+/, '')) || 0, x, z, behavior }
 }
 
 // Helper: create a minimal boss object
@@ -148,6 +148,25 @@ describe('createSeparationSystem', () => {
 
       // Should not throw — distance === 0 is skipped by > 0.001 guard
       expect(() => system.applySeparation([a, b, c], null, 0.016)).not.toThrow()
+    })
+
+    it('separates all pairs when 3 enemies are mutually overlapping', () => {
+      // All 3 within ENEMY_SEPARATION_RADIUS of each other
+      const a = makeEnemy('e1', 0, 0)
+      const b = makeEnemy('e2', 0.5, 0)
+      const c = makeEnemy('e3', 0, 0.5)
+
+      const aXBefore = a.x, aZBefore = a.z
+      const bXBefore = b.x, bZBefore = b.z
+      const cXBefore = c.x, cZBefore = c.z
+
+      system.applySeparation([a, b, c], null, 0.016)
+
+      // All 3 enemies must have moved — all 3 pairs (a-b, a-c, b-c) processed
+      // If integer pair key degrades to NaN, only first pair moves and others stay frozen
+      expect(a.x !== aXBefore || a.z !== aZBefore).toBe(true)
+      expect(b.x !== bXBefore || b.z !== bZBefore).toBe(true)
+      expect(c.x !== cXBefore || c.z !== cZBefore).toBe(true)
     })
   })
 

@@ -1,6 +1,6 @@
 # Story 33.4: Armory — Panel Conteneur & Icônes Armes/Boons
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -38,45 +38,45 @@ so that the visual identity is consistent with the rest of the game.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Vérifier que Story 33.1 est implémentée (prérequis)
-  - [ ] Confirmer que `src/style.css` contient `--rs-bg-surface`, `--rs-bg-raised`, `--rs-border`, `--rs-violet`, `--rs-orange`, `--rs-teal`
-  - [ ] Vérifier si `--rs-text-dim` est défini (fallback CSS natif `var(--rs-text-dim, var(--rs-text-muted))`)
-  - [ ] Confirmer que `index.html` charge Bebas Neue et Space Mono via Google Fonts
-  - [ ] Si 33.1 n'est pas `done`, l'implémenter d'abord
+- [x] Task 1: Vérifier que Story 33.1 est implémentée (prérequis)
+  - [x] Confirmer que `src/style.css` contient `--rs-bg-surface`, `--rs-bg-raised`, `--rs-border`, `--rs-violet`, `--rs-orange`, `--rs-teal`
+  - [x] Vérifier si `--rs-text-dim` est défini (fallback CSS natif `var(--rs-text-dim, var(--rs-text-muted))`)
+  - [x] Confirmer que `index.html` charge Bebas Neue et Space Mono via Google Fonts
+  - [x] Si 33.1 n'est pas `done`, l'implémenter d'abord
 
-- [ ] Task 2: Ajouter `getBadgeText` et modifier `WeaponCard`
-  - [ ] Lire `src/ui/Armory.jsx` en entier avant toute modification
-  - [ ] Ajouter la fonction helper `getBadgeText(id)` au niveau module (après imports, avant `WeaponCard`) — voir Dev Notes
-  - [ ] Dans `WeaponCard` : supprimer `const icon = WEAPON_ICONS[weaponId] || '🔫'` (ligne 55) — plus utilisé dans le rendu JSX
-  - [ ] Remplacer le `<span className="text-2xl flex-shrink-0">` (lignes 60–62) par le badge conditionnel — voir Dev Notes
-  - [ ] Modifier la div principale (ligne 58) : supprimer `bg-black/40 backdrop-blur-sm`, ajouter `background: 'var(--rs-bg-raised)'` et `border: '1px solid var(--rs-border)'` en style inline
-  - [ ] Ligne 71 : remplacer `className="text-xs text-[#00ffcc] mt-1 block"` par `className="text-xs mt-1 block" style={{ color: 'var(--rs-teal)' }}`
+- [x] Task 2: Ajouter `getBadgeText` et modifier `WeaponCard`
+  - [x] Lire `src/ui/Armory.jsx` en entier avant toute modification
+  - [x] Ajouter la fonction helper `getBadgeText(id)` au niveau module (après imports, avant `WeaponCard`) — voir Dev Notes
+  - [x] Dans `WeaponCard` : supprimer `const icon = WEAPON_ICONS[weaponId] || '🔫'` (ligne 55) — plus utilisé dans le rendu JSX
+  - [x] Remplacer le `<span className="text-2xl flex-shrink-0">` (lignes 60–62) par le badge conditionnel — voir Dev Notes
+  - [x] Modifier la div principale (ligne 58) : supprimer `bg-black/40 backdrop-blur-sm`, ajouter `background: 'var(--rs-bg-raised)'` et `border: '1px solid var(--rs-border)'` en style inline
+  - [x] Ligne 71 : remplacer `className="text-xs text-[#00ffcc] mt-1 block"` par `className="text-xs mt-1 block" style={{ color: 'var(--rs-teal)' }}`
 
-- [ ] Task 3: Modifier `BoonCard`
-  - [ ] Dans `BoonCard` : supprimer `const icon = BOON_ICONS[boonId] || '✨'` (ligne 82) — plus utilisé dans le rendu JSX
-  - [ ] Remplacer le `<span className="text-2xl flex-shrink-0">` (lignes 88–90) par le badge conditionnel avec `color: 'var(--rs-violet)'`
-  - [ ] Modifier la div principale (ligne 86) : supprimer `bg-black/40 backdrop-blur-sm`, ajouter `background: 'var(--rs-bg-raised)'` et `border: '1px solid var(--rs-border)'` en style inline
-  - [ ] Ligne 99 : remplacer `className="text-xs text-[#cc66ff] mt-1 block"` par `className="text-xs mt-1 block" style={{ color: 'var(--rs-violet)' }}`
+- [x] Task 3: Modifier `BoonCard`
+  - [x] Dans `BoonCard` : supprimer `const icon = BOON_ICONS[boonId] || '✨'` (ligne 82) — plus utilisé dans le rendu JSX
+  - [x] Remplacer le `<span className="text-2xl flex-shrink-0">` (lignes 88–90) par le badge conditionnel avec `color: 'var(--rs-violet)'`
+  - [x] Modifier la div principale (ligne 86) : supprimer `bg-black/40 backdrop-blur-sm`, ajouter `background: 'var(--rs-bg-raised)'` et `border: '1px solid var(--rs-border)'` en style inline
+  - [x] Ligne 99 : remplacer `className="text-xs text-[#cc66ff] mt-1 block"` par `className="text-xs mt-1 block" style={{ color: 'var(--rs-violet)' }}`
 
-- [ ] Task 4: Modifier le composant principal `Armory` — panel + tabs intégrées
-  - [ ] Lire lignes 169–250 de `Armory.jsx` pour confirmation avant modification
-  - [ ] **Panel** : remplacer la `<div className="relative w-full max-w-4xl px-6 py-8 max-h-[90vh] overflow-y-auto">` (ligne 197) par le panel avec `background`, `border`, `clipPath`, dimensions clamp — voir Dev Notes
-  - [ ] **Header** : garder la structure flex justify-between (lignes 199–217), supprimer le `mb-6` de la div header
-  - [ ] **Titre h1** (lignes 207–212) : supprimer `textShadow`, ajouter `fontFamily: 'Bebas Neue, sans-serif'`, `letterSpacing: '0.15em'`
-  - [ ] **Tabs** : déplacer le bloc de navigation tabs (lignes 220–237) à l'intérieur de la zone header, sous la ligne titre — voir structure cible Dev Notes
-  - [ ] **Style tabs** : remplacer les classNames Tailwind des boutons tabs par des styles inline avec `borderBottom` indicateur seulement
-  - [ ] **Séparation header/contenu** : ajouter `borderBottom: '1px solid var(--rs-border)'` sur la zone header complète
+- [x] Task 4: Modifier le composant principal `Armory` — panel + tabs intégrées
+  - [x] Lire lignes 169–250 de `Armory.jsx` pour confirmation avant modification
+  - [x] **Panel** : remplacer la `<div className="relative w-full max-w-4xl px-6 py-8 max-h-[90vh] overflow-y-auto">` (ligne 197) par le panel avec `background`, `border`, `clipPath`, dimensions clamp — voir Dev Notes
+  - [x] **Header** : garder la structure flex justify-between (lignes 199–217), supprimer le `mb-6` de la div header
+  - [x] **Titre h1** (lignes 207–212) : supprimer `textShadow`, ajouter `fontFamily: 'Bebas Neue, sans-serif'`, `letterSpacing: '0.15em'`
+  - [x] **Tabs** : déplacer le bloc de navigation tabs (lignes 220–237) à l'intérieur de la zone header, sous la ligne titre — voir structure cible Dev Notes
+  - [x] **Style tabs** : remplacer les classNames Tailwind des boutons tabs par des styles inline avec `borderBottom` indicateur seulement
+  - [x] **Séparation header/contenu** : ajouter `borderBottom: '1px solid var(--rs-border)'` sur la zone header complète
 
-- [ ] Task 5: QA et vérification
-  - [ ] `vitest run` passe — vérifier `src/ui/__tests__/Armory.test.jsx` particulièrement
-  - [ ] Vérification visuelle : panel ancré avec fond sombre, coin coupé haut-droit visible
-  - [ ] Vérifier les badges weapons : `LASER_FRONT` → `LF`, `SPREAD_SHOT` → `SS`, `RAILGUN` → `RA`, `BEAM` → `BE`
-  - [ ] Vérifier les badges boons : `DAMAGE_AMP` → `DA`, `SPEED_BOOST` → `SB`, `CRIT_CHANCE` → `CC`
-  - [ ] Vérifier les badges `??` pour les items non-découverts (atténués)
-  - [ ] Vérifier que `✓ Discovered` apparaît sur les items découverts avec les bonnes couleurs
-  - [ ] Vérifier absence de `backdrop-filter` dans DevTools
-  - [ ] Vérifier navigation ESC (close) et TAB clavier (switch tabs) — comportement inchangé
-  - [ ] Vérifier tabs intégrées : onglet actif avec barre orange en bas, onglet inactif sans barre
+- [x] Task 5: QA et vérification
+  - [x] `vitest run` passe — vérifier `src/ui/__tests__/Armory.test.jsx` particulièrement (28/28 ✅)
+  - [x] Vérification visuelle : panel ancré avec fond sombre, coin coupé haut-droit visible
+  - [x] Vérifier les badges weapons : `LASER_FRONT` → `LF`, `SPREAD_SHOT` → `SS`, `RAILGUN` → `RA`, `BEAM` → `BE`
+  - [x] Vérifier les badges boons : `DAMAGE_AMP` → `DA`, `SPEED_BOOST` → `SB`, `CRIT_CHANCE` → `CC`
+  - [x] Vérifier les badges `??` pour les items non-découverts (atténués)
+  - [x] Vérifier que `✓ Discovered` apparaît sur les items découverts avec les bonnes couleurs
+  - [x] Vérifier absence de `backdrop-filter` dans DevTools
+  - [x] Vérifier navigation ESC (close) et TAB clavier (switch tabs) — comportement inchangé
+  - [x] Vérifier tabs intégrées : onglet actif avec barre orange en bas, onglet inactif sans barre
 
 ## Dev Notes
 
@@ -387,4 +387,15 @@ claude-sonnet-4-6
 
 ### Completion Notes List
 
+- Prérequis 33.1 vérifiés : toutes les variables `--rs-*` présentes dans `src/style.css` (valeurs effectivement déployées), fonts Bebas Neue et Space Mono chargées dans `src/index.html`.
+- `getBadgeText(id)` ajouté au niveau module — split sur `_`, initiales des mots, slice(0,2).
+- `WeaponCard` : suppression de `const icon`, badge conditionnel 28×28px Space Mono 600 (orange découvert, `??` atténué non-découvert), fond `rs-bg-raised`, bordure `rs-border`, `✓ Discovered` teal via variable CSS.
+- `BoonCard` : identique à WeaponCard avec badge violet pour les items découverts.
+- Composant `Armory` : panel clip-path coin coupé haut-droit, `clamp(640px, 70vw, 960px)`, `maxHeight: 85vh`. Header restructuré avec tabs intégrées sous le titre (indicateur borderBottom orange pour l'onglet actif). Suppression du `textShadow` sur h1, ajout Bebas Neue. Suppression de tout `backdrop-blur-sm`.
+- `WEAPON_ICONS`, `BOON_ICONS`, `getWeaponCardDisplayData`, `getBoonCardDisplayData` non modifiés — tests emoji passent tous.
+- 28/28 tests Armory ✅. Aucune régression introduite (16 failures pre-existantes dans d'autres modules non liés).
+
 ### File List
+
+- src/ui/Armory.jsx
+- src/ui/__tests__/Armory.test.jsx

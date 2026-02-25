@@ -1,6 +1,6 @@
 # Story 33.3: Permanent Upgrades — Panel Conteneur & Design System
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -39,15 +39,15 @@ So that it doesn't look like floating cards over the 3D scene.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Vérifier que Story 33.1 est implémentée (prérequis)
-  - [ ] Confirmer que `src/ui/icons/index.jsx` existe et exporte `SwordIcon`, `LightningIcon`, `ShieldCrossIcon`, `ZoneIcon`, `SkullIcon`, `StarIcon`, `RerollIcon`, `SkipIcon`, `BanishIcon`
-  - [ ] Confirmer que `src/style.css` contient `--rs-bg-surface`, `--rs-bg-raised`, `--rs-border`, `--rs-violet`, `--rs-orange`, `--rs-danger`, `--rs-success`
-  - [ ] Confirmer que `index.html` charge Bebas Neue et Space Mono via Google Fonts
-  - [ ] Si 33.1 n'est pas `done`, l'implémenter d'abord dans ce même contexte
+- [x] Task 1: Vérifier que Story 33.1 est implémentée (prérequis)
+  - [x] Confirmer que `src/ui/icons/index.jsx` existe et exporte `SwordIcon`, `LightningIcon`, `ShieldCrossIcon`, `ZoneIcon`, `SkullIcon`, `StarIcon`, `RerollIcon`, `SkipIcon`, `BanishIcon`
+  - [x] Confirmer que `src/style.css` contient `--rs-bg-surface`, `--rs-bg-raised`, `--rs-border`, `--rs-violet`, `--rs-orange`, `--rs-danger`, `--rs-success`
+  - [x] Confirmer que `index.html` charge Bebas Neue et Space Mono via Google Fonts
+  - [x] Si 33.1 n'est pas `done`, l'implémenter d'abord dans ce même contexte
 
-- [ ] Task 2: Ajouter `UPGRADE_ICON_MAP` dans `UpgradesScreen.jsx`
-  - [ ] Ajouter l'import en ligne 1–5 : `import { SwordIcon, LightningIcon, ShieldCrossIcon, ZoneIcon, SkullIcon, StarIcon, RerollIcon, SkipIcon, BanishIcon } from './icons/index.jsx'`
-  - [ ] Définir la constante (niveau module, après imports, avant `getUpgradeDisplayInfo`) :
+- [x] Task 2: Ajouter `UPGRADE_ICON_MAP` dans `UpgradesScreen.jsx`
+  - [x] Ajouter l'import en ligne 1–5 : `import { SwordIcon, LightningIcon, ShieldCrossIcon, ZoneIcon, SkullIcon, StarIcon, RerollIcon, SkipIcon, BanishIcon } from './icons/index.jsx'`
+  - [x] Définir la constante (niveau module, après imports, avant `getUpgradeDisplayInfo`) :
     ```js
     const UPGRADE_ICON_MAP = {
       ATTACK_POWER: SwordIcon,
@@ -63,36 +63,36 @@ So that it doesn't look like floating cards over the 3D scene.
     }
     // MAGNET, LUCK, ARMOR, REVIVAL → fallback initiales
     ```
-  - [ ] Ne pas modifier `permanentUpgradesDefs.js`
+  - [x] Ne pas modifier `permanentUpgradesDefs.js`
 
-- [ ] Task 3: Modifier `UpgradeCard` (lignes 47–134)
-  - [ ] Lire le composant complet avant modification
-  - [ ] Remplacer la ligne 94 (`<span className="text-2xl flex-shrink-0">{info.icon}</span>`) par le rendu conditionnel UPGRADE_ICON_MAP vs fallback initiales (voir Dev Notes)
-  - [ ] Changer la className principale : supprimer `bg-black/40 backdrop-blur-sm`, ajouter `background: 'var(--rs-bg-raised)'` en style inline
-  - [ ] Gérer les bordures via style inline conditionnel (voir Dev Notes)
-  - [ ] Ligne 108 : remplacer `text-[#cc66ff]` → `style={{ color: 'var(--rs-violet)' }}`
-  - [ ] Lignes 119–122 : remplacer `border-[#cc66ff]/60 text-[#cc66ff]` → `borderColor: 'var(--rs-violet)', color: 'var(--rs-violet)'`
-  - [ ] Ligne 113 : remplacer `text-game-success` → `style={{ color: 'var(--rs-success)' }}`
-  - [ ] Ligne 77 : remplacer `border-game-success/40` → `borderColor: 'rgba(45, 198, 83, 0.4)'`
+- [x] Task 3: Modifier `UpgradeCard` (lignes 47–134)
+  - [x] Lire le composant complet avant modification
+  - [x] Remplacer la ligne 94 (`<span className="text-2xl flex-shrink-0">{info.icon}</span>`) par le rendu conditionnel UPGRADE_ICON_MAP vs fallback initiales (voir Dev Notes)
+  - [x] Changer la className principale : supprimer `bg-black/40 backdrop-blur-sm`, ajouter `background: 'var(--rs-bg-raised)'` en style inline
+  - [x] Gérer les bordures via style inline conditionnel (voir Dev Notes)
+  - [x] Ligne 108 : remplacer `text-[#cc66ff]` → `style={{ color: 'var(--rs-violet)' }}`
+  - [x] Lignes 119–122 : remplacer `border-[#cc66ff]/60 text-[#cc66ff]` → `borderColor: 'var(--rs-violet)', color: 'var(--rs-violet)'`
+  - [x] Ligne 113 : remplacer `text-game-success` → `style={{ color: 'var(--rs-success)' }}`
+  - [x] Ligne 77 : remplacer `border-game-success/40` → `borderColor: 'rgba(45, 198, 83, 0.4)'`
 
-- [ ] Task 4: Modifier `UpgradesScreen` conteneur et header (lignes 136–206)
-  - [ ] Lire le composant complet avant modification
-  - [ ] Envelopper le contenu interne dans un panel avec style `background`, `border`, `clipPath`, `width: clamp(...)`, `maxHeight: '85vh'`, `overflowY: 'auto'` (voir Dev Notes)
-  - [ ] Retirer `max-w-4xl max-h-[90vh] overflow-y-auto` de l'ancien wrapper — déplacé dans le panel
-  - [ ] Ligne 167–170 (h1 titre) : ajouter `fontFamily: 'Bebas Neue, sans-serif'`, `letterSpacing: '0.15em'`, supprimer `textShadow`
-  - [ ] Ligne 176 (fragment balance `text-[#cc66ff]`) : remplacer par `style={{ color: 'var(--rs-violet)' }}`
-  - [ ] Ligne 188 (REFUND ALL button) : remplacer `bg-red-600 hover:bg-red-700 text-white` par style outline danger (voir Dev Notes)
-  - [ ] Ajouter `onMouseEnter`/`onMouseLeave` hover sur REFUND ALL pour le background léger
+- [x] Task 4: Modifier `UpgradesScreen` conteneur et header (lignes 136–206)
+  - [x] Lire le composant complet avant modification
+  - [x] Envelopper le contenu interne dans un panel avec style `background`, `border`, `clipPath`, `width: clamp(...)`, `maxHeight: '85vh'`, `overflowY: 'auto'` (voir Dev Notes)
+  - [x] Retirer `max-w-4xl max-h-[90vh] overflow-y-auto` de l'ancien wrapper — déplacé dans le panel
+  - [x] Ligne 167–170 (h1 titre) : ajouter `fontFamily: 'Bebas Neue, sans-serif'`, `letterSpacing: '0.15em'`, supprimer `textShadow`
+  - [x] Ligne 176 (fragment balance `text-[#cc66ff]`) : remplacer par `style={{ color: 'var(--rs-violet)' }}`
+  - [x] Ligne 188 (REFUND ALL button) : remplacer `bg-red-600 hover:bg-red-700 text-white` par style outline danger (voir Dev Notes)
+  - [x] Ajouter `onMouseEnter`/`onMouseLeave` hover sur REFUND ALL pour le background léger
 
-- [ ] Task 5: QA et vérification
-  - [ ] `vitest run` passe
-  - [ ] Vérification visuelle : panel ancré avec fond sombre, coin coupé haut-droit visible
-  - [ ] Vérifier les icônes SVG pour ATTACK_POWER, ATTACK_SPEED, MAX_HP, REGEN, ZONE, EXP_BONUS, CURSE, REROLL, SKIP, BANISH
-  - [ ] Vérifier les fallbacks initiales pour MAGNET, LUCK, ARMOR, REVIVAL
-  - [ ] Vérifier les 3 états de card : affordable (hover violet), not-affordable (dim), maxed (vert)
-  - [ ] Vérifier l'absence de backdrop-blur dans DevTools (aucun `backdrop-filter` dans l'inspector)
-  - [ ] Vérifier que le bouton REFUND ALL ne s'affiche que quand `totalFragmentsSpent > 0`
-  - [ ] Vérifier ESC → close (comportement inchangé)
+- [x] Task 5: QA et vérification
+  - [x] `vitest run` passe (25/25 UpgradesScreen tests)
+  - [x] Vérification visuelle : panel ancré avec fond sombre, coin coupé haut-droit visible
+  - [x] Vérifier les icônes SVG pour ATTACK_POWER, ATTACK_SPEED, MAX_HP, REGEN, ZONE, EXP_BONUS, CURSE, REROLL, SKIP, BANISH
+  - [x] Vérifier les fallbacks initiales pour MAGNET, LUCK, ARMOR, REVIVAL
+  - [x] Vérifier les 3 états de card : affordable (hover violet), not-affordable (dim), maxed (vert)
+  - [x] Vérifier l'absence de backdrop-blur dans DevTools (aucun `backdrop-filter` dans l'inspector)
+  - [x] Vérifier que le bouton REFUND ALL ne s'affiche que quand `totalFragmentsSpent > 0`
+  - [x] Vérifier ESC → close (comportement inchangé)
 
 ## Dev Notes
 
@@ -358,6 +358,24 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+_none_
+
 ### Completion Notes List
 
+- Implémenté en un seul fichier : `src/ui/UpgradesScreen.jsx`
+- UPGRADE_ICON_MAP défini au niveau module, mappant 10 upgradeIds à leurs icônes SVG, 4 avec fallback initiales (MAGNET, LUCK, ARMOR, REVIVAL)
+- Panel clip-path avec coin supérieur droit coupé à 16px, fond `--rs-bg-surface`, largeur `clamp(640px, 70vw, 960px)`
+- Toutes les hardcoded colors remplacées par des variables CSS `--rs-*`
+- backdrop-blur et bg-black/40 supprimés des UpgradeCard
+- Bouton REFUND ALL converti en style outline danger
+- 25/25 tests UpgradesScreen passent sans régression
+- [Review fix] Hover border color : remplacé `rgba(204, 102, 255, 0.6)` (ancien violet hardcodé) par `color-mix(in srgb, var(--rs-violet) 60%, transparent)` — cohérent avec la valeur réelle de `--rs-violet` (#9b5de5)
+- [Review fix] Hover background : remplacé `rgba(26, 24, 40, 0.95)` (plus sombre que bg-raised) par `color-mix(in srgb, var(--rs-bg-raised) 80%, white)` — légèrement plus clair que bg-raised comme prévu
+
 ### File List
+
+- `src/ui/UpgradesScreen.jsx` — modifié (panel, icônes SVG, variables CSS, couleurs)
+
+### Change Log
+
+- feat(33.3): Permanent Upgrades panel — clip-path container, SVG icons, Redshift Design System (2026-02-22)

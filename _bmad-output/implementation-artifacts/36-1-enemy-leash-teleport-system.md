@@ -1,6 +1,6 @@
 # Story 36.1: Enemy Leash / Teleport System
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -39,36 +39,36 @@ so that I can never fully escape combat by running away.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `ENEMY_LEASH_DISTANCE` to `gameConfig.js` (AC: #5)
-  - [ ] Add `ENEMY_LEASH_DISTANCE: 750` — use the literal value 750 with a comment (cannot self-reference the object being constructed)
-  - [ ] Place it near the "Spawning" or "Minimap" section for contextual clarity
+- [x] Task 1: Add `ENEMY_LEASH_DISTANCE` to `gameConfig.js` (AC: #5)
+  - [x] Add `ENEMY_LEASH_DISTANCE: 750` — use the literal value 750 with a comment (cannot self-reference the object being constructed)
+  - [x] Place it near the "Spawning" or "Minimap" section for contextual clarity
 
-- [ ] Task 2: Add module-level leash constants to `useEnemies.jsx` (AC: #1, #3)
-  - [ ] Add near the top of the file (after existing constants like `SWEEP_DESPAWN_MARGIN`):
+- [x] Task 2: Add module-level leash constants to `useEnemies.jsx` (AC: #1, #3)
+  - [x] Add near the top of the file (after existing constants like `SWEEP_DESPAWN_MARGIN`):
     ```js
     const LEASH_ELIGIBLE = new Set(['chase', 'shockwave', 'sniper_mobile'])
     const ENEMY_LEASH_DISTANCE = 750 // MINIMAP_VISIBLE_RADIUS * 1.5
     const LEASH_DIST_SQ = ENEMY_LEASH_DISTANCE * ENEMY_LEASH_DISTANCE // 562500
     ```
 
-- [ ] Task 3: Update `tick()` signature and add leash loop (AC: #1, #2, #6)
-  - [ ] Change signature: `tick: (delta, playerPosition, options = {}) => {`
-  - [ ] Add at top of tick body: `const leashEnabled = options.leashEnabled !== false`
-  - [ ] Add leash loop AFTER the main behavior loop (after line ~444) and BEFORE the despawn filter (line ~446)
-  - [ ] Use `get()._teleportEvents.push(...)` for direct mutation (same pattern as line 418)
-  - [ ] Clamp new position to `±bound` where `bound = GAME_CONFIG.PLAY_AREA_SIZE` (already declared at line 272)
+- [x] Task 3: Update `tick()` signature and add leash loop (AC: #1, #2, #6)
+  - [x] Change signature: `tick: (delta, playerPosition, options = {}) => {`
+  - [x] Add at top of tick body: `const leashEnabled = options.leashEnabled !== false`
+  - [x] Add leash loop AFTER the main behavior loop (after line ~444) and BEFORE the despawn filter (line ~446)
+  - [x] Use `get()._teleportEvents.push(...)` for direct mutation (same pattern as line 418)
+  - [x] Clamp new position to `±bound` where `bound = GAME_CONFIG.PLAY_AREA_SIZE` (already declared at line 272)
 
-- [ ] Task 4: Update `GameLoop.jsx` tick call (AC: #4)
-  - [ ] At line 298: `useEnemies.getState().tick(clampedDelta, playerPos)` → `useEnemies.getState().tick(clampedDelta, playerPos, { leashEnabled: !bossActive })`
-  - [ ] `bossActive` is already declared at line 283 — no additional reads needed
+- [x] Task 4: Update `GameLoop.jsx` tick call (AC: #4)
+  - [x] At line 298: `useEnemies.getState().tick(clampedDelta, playerPos)` → `useEnemies.getState().tick(clampedDelta, playerPos, { leashEnabled: !bossActive })`
+  - [x] `bossActive` is already declared at line 283 — no additional reads needed
 
-- [ ] Task 5: Tests
-  - [ ] Test: `chase` enemy at 800u from player → leashed to within 150u after one tick
-  - [ ] Test: `sweep` enemy at 800u → NOT leashed
-  - [ ] Test: `teleport` enemy at 800u → NOT leashed
-  - [ ] Test: `leashEnabled: false` → no leash even at 1000u
-  - [ ] Test: leashed position clamped to `[-2000, +2000]`
-  - [ ] Test: `_teleportEvents` pushed with correct `{ oldX, oldZ, newX, newZ }` format
+- [x] Task 5: Tests
+  - [x] Test: `chase` enemy at 800u from player → leashed to within 150u after one tick
+  - [x] Test: `sweep` enemy at 800u → NOT leashed
+  - [x] Test: `teleport` enemy at 800u → NOT leashed
+  - [x] Test: `leashEnabled: false` → no leash even at 1000u
+  - [x] Test: leashed position clamped to `[-2000, +2000]`
+  - [x] Test: `_teleportEvents` pushed with correct `{ oldX, oldZ, newX, newZ }` format
 
 ## Dev Notes
 
@@ -208,6 +208,26 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+_None_
+
 ### Completion Notes List
 
+- Implemented leash system in 4 files: gameConfig.js (constant), useEnemies.jsx (constants + tick), GameLoop.jsx (pass leashEnabled option)
+- `leashEnabled = options.leashEnabled !== false` pattern ensures backward compat when options not passed (tests calling tick without 3rd arg still leash)
+- Leash loop runs AFTER main behavior loop, BEFORE despawn filter — enemies are at their final moved position when checked
+- `LEASH_ELIGIBLE = Set(['chase', 'shockwave', 'sniper_mobile'])` — sweep/sniper_fixed/teleport excluded per AC #3 rationale
+- Boss safety: BOSS_SPACESHIP is never in useEnemies.enemies array (managed by useBoss), so `bossActive: !bossActive` disables leash during boss fight only
+- Teleport VFX automatically handled by existing GameLoop section 5d — no rendering changes needed
+- 7 new tests, 2350 total, zero regressions
+- Code review fixes (2026-02-23): removed duplicate module-level `ENEMY_LEASH_DISTANCE` constant in useEnemies.jsx — now uses `GAME_CONFIG.ENEMY_LEASH_DISTANCE` directly via `LEASH_DIST_SQ`; fixed inverted test name; added tests for shockwave + sniper_mobile leash; hardened sweep test with unconditional `toHaveLength(1)`. 9 tests total.
+
 ### File List
+
+- src/config/gameConfig.js
+- src/stores/useEnemies.jsx
+- src/GameLoop.jsx
+- src/stores/__tests__/useEnemies.leash.test.js (new)
+
+## Change Log
+
+- 2026-02-23: Story 36.1 implemented — Enemy Leash/Teleport System. Added ENEMY_LEASH_DISTANCE constant, leash loop in useEnemies.tick(), GameLoop integration. 7 tests added.
