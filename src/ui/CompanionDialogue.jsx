@@ -95,7 +95,7 @@ export default function CompanionDialogue() {
         </div>
         <div
           style={{
-            fontSize: '0.875rem',
+            fontSize: '1rem',
             fontFamily: 'Rajdhani, sans-serif',
             fontWeight: 400,
             color: 'var(--rs-text)',

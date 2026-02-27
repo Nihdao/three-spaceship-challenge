@@ -179,6 +179,7 @@ export default function GameLoop() {
   const systemScalingCachedRef = useRef(null)
   const fogFrameCountRef = useRef(0)   // Story 35.1: frame throttle for fog update
   const timerWarningFiredRef = useRef(false) // Per-system flag — reset on each system entry
+  const scanReminderTimerRef = useRef(120)   // Counts down only when companion is fully idle
 
 
   // NOTE: Relies on mount order for correct useFrame execution sequence.
@@ -218,6 +219,7 @@ export default function GameLoop() {
       useDamageNumbers.getState().reset() // Story 27.1
       useCompanion.getState().clearQueue() // Story 30.3: clear dialogue queue between systems — preserves per-run shownEvents (planet-radar, low-hp-warning one-shots)
       timerWarningFiredRef.current = false // Reset per-system timer warning
+      scanReminderTimerRef.current = 120   // Reset scan reminder on system entry
       // Accumulate elapsed time before resetting (for total run time display)
       const prevSystemTime = useGame.getState().systemTimer
       if (prevSystemTime > 0) useGame.getState().accumulateTime(prevSystemTime)
@@ -250,6 +252,7 @@ export default function GameLoop() {
       useDamageNumbers.getState().reset() // Story 27.1
       useCompanion.getState().reset() // Story 30.2: clear dialogue queue and shownEvents on full restart
       timerWarningFiredRef.current = false // Reset per-system timer warning
+      scanReminderTimerRef.current = 120   // Reset scan reminder on new run
       usePlayer.getState().reset()
       // Story 20.1: Apply permanent upgrade bonuses after reset (meta-progression)
       usePlayer.getState().initializeRunStats(useUpgrades.getState().getComputedBonuses())
@@ -1603,6 +1606,21 @@ export default function GameLoop() {
       useCompanion.getState().trigger('level-up')
       usePlayer.getState().consumeLevelUp()
       useGame.getState().triggerLevelUp()
+    }
+
+    // 8f. Periodic scan reminder — fires every 120s but ONLY when companion is fully idle
+    // and wormhole hasn't spawned yet. Timer freezes while any message is active.
+    if (phase === 'gameplay' && !bossActive) {
+      const companionState = useCompanion.getState()
+      if (companionState.current === null && companionState.queue.length === 0) {
+        scanReminderTimerRef.current = Math.max(0, scanReminderTimerRef.current - clampedDelta)
+        if (scanReminderTimerRef.current === 0) {
+          if (useLevel.getState().wormholeState === 'hidden') {
+            useCompanion.getState().trigger('scan-reminder')
+          }
+          scanReminderTimerRef.current = 120
+        }
+      }
     }
 
     // 9. Cleanup dead entities
