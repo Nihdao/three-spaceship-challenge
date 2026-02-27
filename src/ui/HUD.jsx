@@ -192,7 +192,6 @@ function WeaponSlots({ activeWeapons }) {
           )
         }
         const def = WEAPONS[weapon.weaponId]
-        const color = def?.projectileColor || '#ffffff'
         const name = def?.name?.split(' ')[0] || '?'
         return (
           <div
@@ -202,16 +201,16 @@ function WeaponSlots({ activeWeapons }) {
             style={{
               width: 'clamp(32px, 3vw, 48px)',
               height: 'clamp(32px, 3vw, 48px)',
-              border: `2px solid ${color}4D`,
-              backgroundColor: `${color}26`,
+              border: '2px solid rgba(0, 180, 216, 0.3)',
+              backgroundColor: 'rgba(0, 180, 216, 0.12)',
               transform: isAnimating ? 'scale(1.15)' : 'scale(1)',
-              boxShadow: isAnimating ? `0 0 12px ${color}99` : 'none',
+              boxShadow: isAnimating ? '0 0 12px rgba(0, 180, 216, 0.6)' : 'none',
               transition: 'transform 250ms ease-out, box-shadow 250ms ease-out',
             }}
           >
             <span
               className="font-bold truncate leading-tight"
-              style={{ fontSize: 'clamp(9px, 0.9vw, 11px)', color }}
+              style={{ fontSize: 'clamp(9px, 0.9vw, 11px)', color: 'var(--rs-teal)' }}
             >
               {name}
             </span>
@@ -285,11 +284,11 @@ function BoonSlots({ activeBoons }) {
               style={{
                 width: 'clamp(32px, 3vw, 48px)',
                 height: 'clamp(32px, 3vw, 48px)',
-                border: '1px dashed rgba(155,93,229,0.15)',
+                border: '1px dashed rgba(255, 79, 31, 0.2)',
                 backgroundColor: 'rgba(0,0,0,0.3)',
               }}
             >
-              <span style={{ fontSize: '12px', color: 'rgba(155,93,229,0.3)' }}>—</span>
+              <span style={{ fontSize: '12px', color: 'rgba(255, 79, 31, 0.3)' }}>—</span>
             </div>
           )
         }
@@ -304,16 +303,16 @@ function BoonSlots({ activeBoons }) {
             style={{
               width: 'clamp(32px, 3vw, 48px)',
               height: 'clamp(32px, 3vw, 48px)',
-              border: '2px solid rgba(155,93,229,0.3)',
-              backgroundColor: 'rgba(155,93,229,0.12)',
+              border: '2px solid rgba(255, 79, 31, 0.3)',
+              backgroundColor: 'rgba(255, 79, 31, 0.10)',
               transform: isAnimating ? 'scale(1.15)' : 'scale(1)',
-              boxShadow: isAnimating ? '0 0 12px rgba(155,93,229,0.6)' : 'none',
+              boxShadow: isAnimating ? '0 0 12px rgba(255, 79, 31, 0.6)' : 'none',
               transition: 'transform 250ms ease-out, box-shadow 250ms ease-out',
             }}
           >
             <span
               className="font-bold truncate leading-tight"
-              style={{ fontSize: 'clamp(9px, 0.9vw, 11px)', color: 'var(--rs-violet)' }}
+              style={{ fontSize: 'clamp(9px, 0.9vw, 11px)', color: 'var(--rs-orange)' }}
             >
               {label}
             </span>

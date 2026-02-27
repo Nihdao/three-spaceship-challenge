@@ -262,6 +262,22 @@ export default function MainMenu() {
           ))}
         </div>
 
+        {/* Bottom-right: version */}
+        <span style={{
+          position: 'absolute',
+          bottom: '2rem',
+          right: '2rem',
+          fontFamily: 'Space Mono, monospace',
+          fontSize: '0.55rem',
+          letterSpacing: '0.1em',
+          color: 'var(--rs-text-dim)',
+          textTransform: 'uppercase',
+          userSelect: 'none',
+          pointerEvents: 'none',
+        }}>
+          v1
+        </span>
+
         {/* Bottom-left: Stats & Credits */}
         <div className="absolute bottom-8 left-8 flex flex-col gap-2 select-none">
           <button

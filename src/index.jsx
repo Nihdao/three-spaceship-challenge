@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
 import Experience from "./Experience.jsx";
 import Interface from "./ui/Interface.jsx";
+import PreloaderScreen from "./ui/PreloaderScreen.jsx";
 import { KeyboardControls } from "@react-three/drei";
 import useGame from "./stores/useGame.jsx";
 import { useEffect } from "react";
@@ -27,6 +28,7 @@ function App() {
 
   return (
     <>
+      <PreloaderScreen />
       {/* Hide Leva debug panel globally — useControls hooks keep returning their defaults (Story 28.2) */}
       <Leva hidden />
       <KeyboardControls

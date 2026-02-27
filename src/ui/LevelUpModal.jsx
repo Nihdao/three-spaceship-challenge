@@ -6,8 +6,13 @@ import useBoons from '../stores/useBoons.jsx'
 import useArmory from '../stores/useArmory.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { generateChoices } from '../systems/progressionSystem.js'
-import { getRarityTier } from '../systems/raritySystem.js'
 import { playSFX } from '../audio/audioManager.js'
+
+function getChoiceAccentColor(type) {
+  if (type === 'new_weapon' || type === 'weapon_upgrade') return 'var(--rs-teal)'
+  if (type === 'new_boon' || type === 'boon_upgrade') return 'var(--rs-orange)'
+  return 'var(--rs-gold)' // stat_boost
+}
 
 export default function LevelUpModal() {
   const [choices, setChoices] = useState([])
@@ -241,8 +246,7 @@ export default function LevelUpModal() {
           <div style={{ width: 32, height: 2, background: 'var(--rs-orange)', marginTop: 6, marginBottom: 24 }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {choices.map((choice, i) => {
-              const rarityTier = getRarityTier(choice.rarity || 'COMMON')
-              const isCommon = !choice.rarity || choice.rarity === 'COMMON'
+              const accentColor = getChoiceAccentColor(choice.type)
 
               return (
                 <div
@@ -254,7 +258,7 @@ export default function LevelUpModal() {
                     opacity: banishingIndex === i ? 0.2 : 1,
                     transform: banishingIndex === i ? 'scale(0.95)' : undefined,
                     transition: 'opacity 200ms ease-out, transform 200ms ease-out',
-                    borderLeft: `3px solid ${rarityTier.color}`,
+                    borderLeft: `3px solid ${accentColor}`,
                     clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
                     backgroundColor: 'var(--rs-bg-raised)',
                   }}
@@ -281,20 +285,9 @@ export default function LevelUpModal() {
                     </button>
                   )}
 
-                  {/* Top row: badge rareté inline + level/NEW + shortcut aligné à droite */}
+                  {/* Top row: level/NEW + shortcut aligné à droite */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                    {!isCommon && (
-                      <span style={{
-                        fontFamily: "'Rajdhani', sans-serif",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        color: rarityTier.color,
-                        letterSpacing: '0.05em',
-                      }}>
-                        [{rarityTier.name.toUpperCase()}]
-                      </span>
-                    )}
-                    <span className="text-sm" style={{ color: choice.level ? 'var(--rs-text-muted)' : 'var(--rs-orange)', fontWeight: choice.level ? undefined : 700 }}>
+                    <span className="text-sm" style={{ color: choice.level ? 'var(--rs-text-muted)' : accentColor, fontWeight: choice.level ? undefined : 700 }}>
                       {choice.level ? `Lv${choice.level}` : 'NEW'}
                     </span>
                     <span style={{
