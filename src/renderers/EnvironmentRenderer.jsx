@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import usePlayer from '../stores/usePlayer.jsx'
@@ -25,25 +25,37 @@ const WALLS = [
   { position: [0, BOUNDARY_WALL_HEIGHT / 2, -PLAY_AREA_SIZE], rotation: [0, 0, 0], axis: 2 },
 ]
 
-function NebulaBackground({ tint = BACKGROUND.DEFAULT.nebulaTint, opacity = BACKGROUND.DEFAULT.nebulaOpacity }) {
+function tintWithAlpha(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+function NebulaBackground({ tint = BACKGROUND.DEFAULT.nebulaTint, opacity = BACKGROUND.DEFAULT.nebulaOpacity, offsetX = 0, offsetZ = 0 }) {
   const texture = useMemo(() => {
-    const size = 128
+    const size = 256
     const canvas = document.createElement('canvas')
     canvas.width = size
     canvas.height = size
     const ctx = canvas.getContext('2d')
     const half = size / 2
     const gradient = ctx.createRadialGradient(half, half, 0, half, half, half)
-    gradient.addColorStop(0, tint)
-    gradient.addColorStop(0.5, tint)
-    gradient.addColorStop(1, 'rgba(0,0,0,0)')
+    gradient.addColorStop(0,    tint)
+    gradient.addColorStop(0.35, tint)
+    gradient.addColorStop(0.70, tintWithAlpha(tint, 0.4))
+    gradient.addColorStop(1,    'rgba(0,0,0,0)')
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, size, size)
     return new THREE.CanvasTexture(canvas)
   }, [tint])
 
+  useEffect(() => {
+    return () => { texture.dispose() }
+  }, [texture])
+
   return (
-    <mesh>
+    <mesh position={[offsetX, 0, offsetZ]}>
       <sphereGeometry args={[6000, 16, 16]} />
       <meshBasicMaterial
         map={texture}
@@ -124,9 +136,20 @@ function GroundPlane() {
 }
 
 export default function EnvironmentRenderer() {
+  const nebulaGroupRef = useRef()
+  useFrame(({ camera }) => {
+    if (nebulaGroupRef.current) {
+      nebulaGroupRef.current.position.x = -camera.position.x * 0.008
+      nebulaGroupRef.current.position.z = -camera.position.z * 0.008
+    }
+  })
+
   return (
     <group>
-      {BACKGROUND.DEFAULT.nebulaEnabled && <NebulaBackground />}
+      <group ref={nebulaGroupRef}>
+        {BACKGROUND.DEFAULT.nebulaEnabled && <NebulaBackground tint={BACKGROUND.DEFAULT.nebulaTint} opacity={BACKGROUND.DEFAULT.nebulaOpacity} />}
+        {BACKGROUND.DEFAULT.nebula2Enabled && <NebulaBackground tint={BACKGROUND.DEFAULT.nebula2Tint} opacity={BACKGROUND.DEFAULT.nebula2Opacity} offsetX={BACKGROUND.DEFAULT.nebula2OffsetX} offsetZ={BACKGROUND.DEFAULT.nebula2OffsetZ} />}
+      </group>
       <Starfield />
       <BoundaryRenderer />
       <GroundPlane />

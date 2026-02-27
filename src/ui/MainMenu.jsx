@@ -18,7 +18,7 @@ export const MENU_ITEMS = [
 
 const S = {
   menuBtn: {
-    width: "12rem",
+    width: "14rem",
     padding: "10px 16px",
     background: "rgba(13, 11, 20, 0.72)",
     borderTop: "1px solid var(--rs-border)",
@@ -28,7 +28,7 @@ const S = {
     clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
     color: "var(--rs-text-muted)",
     fontFamily: "Space Mono, monospace",
-    fontSize: "0.75rem",
+    fontSize: "0.875rem",
     letterSpacing: "0.12em",
     cursor: "pointer",
     transition: "border-color 150ms, color 150ms, transform 150ms",
@@ -36,7 +36,7 @@ const S = {
     outline: "none",
   },
   menuBtnSelected: {
-    width: "12rem",
+    width: "14rem",
     padding: "10px 16px",
     background: "rgba(255, 79, 31, 0.08)",
     borderTop: "1px solid var(--rs-orange)",
@@ -46,7 +46,7 @@ const S = {
     clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
     color: "var(--rs-text)",
     fontFamily: "Space Mono, monospace",
-    fontSize: "0.75rem",
+    fontSize: "0.875rem",
     letterSpacing: "0.12em",
     cursor: "pointer",
     transition: "border-color 150ms, color 150ms, transform 150ms",
@@ -60,7 +60,7 @@ const S = {
     clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)",
     color: "var(--rs-text)",
     fontFamily: "Space Mono, monospace",
-    fontSize: "0.72rem",
+    fontSize: "0.8rem",
     letterSpacing: "0.1em",
     cursor: "pointer",
     transition: "border-color 150ms, color 150ms, transform 150ms",
@@ -172,7 +172,7 @@ export default function MainMenu() {
           <div>
             <p style={{
               fontFamily: "Space Mono, monospace",
-              fontSize: "0.65rem",
+              fontSize: "0.72rem",
               letterSpacing: "0.1em",
               color: "var(--rs-text-muted)",
               textTransform: "uppercase",
@@ -182,7 +182,7 @@ export default function MainMenu() {
             <p style={{
               fontFamily: "Rajdhani, sans-serif",
               fontWeight: 700,
-              fontSize: "1.5rem",
+              fontSize: "1.75rem",
               color: "var(--rs-text)",
               fontVariantNumeric: "tabular-nums",
             }}>
@@ -192,7 +192,7 @@ export default function MainMenu() {
           <div>
             <p style={{
               fontFamily: "Space Mono, monospace",
-              fontSize: "0.65rem",
+              fontSize: "0.72rem",
               letterSpacing: "0.1em",
               color: "var(--rs-text-muted)",
               textTransform: "uppercase",
@@ -202,7 +202,7 @@ export default function MainMenu() {
             <p style={{
               fontFamily: "Rajdhani, sans-serif",
               fontWeight: 700,
-              fontSize: "1.5rem",
+              fontSize: "1.75rem",
               color: "var(--rs-violet)",
               fontVariantNumeric: "tabular-nums",
               display: "flex",

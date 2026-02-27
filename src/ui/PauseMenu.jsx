@@ -168,7 +168,7 @@ export default function PauseMenu() {
   const sectionTitleStyle = {
     fontFamily: "'Rajdhani', sans-serif",
     fontWeight: 700,
-    fontSize: 12,
+    fontSize: 14,
     letterSpacing: '0.1em',
     color: 'var(--rs-text-muted)',
     textTransform: 'uppercase',
@@ -218,7 +218,7 @@ export default function PauseMenu() {
             style={{
               fontFamily: "'Rajdhani', sans-serif",
               fontWeight: 700,
-              fontSize: 'clamp(13px, 1.3vw, 16px)',
+              fontSize: 'clamp(14px, 1.4vw, 18px)',
               letterSpacing: '0.1em',
               color: 'var(--rs-teal)',
               border: '1px solid var(--rs-teal)',
@@ -253,17 +253,17 @@ export default function PauseMenu() {
                       gap: 2,
                     }}
                   >
-                    <span style={{ fontSize: 13, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: info.color }}>
+                    <span style={{ fontSize: 15, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: info.color }}>
                       {info.name}
                     </span>
-                    <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
+                    <span style={{ fontSize: 14, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
                       Lv{info.level} · {info.damage}dmg · {info.cooldown != null ? `${info.cooldown.toFixed(1)}s` : '—'}
                     </span>
                   </div>
                 )
               })}
               {equippedWeapons.length === 0 && (
-                <span style={{ color: 'var(--rs-text-dim)', fontSize: 12 }}>—</span>
+                <span style={{ color: 'var(--rs-text-dim)', fontSize: 14 }}>—</span>
               )}
             </div>
 
@@ -283,17 +283,17 @@ export default function PauseMenu() {
                       gap: 2,
                     }}
                   >
-                    <span style={{ fontSize: 13, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: 'var(--rs-violet)' }}>
+                    <span style={{ fontSize: 15, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: 'var(--rs-violet)' }}>
                       {info.name}
                     </span>
-                    <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
+                    <span style={{ fontSize: 14, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
                       Lv{info.level}{info.statPreview ? ` · ${info.statPreview}` : ''}
                     </span>
                   </div>
                 )
               })}
               {equippedBoons.length === 0 && (
-                <span style={{ color: 'var(--rs-text-dim)', fontSize: 12 }}>—</span>
+                <span style={{ color: 'var(--rs-text-dim)', fontSize: 14 }}>—</span>
               )}
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function PauseMenu() {
             style={{
               fontFamily: "'Rajdhani', sans-serif",
               fontWeight: 700,
-              fontSize: 'clamp(13px, 1.3vw, 16px)',
+              fontSize: 'clamp(14px, 1.4vw, 18px)',
               letterSpacing: '0.1em',
               color: 'var(--rs-danger)',
               border: '1px solid var(--rs-danger)',
@@ -375,7 +375,7 @@ export default function PauseMenu() {
             >
               Quit to menu?
             </h2>
-            <p style={{ color: 'var(--rs-text)', fontSize: 'clamp(13px, 1.3vw, 16px)', margin: '0 0 24px 0' }}>
+            <p style={{ color: 'var(--rs-text)', fontSize: 'clamp(14px, 1.4vw, 18px)', margin: '0 0 24px 0' }}>
               Progress will be lost.
             </p>
             <div className="flex gap-4 justify-center">
@@ -387,7 +387,7 @@ export default function PauseMenu() {
                   clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
                   backgroundColor: 'var(--rs-danger)',
                   color: '#fff',
-                  fontSize: 'clamp(13px, 1.3vw, 16px)',
+                  fontSize: 'clamp(14px, 1.4vw, 18px)',
                 }}
               >
                 Confirm
@@ -401,7 +401,7 @@ export default function PauseMenu() {
                   backgroundColor: 'transparent',
                   color: 'var(--rs-text)',
                   border: '1px solid var(--rs-border)',
-                  fontSize: 'clamp(13px, 1.3vw, 16px)',
+                  fontSize: 'clamp(14px, 1.4vw, 18px)',
                 }}
               >
                 Cancel
