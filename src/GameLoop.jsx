@@ -16,7 +16,6 @@ import { createProjectileSystem } from './systems/projectileSystem.js'
 import { createSeparationSystem } from './systems/separationSystem.js'
 import { GAME_CONFIG } from './config/gameConfig.js'
 import { addExplosion, resetParticles } from './systems/particleSystem.js'
-import { emitTrailParticle, updateTrailParticles, resetTrailParticles } from './systems/particleTrailSystem.js'
 import { playSFX, playScanLoop, stopScanLoop } from './audio/audioManager.js'
 import { updateOrbs, updateMagnetization, collectOrb, getOrbs, getActiveCount as getOrbCount, spawnOrb, forceActivateMagnet } from './systems/xpOrbSystem.js'
 import { updateHealGemMagnetization, collectHealGem, getHealGems, getActiveHealGemCount, forceActivateMagnetHealGems } from './systems/healGemSystem.js'
@@ -175,9 +174,6 @@ export default function GameLoop() {
   const prevDashCooldownRef = useRef(0)
   const prevScanPlanetRef = useRef(null)
   const tunnelTransitionTimerRef = useRef(null)
-  // Trail particle emission state (Story 24.3)
-  const trailPrevPosRef = useRef([0, 0, 0])
-  const trailEmitAccRef = useRef(0)
   // Story 34.5: Cache system scaling — recompute only on system transition, not every frame
   const systemScalingCacheKeyRef = useRef(-1) // -1 = invalid sentinel
   const systemScalingCachedRef = useRef(null)
@@ -216,7 +212,6 @@ export default function GameLoop() {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
       resetParticles()
-      resetTrailParticles() // Story 24.3
       resetRings() // Story 32.7
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       resetFogGrid()                     // Story 35.1: new system = fresh exploration
@@ -249,7 +244,6 @@ export default function GameLoop() {
       useArmory.getState().markDiscovered('weapons', 'LASER_FRONT') // Story 25.4: mark starter weapon discovered
       useBoons.getState().reset()
       resetParticles()
-      resetTrailParticles() // Story 24.3
       resetRings() // Story 32.7
       resetLoot() // Story 19.4: Reset all loot systems (orbs, heal gems, fragment gems)
       resetFogGrid()                     // Story 35.1: new run = fresh exploration
@@ -323,38 +317,6 @@ export default function GameLoop() {
       playSFX('dash-ready')
     }
     prevDashCooldownRef.current = currentCooldown
-
-    // 2c. Trail particle emission (Story 24.3)
-    {
-      const trailCfg = GAME_CONFIG.ENVIRONMENT_VISUAL_EFFECTS.SHIP_TRAIL
-      const pos = usePlayer.getState().position
-      const prevPos = trailPrevPosRef.current
-      const dx = pos[0] - prevPos[0]
-      const dz = pos[2] - prevPos[2]
-      const speed = Math.hypot(dx, dz) / clampedDelta
-      prevPos[0] = pos[0]; prevPos[1] = pos[1]; prevPos[2] = pos[2]
-
-      if (speed > trailCfg.MIN_SPEED_THRESHOLD) {
-        const isDashing = usePlayer.getState().isDashing
-        const rate = trailCfg.EMISSION_RATE * (isDashing ? trailCfg.DASH_EMISSION_MULTIPLIER : 1)
-        trailEmitAccRef.current += rate * clampedDelta
-        // Normalize movement direction for spawn offset (safety: avoid division by very small numbers)
-        const speedDelta = Math.max(speed * clampedDelta, 0.0001)
-        const invSpeed = 1 / speedDelta
-        const ndx = dx * invSpeed
-        const ndz = dz * invSpeed
-        while (trailEmitAccRef.current >= 1) {
-          trailEmitAccRef.current -= 1
-          const scatter = (Math.random() - 0.5) * trailCfg.SPAWN_SCATTER
-          const spawnX = pos[0] - ndx * trailCfg.SPAWN_OFFSET_BEHIND + scatter
-          const spawnZ = pos[2] - ndz * trailCfg.SPAWN_OFFSET_BEHIND + scatter
-          emitTrailParticle(spawnX, spawnZ, trailCfg.COLOR, trailCfg.PARTICLE_LIFETIME, trailCfg.PARTICLE_SIZE, ndx, ndz, isDashing)
-        }
-      } else {
-        trailEmitAccRef.current = 0
-      }
-      updateTrailParticles(clampedDelta)
-    }
 
     // 3. Weapons fire — compose boon + upgrade + dilemma + ship modifiers
     const playerState = usePlayer.getState()
