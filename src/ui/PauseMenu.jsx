@@ -246,14 +246,14 @@ export default function PauseMenu() {
                   <div
                     key={`${weapon.weaponId}-${idx}`}
                     style={{
-                      borderLeft: `2px solid ${info.color}`,
+                      borderLeft: '2px solid var(--rs-teal)',
                       paddingLeft: 8,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 2,
                     }}
                   >
-                    <span style={{ fontSize: 15, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: info.color }}>
+                    <span style={{ fontSize: 15, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: 'var(--rs-teal)' }}>
                       {info.name}
                     </span>
                     <span style={{ fontSize: 14, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>
@@ -276,14 +276,14 @@ export default function PauseMenu() {
                   <div
                     key={`${boon.boonId}-${idx}`}
                     style={{
-                      borderLeft: '2px solid var(--rs-violet)',
+                      borderLeft: '2px solid var(--rs-orange)',
                       paddingLeft: 8,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 2,
                     }}
                   >
-                    <span style={{ fontSize: 15, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: 'var(--rs-violet)' }}>
+                    <span style={{ fontSize: 15, fontFamily: "'Rajdhani', sans-serif", fontWeight: 600, color: 'var(--rs-orange)' }}>
                       {info.name}
                     </span>
                     <span style={{ fontSize: 14, fontFamily: "'Space Mono', monospace", color: 'var(--rs-text-muted)' }}>

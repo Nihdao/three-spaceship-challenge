@@ -25,7 +25,7 @@ export const WEAPONS = {
     id: 'SPREAD_SHOT',
     name: 'Spread Shot',
     description: 'Fires 3 projectiles in a cone pattern',
-    baseDamage: 6,
+    baseDamage: 8,
     baseCooldown: 0.7,
     baseSpeed: 250,
     weaponType: 'projectile',             // Story 32.9: schema alignment
@@ -49,7 +49,7 @@ export const WEAPONS = {
     id: 'BEAM',
     name: 'Beam Cannon',
     description: 'Continuous damage ray that locks onto enemies',
-    baseDamage: 8,
+    baseDamage: 2,
     baseCooldown: 0.1,
     baseSpeed: 600,
     weaponType: 'beam_continuous',         // Story 32.9: schema alignment
@@ -157,7 +157,7 @@ export const WEAPONS = {
     id: 'SHOCKWAVE',
     name: 'Shockwave',
     description: '3 expanding arc waves centered on cursor with strong knockback',
-    baseDamage: 40,
+    baseDamage: 12,
     baseCooldown: 2.5,
     weaponType: 'shockwave',        // discriminator — skip in useWeapons.tick(), managed in GameLoop 7a-quater
     waveCount: 3,                   // arcs per burst
@@ -169,6 +169,7 @@ export const WEAPONS = {
     projectileColor: '#f9e547',     // VOLATILE family — bright yellow arc
     sfxKey: 'shockwave-fire',       // placeholder SFX
     knockbackStrength: 5,           // strong radial knockback (read by applyKnockbackImpulse)
+    rarityWeight: 5,
     slot: 'any',
   },
 
@@ -176,7 +177,7 @@ export const WEAPONS = {
     id: 'MINE_AROUND',
     name: 'Mine Field',
     description: '3 orbiting mines that explode on enemy proximity',
-    baseDamage: 50,
+    baseDamage: 30,
     weaponType: 'mine_around',
     mineCount: 3,
     orbitalRadius: 15,
@@ -188,6 +189,7 @@ export const WEAPONS = {
     projectileColor: '#b06cf0',        // ARCANE family
     sfxKey: 'mine-explosion',
     knockbackStrength: 4,
+    rarityWeight: 5,
     slot: 'any',
   },
 
@@ -196,7 +198,7 @@ export const WEAPONS = {
     name: 'Tactical Strike',
     description: 'Instant strike on a random nearby enemy with AOE splash',
     baseDamage: 35,
-    baseCooldown: 1.2,
+    baseCooldown: 2.0,
     weaponType: 'tactical_shot',       // discriminator — bypasses cooldown/projectile in useWeapons.tick()
     detectionRadius: 60,               // world units — max range for target selection
     strikeAoeRadius: 6,                // world units — AOE splash radius (base, before zoneMultiplier)

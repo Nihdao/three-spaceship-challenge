@@ -312,6 +312,11 @@ export default function OptionsModal({ onClose }) {
           CLEAR LOCAL SAVE
         </button>
 
+        {/* Version */}
+        <div style={{ textAlign: 'right', marginBottom: '10px' }}>
+          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.55rem', letterSpacing: '0.1em', color: 'var(--rs-text-dim)', textTransform: 'uppercase', userSelect: 'none' }}>v1</span>
+        </div>
+
         {/* BACK button */}
         <button
           ref={backButtonRef}

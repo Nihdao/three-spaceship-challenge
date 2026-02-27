@@ -6,8 +6,13 @@ import useBoons from '../stores/useBoons.jsx'
 import useArmory from '../stores/useArmory.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { generatePlanetReward } from '../systems/progressionSystem.js'
-import { getRarityTier } from '../systems/raritySystem.js'
 import { playSFX } from '../audio/audioManager.js'
+
+function getChoiceAccentColor(type) {
+  if (type === 'new_weapon' || type === 'weapon_upgrade') return 'var(--rs-teal)'
+  if (type === 'new_boon' || type === 'boon_upgrade') return 'var(--rs-orange)'
+  return 'var(--rs-gold)'
+}
 
 const TIER_COLORS = {
   standard:  '#a07855',   // CINDER
@@ -86,12 +91,12 @@ const S = {
     flexDirection: 'column',
     gap: 12,
   },
-  card: (rarityColor, animDelay) => ({
+  card: (accentColor, animDelay) => ({
     position: 'relative',
     padding: 12,
     background: 'var(--rs-bg-raised)',
     clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
-    borderLeft: `3px solid ${rarityColor}`,
+    borderLeft: `3px solid ${accentColor}`,
     cursor: 'pointer',
     animationDelay: `${animDelay}ms`,
     animationFillMode: 'backwards',
@@ -102,16 +107,6 @@ const S = {
     gap: 8,
     marginBottom: 2,
   },
-  rarityBadge: (rarityColor) => ({
-    display: 'inline-block',
-    padding: '2px 8px',
-    fontSize: 11,
-    fontFamily: "'Rajdhani', sans-serif",
-    fontWeight: 700,
-    color: '#000',
-    backgroundColor: rarityColor,
-    clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
-  }),
   shortcutKey: {
     marginLeft: 'auto',
     fontFamily: "'Space Mono', monospace",
@@ -233,13 +228,12 @@ export default function PlanetRewardModal() {
 
           <div style={S.cardsContainer}>
             {choices.map((choice, i) => {
-              const rarityTier = getRarityTier(choice.rarity || 'COMMON')
-              const isCommon = !choice.rarity || choice.rarity === 'COMMON'
+              const accentColor = getChoiceAccentColor(choice.type)
 
               return (
                 <div
                   key={`${choice.type}_${choice.id}`}
-                  style={S.card(rarityTier.color, i * 50)}
+                  style={S.card(accentColor, i * 50)}
                   className="animate-fade-in"
                   onClick={() => applyChoice(choice)}
                   onMouseEnter={(e) => {
@@ -247,21 +241,16 @@ export default function PlanetRewardModal() {
                     e.currentTarget.style.borderColor = 'var(--rs-border-hot)'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = rarityTier.color
+                    e.currentTarget.style.borderColor = accentColor
                   }}
                 >
-                  {/* Top row: rarity badge + level/NEW + shortcut [1-3] */}
+                  {/* Top row: level/NEW + shortcut [1-3] */}
                   <div style={S.topRow}>
-                    {!isCommon && (
-                      <span style={S.rarityBadge(rarityTier.color)}>
-                        {rarityTier.name.toUpperCase()}
-                      </span>
-                    )}
                     <span style={{
                       fontSize: '0.75rem',
                       fontFamily: "'Rajdhani', sans-serif",
                       fontWeight: choice.level ? 400 : 700,
-                      color: choice.level ? 'var(--rs-text-muted)' : (isCommon ? tierColor : rarityTier.color),
+                      color: choice.level ? 'var(--rs-text-muted)' : accentColor,
                     }}>
                       {choice.level ? `Lvl ${choice.level}` : 'NEW'}
                     </span>

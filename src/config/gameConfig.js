@@ -317,7 +317,7 @@ export const GAME_CONFIG = {
     // Grid visibility (Story 15.3)
     GRID_VISIBILITY: {
       GAMEPLAY: {
-        enabled: true,
+        enabled: false,
         divisions: 40,
         colorCenterLine: '#0d0d18',
         colorGrid: '#0a0a0f',

@@ -12,8 +12,8 @@ import { playSFX } from '../audio/audioManager.js'
 export function formatTime(totalSeconds) {
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
-  if (hours > 0) return `${hours}h ${minutes}m`
-  return `${minutes}m`
+  if (hours > 0) return `${hours}h ${minutes}min`
+  return `${minutes}min`
 }
 
 // ─── Redshift Design System styles ─────────────────────────────────────────
