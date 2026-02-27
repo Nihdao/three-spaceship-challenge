@@ -118,7 +118,7 @@ describe('ENVIRONMENT_VISUAL_EFFECTS.BACKGROUND (Story 24.2)', () => {
       expect(bg.DEFAULT.nebulaTint).toBeDefined()
       expect(typeof bg.DEFAULT.nebulaOpacity).toBe('number')
       expect(bg.DEFAULT.nebulaOpacity).toBeGreaterThan(0)
-      expect(bg.DEFAULT.nebulaOpacity).toBeLessThan(0.2)
+      expect(bg.DEFAULT.nebulaOpacity).toBe(0.32)
     })
   })
 

@@ -147,7 +147,7 @@ export default function LevelUpModal() {
         flexWrap: 'wrap',
         gap: 24,
         alignItems: 'flex-start',
-        maxWidth: 860,
+        maxWidth: 980,
         padding: 24,
         background: 'var(--rs-bg-surface)',
         border: '1px solid var(--rs-border)',
@@ -159,7 +159,7 @@ export default function LevelUpModal() {
           <p style={{
             fontFamily: "'Rajdhani', sans-serif",
             fontWeight: 700,
-            fontSize: 12,
+            fontSize: 14,
             letterSpacing: '0.12em',
             color: 'var(--rs-text-muted)',
             marginBottom: 12,
@@ -175,16 +175,16 @@ export default function LevelUpModal() {
             ['Damage Mult', `×${damageMultiplier.toFixed(2)}`],
           ].map(([label, value]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, color: 'var(--rs-text-muted)', fontFamily: "'Rajdhani', sans-serif", fontWeight: 600 }}>
+              <span style={{ fontSize: 14, color: 'var(--rs-text-muted)', fontFamily: "'Rajdhani', sans-serif", fontWeight: 600 }}>
                 {label}
               </span>
-              <span style={{ fontSize: 12, fontFamily: "'Space Mono', monospace", color: '#e8e8f0' }}>
+              <span style={{ fontSize: 14, fontFamily: "'Space Mono', monospace", color: '#e8e8f0' }}>
                 {value}
               </span>
             </div>
           ))}
 
-          <p style={{ fontSize: 11, color: 'var(--rs-text-dim)', marginTop: 6, fontFamily: "'Space Mono', monospace" }}>
+          <p style={{ fontSize: 13, color: 'var(--rs-text-dim)', marginTop: 6, fontFamily: "'Space Mono', monospace" }}>
             Weapons: {activeWeaponsCount} · Boons: {activeBoonsCount}
           </p>
 
@@ -198,6 +198,7 @@ export default function LevelUpModal() {
               style={{
                 fontFamily: "'Rajdhani', sans-serif",
                 fontWeight: 700,
+                fontSize: '1rem',
                 letterSpacing: '0.1em',
                 color: 'var(--rs-teal, #00b4d8)',
                 border: '1px solid var(--rs-teal, #00b4d8)',
@@ -218,6 +219,7 @@ export default function LevelUpModal() {
               style={{
                 fontFamily: "'Rajdhani', sans-serif",
                 fontWeight: 700,
+                fontSize: '1rem',
                 letterSpacing: '0.1em',
                 color: 'var(--rs-gold, #ffd60a)',
                 border: '1px solid var(--rs-gold, #ffd60a)',
@@ -232,8 +234,8 @@ export default function LevelUpModal() {
         </div>
 
         {/* ── Colonne droite : Titre + Cards verticales ── */}
-        <div style={{ flex: 1, minWidth: 320, paddingBottom: 16 }}>
-          <h1 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '2.5rem', letterSpacing: '0.15em', color: 'var(--rs-text)', margin: 0 }}>
+        <div style={{ flex: 1, minWidth: 400, paddingBottom: 16 }}>
+          <h1 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '3.5rem', letterSpacing: '0.15em', color: 'var(--rs-text)', margin: 0 }}>
             LEVEL UP!
           </h1>
           <div style={{ width: 32, height: 2, background: 'var(--rs-orange)', marginTop: 6, marginBottom: 24 }} />
@@ -285,20 +287,20 @@ export default function LevelUpModal() {
                       <span style={{
                         fontFamily: "'Rajdhani', sans-serif",
                         fontWeight: 700,
-                        fontSize: 11,
+                        fontSize: 13,
                         color: rarityTier.color,
                         letterSpacing: '0.05em',
                       }}>
                         [{rarityTier.name.toUpperCase()}]
                       </span>
                     )}
-                    <span className="text-xs" style={{ color: choice.level ? 'var(--rs-text-muted)' : 'var(--rs-orange)', fontWeight: choice.level ? undefined : 700 }}>
+                    <span className="text-sm" style={{ color: choice.level ? 'var(--rs-text-muted)' : 'var(--rs-orange)', fontWeight: choice.level ? undefined : 700 }}>
                       {choice.level ? `Lv${choice.level}` : 'NEW'}
                     </span>
                     <span style={{
                       marginLeft: 'auto',
                       fontFamily: "'Space Mono', monospace",
-                      fontSize: 11,
+                      fontSize: 13,
                       color: 'var(--rs-text-dim)',
                     }}>
                       [{i + 1}]
@@ -306,7 +308,7 @@ export default function LevelUpModal() {
                   </div>
 
                   <h3 className="font-semibold text-sm" style={{ color: 'var(--rs-text)' }}>{choice.name}</h3>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--rs-text-muted)' }}>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--rs-text-muted)' }}>
                     {choice.statPreview ?? choice.description}
                   </p>
                 </div>

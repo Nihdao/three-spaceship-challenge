@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { ENEMIES } from '../enemyDefs.js'
 
-describe('enemyDefs — all 8 enemy types defined (Story 16.1)', () => {
+describe('enemyDefs — all 9 enemy types defined (Story 16.1 + 22.4)', () => {
   const expectedTypes = [
     'FODDER_BASIC',
     'FODDER_TANK',
@@ -11,9 +11,10 @@ describe('enemyDefs — all 8 enemy types defined (Story 16.1)', () => {
     'SNIPER_FIXED',
     'TELEPORTER',
     'BOSS_SENTINEL',
+    'BOSS_SPACESHIP',
   ]
 
-  it('has all 8 enemy types defined', () => {
+  it('has all 9 enemy types defined', () => {
     for (const typeId of expectedTypes) {
       expect(ENEMIES[typeId]).toBeDefined()
       expect(ENEMIES[typeId].id).toBe(typeId)
@@ -31,45 +32,45 @@ describe('enemyDefs — all 8 enemy types defined (Story 16.1)', () => {
 })
 
 describe('enemyDefs — AC#1: correct stats per enemy type', () => {
-  it('FODDER_BASIC: hp=20, speed=17, behavior=chase, meshScale=[3,3,3]', () => {
+  it('FODDER_BASIC: hp=14, speed=17, behavior=chase, meshScale=[3,3,3]', () => {
     const d = ENEMIES.FODDER_BASIC
-    expect(d.hp).toBe(20)
+    expect(d.hp).toBe(14)
     expect(d.speed).toBe(17)
     expect(d.behavior).toBe('chase')
     expect(d.meshScale).toEqual([3, 3, 3])
     expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying.glb')
   })
 
-  it('FODDER_TANK: hp=40, speed=12, behavior=chase, meshScale=[4,4,4]', () => {
+  it('FODDER_TANK: hp=27, speed=12, behavior=chase, meshScale=[4,4,4]', () => {
     const d = ENEMIES.FODDER_TANK
-    expect(d.hp).toBe(40)
+    expect(d.hp).toBe(27)
     expect(d.speed).toBe(12)
     expect(d.behavior).toBe('chase')
     expect(d.meshScale).toEqual([4, 4, 4])
     expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying.glb')
   })
 
-  it('FODDER_SWARM: hp=8, speed=35, behavior=sweep, meshScale=[1.5,1.5,1.5]', () => {
+  it('FODDER_SWARM: hp=6, speed=35, behavior=sweep, meshScale=[1.5,1.5,1.5]', () => {
     const d = ENEMIES.FODDER_SWARM
-    expect(d.hp).toBe(8)
+    expect(d.hp).toBe(6)
     expect(d.speed).toBe(35)
     expect(d.behavior).toBe('sweep')
     expect(d.meshScale).toEqual([1.5, 1.5, 1.5])
     expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying.glb')
   })
 
-  it('SHOCKWAVE_BLOB: hp=15, speed=8, behavior=shockwave, meshScale=[2,2,2]', () => {
+  it('SHOCKWAVE_BLOB: hp=10, speed=8, behavior=shockwave, meshScale=[2,2,2]', () => {
     const d = ENEMIES.SHOCKWAVE_BLOB
-    expect(d.hp).toBe(15)
+    expect(d.hp).toBe(10)
     expect(d.speed).toBe(8)
     expect(d.behavior).toBe('shockwave')
     expect(d.meshScale).toEqual([2, 2, 2])
     expect(d.modelPath).toBe('/models/enemies/enemy-blob.glb')
   })
 
-  it('SNIPER_MOBILE: hp=25, speed=20, behavior=sniper_mobile, attackRange=40, attackCooldown=2', () => {
+  it('SNIPER_MOBILE: hp=17, speed=20, behavior=sniper_mobile, attackRange=40, attackCooldown=2', () => {
     const d = ENEMIES.SNIPER_MOBILE
-    expect(d.hp).toBe(25)
+    expect(d.hp).toBe(17)
     expect(d.speed).toBe(20)
     expect(d.behavior).toBe('sniper_mobile')
     expect(d.attackRange).toBe(40)
@@ -78,9 +79,9 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying-gun.glb')
   })
 
-  it('SNIPER_FIXED: hp=10, speed=0, behavior=sniper_fixed, attackRange=60, attackCooldown=4, color=#ff3333', () => {
+  it('SNIPER_FIXED: hp=7, speed=0, behavior=sniper_fixed, attackRange=60, attackCooldown=4, color=#ff3333', () => {
     const d = ENEMIES.SNIPER_FIXED
-    expect(d.hp).toBe(10)
+    expect(d.hp).toBe(7)
     expect(d.speed).toBe(0)
     expect(d.behavior).toBe('sniper_fixed')
     expect(d.attackRange).toBe(60)
@@ -90,9 +91,9 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.color).toBe('#ff3333')
   })
 
-  it('TELEPORTER: hp=18, speed=15, behavior=teleport, teleportCooldown=5', () => {
+  it('TELEPORTER: hp=12, speed=15, behavior=teleport, teleportCooldown=5', () => {
     const d = ENEMIES.TELEPORTER
-    expect(d.hp).toBe(18)
+    expect(d.hp).toBe(12)
     expect(d.speed).toBe(15)
     expect(d.behavior).toBe('teleport')
     expect(d.teleportCooldown).toBe(5)
@@ -126,38 +127,48 @@ describe('enemyDefs — AC#2: correct model paths', () => {
 })
 
 describe('enemyDefs — AC#3: collision radii proportional to meshScale', () => {
-  it('FODDER_BASIC radius ~1.5 for meshScale [3,3,3]', () => {
-    expect(ENEMIES.FODDER_BASIC.radius).toBe(1.5)
+  it('FODDER_BASIC radius ~2.0 for meshScale [3,3,3]', () => {
+    expect(ENEMIES.FODDER_BASIC.radius).toBe(2.0)
   })
 
-  it('FODDER_TANK radius ~2.0 for meshScale [4,4,4]', () => {
-    expect(ENEMIES.FODDER_TANK.radius).toBe(2.0)
+  it('FODDER_TANK radius ~2.6 for meshScale [4,4,4]', () => {
+    expect(ENEMIES.FODDER_TANK.radius).toBe(2.6)
   })
 
-  it('FODDER_SWARM radius ~0.75 for meshScale [1.5,1.5,1.5]', () => {
-    expect(ENEMIES.FODDER_SWARM.radius).toBe(0.75)
+  it('FODDER_SWARM radius ~1.0 for meshScale [1.5,1.5,1.5]', () => {
+    expect(ENEMIES.FODDER_SWARM.radius).toBe(1.0)
   })
 
-  it('SHOCKWAVE_BLOB radius ~2.5 (larger for tanky nature)', () => {
-    expect(ENEMIES.SHOCKWAVE_BLOB.radius).toBe(2.5)
+  it('SHOCKWAVE_BLOB radius ~3.25 (larger for tanky nature)', () => {
+    expect(ENEMIES.SHOCKWAVE_BLOB.radius).toBe(3.25)
   })
 
-  it('SNIPER_MOBILE radius ~1.5 for meshScale [3,3,3]', () => {
-    expect(ENEMIES.SNIPER_MOBILE.radius).toBe(1.5)
+  it('SNIPER_MOBILE radius ~2.0 for meshScale [3,3,3]', () => {
+    expect(ENEMIES.SNIPER_MOBILE.radius).toBe(2.0)
   })
 
-  it('SNIPER_FIXED radius ~1.5 for meshScale [3,3,3]', () => {
-    expect(ENEMIES.SNIPER_FIXED.radius).toBe(1.5)
+  it('SNIPER_FIXED radius ~2.0 for meshScale [3,3,3]', () => {
+    expect(ENEMIES.SNIPER_FIXED.radius).toBe(2.0)
   })
 
-  it('TELEPORTER radius ~1.25 for meshScale [2.5,2.5,2.5]', () => {
-    expect(ENEMIES.TELEPORTER.radius).toBe(1.25)
+  it('TELEPORTER radius ~1.6 for meshScale [2.5,2.5,2.5]', () => {
+    expect(ENEMIES.TELEPORTER.radius).toBe(1.6)
   })
 
   it('all enemy types have radius > 0.5', () => {
     for (const [, def] of Object.entries(ENEMIES)) {
       expect(def.radius).toBeGreaterThan(0.5)
     }
+  })
+})
+
+describe('enemyDefs — AC#2 (Story 45.1): boss radii untouched', () => {
+  it('BOSS_SENTINEL.radius references GAME_CONFIG.BOSS_COLLISION_RADIUS (5.0)', () => {
+    expect(ENEMIES.BOSS_SENTINEL.radius).toBe(5.0)
+  })
+
+  it('BOSS_SPACESHIP.radius is 3.0 (unchanged by hitbox enlargement)', () => {
+    expect(ENEMIES.BOSS_SPACESHIP.radius).toBe(3.0)
   })
 })
 

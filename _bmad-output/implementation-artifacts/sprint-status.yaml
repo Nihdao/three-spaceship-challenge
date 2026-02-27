@@ -420,3 +420,14 @@ development_status:
   44-4-drop-scatter-anti-overlap: done
   44-5-rare-item-pickups-magnet-bomb-shield: done
   epic-44-retrospective: optional
+
+  # Epic 45: Player Experience Polish — Hitbox, Flash Fix, Balance & Nébuleuse
+  epic-45: in-progress
+  45-1-enemy-hitbox-enlargement: done
+  45-2-map-key-toggle: done
+  45-3-per-instance-hit-flash: done
+  45-4-enemy-pressure-nerf: done
+  45-5-nebula-visual-enhancement: done
+  45-6-ui-font-accessibility-uplift: done
+  45-7-main-menu-random-tagline: done
+  epic-45-retrospective: optional

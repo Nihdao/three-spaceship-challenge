@@ -23,7 +23,7 @@ export const GAME_CONFIG = {
   CROSSHAIR_GLOW_OPACITY: 0.8, // Glow effect opacity
 
   // Entities
-  MAX_ENEMIES_ON_SCREEN: 60,
+  MAX_ENEMIES_ON_SCREEN: 40,
   MAX_PROJECTILES: 120,
   MAX_XP_ORBS: 50,
 
@@ -130,10 +130,10 @@ export const GAME_CONFIG = {
   PLAY_AREA_SIZE: 1000, // half-width of square play area
   BOUNDARY_WARNING_DISTANCE: 100, // updated from 20 in Story 1.3
 
-  // Spawning (Story 2.2, updated Story 28.4)
-  SPAWN_INTERVAL_BASE: 4.0, // seconds between spawns at start (halved spawn density)
-  SPAWN_INTERVAL_MIN: 2.0, // fastest spawn rate (halved spawn density)
-  SPAWN_RAMP_RATE: 0.025, // interval decrease per second of game time (up from 0.01, 2.5× faster decay)
+  // Spawning (Story 2.2, updated Story 28.4, Story 45.4: enemy pressure nerf)
+  SPAWN_INTERVAL_BASE: 5.5, // seconds between spawns at start (Story 45.4: nerfed from 4.0)
+  SPAWN_INTERVAL_MIN: 2.8, // fastest spawn rate — floor for ramp (Story 45.4: nerfed from 2.0)
+  SPAWN_RAMP_RATE: 0.018, // interval decrease per second of game time (Story 45.4: nerfed from 0.025, slower pressure ramp)
   SPAWN_DISTANCE_MIN: 80, // minimum spawn distance from player
   SPAWN_DISTANCE_MAX: 120, // maximum spawn distance from player
   SPAWN_BATCH_SIZE_BASE: 1, // enemies per spawn at start
@@ -334,13 +334,18 @@ export const GAME_CONFIG = {
       },
     },
 
-    // Background color & nebula (Story 24.2)
+    // Background color & nebula (Story 24.2, Story 45.5)
     BACKGROUND: {
       DEFAULT: {
         color: '#060614',
         nebulaEnabled: true,
-        nebulaTint: '#120a30',
-        nebulaOpacity: 0.05,
+        nebulaTint: '#1e0a45',
+        nebulaOpacity: 0.32,
+        nebula2Enabled: true,
+        nebula2Tint: '#0a1840',
+        nebula2Opacity: 0.20,
+        nebula2OffsetX: 0.6,
+        nebula2OffsetZ: -0.4,
       },
       BOSS: {
         color: '#06030f',

@@ -1,5 +1,5 @@
 // src/ui/MapOverlay.jsx
-// Story 35.2: Large map overlay (M key toggle, non-pausing)
+// Story 35.2: Large map overlay | Story 45.2: M toggle (was hold), auto-close on pause/phase
 
 import { useState, useEffect, useRef } from 'react'
 import useGame from '../stores/useGame.jsx'
@@ -28,23 +28,34 @@ export default function MapOverlay() {
 
   const [polledState, setPolledState] = useState(() => readStores())
 
-  // Hold M to show map (e.key for AZERTY compatibility — e.code 'KeyM' is QWERTY physical position)
+  // Toggle M to show/hide map (e.key for AZERTY compatibility — e.code 'KeyM' is QWERTY physical position)
   useEffect(() => {
     const onKeyDown = (e) => {
       if ((e.key === 'm' || e.key === 'M') && !e.repeat) {
         const { isPaused } = useGame.getState()
-        if (!isPaused) setIsOpen(true)
+        if (!isPaused) setIsOpen(prev => !prev)
       }
     }
-    const onKeyUp = (e) => {
-      if (e.key === 'm' || e.key === 'M') setIsOpen(false)
-    }
     window.addEventListener('keydown', onKeyDown, true)
-    window.addEventListener('keyup', onKeyUp, true)
     return () => {
       window.removeEventListener('keydown', onKeyDown, true)
-      window.removeEventListener('keyup', onKeyUp, true)
     }
+  }, [])
+
+  // Auto-close map on pause
+  useEffect(() => {
+    const unsub = useGame.subscribe(s => s.isPaused, (paused) => {
+      if (paused) setIsOpen(false)
+    })
+    return unsub
+  }, [])
+
+  // Auto-close map when leaving gameplay phase
+  useEffect(() => {
+    const unsub = useGame.subscribe(s => s.phase, (phase) => {
+      if (phase !== 'gameplay') setIsOpen(false)
+    })
+    return unsub
   }, [])
 
   // Subtask 2.3: Polling interval — reads stores imperatively at 10fps (100ms)

@@ -59,21 +59,21 @@ describe('Difficulty scaling', () => {
 
   // Story 16.4 — per-stat enemy spawn scaling
   describe('enemy per-stat scaling via spawnEnemies (Story 16.4)', () => {
-    it('spawns FODDER_BASIC with System 2 scaling — hp=30, damage=8, speed=21.25, xpReward=16', () => {
+    it('spawns FODDER_BASIC with System 2 scaling — hp=21, damage=8, speed=21.25, xpReward=16', () => {
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[2]
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, scaling }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(30)       // 20 * 1.5
+      expect(enemy.hp).toBe(21)       // 14 * 1.5
       expect(enemy.damage).toBe(8)     // round(5 * 1.5) = 7.5 → 8
       expect(enemy.speed).toBeCloseTo(21.25) // 17 * 1.25
       expect(enemy.xpReward).toBe(16)  // round(12 * 1.3) = 15.6 → 16
     })
 
-    it('spawns FODDER_BASIC with System 3 scaling — hp=44, damage=11, speed=25.5, xpReward=22', () => {
+    it('spawns FODDER_BASIC with System 3 scaling — hp=31, damage=11, speed=25.5, xpReward=22', () => {
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[3]
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, scaling }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(44)        // 20 * 2.2
+      expect(enemy.hp).toBe(31)        // 14 * 2.2 = 30.8 → 31
       expect(enemy.damage).toBe(11)    // round(5 * 2.2)
       expect(enemy.speed).toBeCloseTo(25.5) // 17 * 1.5
       expect(enemy.xpReward).toBe(22)  // round(12 * 1.8) = 21.6 → 22
@@ -83,7 +83,7 @@ describe('Difficulty scaling', () => {
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, scaling }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(20)
+      expect(enemy.hp).toBe(14)
       expect(enemy.damage).toBe(5)
       expect(enemy.speed).toBe(17)
       expect(enemy.xpReward).toBe(12)
@@ -103,7 +103,7 @@ describe('Difficulty scaling', () => {
     it('spawns enemies at base stats with difficultyMult 1.0', () => {
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, difficultyMult: 1.0 }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(20)
+      expect(enemy.hp).toBe(14)
       expect(enemy.damage).toBe(5)
       expect(enemy.speed).toBe(17)
       expect(enemy.xpReward).toBe(12)
@@ -112,7 +112,7 @@ describe('Difficulty scaling', () => {
     it('spawns enemies with difficultyMult 1.5 — uniform scaling across all stats', () => {
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, difficultyMult: 1.5 }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(30)        // round(20 * 1.5)
+      expect(enemy.hp).toBe(21)        // round(14 * 1.5)
       expect(enemy.damage).toBe(8)     // round(5 * 1.5)
       expect(enemy.speed).toBeCloseTo(25.5) // 17 * 1.5
       expect(enemy.xpReward).toBe(18)  // round(12 * 1.5)
@@ -121,7 +121,7 @@ describe('Difficulty scaling', () => {
     it('spawns enemies with 1.3x difficulty (legacy)', () => {
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, difficultyMult: 1.3 }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(Math.round(20 * 1.3))
+      expect(enemy.hp).toBe(Math.round(14 * 1.3))
       expect(enemy.damage).toBe(Math.round(5 * 1.3))
       expect(enemy.speed).toBeCloseTo(17 * 1.3)
     })
@@ -129,7 +129,7 @@ describe('Difficulty scaling', () => {
     it('spawns enemies with 1.6x difficulty (legacy)', () => {
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0, difficultyMult: 1.6 }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(Math.round(20 * 1.6))
+      expect(enemy.hp).toBe(Math.round(14 * 1.6))
       expect(enemy.damage).toBe(Math.round(5 * 1.6))
       expect(enemy.speed).toBeCloseTo(17 * 1.6)
     })
@@ -137,7 +137,7 @@ describe('Difficulty scaling', () => {
     it('defaults to 1.0 when neither scaling nor difficultyMult is provided', () => {
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_BASIC', x: 0, z: 0 }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(20)
+      expect(enemy.hp).toBe(14)
       expect(enemy.damage).toBe(5)
       expect(enemy.speed).toBe(17)
       expect(enemy.xpReward).toBe(12)
@@ -146,11 +146,11 @@ describe('Difficulty scaling', () => {
 
   // Story 16.4 — multi-type scaling verification
   describe('per-stat scaling across enemy types (Story 16.4)', () => {
-    it('FODDER_TANK with System 2 scaling — hp=60, damage=8, speed=15, xpReward=20', () => {
+    it('FODDER_TANK with System 2 scaling — hp=41, damage=8, speed=15, xpReward=20', () => {
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[2]
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_TANK', x: 0, z: 0, scaling }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(60)        // 40 * 1.5
+      expect(enemy.hp).toBe(41)        // round(27 * 1.5) = 40.5 → 41
       expect(enemy.damage).toBe(8)     // round(5 * 1.5)
       expect(enemy.speed).toBeCloseTo(15) // 12 * 1.25
       expect(enemy.xpReward).toBe(20)  // round(15 * 1.3) = 19.5 → 20
@@ -160,17 +160,17 @@ describe('Difficulty scaling', () => {
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[2]
       useEnemies.getState().spawnEnemies([{ typeId: 'SNIPER_FIXED', x: 0, z: 0, scaling }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(15)        // 10 * 1.5
+      expect(enemy.hp).toBe(11)        // round(7 * 1.5) = 10.5 → 11
       expect(enemy.damage).toBe(0)     // round(0 * 1.5) = 0
       expect(enemy.speed).toBe(0)      // 0 * 1.25 = 0
       expect(enemy.xpReward).toBe(39)  // round(30 * 1.3)
     })
 
-    it('FODDER_TANK with System 3 scaling — hp=88, damage=11, speed=18, xpReward=27', () => {
+    it('FODDER_TANK with System 3 scaling — hp=59, damage=11, speed=18, xpReward=27', () => {
       const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[3]
       useEnemies.getState().spawnEnemies([{ typeId: 'FODDER_TANK', x: 0, z: 0, scaling }])
       const enemy = useEnemies.getState().enemies[0]
-      expect(enemy.hp).toBe(88)       // 40 * 2.2
+      expect(enemy.hp).toBe(59)       // round(27 * 2.2) = 59.4 → 59
       expect(enemy.damage).toBe(11)    // round(5 * 2.2)
       expect(enemy.speed).toBeCloseTo(18) // 12 * 1.5
       expect(enemy.xpReward).toBe(27)  // round(15 * 1.8)
