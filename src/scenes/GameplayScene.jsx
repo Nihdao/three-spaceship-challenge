@@ -11,7 +11,7 @@ import EnemyRenderer from '../renderers/EnemyRenderer.jsx'
 import EnemyProjectileRenderer from '../renderers/EnemyProjectileRenderer.jsx'
 import ShockwaveRenderer from '../renderers/ShockwaveRenderer.jsx'
 import ParticleRenderer from '../renderers/ParticleRenderer.jsx'
-import TrailRenderer from '../renderers/TrailRenderer.jsx'
+import NeonTrailRenderer from '../renderers/NeonTrailRenderer.jsx'
 import XPOrbRenderer from '../renderers/XPOrbRenderer.jsx'
 import HealGemRenderer from '../renderers/HealGemRenderer.jsx'
 import FragmentGemRenderer from '../renderers/FragmentGemRenderer.jsx'
@@ -121,8 +121,8 @@ export default function GameplayScene() {
       {/* Death explosion particles */}
       <ParticleRenderer />
 
-      {/* Ship particle trail (Story 24.3) */}
-      <TrailRenderer />
+      {/* Neon ribbon trail */}
+      <NeonTrailRenderer />
 
       {/* Space environment */}
       <EnvironmentRenderer />
