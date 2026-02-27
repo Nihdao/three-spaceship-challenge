@@ -109,7 +109,7 @@ export const WEAPONS = {
     armLength: 24,             // world units (half from center to tip = 12)
     armWidth: 1.0,             // collision + visual width
     projectileColor: '#9b5de5',// ARCANE family — used by renderer
-    sfxKey: 'laser-cross-fire',// placeholder SFX (console.warn if missing)
+    sfxKey: 'laser-fire',
     knockbackStrength: 0,      // no knockback from continuous aura
     critChance: 0.03,
     rarityWeight: 0,              // disabled — excluded from level-up pool and armory
@@ -167,7 +167,7 @@ export const WEAPONS = {
     waveMaxRadius: 22,              // world units (base, before zoneMultiplier)
     poolLimit: 9,                   // max active arcs (3 bursts × 3 arcs)
     projectileColor: '#f9e547',     // VOLATILE family — bright yellow arc
-    sfxKey: 'shockwave-fire',       // placeholder SFX
+    sfxKey: 'trishot-fire',
     knockbackStrength: 5,           // strong radial knockback (read by applyKnockbackImpulse)
     rarityWeight: 5,
     slot: 'any',
@@ -206,7 +206,7 @@ export const WEAPONS = {
     splashDamageRatio: 0.5,            // splash damage = baseDamage * damageMultiplier * 0.5
     poolLimit: 4,                      // max simultaneous VFX instances
     projectileColor: '#2dc653',        // green — distinct from all existing weapons
-    sfxKey: 'tactical-shot',           // placeholder SFX (audioManager handles missing files)
+    sfxKey: 'drone-fire',
     knockbackStrength: 2,              // radial knockback on primary target only
     rarityWeight: 6,                   // Story 32.6 code-review fix — consistent with other special-mechanic weapons
     slot: 'any',

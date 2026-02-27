@@ -234,6 +234,44 @@ export default function GalaxyChoice() {
           {/* Separator */}
           <div style={S.separator} />
 
+          {/* Objective Block */}
+          <div style={{ marginBottom: '16px' }}>
+            <p style={{
+              fontSize: '0.6rem',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              color: 'var(--rs-text-muted)',
+              fontFamily: "'Space Mono', monospace",
+              marginBottom: '8px',
+            }}>
+              OBJECTIVE — PER SYSTEM
+            </p>
+            {[
+              `Scan ${Math.ceil(selectedGalaxy.planetCount * selectedGalaxy.wormholeThreshold)} planets to open the wormhole`,
+              'Fly through the wormhole tunnel',
+              'Defeat the system guardian',
+            ].map((text) => (
+              <div key={text} style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                marginBottom: '5px',
+              }}>
+                <span style={{ color: selectedGalaxy.colorTheme, fontSize: '0.78rem', lineHeight: '1.4', flexShrink: 0 }}>-</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--rs-text)', lineHeight: '1.4', fontFamily: "'Rajdhani', sans-serif" }}>{text}</span>
+              </div>
+            ))}
+            <p style={{
+              fontSize: '0.65rem',
+              color: 'var(--rs-text-muted)',
+              fontFamily: "'Rajdhani', sans-serif",
+              marginTop: '8px',
+              letterSpacing: '0.04em',
+            }}>
+              Repeat across all {selectedGalaxy.systemCount} systems to complete the galaxy.
+            </p>
+          </div>
+
           {/* Spacer */}
           <div className="flex-1" />
 

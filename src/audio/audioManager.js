@@ -27,11 +27,11 @@ import { Howl, Howler } from 'howler'
 // At default sfxVolume=1.0, these values clamp to 1.0 (max).
 export const VOLUME_CATEGORIES = {
   music: 0.35,              // down from 1.0 — gameplay music no longer drowns SFX
-  sfxAction: 0.8,           // unchanged — weapon SFX level kept as-is
-  sfxFeedbackPositive: 1.0, // up from 0.9 — explosions, scan-complete more audible
-  sfxFeedbackNegative: 1.2, // up from 1.0 — damage-taken more urgent (priority weight, see note above)
-  ui: 0.7,                  // up from 0.5 — button sounds more audible
-  events: 1.5,              // up from 1.2 — boss-defeat, game-over-impact more impactful (priority weight)
+  sfxAction: 0.35,          // down from 0.8 — weapon fire/dash significantly quieter
+  sfxFeedbackPositive: 0.6, // down from 1.0 — explosions, scan-complete
+  sfxFeedbackNegative: 0.8, // down from 1.2 — damage-taken stays relatively prominent
+  ui: 0.5,                  // down from 0.7 — button sounds
+  events: 1.0,              // down from 1.5 — boss-defeat, game-over-impact (priority weight)
 }
 
 // SFX key → volume category mapping
