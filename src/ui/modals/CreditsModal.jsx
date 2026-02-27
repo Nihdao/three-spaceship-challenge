@@ -194,21 +194,24 @@ export default function CreditsModal({ onClose }) {
         </div>
 
         {/* Author */}
-        <div style={{ textAlign: "center" }}>
-          <p style={{ fontFamily: "Space Mono, monospace", fontSize: "0.65rem", letterSpacing: "0.12em", color: "var(--rs-text-muted)", textTransform: "uppercase", margin: "0 0 4px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontFamily: "Space Mono, monospace", fontSize: "0.6rem", letterSpacing: "0.1em", color: "var(--rs-text-muted)", textTransform: "uppercase", flexShrink: 0 }}>
             A Game By
-          </p>
+          </span>
           <a
             href="https://x.com/Nihdao"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontFamily: "Bebas Neue, sans-serif", fontSize: "1.75rem", letterSpacing: "0.15em", color: "var(--rs-teal)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "5px", transition: "color 150ms" }}
+            style={{ fontFamily: "Bebas Neue, sans-serif", fontSize: "1.1rem", letterSpacing: "0.15em", color: "var(--rs-teal)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "3px", transition: "color 150ms" }}
             onMouseEnter={(e) => { playSFX("button-hover"); e.currentTarget.style.color = "var(--rs-text)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "var(--rs-teal)"; }}
           >
             NIHDAO
-            <span aria-hidden="true" style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "1rem", fontWeight: 400 }}>↗</span>
+            <span aria-hidden="true" style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "0.8rem", fontWeight: 400 }}>↗</span>
           </a>
+          <span style={{ fontFamily: "Space Mono, monospace", fontSize: "0.6rem", letterSpacing: "0.1em", color: "var(--rs-text-dim)", textTransform: "uppercase" }}>
+            v1.0.0
+          </span>
         </div>
 
         <hr style={S.hr} />
