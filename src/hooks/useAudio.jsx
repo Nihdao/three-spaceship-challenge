@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import useGame from '../stores/useGame.jsx'
+import useLevel from '../stores/useLevel.jsx'
 import {
   playMusic,
   crossfadeMusic,
@@ -9,6 +10,8 @@ import {
   unlockAudioContext,
   isUnlocked,
   selectRandomGameplayMusic,
+  getMusicVolume,
+  setMusicVolume,
 } from '../audio/audioManager.js'
 import { ASSET_MANIFEST } from '../config/assetManifest.js'
 
@@ -143,8 +146,40 @@ export default function useAudio() {
       }
     )
 
+    // Duck music by 30% during pause, level-up, and planet scan
+    const DUCK_FACTOR = 0.7
+    let isDucked = false
+    let baseMusicVolume = null
+
+    function applyDuck() {
+      const { isPaused, phase } = useGame.getState()
+      const { activeScanPlanetId } = useLevel.getState()
+      const shouldDuck = isPaused || phase === 'levelUp' || phase === 'planetReward' || !!activeScanPlanetId
+
+      if (shouldDuck && !isDucked) {
+        isDucked = true
+        baseMusicVolume = getMusicVolume()
+        setMusicVolume(baseMusicVolume * DUCK_FACTOR)
+      } else if (!shouldDuck && isDucked) {
+        isDucked = false
+        setMusicVolume(baseMusicVolume ?? getMusicVolume())
+        baseMusicVolume = null
+      }
+    }
+
+    const unsubDuckGame = useGame.subscribe(
+      (s) => s.isPaused + '|' + s.phase,
+      applyDuck
+    )
+    const unsubDuckScan = useLevel.subscribe(
+      (s) => s.activeScanPlanetId,
+      applyDuck
+    )
+
     return () => {
       unsub()
+      unsubDuckGame()
+      unsubDuckScan()
       document.removeEventListener('click', handleInteraction)
       document.removeEventListener('keydown', handleInteraction)
     }
