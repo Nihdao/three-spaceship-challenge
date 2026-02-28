@@ -14,7 +14,8 @@ export const MENU_ITEMS = [
   { id: "upgrades", label: "UPGRADES" },
   { id: "armory", label: "ARMORY" },
   { id: "options", label: "OPTIONS" },
-];
+]
+
 
 const S = {
   menuBtn: {
@@ -69,7 +70,7 @@ const S = {
 };
 
 export default function MainMenu() {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+const [selectedIndex, setSelectedIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useWeapons from '../stores/useWeapons.jsx'
@@ -130,19 +130,93 @@ const S = {
 
 export default function PlanetRewardModal() {
   const [choices, setChoices] = useState([])
+  const [banishMode, setBanishMode] = useState(false)
+  const [banishingIndex, setBanishingIndex] = useState(null)
+  const isBanishingRef = useRef(false)
   const rewardTier = useGame((s) => s.rewardTier)
+  const rerollCharges = usePlayer(s => s.rerollCharges)
+  const skipCharges = usePlayer(s => s.skipCharges)
+  const banishCharges = usePlayer(s => s.banishCharges)
   const tierColor = TIER_COLORS[rewardTier] || '#ffffff'
   const tierLabel = TIER_LABELS[rewardTier] || rewardTier
 
-  // Generate choices on mount
-  useEffect(() => {
-    const equippedWeapons = useWeapons.getState().activeWeapons.map(w => ({ weaponId: w.weaponId, level: w.level }))
+  const buildChoices = useCallback((tier, banishedItems) => {
+    const playerState = usePlayer.getState()
+    const boonModifiers = useBoons.getState().modifiers
+    const upgradeStats = playerState.upgradeStats ?? {}
+    const dilemmaStats = playerState.dilemmaStats ?? {}
+    const perms = playerState.permanentUpgradeBonuses ?? {}
+    const globalDamageMult =
+      (boonModifiers.damageMultiplier ?? 1) *
+      (upgradeStats.damageMult ?? 1) *
+      (dilemmaStats.damageMult ?? 1) *
+      (playerState.shipBaseDamageMultiplier ?? 1) *
+      (perms.attackPower ?? 1)
+    const globalCooldownMult =
+      (boonModifiers.cooldownMultiplier ?? 1) *
+      (upgradeStats.cooldownMult ?? 1) *
+      (dilemmaStats.cooldownMult ?? 1) *
+      (perms.attackSpeed ?? 1)
+    const equippedWeapons = useWeapons.getState().activeWeapons.map(w => ({
+      weaponId: w.weaponId,
+      level: w.level,
+      multipliers: w.multipliers,
+      globalDamageMult,
+      globalCooldownMult,
+    }))
     const equippedBoonIds = useBoons.getState().activeBoons.map(b => b.boonId)
     const equippedBoons = useBoons.getState().getEquippedBoons()
+    const luckStat = (playerState.getLuckStat?.() ?? 0) + (boonModifiers.luckBonus ?? 0)
+    return generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat)
+  }, [])
+
+  // Generate choices on mount
+  useEffect(() => {
     const banishedItems = useLevel.getState().banishedItems
-    const luckStat = (usePlayer.getState().getLuckStat?.() ?? 0) + (useBoons.getState().modifiers.luckBonus ?? 0)
-    setChoices(generatePlanetReward(rewardTier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat))
-  }, [rewardTier])
+    setChoices(buildChoices(rewardTier, banishedItems))
+  }, [rewardTier, buildChoices])
+
+  const handleReroll = useCallback(() => {
+    if (usePlayer.getState().rerollCharges <= 0) return
+    playSFX('button-click')
+    usePlayer.getState().consumeReroll()
+    const banishedItems = useLevel.getState().banishedItems
+    setChoices(buildChoices(rewardTier, banishedItems))
+  }, [buildChoices, rewardTier])
+
+  const handleSkip = useCallback(() => {
+    if (usePlayer.getState().skipCharges <= 0) return
+    playSFX('button-click')
+    usePlayer.getState().consumeSkip()
+    useGame.getState().resumeGameplay()
+  }, [])
+
+  const handleBanish = useCallback((choice, index) => {
+    if (isBanishingRef.current) return
+    if (usePlayer.getState().banishCharges <= 0) return
+    isBanishingRef.current = true
+    playSFX('button-click')
+    usePlayer.getState().consumeBanish()
+    const type = (choice.type === 'new_weapon' || choice.type === 'weapon_upgrade') ? 'weapon' : 'boon'
+    useLevel.getState().addBanishedItem(choice.id, type)
+    setBanishingIndex(index)
+    setTimeout(() => {
+      isBanishingRef.current = false
+      setBanishingIndex(null)
+      useGame.getState().resumeGameplay()
+    }, 200)
+  }, [])
+
+  const enterBanishMode = useCallback(() => {
+    if (usePlayer.getState().banishCharges <= 0) return
+    playSFX('button-click')
+    setBanishMode(true)
+  }, [])
+
+  const cancelBanishMode = useCallback(() => {
+    playSFX('button-click')
+    setBanishMode(false)
+  }, [])
 
   const applyChoice = useCallback((choice) => {
     playSFX('button-click')
@@ -164,29 +238,23 @@ export default function PlanetRewardModal() {
     useGame.getState().resumeGameplay()
   }, [])
 
-  // Keyboard selection
-  useEffect(() => {
-    const handler = (e) => {
-      const key = e.code
-      let index = -1
-      if (key === 'Digit1' || key === 'Numpad1') index = 0
-      else if (key === 'Digit2' || key === 'Numpad2') index = 1
-      else if (key === 'Digit3' || key === 'Numpad3') index = 2
-
-      if (index >= 0 && index < choices.length) {
-        applyChoice(choices[index])
-      }
+  const handleCardClick = useCallback((choice, index) => {
+    if (banishMode) {
+      if (choice.type === 'stat_boost') return
+      setBanishMode(false)
+      handleBanish(choice, index)
+    } else {
+      applyChoice(choice)
     }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [choices, applyChoice])
+  }, [banishMode, handleBanish, applyChoice])
+
 
   return (
     <div style={S.overlay}>
       {/* ── Conteneur 2 colonnes ── */}
       <div style={S.container}>
 
-        {/* ── Colonne gauche : Scan Info ── */}
+        {/* ── Colonne gauche : Scan Info + Actions ── */}
         <div style={S.leftCol}>
           <p style={S.sectionLabel}>Scan Info</p>
 
@@ -210,6 +278,82 @@ export default function PlanetRewardModal() {
           <p style={S.flavorText}>
             {TIER_FLAVOR[rewardTier] || TIER_FLAVOR.standard}
           </p>
+
+          {(rerollCharges > 0 || skipCharges > 0 || banishCharges > 0) && (
+            <div style={S.separator} />
+          )}
+
+          {rerollCharges > 0 && (
+            <button
+              type="button"
+              onClick={handleReroll}
+              style={{
+                display: 'block',
+                width: '100%',
+                marginBottom: 8,
+                padding: '6px 12px',
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                letterSpacing: '0.1em',
+                color: 'var(--rs-teal, #00b4d8)',
+                border: '1px solid var(--rs-teal, #00b4d8)',
+                background: 'transparent',
+                clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+                cursor: 'pointer',
+              }}
+            >
+              REROLL ({rerollCharges})
+            </button>
+          )}
+
+          {skipCharges > 0 && (
+            <button
+              type="button"
+              onClick={handleSkip}
+              style={{
+                display: 'block',
+                width: '100%',
+                marginBottom: 8,
+                padding: '6px 12px',
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                letterSpacing: '0.1em',
+                color: 'var(--rs-gold, #ffd60a)',
+                border: '1px solid var(--rs-gold, #ffd60a)',
+                background: 'transparent',
+                clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+                cursor: 'pointer',
+              }}
+            >
+              SKIP ({skipCharges})
+            </button>
+          )}
+
+          {banishCharges > 0 && (
+            <button
+              type="button"
+              onClick={banishMode ? cancelBanishMode : enterBanishMode}
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '6px 12px',
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                letterSpacing: '0.1em',
+                color: 'var(--rs-danger)',
+                border: '1px solid var(--rs-danger)',
+                background: banishMode ? 'rgba(239,35,60,0.12)' : 'transparent',
+                clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+                cursor: 'pointer',
+                transition: 'background 150ms',
+              }}
+            >
+              {banishMode ? 'CANCEL' : `BANISH (${banishCharges})`}
+            </button>
+          )}
         </div>
 
         {/* ── Colonne droite : Titre + Cards verticales ── */}
@@ -229,22 +373,41 @@ export default function PlanetRewardModal() {
           <div style={S.cardsContainer}>
             {choices.map((choice, i) => {
               const accentColor = getChoiceAccentColor(choice.type)
+              const isBanishable = choice.type !== 'stat_boost'
+              const cardBorderColor = banishMode
+                ? (isBanishable ? 'var(--rs-danger)' : 'var(--rs-border)')
+                : accentColor
+              const cardOpacity = banishingIndex === i
+                ? 0.2
+                : (banishMode && !isBanishable ? 0.35 : 1)
 
               return (
                 <div
                   key={`${choice.type}_${choice.id}`}
-                  style={S.card(accentColor, i * 50)}
+                  style={{
+                    ...S.card(accentColor, i * 50),
+                    borderLeft: `3px solid ${cardBorderColor}`,
+                    opacity: cardOpacity,
+                    transform: banishingIndex === i ? 'scale(0.95)' : undefined,
+                    transition: 'opacity 200ms ease-out, transform 200ms ease-out, border-left-color 150ms, background 150ms',
+                    backgroundColor: banishMode && isBanishable
+                      ? 'rgba(239,35,60,0.06)'
+                      : 'var(--rs-bg-raised)',
+                    cursor: banishMode
+                      ? (isBanishable ? 'crosshair' : 'not-allowed')
+                      : 'pointer',
+                  }}
                   className="animate-fade-in"
-                  onClick={() => applyChoice(choice)}
+                  onClick={() => handleCardClick(choice, i)}
                   onMouseEnter={(e) => {
                     playSFX('button-hover')
-                    e.currentTarget.style.borderColor = 'var(--rs-border-hot)'
+                    if (!banishMode) e.currentTarget.style.borderLeftColor = 'var(--rs-border-hot)'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = accentColor
+                    e.currentTarget.style.borderLeftColor = cardBorderColor
                   }}
                 >
-                  {/* Top row: level/NEW + shortcut [1-3] */}
+                  {/* Top row: level/NEW + shortcut ou BANISH label */}
                   <div style={S.topRow}>
                     <span style={{
                       fontSize: '0.75rem',
@@ -254,9 +417,13 @@ export default function PlanetRewardModal() {
                     }}>
                       {choice.level ? `Lvl ${choice.level}` : 'NEW'}
                     </span>
-                    {i < 3 && (
+                    {banishMode && isBanishable ? (
+                      <span style={{ marginLeft: 'auto', fontFamily: "'Space Mono', monospace", fontSize: 10, color: 'var(--rs-danger)', letterSpacing: '0.08em' }}>
+                        BANISH
+                      </span>
+                    ) : i < 3 ? (
                       <span style={S.shortcutKey}>[{i + 1}]</span>
-                    )}
+                    ) : null}
                   </div>
 
                   <h3 style={S.cardTitle}>{choice.name}</h3>

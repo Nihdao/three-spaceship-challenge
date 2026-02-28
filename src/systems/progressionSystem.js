@@ -133,6 +133,10 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banished
       level: weapon.level + 1,
       icon: null,
       statPreview: null, // filled by rollUpgrade in applyRarityToChoices
+      _def: def,
+      _multipliers: weapon.multipliers ?? null,
+      _globalDamageMult: weapon.globalDamageMult ?? 1,
+      _globalCooldownMult: weapon.globalCooldownMult ?? 1,
     })
   }
 
@@ -207,7 +211,7 @@ function applyRarityToChoices(choices, luckStat) {
 
     // Story 31.2: weapon_upgrade rolls its own rarity inside rollUpgrade — skip the top-level rollRarity
     if (choice.type === 'weapon_upgrade') {
-      const upgradeResult = rollUpgrade(choice.id, luckStat)
+      const upgradeResult = rollUpgrade(choice.id, luckStat, choice._def ?? null, choice._multipliers ?? null, choice._globalDamageMult ?? 1, choice._globalCooldownMult ?? 1)
       const upgradeTier = getRarityTier(upgradeResult.rarity)
       return {
         ...choice,

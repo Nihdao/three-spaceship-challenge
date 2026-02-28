@@ -43,7 +43,10 @@ export const BONUS_FORMATS = {
   ATTACK_SPEED: 'percent',
   ZONE: 'percent',
   REGEN: 'perSecond',
-  // Batch 2 (add when defs land): LUCK: 'percent', EXP_BONUS: 'percent', CURSE: 'percent', MAGNET: 'percent'
+  LUCK: 'percent',
+  EXP_BONUS: 'percent',
+  CURSE: 'percent',
+  MAGNET: 'percent',
 }
 
 const UPGRADE_ICON_MAP = {

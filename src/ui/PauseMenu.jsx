@@ -10,6 +10,7 @@ import { BOONS } from '../entities/boonDefs.js'
 import { formatTimer } from './HUD.jsx'
 import StatLine from './primitives/StatLine.jsx'
 import { ShieldCrossIcon, ClockIcon, SkullIcon, StarIcon, FragmentIcon, SpeedIcon, SwordIcon, RerollIcon, SkipIcon, BanishIcon, LightningIcon, LuckIcon, MagnetIcon } from './icons/index.jsx'
+import OptionsModal from './modals/OptionsModal.jsx'
 
 // --- Exported logic helpers (testable without DOM) ---
 
@@ -98,6 +99,7 @@ export default function PauseMenu() {
   const pickupRadiusMultiplier = useBoons((s) => s.modifiers?.pickupRadiusMultiplier ?? 1)
 
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
+  const [showOptions, setShowOptions] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const closingTimerRef = useRef(null)
 
@@ -136,29 +138,15 @@ export default function PauseMenu() {
     setShowQuitConfirm(false)
   }, [])
 
-  // Keyboard shortcuts
+  // Escape reprend le jeu depuis le menu pause (sauf si un sous-modal est ouvert)
   useEffect(() => {
     if (!shouldShowPauseMenu(phase, isPaused)) return
-
-    const handleKey = (e) => {
-      if (showQuitConfirm) {
-        // During confirmation dialog: ESC cancels, Enter confirms
-        if (e.key === 'Escape') {
-          setShowQuitConfirm(false)
-        } else if (e.key === 'Enter') {
-          handleConfirmQuit()
-        }
-        return
-      }
-      if (e.key === 'Escape' || e.key === 'r' || e.key === 'R') {
-        handleResume()
-      } else if (e.key === 'q' || e.key === 'Q') {
-        setShowQuitConfirm(true)
-      }
+    const handler = (e) => {
+      if (e.key === 'Escape' && !showOptions && !showQuitConfirm) handleResume()
     }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [phase, isPaused, showQuitConfirm, handleResume, handleConfirmQuit])
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [phase, isPaused, handleResume, showOptions, showQuitConfirm])
 
   if (!shouldShowPauseMenu(phase, isPaused)) return null
 
@@ -227,7 +215,7 @@ export default function PauseMenu() {
               cursor: 'pointer',
             }}
           >
-            [ESC/R] RESUME
+            RESUME
           </button>
         </div>
 
@@ -331,8 +319,25 @@ export default function PauseMenu() {
           </div>
         </div>
 
-        {/* Zone actions : QUIT seul */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
+        {/* Zone actions */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 24 }}>
+          <button
+            data-testid="options-button"
+            onClick={() => setShowOptions(true)}
+            style={{
+              fontFamily: "'Rajdhani', sans-serif",
+              fontWeight: 700,
+              fontSize: 'clamp(14px, 1.4vw, 18px)',
+              letterSpacing: '0.1em',
+              color: 'var(--rs-text-muted)',
+              border: '1px solid var(--rs-border)',
+              background: 'transparent',
+              padding: '8px 24px',
+              cursor: 'pointer',
+            }}
+          >
+            OPTIONS
+          </button>
           <button
             data-testid="quit-button"
             onClick={handleQuit}
@@ -348,10 +353,15 @@ export default function PauseMenu() {
               cursor: 'pointer',
             }}
           >
-            [Q] QUIT TO MENU
+            QUIT TO MENU
           </button>
         </div>
       </div>
+
+      {/* Options Modal */}
+      {showOptions && (
+        <OptionsModal onClose={() => setShowOptions(false)} />
+      )}
 
       {/* Quit Confirmation Dialog */}
       {showQuitConfirm && (

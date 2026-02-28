@@ -32,7 +32,6 @@ export default function Interface() {
   useAudio()
 
   // Story 30.3: Contextual event subscriptions
-  const planetsLength = useLevel((s) => s.planets.length)
   const wormholeState = useLevel((s) => s.wormholeState)
   const bossDefeated = useBoss((s) => s.bossDefeated)
   const currentHP = usePlayer((s) => s.currentHP)
@@ -45,7 +44,6 @@ export default function Interface() {
   const prevPhaseRef = useRef(phase)
 
   // Story 30.3: Transition tracking refs
-  const prevPlanetsLengthRef = useRef(0)
   const prevWormholeStateRef = useRef(wormholeState)
   const prevBossActiveRef = useRef(isBossActive)
   const prevBossDefeatedRef = useRef(bossDefeated)
@@ -67,21 +65,6 @@ export default function Interface() {
     }, 1500)
     return () => clearTimeout(timer)
   }, [phase])
-
-  // Story 30.3: Planet radar — fires once per run when planets first initialize (0 → N)
-  useEffect(() => {
-    if (planetsLength > 0 && prevPlanetsLengthRef.current === 0) {
-      if (!useCompanion.getState().hasShown('planet-radar')) {
-        const timer = setTimeout(() => {
-          useCompanion.getState().trigger('planet-radar')
-          useCompanion.getState().markShown('planet-radar')
-        }, 3000)
-        prevPlanetsLengthRef.current = planetsLength
-        return () => clearTimeout(timer)
-      }
-    }
-    prevPlanetsLengthRef.current = planetsLength
-  }, [planetsLength])
 
   // Story 30.3: Wormhole spawn — high priority, immediate
   useEffect(() => {
@@ -161,27 +144,25 @@ export default function Interface() {
     return () => window.removeEventListener('keydown', handler)
   }, [phase])
 
+  // Escape toggles pause during gameplay/boss
+  useEffect(() => {
+    if (phase !== 'gameplay' && phase !== 'boss') return
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        const { isPaused } = useGame.getState()
+        if (!isPaused) useGame.getState().setPaused(true)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [phase])
+
   // Stable callback ref for WarpTransition — prevents animation restart on parent re-render (H1 fix)
   const handleWarpComplete = useCallback(() => {
     setShowWarp(false)
     useGame.getState().resetTunnelEntryFlash()
   }, [])
 
-  // ESC / P key toggles pause during gameplay/boss (Story 10.6, Story 42.5)
-  useEffect(() => {
-    if (phase !== 'gameplay' && phase !== 'boss') return
-    const handler = (e) => {
-      if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-        const { isPaused } = useGame.getState()
-        // Only toggle pause ON here; toggling OFF is handled by PauseMenu's own key listeners
-        if (!isPaused) {
-          useGame.getState().setPaused(true)
-        }
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [phase])
 
   return (
     <>

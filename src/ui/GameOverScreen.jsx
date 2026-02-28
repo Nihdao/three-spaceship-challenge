@@ -132,16 +132,6 @@ export default function GameOverScreen() {
     setTimeout(() => useGame.getState().returnToMenu(), 300)
   }, [])
 
-  // Keyboard handling — only after actions visible
-  useEffect(() => {
-    if (stage < 5) return
-    const handler = (e) => {
-      if (e.code === 'KeyR') handleRetry()
-      if (e.code === 'KeyM') handleMenu()
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [stage, handleRetry, handleMenu])
 
   // Stats computation
   const stats = statsRef.current
@@ -246,7 +236,7 @@ export default function GameOverScreen() {
                     e.currentTarget.style.transform = 'translateX(0)'
                   }}
                 >
-                  [R] RETRY
+                  RETRY
                 </button>
                 <button
                   type="button"
@@ -264,7 +254,7 @@ export default function GameOverScreen() {
                     e.currentTarget.style.transform = 'translateX(0)'
                   }}
                 >
-                  [M] MENU
+                  MENU
                 </button>
               </div>
             )}

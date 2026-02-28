@@ -95,6 +95,16 @@ const _composedWeaponMods = {
   zoneMultiplier: 1,
 }
 
+// Elite kill: spawns ELITE_XP_ORB_COUNT guaranteed rare XP gems. Replaces rollDrops entirely.
+function _spawnEliteDrops(x, z, typeId) {
+  const def = ENEMIES[typeId]
+  if (!def) return
+  const step = (Math.PI * 2) / GAME_CONFIG.ELITE_XP_ORB_COUNT
+  for (let o = 0; o < GAME_CONFIG.ELITE_XP_ORB_COUNT; o++) {
+    spawnOrb(x + Math.cos(o * step) * 1.5, z + Math.sin(o * step) * 1.5, def.xpReward, true)
+  }
+}
+
 // Story 43.2: Shockwave arc pool — reuses arc objects (and their embedded Set) across frames
 const _swArcPool = []
 
@@ -387,6 +397,8 @@ export default function GameLoop() {
     // 5. Enemy spawning + movement (skip during wormhole activation/active — Story 17.4, Story 22.4: waves continue during boss)
     const wormholeStatePre = useLevel.getState().wormholeState
     const bossActive = useBoss.getState().isActive
+    // Read boss position once per frame for area/melee weapon hit checks (one-frame position lag is imperceptible)
+    const _bossForWeapons = bossActive ? useBoss.getState().boss : null
     if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active' && !useGame.getState()._debugSpawnPaused) {
       const currentSystem = useLevel.getState().currentSystem
       // Story 34.5: Compute system difficulty from galaxy profile — cached per system (not per frame)
@@ -415,7 +427,30 @@ export default function GameLoop() {
         systemScaling,
       })
       if (spawnInstructions.length > 0) {
-        useEnemies.getState().spawnEnemies(spawnInstructions)
+        // Cap projectile-shooting enemies at 8 on screen simultaneously
+        const _MAX_SHOOTERS = 8
+        const _currentShooters = useEnemies.getState().enemies.filter(e => {
+          const _b = ENEMIES[e.typeId]?.behavior
+          return _b === 'sniper_mobile' || _b === 'sniper_fixed'
+        }).length
+        let _shooterCount = _currentShooters
+        const _filteredInstructions = spawnInstructions.filter(inst => {
+          const _b = ENEMIES[inst.typeId]?.behavior
+          if (_b === 'sniper_mobile' || _b === 'sniper_fixed') {
+            if (_shooterCount >= _MAX_SHOOTERS) return false
+            _shooterCount++
+          }
+          return true
+        })
+        useEnemies.getState().spawnEnemies(_filteredInstructions, playerPos)
+        // Trigger Aria warning on elite spawn
+        for (let _si = 0; _si < _filteredInstructions.length; _si++) {
+          if (_filteredInstructions[_si].isEliteSpawn) {
+            console.log('[ELITE] Bruiser spawned at', Math.round(_filteredInstructions[_si].x), Math.round(_filteredInstructions[_si].z))
+            useCompanion.getState().trigger('elite-spawn', 'high')
+            break
+          }
+        }
       }
     }
     useEnemies.getState().tick(clampedDelta, playerPos, { leashEnabled: !bossActive })
@@ -555,6 +590,15 @@ export default function GameLoop() {
               _projectileHits.push({ enemyId: enemies[e].id, damage: proj.explosionDamage, isCrit: proj.isCrit ?? false })
             }
           }
+          // Boss in explosion AOE
+          if (_bossForWeapons && _bossForWeapons.hp > 0) {
+            const _bx = _bossForWeapons.x - proj.x, _bz = _bossForWeapons.z - proj.z
+            if (Math.sqrt(_bx * _bx + _bz * _bz) <= proj.explosionRadius) {
+              const _bRes = useBoss.getState().damageBoss(proj.explosionDamage)
+              playSFX('boss-hit')
+              if (_bRes.killed) addExplosion(_bossForWeapons.x, _bossForWeapons.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
+            }
+          }
           addExplosion(proj.x, proj.z, proj.color)
           // Story 32.7: Spawn expanding ring VFX at explosion point
           proj.ringSpawned = true
@@ -618,11 +662,24 @@ export default function GameLoop() {
               if (event.killed) {
                 addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
                 playSFX('explosion')
-                rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
+                if (ENEMIES[event.enemy.typeId]?.isElite) _spawnEliteDrops(event.enemy.x, event.enemy.z, event.enemy.typeId)
+                else rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
                 _killsLc++
               }
             }
             if (_killsLc > 0) useGame.setState(s => ({ kills: s.kills + _killsLc, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsLc }))
+          }
+          // Boss arm hit check
+          if (_bossForWeapons && _bossForWeapons.hp > 0) {
+            const _lcHitBoss = isHitByArm(_bossForWeapons.x, _bossForWeapons.z, playerPos[0], playerPos[2], angle, lcDef.armLength, halfWidth)
+                            || isHitByArm(_bossForWeapons.x, _bossForWeapons.z, playerPos[0], playerPos[2], angle + Math.PI / 2, lcDef.armLength, halfWidth)
+            if (_lcHitBoss) {
+              const _lcDmg = (lcWeapon.overrides?.damage ?? lcDef.baseDamage) * (lcWeapon.multipliers?.damageMultiplier ?? 1.0) * _composedWeaponMods.damageMultiplier
+              _dnEntries.push({ damage: Math.round(_lcDmg), worldX: _bossForWeapons.x, worldZ: _bossForWeapons.z, isCrit: false })
+              const _lcRes = useBoss.getState().damageBoss(_lcDmg)
+              playSFX('boss-hit')
+              if (_lcRes.killed) addExplosion(_bossForWeapons.x, _bossForWeapons.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
+            }
           }
         }
       }
@@ -670,11 +727,23 @@ export default function GameLoop() {
               if (event.killed) {
                 addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
                 playSFX('explosion')
-                rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
+                if (ENEMIES[event.enemy.typeId]?.isElite) _spawnEliteDrops(event.enemy.x, event.enemy.z, event.enemy.typeId)
+                else rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
                 _killsMag++
               }
             }
             if (_killsMag > 0) useGame.setState(s => ({ kills: s.kills + _killsMag, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsMag }))
+          }
+          // Boss aura hit check
+          if (_bossForWeapons && _bossForWeapons.hp > 0) {
+            const _magDx = _bossForWeapons.x - playerPos[0], _magDz = _bossForWeapons.z - playerPos[2]
+            if (Math.sqrt(_magDx * _magDx + _magDz * _magDz) <= effectiveRadius) {
+              const _magDmg = magDef.baseDamage * weaponDamageMult * _composedWeaponMods.damageMultiplier
+              _dnEntries.push({ damage: Math.round(_magDmg), worldX: _bossForWeapons.x, worldZ: _bossForWeapons.z, isCrit: false })
+              const _magRes = useBoss.getState().damageBoss(_magDmg)
+              playSFX('boss-hit')
+              if (_magRes.killed) addExplosion(_bossForWeapons.x, _bossForWeapons.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
+            }
           }
         }
       }
@@ -808,6 +877,25 @@ export default function GameLoop() {
               const radialDirZ = dist > 0 ? dz / dist : 1
               _swHits.push({ enemyId: enemy.id, damage: arc.damage, isCrit: arc.isCrit, dirX: radialDirX, dirZ: radialDirZ, x: enemy.x, z: enemy.z })
             }
+            // Boss hit check for this arc (sentinel 'boss' prevents multi-hit per arc pass)
+            if (_bossForWeapons && _bossForWeapons.hp > 0 && !arc.hitEnemies.has('boss')) {
+              const _swBx = _bossForWeapons.x - arc.centerX, _swBz = _bossForWeapons.z - arc.centerZ
+              const _swBDist = Math.sqrt(_swBx * _swBx + _swBz * _swBz)
+              const _swBR = GAME_CONFIG.BOSS_COLLISION_RADIUS
+              if (_swBDist >= prevR - _swBR && _swBDist <= arc.currentRadius + _swBR) {
+                const _swBAngle = Math.atan2(_swBx, -_swBz)
+                let _swADiff = _swBAngle - arc.aimAngle
+                while (_swADiff > Math.PI) _swADiff -= Math.PI * 2
+                while (_swADiff < -Math.PI) _swADiff += Math.PI * 2
+                if (Math.abs(_swADiff) <= halfSector) {
+                  arc.hitEnemies.add('boss')
+                  _dnEntries.push({ damage: Math.round(arc.damage), worldX: _bossForWeapons.x, worldZ: _bossForWeapons.z, isCrit: arc.isCrit })
+                  const _swRes = useBoss.getState().damageBoss(arc.damage)
+                  playSFX('boss-hit')
+                  if (_swRes.killed) addExplosion(_bossForWeapons.x, _bossForWeapons.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
+                }
+              }
+            }
           }
 
         }
@@ -830,6 +918,7 @@ export default function GameLoop() {
               addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
               playSFX('explosion')
               rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
+              _spawnEliteBonusOrbs(event.enemy.x, event.enemy.z, event.enemy.typeId)
               _killsSw++
             }
           }
@@ -890,6 +979,11 @@ export default function GameLoop() {
               break
             }
           }
+          // Boss proximity also triggers mine
+          if (!triggered && _bossForWeapons && _bossForWeapons.hp > 0) {
+            const _mineBx = _bossForWeapons.x - mineX, _mineBz = _bossForWeapons.z - mineZ
+            if (Math.sqrt(_mineBx * _mineBx + _mineBz * _mineBz) <= mineDef.mineDetectionRadius) triggered = true
+          }
 
           if (!triggered) continue
 
@@ -902,6 +996,17 @@ export default function GameLoop() {
               const rdx = dist > 0 ? dx / dist : 0
               const rdz = dist > 0 ? dz / dist : 1
               _mineHits.push({ enemyId: enemies[e].id, damage: mineDmg, isCrit: mineIsCrit, dirX: rdx, dirZ: rdz, x: enemies[e].x, z: enemies[e].z })
+              _dnEntries.push({ damage: Math.round(mineDmg), worldX: enemies[e].x, worldZ: enemies[e].z, isCrit: mineIsCrit })
+            }
+          }
+          // Boss in explosion AOE
+          if (_bossForWeapons && _bossForWeapons.hp > 0) {
+            const _mineBx = _bossForWeapons.x - mineX, _mineBz = _bossForWeapons.z - mineZ
+            if (Math.sqrt(_mineBx * _mineBx + _mineBz * _mineBz) <= effectiveExplosionRadius) {
+              _dnEntries.push({ damage: Math.round(mineDmg), worldX: _bossForWeapons.x, worldZ: _bossForWeapons.z, isCrit: mineIsCrit })
+              const _mineRes = useBoss.getState().damageBoss(mineDmg)
+              playSFX('boss-hit')
+              if (_mineRes.killed) addExplosion(_bossForWeapons.x, _bossForWeapons.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
             }
           }
 
@@ -926,10 +1031,6 @@ export default function GameLoop() {
           }
 
           for (let i = 0; i < _uniqueHits.length; i++) {
-            _dnEntries.push({ damage: Math.round(_uniqueHits[i].damage), worldX: _uniqueHits[i].x, worldZ: _uniqueHits[i].z, isCrit: _uniqueHits[i].isCrit })
-          }
-
-          for (let i = 0; i < _uniqueHits.length; i++) {
             applyKnockbackImpulse(enemies, _uniqueHits[i].enemyId, { weaponId: mineWeapon.weaponId, dirX: _uniqueHits[i].dirX, dirZ: _uniqueHits[i].dirZ })
           }
 
@@ -941,6 +1042,7 @@ export default function GameLoop() {
               addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
               playSFX('explosion')
               rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
+              _spawnEliteBonusOrbs(event.enemy.x, event.enemy.z, event.enemy.typeId)
               _killsMine++
             }
           }
@@ -1016,6 +1118,16 @@ export default function GameLoop() {
                 _tacticalHits.push({ enemyId: enemies[e].id, damage: splashDmg, isCrit: false, x: enemies[e].x, z: enemies[e].z })
               }
             }
+            // Boss splash hit if within AOE of the selected target
+            if (_bossForWeapons && _bossForWeapons.hp > 0) {
+              const _tactBx = _bossForWeapons.x - target.x, _tactBz = _bossForWeapons.z - target.z
+              if (_tactBx * _tactBx + _tactBz * _tactBz <= effectiveSplashRadius * effectiveSplashRadius) {
+                _dnEntries.push({ damage: Math.round(splashDmg), worldX: _bossForWeapons.x, worldZ: _bossForWeapons.z, isCrit: false })
+                const _tactRes = useBoss.getState().damageBoss(splashDmg)
+                playSFX('boss-hit')
+                if (_tactRes.killed) addExplosion(_bossForWeapons.x, _bossForWeapons.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
+              }
+            }
 
             // Accumulate damage numbers (flushed once at end of section 7)
             for (let i = 0; i < _tacticalHits.length; i++) {
@@ -1035,7 +1147,8 @@ export default function GameLoop() {
               if (event.killed) {
                 addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
                 playSFX('explosion')
-                rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
+                if (ENEMIES[event.enemy.typeId]?.isElite) _spawnEliteDrops(event.enemy.x, event.enemy.z, event.enemy.typeId)
+                else rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
                 _killsTact++
               }
             }
@@ -1053,8 +1166,22 @@ export default function GameLoop() {
             }
 
             playSFX(tactDef.sfxKey)
+          } else if (_bossForWeapons && _bossForWeapons.hp > 0) {
+            // No enemies in range — strike boss directly if within detection radius
+            const _tactBx = _bossForWeapons.x - playerPos[0], _tactBz = _bossForWeapons.z - playerPos[2]
+            if (_tactBx * _tactBx + _tactBz * _tactBz <= tactDef.detectionRadius * tactDef.detectionRadius) {
+              const _tactBDmg = (tactWeapon.overrides?.damage ?? tactDef.baseDamage) * _composedWeaponMods.damageMultiplier
+              _dnEntries.push({ damage: Math.round(_tactBDmg), worldX: _bossForWeapons.x, worldZ: _bossForWeapons.z, isCrit: false })
+              if (tactWeapon.tacticalStrikes.length < (tactDef.poolLimit ?? 4)) {
+                tactWeapon.tacticalStrikes.push({ x: _bossForWeapons.x, z: _bossForWeapons.z, timer: tactDef.strikeVfxDuration, maxDuration: tactDef.strikeVfxDuration, splashRadius: tactDef.strikeAoeRadius * _composedWeaponMods.zoneMultiplier })
+              }
+              playSFX(tactDef.sfxKey)
+              const _tactBRes = useBoss.getState().damageBoss(_tactBDmg)
+              playSFX('boss-hit')
+              if (_tactBRes.killed) addExplosion(_bossForWeapons.x, _bossForWeapons.z, '#ff3333', GAME_CONFIG.BOSS_SCALE_MULTIPLIER)
+            }
           }
-          // If eligibleTargets.length === 0: cooldown already reset above, no shot, no VFX, no SFX
+          // If eligibleTargets.length === 0 and boss not in range: cooldown already reset above, no shot
         }
       }
     }
@@ -1090,7 +1217,8 @@ export default function GameLoop() {
           playSFX('explosion')
           // Story 19.5: Registry-based loot system with per-enemy dropOverrides support
           // Pass enemy instance (not enemyDef) to enable per-enemy dropOverrides
-          rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
+          if (ENEMIES[event.enemy.typeId]?.isElite) _spawnEliteDrops(event.enemy.x, event.enemy.z, event.enemy.typeId)
+          else rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
           _kills7c++
         }
       }
@@ -1233,7 +1361,9 @@ export default function GameLoop() {
       const result = useLevel.getState().wormholeTick(clampedDelta)
       if (result.transitionReady) {
         // Story 17.4: Spawn boss in-place instead of transitioning to BossScene
-        useBoss.getState().spawnBoss(levelState.currentSystem, levelState.wormhole)
+        // Guarantee spawn at wormhole position; fall back to player position if wormhole ref is stale
+        const bossSpawnPos = levelState.wormhole ?? { x: playerPos[0], z: playerPos[2] }
+        useBoss.getState().spawnBoss(levelState.currentSystem, bossSpawnPos)
         useLevel.getState().setWormholeInactive()
       }
     } else if (levelState.wormholeState === 'reactivated') {
@@ -1608,7 +1738,24 @@ export default function GameLoop() {
       useGame.getState().triggerLevelUp()
     }
 
-    // 8f. Periodic scan reminder — fires every 120s but ONLY when companion is fully idle
+    // 8f. Planet radar proximity — fires once per run when an unscanned planet is within 155u of player
+    if (phase === 'gameplay' && !useCompanion.getState().hasShown('planet-radar')) {
+      const planets = useLevel.getState().planets
+      const PLANET_RADAR_DIST_SQ = 155 * 155
+      for (let i = 0; i < planets.length; i++) {
+        const p = planets[i]
+        if (p.scanned) continue
+        const dx = p.x - playerPos[0]
+        const dz = p.z - playerPos[2]
+        if (dx * dx + dz * dz <= PLANET_RADAR_DIST_SQ) {
+          useCompanion.getState().trigger('planet-radar')
+          useCompanion.getState().markShown('planet-radar')
+          break
+        }
+      }
+    }
+
+    // 8g. Periodic scan reminder — fires every 120s but ONLY when companion is fully idle
     // and wormhole hasn't spawned yet. Timer freezes while any message is active.
     if (phase === 'gameplay' && !bossActive) {
       const companionState = useCompanion.getState()

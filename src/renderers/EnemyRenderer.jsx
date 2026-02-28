@@ -65,6 +65,10 @@ function EnemyTypeMesh({ typeId }) {
         const geo = child.geometry.clone()
         geo.applyMatrix4(child.matrixWorld)
         const mat = child.material.clone()
+        if (def.isElite && def.emissiveColor) {
+          mat.emissive = new THREE.Color(def.emissiveColor)
+          mat.emissiveIntensity = def.emissiveIntensity ?? 1.0
+        }
         result.push({ geometry: geo, material: mat })
       }
     })
@@ -112,6 +116,11 @@ function EnemyTypeMesh({ typeId }) {
       // Sniper fixed telegraph: pulsing scale during charge-up (Story 16.2)
       if (e.attackState === 'telegraph') {
         scaleMult *= 1.0 + 0.15 * Math.sin(e.telegraphTimer * Math.PI * 4)
+      }
+
+      // Elite aura pulse
+      if (def.isElite) {
+        scaleMult *= 1.0 + 0.06 * Math.sin(state.clock.elapsedTime * 3.5)
       }
 
       dummy.scale.set(

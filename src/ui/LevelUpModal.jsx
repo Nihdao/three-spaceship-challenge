@@ -17,7 +17,7 @@ function getChoiceAccentColor(type) {
 export default function LevelUpModal() {
   const [choices, setChoices] = useState([])
   const [banishingIndex, setBanishingIndex] = useState(null)
-  const banishModeRef = useRef(false)
+  const [banishMode, setBanishMode] = useState(false)
   const isBanishingRef = useRef(false)
   const rerollCharges = usePlayer(s => s.rerollCharges)
   const skipCharges = usePlayer(s => s.skipCharges)
@@ -33,11 +33,33 @@ export default function LevelUpModal() {
   // Shared helper: get current equipped state and generate choices
   const buildChoices = useCallback((banishedItems) => {
     const level = usePlayer.getState().currentLevel
-    const equippedWeapons = useWeapons.getState().activeWeapons.map(w => ({ weaponId: w.weaponId, level: w.level }))
+    const playerState = usePlayer.getState()
+    const boonModifiers = useBoons.getState().modifiers
+    const upgradeStats = playerState.upgradeStats ?? {}
+    const dilemmaStats = playerState.dilemmaStats ?? {}
+    const perms = playerState.permanentUpgradeBonuses ?? {}
+    const globalDamageMult =
+      (boonModifiers.damageMultiplier ?? 1) *
+      (upgradeStats.damageMult ?? 1) *
+      (dilemmaStats.damageMult ?? 1) *
+      (playerState.shipBaseDamageMultiplier ?? 1) *
+      (perms.attackPower ?? 1)
+    const globalCooldownMult =
+      (boonModifiers.cooldownMultiplier ?? 1) *
+      (upgradeStats.cooldownMult ?? 1) *
+      (dilemmaStats.cooldownMult ?? 1) *
+      (perms.attackSpeed ?? 1)
+    const equippedWeapons = useWeapons.getState().activeWeapons.map(w => ({
+      weaponId: w.weaponId,
+      level: w.level,
+      multipliers: w.multipliers,
+      globalDamageMult,
+      globalCooldownMult,
+    }))
     const equippedBoonIds = useBoons.getState().activeBoons.map(b => b.boonId)
     const equippedBoons = useBoons.getState().getEquippedBoons()
     // Story 22.3: Include luck stat for rarity roll (boon luckBonus + ship + permanent)
-    const luckStat = (usePlayer.getState().getLuckStat?.() ?? 0) + (useBoons.getState().modifiers.luckBonus ?? 0)
+    const luckStat = (usePlayer.getState().getLuckStat?.() ?? 0) + (boonModifiers.luckBonus ?? 0)
     return generateChoices(level, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat)
   }, [])
 
@@ -106,43 +128,26 @@ export default function LevelUpModal() {
     }, 200)
   }, [])
 
-  // Keyboard selection (includes strategic shortcuts)
-  useEffect(() => {
-    const handler = (e) => {
-      const key = e.code
+  const enterBanishMode = useCallback(() => {
+    if (usePlayer.getState().banishCharges <= 0) return
+    playSFX('button-click')
+    setBanishMode(true)
+  }, [])
 
-      // Banish mode: X key enters banish mode, then number selects card
-      if (key === 'KeyX') {
-        banishModeRef.current = true
-        // Reset after short timeout if no number pressed
-        setTimeout(() => { banishModeRef.current = false }, 1000)
-        return
-      }
+  const cancelBanishMode = useCallback(() => {
+    playSFX('button-click')
+    setBanishMode(false)
+  }, [])
 
-      // Number keys — either banish or select depending on mode
-      let index = -1
-      if (key === 'Digit1' || key === 'Numpad1') index = 0
-      else if (key === 'Digit2' || key === 'Numpad2') index = 1
-      else if (key === 'Digit3' || key === 'Numpad3') index = 2
-      else if (key === 'Digit4' || key === 'Numpad4') index = 3
-
-      if (index >= 0 && index < choices.length) {
-        if (banishModeRef.current) {
-          banishModeRef.current = false
-          handleBanish(choices[index], index)
-        } else {
-          applyChoice(choices[index])
-        }
-        return
-      }
-
-      // Strategic shortcuts
-      if (key === 'KeyR') handleReroll()
-      else if (key === 'KeyS' || key === 'Escape') handleSkip()
+  const handleCardClick = useCallback((choice, index) => {
+    if (banishMode) {
+      if (choice.type === 'stat_boost') return // stat boosts can't be banished
+      setBanishMode(false)
+      handleBanish(choice, index)
+    } else {
+      applyChoice(choice)
     }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [choices, applyChoice, handleReroll, handleSkip, handleBanish])
+  }, [banishMode, handleBanish, applyChoice])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(13,11,20,0.88)', fontFamily: "'Rajdhani', sans-serif" }}>
@@ -212,7 +217,6 @@ export default function LevelUpModal() {
               }}
             >
               REROLL ({rerollCharges})
-              <span className="block text-xs font-normal mt-0.5 opacity-50">R</span>
             </button>
           )}
 
@@ -220,7 +224,7 @@ export default function LevelUpModal() {
             <button
               type="button"
               onClick={handleSkip}
-              className="w-full px-4 py-2 font-bold tracking-wider transition-all cursor-pointer"
+              className="w-full mb-2 px-4 py-2 font-bold tracking-wider transition-all cursor-pointer"
               style={{
                 fontFamily: "'Rajdhani', sans-serif",
                 fontWeight: 700,
@@ -233,7 +237,27 @@ export default function LevelUpModal() {
               }}
             >
               SKIP ({skipCharges})
-              <span className="block text-xs font-normal mt-0.5 opacity-50">S</span>
+            </button>
+          )}
+
+          {banishCharges > 0 && (
+            <button
+              type="button"
+              onClick={banishMode ? cancelBanishMode : enterBanishMode}
+              className="w-full px-4 py-2 font-bold tracking-wider transition-all cursor-pointer"
+              style={{
+                fontFamily: "'Rajdhani', sans-serif",
+                fontWeight: 700,
+                fontSize: '1rem',
+                letterSpacing: '0.1em',
+                color: 'var(--rs-danger)',
+                border: '1px solid var(--rs-danger)',
+                background: banishMode ? 'rgba(239,35,60,0.12)' : 'transparent',
+                clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+                transition: 'background 150ms, color 150ms',
+              }}
+            >
+              {banishMode ? 'CANCEL' : `BANISH (${banishCharges})`}
             </button>
           )}
         </div>
@@ -243,61 +267,56 @@ export default function LevelUpModal() {
           <h1 style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '3.5rem', letterSpacing: '0.15em', color: 'var(--rs-text)', margin: 0 }}>
             LEVEL UP!
           </h1>
-          <div style={{ width: 32, height: 2, background: 'var(--rs-orange)', marginTop: 6, marginBottom: 24 }} />
+          <div style={{ width: 32, height: 2, background: 'var(--rs-orange)', marginTop: 6, marginBottom: 16 }} />
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {choices.map((choice, i) => {
               const accentColor = getChoiceAccentColor(choice.type)
+              const isBanishable = choice.type !== 'stat_boost'
+              const cardBorderColor = banishMode
+                ? (isBanishable ? 'var(--rs-danger)' : 'var(--rs-border)')
+                : accentColor
+              const cardOpacity = banishingIndex === i
+                ? 0.2
+                : (banishMode && !isBanishable ? 0.35 : 1)
 
               return (
                 <div
                   key={`${choice.type}_${choice.id}_${i}`}
-                  className="relative p-3 cursor-pointer transition-all animate-fade-in"
+                  className="relative p-3 animate-fade-in"
                   style={{
                     animationDelay: `${i * 50}ms`,
                     animationFillMode: 'backwards',
-                    opacity: banishingIndex === i ? 0.2 : 1,
+                    opacity: cardOpacity,
                     transform: banishingIndex === i ? 'scale(0.95)' : undefined,
-                    transition: 'opacity 200ms ease-out, transform 200ms ease-out',
-                    borderLeft: `3px solid ${accentColor}`,
+                    transition: 'opacity 200ms ease-out, transform 200ms ease-out, border-left-color 150ms, background 150ms',
+                    borderLeft: `3px solid ${cardBorderColor}`,
                     clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%)',
-                    backgroundColor: 'var(--rs-bg-raised)',
+                    backgroundColor: banishMode && isBanishable
+                      ? 'rgba(239,35,60,0.06)'
+                      : 'var(--rs-bg-raised)',
+                    cursor: banishMode
+                      ? (isBanishable ? 'crosshair' : 'not-allowed')
+                      : 'pointer',
                   }}
-                  onClick={() => applyChoice(choice)}
+                  onClick={() => handleCardClick(choice, i)}
                 >
-                  {/* Banish X button — top-right of each card */}
-                  {banishCharges > 0 && choice.type !== 'stat_boost' && (
-                    <button
-                      type="button"
-                      className="absolute -top-2 -right-2 w-6 h-6 flex items-center justify-center
-                                 text-white text-xs font-bold cursor-pointer"
-                      style={{
-                        clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
-                        backgroundColor: 'var(--rs-danger)',
-                        zIndex: 10,
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleBanish(choice, i)
-                      }}
-                      aria-label={`banish ${choice.name}`}
-                    >
-                      ✕
-                    </button>
-                  )}
-
-                  {/* Top row: level/NEW + shortcut aligné à droite */}
+                  {/* Top row: level/NEW + shortcut or BANISH label */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                     <span className="text-sm" style={{ color: choice.level ? 'var(--rs-text-muted)' : accentColor, fontWeight: choice.level ? undefined : 700 }}>
                       {choice.level ? `Lv${choice.level}` : 'NEW'}
                     </span>
-                    <span style={{
-                      marginLeft: 'auto',
-                      fontFamily: "'Space Mono', monospace",
-                      fontSize: 13,
-                      color: 'var(--rs-text-dim)',
-                    }}>
-                      [{i + 1}]
-                    </span>
+                    {banishMode && isBanishable && (
+                      <span style={{
+                        marginLeft: 'auto',
+                        fontFamily: "'Space Mono', monospace",
+                        fontSize: 13,
+                        color: 'var(--rs-danger)',
+                        letterSpacing: '0.08em',
+                      }}>
+                        BANISH
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="font-semibold text-sm" style={{ color: 'var(--rs-text)' }}>{choice.name}</h3>
@@ -312,13 +331,6 @@ export default function LevelUpModal() {
 
       </div>
 
-      {/* Keyboard hints — position absolute en bas, hors du flow 2 colonnes */}
-      <p
-        className="text-xs opacity-40 animate-fade-in"
-        style={{ color: 'var(--rs-text-muted)', position: 'absolute', bottom: 24, animationDelay: '300ms', animationFillMode: 'backwards' }}
-      >
-        [1-4] Select{rerollCharges > 0 ? ' · R Reroll' : ''}{skipCharges > 0 ? ' · S Skip' : ''}{banishCharges > 0 ? ' · X+# Banish' : ''}
-      </p>
     </div>
   )
 }

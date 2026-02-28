@@ -122,7 +122,7 @@ export const ENEMIES = {
     radius: 2.0,
     xpReward: 30,
     behavior: 'sniper_fixed',
-    spawnWeight: 10,
+    spawnWeight: 0,
     modelPath: '/models/enemies/robot-enemy-flying-gun.glb',
     meshScale: [3, 3, 3],
     color: '#ff3333',
@@ -155,6 +155,27 @@ export const ENEMIES = {
     burstProjectileCount: 3,
     burstProjectileSpeed: 100,
     burstProjectileDamage: 5,
+  },
+
+  // Elite Bruiser — periodic high-threat enemy, never spawned by wave system
+  ELITE_BRUISER: {
+    id: 'ELITE_BRUISER',
+    tier: 'ELITE',
+    name: 'Bruiser',
+    type: 9,
+    hp: 50,
+    speed: 13,
+    damage: 5,
+    radius: 3.5,
+    xpReward: 100,
+    behavior: 'chase',
+    spawnWeight: 0,
+    modelPath: '/models/enemies/robot-enemy-flying.glb',
+    meshScale: [7, 7, 7],
+    color: '#ff2200',
+    isElite: true,
+    emissiveColor: '#ff2200',
+    emissiveIntensity: 1.2,
   },
 
   // Boss (separate system, not part of 8-type roster)

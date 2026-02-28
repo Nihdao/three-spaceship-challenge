@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useEnemies from '../stores/useEnemies.jsx'
@@ -108,19 +108,6 @@ export default function RevivePrompt() {
     useGame.getState().triggerGameOver()
   }, [])
 
-  // Keyboard controls: [1] = REVIVE, [2] = GAME OVER
-  useEffect(() => {
-    const handler = (e) => {
-      const key = e.code
-      if ((key === 'Digit1' || key === 'Numpad1') && revivalCharges >= 1) {
-        handleRevive()
-      } else if (key === 'Digit2' || key === 'Numpad2') {
-        handleGameOver()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [revivalCharges, handleRevive, handleGameOver])
 
   return (
     <div
@@ -173,7 +160,6 @@ export default function RevivePrompt() {
               }}
             >
               REVIVE
-              <span style={{ display: 'block', fontSize: '0.65rem', fontFamily: "'Space Mono', monospace", opacity: 0.7, marginTop: 4 }}>[1]</span>
             </button>
           )}
 
@@ -196,7 +182,6 @@ export default function RevivePrompt() {
             }}
           >
             GAME OVER
-            <span style={{ display: 'block', fontSize: '0.65rem', fontFamily: "'Space Mono', monospace", opacity: 0.7, marginTop: 4 }}>[2]</span>
           </button>
         </div>
       </div>

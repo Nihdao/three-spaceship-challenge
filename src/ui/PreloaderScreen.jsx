@@ -12,12 +12,19 @@ const MESSAGES = [
   'ENGAGING HYPERDRIVE SEQUENCE',
 ]
 
+// Assets preloaded outside R3F (fills browser cache before Howler/img tags request them)
+const CUSTOM_ASSETS = [
+  '/audio/music/mainMenu.mp3',
+  '/assets/navi.png',
+]
+
 export default function PreloaderScreen() {
   const { active, progress, loaded, total } = useProgress()
   const [minElapsed, setMinElapsed] = useState(false)
   const [visible, setVisible] = useState(true)
   const [mounted, setMounted] = useState(true)
   const [msgIdx, setMsgIdx] = useState(0)
+  const [customLoaded, setCustomLoaded] = useState(0)
 
   useEffect(() => {
     const t = setTimeout(() => setMinElapsed(true), MIN_MS)
@@ -38,12 +45,25 @@ export default function PreloaderScreen() {
   }, [])
 
   useEffect(() => {
-    const isDone = !active && (progress >= 100 || (total > 0 && loaded >= total))
-    if (!minElapsed || !isDone) return
+    let alive = true
+    CUSTOM_ASSETS.forEach(path => {
+      fetch(path)
+        .then(() => { if (alive) setCustomLoaded(n => n + 1) })
+        .catch(() => { if (alive) setCustomLoaded(n => n + 1) })
+    })
+    return () => { alive = false }
+  }, [])
+
+  const customDone = customLoaded >= CUSTOM_ASSETS.length
+  const r3fDone = !active && (progress >= 100 || (total > 0 && loaded >= total))
+  const combinedProgress = Math.round((progress + (customLoaded / CUSTOM_ASSETS.length) * 100) / 2)
+
+  useEffect(() => {
+    if (!minElapsed || !r3fDone || !customDone) return
     setVisible(false)
     const t = setTimeout(() => setMounted(false), 500)
     return () => clearTimeout(t)
-  }, [minElapsed, active, progress, loaded, total])
+  }, [minElapsed, r3fDone, customDone])
 
   if (!mounted) return null
 
@@ -95,7 +115,7 @@ export default function PreloaderScreen() {
             position: 'absolute',
             inset: 0,
             right: 'auto',
-            width: `${Math.max(1, progress)}%`,
+            width: `${Math.max(1, combinedProgress)}%`,
             background: 'var(--rs-orange)',
             clipPath: 'polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%)',
             transition: 'width 250ms ease-out',
@@ -111,7 +131,7 @@ export default function PreloaderScreen() {
             color: 'var(--rs-text-dim)',
             textTransform: 'uppercase',
           }}>
-            {total > 0 ? `${loaded} / ${total} ASSETS` : 'LOADING\u2026'}
+            {total > 0 ? `${loaded + customLoaded} / ${total + CUSTOM_ASSETS.length} ASSETS` : 'LOADING\u2026'}
           </span>
           <span style={{
             fontFamily: 'Bebas Neue, sans-serif',
@@ -119,7 +139,7 @@ export default function PreloaderScreen() {
             letterSpacing: '0.05em',
             color: 'var(--rs-orange)',
           }}>
-            {Math.floor(progress)}%
+            {combinedProgress}%
           </span>
         </div>
       </div>
