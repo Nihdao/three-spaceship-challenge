@@ -80,20 +80,19 @@ function TunnelTube() {
 
 function TunnelShip() {
   const shipRef = useRef()
-  const { scene } = useGLTF('/models/ships/Spaceship.glb')
+
+  const currentShipId = usePlayer.getState().currentShipId || 'BALANCED'
+  const selectedSkinId = useShipProgression.getState().getSelectedSkin(currentShipId)
+  const skinData = getSkinForShip(currentShipId, selectedSkinId)
+  const modelPath = skinData?.modelPath ?? '/models/ships/Spaceship.glb'
+
+  const { scene } = useGLTF(modelPath)
   const clonedScene = useMemo(() => scene.clone(), [scene])
 
   const shipMaterials = useMemo(() => {
     const all = []
-
-    // Apply skin tint (Story 25.2) — same logic as PlayerShip.jsx
-    const currentShipId = usePlayer.getState().currentShipId || 'BALANCED'
-    const selectedSkinId = useShipProgression.getState().getSelectedSkin(currentShipId)
-    const skinData = getSkinForShip(currentShipId, selectedSkinId)
-
     clonedScene.traverse((child) => {
       if (child.isMesh && child.material) {
-        // Clone materials to avoid mutating the shared GLB cache (Story 25.2 fix)
         if (Array.isArray(child.material)) {
           child.material = child.material.map(m => m.clone())
         } else {
@@ -109,14 +108,8 @@ function TunnelShip() {
               mat.emissive.copy(_engineEmissive)
               mat.emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
             } else {
-              // Hull materials: zero emissive, replace color on non-black parts only (Story 25.2)
-              // emissiveTint intentionally not applied — creates undesirable color filter
               mat.emissive.setScalar(0)
               mat.emissiveIntensity = 0
-              if (skinData && skinData.tintColor) {
-                const isColored = Math.max(mat.color.r, mat.color.g, mat.color.b) > 0.15
-                if (isColored) mat.color.set(skinData.tintColor)
-              }
             }
             mat.needsUpdate = true
           }
@@ -356,3 +349,6 @@ export default function TunnelScene() {
 }
 
 useGLTF.preload('/models/ships/Spaceship.glb')
+useGLTF.preload('/models/ships/Spaceship_3.glb')
+useGLTF.preload('/models/ships/Spaceship_6.glb')
+useGLTF.preload('/models/ships/Spaceship_9.glb')

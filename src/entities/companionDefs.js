@@ -47,6 +47,11 @@ export const DIALOGUE_EVENTS = {
     { line: "There it is — the way out. Go!", duration: 5 },
     { line: "Wormhole detected. Clear the path and let's move.", duration: 6 },
   ],
+  'elite-spawn': [
+    { line: "Warning — priority contact inbound. That thing hits hard, don't ignore it.", duration: 7 },
+    { line: "Hostile elite detected. Heavily reinforced. Deal with it before it deals with you.", duration: 7 },
+    { line: "Heads up — enhanced unit incoming. Takes a lot to put down, but the XP is worth it.", duration: 7 },
+  ],
   'boss-spawn': [
     { line: "That's the guardian of this system. We need to take it down.", duration: 7 },
     { line: "Big contact — hostile, massive. This is the boss fight, pilot.", duration: 7 },

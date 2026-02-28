@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useLevel from '../stores/useLevel.jsx'
+import useBoss from '../stores/useBoss.jsx'
 import { PLANETS } from '../entities/planetDefs.js'
 import { getDiscoveredCells, isPosDiscovered, FOG_GRID_SIZE } from '../systems/fogSystem.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
@@ -12,7 +13,8 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 function readStores() {
   const { position: playerPos, rotation: playerRot } = usePlayer.getState()
   const { planets, wormhole, wormholeState } = useLevel.getState()
-  return { playerPos, playerRot, planets, wormhole, wormholeState }
+  const { boss, isActive: bossActive } = useBoss.getState()
+  return { playerPos, playerRot, planets, wormhole, wormholeState, boss, bossActive }
 }
 
 // World coord range: -PLAY_AREA_SIZE..+PLAY_AREA_SIZE
@@ -128,11 +130,11 @@ export default function MapOverlay() {
             position: 'absolute',
             left: `${worldToMapPct(p.x)}%`,
             top: `${worldToMapPct(p.z)}%`,
-            width: '8px',
-            height: '8px',
+            width: '24px',
+            height: '24px',
             borderRadius: '50%',
             backgroundColor: color,
-            boxShadow: `0 0 6px ${color}`,
+            boxShadow: `0 0 12px ${color}`,
             transform: 'translate(-50%, -50%)',
             opacity: p.scanned ? 0.3 : 1,
             transition: 'opacity 200ms ease-out',
@@ -154,6 +156,22 @@ export default function MapOverlay() {
           boxShadow: '0 0 8px var(--rs-violet)',
           transform: 'translate(-50%, -50%)',
           animation: 'scanPulse 800ms ease-in-out infinite alternate',
+          pointerEvents: 'none',
+        }} />
+      )}
+
+      {/* Boss dot — pulsing red diamond, visible when boss is active and alive */}
+      {polledState.bossActive && polledState.boss && polledState.boss.hp > 0 && (
+        <div style={{
+          position: 'absolute',
+          left: `${worldToMapPct(polledState.boss.x)}%`,
+          top: `${worldToMapPct(polledState.boss.z)}%`,
+          transform: 'translate(-50%, -50%) rotate(45deg)',
+          width: '12px',
+          height: '12px',
+          backgroundColor: '#ff3333',
+          boxShadow: '0 0 10px #ff3333, 0 0 20px rgba(255,51,51,0.5)',
+          animation: 'scanPulse 600ms ease-in-out infinite alternate',
           pointerEvents: 'none',
         }} />
       )}

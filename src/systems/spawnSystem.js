@@ -44,6 +44,7 @@ export function createSpawnSystem() {
   let _cachedAvailableTypes = null
   let _cachedPhase = null
   let _cachedSystemNum = -1
+  let eliteTimer = GAME_CONFIG.ELITE_FIRST_SPAWN_DELAY
 
   // Story 23.1: Pick an enemy type from a pre-computed available pool (MED-1: called once per batch).
   // `available` is the result of getAvailableEnemyTypes(phase), hoisted out of the batch loop.
@@ -93,8 +94,32 @@ export function createSpawnSystem() {
     }
 
     spawnTimer -= delta
+    eliteTimer -= delta
 
-    if (spawnTimer > 0) return []
+    const instructions = []
+
+    // --- Elite spawn (independent of wave timer) ---
+    if (eliteTimer <= 0) {
+      eliteTimer = GAME_CONFIG.ELITE_SPAWN_INTERVAL
+      const angle = Math.random() * Math.PI * 2
+      const dist = GAME_CONFIG.SPAWN_DISTANCE_MIN + Math.random() * (GAME_CONFIG.SPAWN_DISTANCE_MAX - GAME_CONFIG.SPAWN_DISTANCE_MIN)
+      const bound = GAME_CONFIG.PLAY_AREA_SIZE
+      instructions.push({
+        typeId: 'ELITE_BRUISER',
+        x: Math.max(-bound, Math.min(bound, playerX + Math.cos(angle) * dist)),
+        z: Math.max(-bound, Math.min(bound, playerZ + Math.sin(angle) * dist)),
+        scaling: {
+          hp:       (systemScaling?.hp      ?? 1) * GAME_CONFIG.ELITE_HP_MULT,
+          damage:   (systemScaling?.damage  ?? 1) * GAME_CONFIG.ELITE_DAMAGE_MULT,
+          speed:    (systemScaling?.speed   ?? 1) * GAME_CONFIG.ELITE_SPEED_MULT,
+          xpReward: systemScaling?.xpReward ?? 1,
+        },
+        isEliteSpawn: true,
+      })
+    }
+
+    // --- Normal wave spawn ---
+    if (spawnTimer > 0) return instructions
 
     // Compute time progress (0.0–1.0) and resolve active wave phase
     const timeProgress = Math.min(elapsedTime / systemTimer, 1.0)
@@ -130,7 +155,6 @@ export function createSpawnSystem() {
       _cachedSystemNum = systemNum
     }
 
-    const instructions = []
     for (let i = 0; i < batchSize; i++) {
       const typeId = pickEnemyType(available)
       const def = ENEMIES[typeId]
@@ -138,19 +162,23 @@ export function createSpawnSystem() {
       if (def && def.behavior === 'sweep') {
         // Spawn sweep enemies as a group with shared direction
         const groupSize = SWEEP_GROUP_MIN + Math.floor(Math.random() * (SWEEP_GROUP_MAX - SWEEP_GROUP_MIN + 1))
-        const sweepAngle = Math.random() * Math.PI * 2
-        const sweepDirection = { x: Math.cos(sweepAngle), z: Math.sin(sweepAngle) }
 
-        // Perpendicular vector for line formation
-        const perpX = -sweepDirection.z
-        const perpZ = sweepDirection.x
-
-        // Spawn position: at edge of play area, perpendicular to sweep direction
+        // Spawn position: random angle around player at spawn distance
         const spawnAngle = Math.random() * Math.PI * 2
         const distance = GAME_CONFIG.SPAWN_DISTANCE_MIN +
           Math.random() * (GAME_CONFIG.SPAWN_DISTANCE_MAX - GAME_CONFIG.SPAWN_DISTANCE_MIN)
         const baseX = playerX + Math.cos(spawnAngle) * distance
         const baseZ = playerZ + Math.sin(spawnAngle) * distance
+
+        // Sweep direction: from spawn position toward the player
+        const dx = playerX - baseX
+        const dz = playerZ - baseZ
+        const len = Math.sqrt(dx * dx + dz * dz)
+        const sweepDirection = len > 0 ? { x: dx / len, z: dz / len } : { x: 1, z: 0 }
+
+        // Perpendicular vector for line formation
+        const perpX = -sweepDirection.z
+        const perpZ = sweepDirection.x
 
         for (let g = 0; g < groupSize; g++) {
           const offset = (g - (groupSize - 1) / 2) * SWEEP_LINE_SPACING
@@ -188,6 +216,7 @@ export function createSpawnSystem() {
   function reset() {
     spawnTimer = null // Recomputed on next tick using wave-phase interval
     elapsedTime = 0
+    eliteTimer = GAME_CONFIG.ELITE_FIRST_SPAWN_DELAY
     _cachedAvailableTypes = null
     _cachedPhase = null
     _cachedSystemNum = -1

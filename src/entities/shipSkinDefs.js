@@ -1,40 +1,72 @@
 // Ship skin definitions — cosmetic skins unlocked via ship progression.
-// Colour skins (lv3/6/9) are deferred pending mesh material architecture rework:
-// mat.color acts as a texture multiplier, not a replacement, so tinting is
-// visually unreliable. A future story will expose per-mesh material overrides.
-// Each ship currently has only 1 skin: the default appearance.
-// Skin structure: { id, name, requiredLevel, tintColor, emissiveTint, unlockMessage }
+// Skins lv3/6/9 use dedicated GLB files (colours baked into mesh materials).
+// modelPath: null = use the ship's default modelPath from shipDefs.js
+// tintColor: used only for the swatch button display colour in the UI.
+// Skin structure: { id, name, requiredLevel, modelPath, tintColor, emissiveTint, unlockMessage }
+
+const PROGRESSION_SKINS = [
+  {
+    id: 'ocean',
+    name: 'Ocean',
+    requiredLevel: 3,
+    modelPath: '/models/ships/Spaceship_3.glb',
+    tintColor: '#00cfff',
+    unlockMessage: 'Unlocked at Level 3',
+  },
+  {
+    id: 'specter',
+    name: 'Specter',
+    requiredLevel: 6,
+    modelPath: '/models/ships/Spaceship_6.glb',
+    tintColor: '#c0c0c0',
+    unlockMessage: 'Unlocked at Level 6',
+  },
+  {
+    id: 'aurum',
+    name: 'Aurum',
+    requiredLevel: 9,
+    modelPath: '/models/ships/Spaceship_9.glb',
+    tintColor: '#ffd60a',
+    unlockMessage: 'Unlocked at Level 9',
+  },
+]
 
 export const SHIP_SKINS = {
   BALANCED: [
     {
       id: 'default',
-      name: 'Vanguard Standard',
+      name: 'Standard',
       requiredLevel: 1,
-      tintColor: null,
+      modelPath: null,
+      tintColor: '#9b4dca',
       emissiveTint: null,
       unlockMessage: 'Default appearance',
     },
+    ...PROGRESSION_SKINS,
   ],
   GLASS_CANNON: [
     {
       id: 'default',
-      name: 'Striker Standard',
+      name: 'Standard',
       requiredLevel: 1,
-      tintColor: null,
+      modelPath: null,
+      tintColor: '#9b4dca',
       emissiveTint: null,
       unlockMessage: 'Default appearance',
     },
+    ...PROGRESSION_SKINS,
   ],
   TANK: [
     {
       id: 'default',
-      name: 'Fortress Standard',
+      name: 'Standard',
       requiredLevel: 1,
-      tintColor: null,
+      modelPath: null,
+      tintColor: '#9b4dca',
       emissiveTint: null,
       unlockMessage: 'Default appearance',
     },
+    ...PROGRESSION_SKINS,
   ],
 }
 

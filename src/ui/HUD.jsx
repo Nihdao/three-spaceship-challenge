@@ -23,7 +23,7 @@ export const MINIMAP = {
   playerDotColor: 'var(--rs-teal)',
   playerDotSize: '6px',
   playerDotGlow: '0 0 6px rgba(0, 180, 216, 0.8)',
-  planetDotSize: '6px',
+  planetDotSize: '18px',
   wormholeBaseSize: '6px',
   wormholeActiveSize: '9px',
   wormholeColor: 'var(--rs-violet)', // Aligned with Redshift DS — matches off-screen arrow (Story 35.3 review)
@@ -229,10 +229,10 @@ function WeaponSlots({ activeWeapons }) {
 
 // --- Boon Slots with update animation (Story 10.5) ---
 
-/** Get short display label for a boon (first word of name, like weapons). */
+/** Get short display label for a boon (uses explicit label if defined, else first word of name). */
 export function getBoonLabel(boonId) {
   const def = BOONS[boonId]
-  return def?.name?.split(' ')[0] || '?'
+  return def?.label || def?.name?.split(' ')[0] || '?'
 }
 
 /** Detect which boon slots changed (added or upgraded) between prev and current arrays. */
@@ -588,7 +588,7 @@ export default function HUD() {
   const phase = useGame((s) => s.phase)
   const currentHP = usePlayer((s) => s.currentHP)
   const maxHP = usePlayer((s) => s.maxHP)
-  const fragments = usePlayer((s) => s.fragments)
+  const fragments = usePlayer((s) => s.fragmentsEarnedThisRun)
   const currentLevel = usePlayer((s) => s.currentLevel)
   const revivalCharges = usePlayer((s) => s.revivalCharges)
   const rerollCharges = usePlayer((s) => s.rerollCharges)

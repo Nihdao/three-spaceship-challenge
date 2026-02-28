@@ -502,7 +502,7 @@ export default function ShipSelect() {
           <div
             style={{ ...S.previewContainer, backgroundColor: `${selectedShip.colorTheme}10` }}
           >
-            <ShipModelPreview modelPath={selectedShip.modelPath} rotate skinData={selectedSkinData} />
+            <ShipModelPreview modelPath={selectedSkinData?.modelPath ?? selectedShip.modelPath} rotate />
           </div>
 
           {/* Ship Name, Level Badge & Description */}
@@ -522,7 +522,7 @@ export default function ShipSelect() {
 
           {/* Stats — Enriched with all 15 stats + permanent upgrade bonuses */}
           <div className="space-y-0.5 mb-3 max-h-52 overflow-y-auto">
-            {/* Flat value stats — pass bonus from bonuses object */}
+            {/* Flat value stats — value = total effective stat, bonusValue = perm contribution only */}
             <StatLine compact
               label="HP"
               value={Math.round(effectiveStats.maxHP)}
@@ -541,7 +541,7 @@ export default function ShipSelect() {
               bonusValue={bonuses.armor}
               icon={ArmorColorIcon}
             />
-            {/* Percentage stats — pass percentage delta from effectiveStats for consistency */}
+            {/* Percentage stats — value = total effective %, bonusValue = perm contribution only */}
             <StatLine compact
               label="DAMAGE"
               value={effectiveStats.damageMultiplier > 1.0 ? `+${((effectiveStats.damageMultiplier - 1.0) * 100).toFixed(0)}%` : '+0%'}
@@ -550,7 +550,7 @@ export default function ShipSelect() {
             />
             <StatLine compact
               label="ATTACK SPEED"
-              value={effectiveStats.attackSpeed > 0 ? `-${effectiveStats.attackSpeed.toFixed(0)}%` : '+0%'}
+              value={effectiveStats.attackSpeed > 0 ? `+${effectiveStats.attackSpeed.toFixed(0)}%` : '+0%'}
               bonusValue={effectiveStats.attackSpeed > 0 ? effectiveStats.attackSpeed.toFixed(0) : undefined}
               icon={AttackSpeedIcon}
             />

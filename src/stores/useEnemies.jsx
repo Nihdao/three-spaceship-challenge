@@ -96,22 +96,44 @@ const useEnemies = create((set, get) => ({
   },
 
   // Batch spawn — single set() call for multiple enemies (called by GameLoop)
-  spawnEnemies: (instructions) => {
+  // playerPos: [x, y, z] — when provided, evicts farthest enemies first so nearby ones are preserved
+  spawnEnemies: (instructions, playerPos = null) => {
     if (instructions.length === 0) return
 
     const state = get()
     let currentEnemies = state.enemies
 
-    // Evict oldest non-protected enemies if pool is full (Story 36.2)
+    // Evict non-protected enemies if pool is full (Story 36.2)
+    // When playerPos given: farthest-first eviction so enemies near the player are never silently popped
+    // When absent: fall back to age-based (oldest first) for test compat
     let hadEviction = false
     let evictedCount = 0
     const slotsNeeded = Math.max(0, currentEnemies.length + instructions.length - GAME_CONFIG.MAX_ENEMIES_ON_SCREEN)
     if (slotsNeeded > 0) {
-      for (let i = 0; i < currentEnemies.length && evictedCount < slotsNeeded; i++) {
-        const e = currentEnemies[i]
-        if (e.behavior !== 'boss' && ENEMIES[e.typeId]?.tier !== 'ELITE') {
-          e._evict = true
+      if (playerPos !== null) {
+        const px = playerPos[0]
+        const pz = playerPos[2]
+        const candidates = []
+        for (let i = 0; i < currentEnemies.length; i++) {
+          const e = currentEnemies[i]
+          if (e.behavior !== 'boss' && ENEMIES[e.typeId]?.tier !== 'ELITE') {
+            const dx = e.x - px
+            const dz = e.z - pz
+            candidates.push({ idx: i, distSq: dx * dx + dz * dz })
+          }
+        }
+        candidates.sort((a, b) => b.distSq - a.distSq)
+        for (let i = 0; i < candidates.length && evictedCount < slotsNeeded; i++) {
+          currentEnemies[candidates[i].idx]._evict = true
           evictedCount++
+        }
+      } else {
+        for (let i = 0; i < currentEnemies.length && evictedCount < slotsNeeded; i++) {
+          const e = currentEnemies[i]
+          if (e.behavior !== 'boss' && ENEMIES[e.typeId]?.tier !== 'ELITE') {
+            e._evict = true
+            evictedCount++
+          }
         }
       }
       hadEviction = evictedCount > 0

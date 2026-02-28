@@ -27,7 +27,8 @@ import { Howl, Howler } from 'howler'
 // At default sfxVolume=1.0, these values clamp to 1.0 (max).
 export const VOLUME_CATEGORIES = {
   music: 0.35,              // down from 1.0 — gameplay music no longer drowns SFX
-  sfxAction: 0.35,          // down from 0.8 — weapon fire/dash significantly quieter
+  sfxWeapon: 0.21,          // weapon fire only — 40% reduction from sfxAction (0.35 × 0.6)
+  sfxAction: 0.35,          // dash, boss-attack — non-weapon action SFX
   sfxFeedbackPositive: 0.6, // down from 1.0 — explosions, scan-complete
   sfxFeedbackNegative: 0.8, // down from 1.2 — damage-taken stays relatively prominent
   ui: 0.5,                  // down from 0.7 — button sounds
@@ -36,7 +37,7 @@ export const VOLUME_CATEGORIES = {
 
 // SFX key → volume category mapping
 const SFX_CATEGORY_MAP = {
-  'laser-fire': 'sfxAction',
+  'laser-fire': 'sfxWeapon',
   'explosion': 'sfxFeedbackPositive',
   'level-up': 'sfxFeedbackPositive',
   'damage-taken': 'sfxFeedbackNegative',
@@ -59,13 +60,13 @@ const SFX_CATEGORY_MAP = {
   'hp-recover': 'sfxFeedbackPositive',
   'high-score': 'events',
   // Story 11.3: New weapon SFX entries
-  'railgun-fire': 'sfxAction',
-  'trishot-fire': 'sfxAction',
-  'shotgun-fire': 'sfxAction',
-  'satellite-fire': 'sfxAction',
-  'drone-fire': 'sfxAction',
-  'beam-fire': 'sfxAction',
-  'explosive-fire': 'sfxAction',
+  'railgun-fire': 'sfxWeapon',
+  'trishot-fire': 'sfxWeapon',
+  'shotgun-fire': 'sfxWeapon',
+  'satellite-fire': 'sfxWeapon',
+  'drone-fire': 'sfxWeapon',
+  'beam-fire': 'sfxWeapon',
+  'explosive-fire': 'sfxWeapon',
   // Story 19.1: Rare XP gem pickup SFX
   'xp_rare_pickup': 'sfxFeedbackPositive',
   // Story 19.3: Fragment gem pickup SFX

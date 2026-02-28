@@ -12,18 +12,33 @@ describe('SHIP_SKINS', () => {
       expect(SHIP_SKINS).toHaveProperty('TANK')
     })
 
-    // Colour skins (lv3/6/9) deferred pending mesh material architecture rework.
-    // Each ship has only the default skin until a future story adds proper material overrides.
-    it.each(SHIP_IDS)('%s has exactly 1 skin (default only)', (shipId) => {
-      expect(SHIP_SKINS[shipId]).toHaveLength(1)
+    it.each(SHIP_IDS)('%s has exactly 4 skins (default + ocean + specter + aurum)', (shipId) => {
+      expect(SHIP_SKINS[shipId]).toHaveLength(4)
     })
 
     it.each(SHIP_IDS)('%s first skin is the default (id="default", requiredLevel=1)', (shipId) => {
       const first = SHIP_SKINS[shipId][0]
       expect(first.id).toBe('default')
       expect(first.requiredLevel).toBe(1)
-      expect(first.tintColor).toBeNull()
       expect(first.emissiveTint).toBeNull()
+    })
+
+    it.each(SHIP_IDS)('%s progression skins have correct requiredLevels (3, 6, 9)', (shipId) => {
+      const [, ocean, specter, aurum] = SHIP_SKINS[shipId]
+      expect(ocean.id).toBe('ocean')
+      expect(ocean.requiredLevel).toBe(3)
+      expect(specter.id).toBe('specter')
+      expect(specter.requiredLevel).toBe(6)
+      expect(aurum.id).toBe('aurum')
+      expect(aurum.requiredLevel).toBe(9)
+    })
+
+    it.each(SHIP_IDS)('%s progression skins each have a modelPath string', (shipId) => {
+      const progressionSkins = SHIP_SKINS[shipId].slice(1)
+      for (const skin of progressionSkins) {
+        expect(typeof skin.modelPath).toBe('string')
+        expect(skin.modelPath.length).toBeGreaterThan(0)
+      }
     })
   })
 
@@ -52,7 +67,6 @@ describe('getSkinForShip', () => {
     for (const shipId of SHIP_IDS) {
       const skin = getSkinForShip(shipId, 'default')
       expect(skin.id).toBe('default')
-      expect(skin.tintColor).toBeNull()
     }
   })
 

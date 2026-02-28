@@ -21,7 +21,7 @@ export const WAVE_PROFILES = {
       startPercent: 0.0,
       endPercent: 0.2,
       name: 'Easy Start',
-      spawnRateMultiplier: 1.0,
+      spawnRateMultiplier: 1.5,
       enemyTierWeights: { FODDER: 1.0, SKIRMISHER: 0.0, ASSAULT: 0.0, ELITE: 0.0 },
     },
     {

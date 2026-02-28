@@ -1,6 +1,6 @@
 export const GAME_CONFIG = {
   // Debug (Story 11.5, Story 18.4)
-  DEBUG_CONSOLE_ENABLED: true,
+  DEBUG_CONSOLE_ENABLED: window.location.hash.includes('debug'),
   DEBUG_TRANSITIONS: false, // Story 18.4: Enable detailed system transition logging
 
   // System
@@ -10,7 +10,7 @@ export const GAME_CONFIG = {
   PLAYER_BASE_HP: 100,
   PLAYER_BASE_SPEED: 48, // units/sec (was 80, reduced ×0.6 for tighter control)
   DASH_COOLDOWN: 3, // seconds
-  DASH_DURATION: 0.3, // seconds
+  DASH_DURATION: 0.6, // seconds
   DASH_TRAIL_COLOR: "#ff00ff", // magenta trail during dash
 
   // Crosshair (Story 21.2)
@@ -121,19 +121,28 @@ export const GAME_CONFIG = {
   PLAYER_BANK_SPEED: 8, // how fast bank angle responds
 
   // Minimap (Story 24.1)
-  MINIMAP_VISIBLE_RADIUS: 250, // world units visible around player on minimap (500x500 window = 25% of play area)
+  MINIMAP_RADAR_RATIO: 0.25, // fraction of PLAY_AREA_SIZE visible on minimap — change this to adjust radar range
+  get MINIMAP_VISIBLE_RADIUS() { return Math.round(this.PLAY_AREA_SIZE * this.MINIMAP_RADAR_RATIO) }, // dynamic: auto-adapts when PLAY_AREA_SIZE changes
 
   // Leash system (Story 36.1)
-  ENEMY_LEASH_DISTANCE: 200, // MINIMAP_VISIBLE_RADIUS (250) * 1.5 — enemies outside radar zone are leashed back
+  ENEMY_LEASH_DISTANCE: 130, // world units — scaled proportionally with PLAY_AREA_SIZE (≈ MINIMAP_VISIBLE_RADIUS × 0.8)
 
   // Play area
-  PLAY_AREA_SIZE: 1000, // half-width of square play area
+  PLAY_AREA_SIZE: 650, // half-width of square play area
   BOUNDARY_WARNING_DISTANCE: 100, // updated from 20 in Story 1.3
 
-  // Spawning (Story 2.2, updated Story 28.4, Story 45.4: enemy pressure nerf)
-  SPAWN_INTERVAL_BASE: 5.5, // seconds between spawns at start (Story 45.4: nerfed from 4.0)
-  SPAWN_INTERVAL_MIN: 2.8, // fastest spawn rate — floor for ramp (Story 45.4: nerfed from 2.0)
-  SPAWN_RAMP_RATE: 0.018, // interval decrease per second of game time (Story 45.4: nerfed from 0.025, slower pressure ramp)
+  // Elite enemy spawn schedule
+  ELITE_FIRST_SPAWN_DELAY: 60,  // seconds before first elite appears
+  ELITE_SPAWN_INTERVAL: 90,     // seconds between subsequent elite spawns
+  ELITE_HP_MULT: 16,            // multiplied on top of system scaling
+  ELITE_DAMAGE_MULT: 10,        // contact damage multiplier
+  ELITE_SPEED_MULT: 1.4,        // speed multiplier
+  ELITE_XP_ORB_COUNT: 5,        // guaranteed XP orbs on kill
+
+  // Spawning (Story 2.2, updated Story 28.4)
+  SPAWN_INTERVAL_BASE: 4.0, // seconds between spawns at start
+  SPAWN_INTERVAL_MIN: 2.4, // fastest spawn rate — floor for ramp
+  SPAWN_RAMP_RATE: 0.022, // interval decrease per second of game time
   SPAWN_DISTANCE_MIN: 80, // minimum spawn distance from player
   SPAWN_DISTANCE_MAX: 120, // maximum spawn distance from player
   SPAWN_BATCH_SIZE_BASE: 1, // enemies per spawn at start
@@ -149,7 +158,7 @@ export const GAME_CONFIG = {
     { minTime: 60,  typeId: 'FODDER_SWARM' },    // 1 minute
     { minTime: 120, typeId: 'SHOCKWAVE_BLOB' },  // 2 minutes
     { minTime: 180, typeId: 'SNIPER_MOBILE' },   // 3 minutes
-    { minTime: 300, typeId: 'SNIPER_FIXED' },    // 5 minutes
+    { minTime: 300, typeId: 'SNIPER_MOBILE' },   // 5 minutes
     { minTime: 360, typeId: 'TELEPORTER' },      // 6 minutes
   ],
 
@@ -187,9 +196,9 @@ export const GAME_CONFIG = {
   PLANET_SCAN_RADIUS_SILVER: 40,
   PLANET_SCAN_RADIUS_GOLD: 50,
   PLANET_SCAN_RADIUS_PLATINUM: 60,
-  PLANET_MIN_DISTANCE_FROM_CENTER: 200,
-  PLANET_MIN_DISTANCE_BETWEEN: 300,
-  PLANET_PLACEMENT_MARGIN: 100,
+  PLANET_MIN_DISTANCE_FROM_CENTER: 130,
+  PLANET_MIN_DISTANCE_BETWEEN: 190,
+  PLANET_PLACEMENT_MARGIN: 65,
   PLANET_MODEL_Y_OFFSET: -35,
   PLANET_ORBIT_SPEED: 0.1,
 
@@ -202,7 +211,7 @@ export const GAME_CONFIG = {
   WORMHOLE_SPAWN_TIMER_THRESHOLD: 0.01,
   WORMHOLE_ACTIVATION_RADIUS: 25,
   WORMHOLE_SHOCKWAVE_DURATION: 0.8, // Story 17.6: Reduced from 1.5 for faster wormhole opening
-  WORMHOLE_SPAWN_DISTANCE_FROM_PLAYER: 300,
+  WORMHOLE_SPAWN_DISTANCE_FROM_PLAYER: 200,
   WORMHOLE_BLOOM_FLASH_DURATION: 0.3,
   WORMHOLE_TRANSITION_DELAY: 1.0, // Story 17.6: Reduced from 2.0 for faster boss arrival
 
@@ -228,22 +237,22 @@ export const GAME_CONFIG = {
   BOSS_ARENA_SIZE: 400,
   BOSS_MOVE_SPEED: 30,
   BOSS_COLLISION_RADIUS: 5,
-  BOSS_CONTACT_DAMAGE: 15,
-  BOSS_PROJECTILE_SPEED: 120,
-  BOSS_PROJECTILE_DAMAGE: 10,
+  BOSS_CONTACT_DAMAGE: 35,
+  BOSS_PROJECTILE_SPEED: 150,
+  BOSS_PROJECTILE_DAMAGE: 28,
   BOSS_PROJECTILE_RADIUS: 1.5,
-  BOSS_ATTACK_COOLDOWN: 2.5,
-  BOSS_TELEGRAPH_DURATION: 0.8,
-  BOSS_BURST_COUNT: 3,
-  BOSS_BURST_SPREAD: 0.4,
+  BOSS_ATTACK_COOLDOWN: 1.0,
+  BOSS_TELEGRAPH_DURATION: 0.5,
+  BOSS_BURST_COUNT: 7,
+  BOSS_BURST_SPREAD: 0.35,
   BOSS_PHASE_THRESHOLDS: [0.75, 0.5, 0.25],
   BOSS_NAME: "TITAN CRUISER",
 
   // Boss Overhaul (Story 22.4)
-  BOSS_BASE_HP: 10000, // Base HP for boss in System 1 (scales with system difficulty)
+  BOSS_BASE_HP: 2500, // Base HP for boss in System 1 (scales with system difficulty)
   BOSS_SCALE_MULTIPLIER: 4, // Boss model size multiplier (4x regular enemy)
   BOSS_LOOT_FRAGMENTS: 150, // Guaranteed Fragment drop count on boss defeat
-  BOSS_LOOT_XP_MULTIPLIER: 10, // XP reward multiplier on boss defeat (10x base XP)
+  BOSS_LOOT_XP_MULTIPLIER: 1, // XP reward multiplier on boss defeat
   BOSS_EXPLOSION_SCALE: 5, // Large explosion VFX scale on boss death
 
   // Boss defeat (Story 6.3)

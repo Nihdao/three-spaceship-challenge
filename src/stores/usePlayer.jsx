@@ -630,7 +630,7 @@ const usePlayer = create((set, get) => ({
     const { currentShipId } = get()
     const ship = SHIPS[currentShipId] || SHIPS[getDefaultShipId()]
     set({
-      position: [(Math.random() * 2 - 1) * 1200, 0, (Math.random() * 2 - 1) * 1200],
+      position: [(Math.random() * 2 - 1) * GAME_CONFIG.PLAY_AREA_SIZE * 0.8, 0, (Math.random() * 2 - 1) * GAME_CONFIG.PLAY_AREA_SIZE * 0.8],
       velocity: [0, 0, 0],
       rotation: 0,
       bankAngle: 0,

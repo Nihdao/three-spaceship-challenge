@@ -30,6 +30,9 @@ export default function BossRenderer() {
         // Clone material so we can modify emissive without affecting cache
         child.material = child.material.clone()
         mats.push(child.material)
+        // Disable frustum culling — bounding box computed at origin can cause
+        // incorrect culling when the parent group is moved to a far world position
+        child.frustumCulled = false
       }
     })
     materialsRef.current = mats

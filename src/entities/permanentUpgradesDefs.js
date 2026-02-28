@@ -25,10 +25,10 @@ export const PERMANENT_UPGRADES = {
     maxLevel: 5,
     levels: [
       { level: 1, cost: 50, bonus: 1 },
-      { level: 2, cost: 100, bonus: 2 },
-      { level: 3, cost: 200, bonus: 3 },
-      { level: 4, cost: 350, bonus: 5 },
-      { level: 5, cost: 500, bonus: 8 },
+      { level: 2, cost: 100, bonus: 1 },
+      { level: 3, cost: 200, bonus: 1 },
+      { level: 4, cost: 350, bonus: 2 },
+      { level: 5, cost: 500, bonus: 2 },
     ],
   },
   MAX_HP: {

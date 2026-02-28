@@ -37,14 +37,15 @@ export const BOONS = {
     effect: { cooldownMultiplier: 0.85 },
     rarityBonusMultipliers: { ...DEFAULT_RARITY_BONUS },
     tiers: [
-      { level: 1, description: 'Reduces all weapon cooldowns by 15%', effect: { cooldownMultiplier: 0.85 }, statPreview: 'Cooldown: -15%' },
-      { level: 2, description: 'Reduces all weapon cooldowns by 28%', effect: { cooldownMultiplier: 0.72 }, statPreview: 'Cooldown: 15% → 28%' },
-      { level: 3, description: 'Reduces all weapon cooldowns by 40%', effect: { cooldownMultiplier: 0.60 }, statPreview: 'Cooldown: 28% → 40%' },
+      { level: 1, description: 'All weapons fire 15% faster', effect: { cooldownMultiplier: 0.85 }, statPreview: 'Attack Speed: +15%' },
+      { level: 2, description: 'All weapons fire 28% faster', effect: { cooldownMultiplier: 0.72 }, statPreview: 'Attack Speed: +15% → +28%' },
+      { level: 3, description: 'All weapons fire 40% faster', effect: { cooldownMultiplier: 0.60 }, statPreview: 'Attack Speed: +28% → +40%' },
     ],
   },
   CRIT_CHANCE: {
     id: 'CRIT_CHANCE',
     name: 'Critical Strike',
+    label: 'Crit Cha',
     maxLevel: 3,
     effect: { critChance: 0.10 },
     rarityBonusMultipliers: { ...DEFAULT_RARITY_BONUS },
@@ -58,6 +59,7 @@ export const BOONS = {
   CRIT_MULTIPLIER: {
     id: 'CRIT_MULTIPLIER',
     name: 'Critical Power',
+    label: 'Crit Pow',
     maxLevel: 3,
     effect: { critMultiplier: 2.2 },
     rarityBonusMultipliers: { ...DEFAULT_RARITY_BONUS },
@@ -107,12 +109,12 @@ export const BOONS = {
     id: 'DAMAGE_REDUCTION',
     name: 'Armor Plating',
     maxLevel: 3,
-    effect: { damageReduction: 0.10 },
+    effect: { damageReduction: 0.05 },
     rarityBonusMultipliers: { ...DEFAULT_RARITY_BONUS },
     tiers: [
-      { level: 1, description: 'Reduces incoming damage by 10%', effect: { damageReduction: 0.10 }, statPreview: 'Damage Taken: -10%' },
-      { level: 2, description: 'Reduces incoming damage by 18%', effect: { damageReduction: 0.18 }, statPreview: 'Damage Taken: -18%' },
-      { level: 3, description: 'Reduces incoming damage by 25%', effect: { damageReduction: 0.25 }, statPreview: 'Damage Taken: -25%' },
+      { level: 1, description: 'Reduces incoming damage by 5%', effect: { damageReduction: 0.05 }, statPreview: 'Damage Taken: -5%' },
+      { level: 2, description: 'Reduces incoming damage by 8%', effect: { damageReduction: 0.08 }, statPreview: 'Damage Taken: -8%' },
+      { level: 3, description: 'Reduces incoming damage by 12%', effect: { damageReduction: 0.12 }, statPreview: 'Damage Taken: -12%' },
     ],
   },
   XP_GAIN: {

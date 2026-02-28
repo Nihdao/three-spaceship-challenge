@@ -144,16 +144,6 @@ export default function VictoryScreen() {
     setTimeout(() => useGame.getState().returnToMenu(), 300)
   }, [])
 
-  // Keyboard handling — only after actions visible
-  useEffect(() => {
-    if (stage < 3) return
-    const handler = (e) => {
-      if (e.code === 'KeyR') handleNewRun()
-      if (e.code === 'KeyM') handleMenu()
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [stage, handleNewRun, handleMenu])
 
   // Stats computation
   const stats = statsRef.current
@@ -246,7 +236,7 @@ export default function VictoryScreen() {
                     e.currentTarget.style.transform = 'translateX(0)'
                   }}
                 >
-                  [R] NEW RUN
+                  NEW RUN
                 </button>
                 <button
                   type="button"
@@ -264,7 +254,7 @@ export default function VictoryScreen() {
                     e.currentTarget.style.transform = 'translateX(0)'
                   }}
                 >
-                  [M] MENU
+                  MENU
                 </button>
               </div>
             )}

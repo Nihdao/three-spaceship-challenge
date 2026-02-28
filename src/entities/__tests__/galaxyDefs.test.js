@@ -107,15 +107,15 @@ describe('galaxyDefs — Andromeda Reach gameplay profile (Story 34.1)', () => {
   const galaxy = getGalaxyById('andromeda_reach')
 
   it('has correct planetCount', () => {
-    expect(galaxy.planetCount).toBe(15)
+    expect(galaxy.planetCount).toBe(10)
   })
 
   it('has correct wormholeThreshold', () => {
-    expect(galaxy.wormholeThreshold).toBe(0.666)
+    expect(galaxy.wormholeThreshold).toBe(0.7)
   })
 
   it('has correct planetRarity distribution', () => {
-    expect(galaxy.planetRarity).toEqual({ standard: 8, rare: 5, legendary: 2 })
+    expect(galaxy.planetRarity).toEqual({ standard: 5, rare: 3, legendary: 2 })
   })
 
   it('has correct luckRarityBias', () => {

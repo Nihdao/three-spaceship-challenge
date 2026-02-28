@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { resetFogGrid, markDiscovered, getDiscoveredCells, FOG_GRID_SIZE, CELL_SIZE } from '../fogSystem.js'
+import { GAME_CONFIG } from '../../config/gameConfig.js'
 
 describe('fogSystem (Story 35.1)', () => {
   beforeEach(() => {
@@ -56,17 +57,19 @@ describe('fogSystem (Story 35.1)', () => {
     expect(getDiscoveredCells()[centerIdx]).toBe(1)
   })
 
-  it('markDiscovered(-1000, -1000, 100) marks corner cell (index 0) without crash', () => {
-    // World (-1000, -1000) → grid (0, 0)
-    // radiusCells = 100/CELL_SIZE ≈ 3, cell (0,0) center at (0.5,0.5) → dist ≈ 0.71 < 3
-    expect(() => markDiscovered(-1000, -1000, 100)).not.toThrow()
+  it('markDiscovered at world corner (-PLAY_AREA_SIZE, -PLAY_AREA_SIZE) marks corner cell (index 0) without crash', () => {
+    // World (-PLAY_AREA_SIZE, -PLAY_AREA_SIZE) → grid (0, 0)
+    // radiusCells = 100/CELL_SIZE ≈ 4-5, cell (0,0) center at (0.5,0.5) → dist ≈ 0.71 < radiusCells
+    const edge = -GAME_CONFIG.PLAY_AREA_SIZE
+    expect(() => markDiscovered(edge, edge, 100)).not.toThrow()
     const grid = getDiscoveredCells()
     expect(grid[0]).toBe(1)
   })
 
-  it('markDiscovered at world boundary +1000 does not overflow grid', () => {
-    // World (999, 999) should clamp to last cell without out-of-bounds
-    expect(() => markDiscovered(999, 999, 100)).not.toThrow()
+  it('markDiscovered at world boundary +PLAY_AREA_SIZE does not overflow grid', () => {
+    // World (PLAY_AREA_SIZE-1, PLAY_AREA_SIZE-1) should map to last cell without out-of-bounds
+    const edge = GAME_CONFIG.PLAY_AREA_SIZE - 1
+    expect(() => markDiscovered(edge, edge, 100)).not.toThrow()
     const grid = getDiscoveredCells()
     // Last cell index = (59)*60 + 59 = 3599
     expect(grid[FOG_GRID_SIZE * FOG_GRID_SIZE - 1]).toBe(1)
@@ -81,7 +84,7 @@ describe('fogSystem (Story 35.1)', () => {
 
   it('exported constants have correct values', () => {
     expect(FOG_GRID_SIZE).toBe(60)
-    // CELL_SIZE = 2000 / 60
-    expect(CELL_SIZE).toBeCloseTo(2000 / 60, 5)
+    // CELL_SIZE = (PLAY_AREA_SIZE * 2) / FOG_GRID_SIZE
+    expect(CELL_SIZE).toBeCloseTo((GAME_CONFIG.PLAY_AREA_SIZE * 2) / FOG_GRID_SIZE, 5)
   })
 })

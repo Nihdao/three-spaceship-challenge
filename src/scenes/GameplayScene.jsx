@@ -1,5 +1,6 @@
 import PlayerShip from '../renderers/PlayerShip.jsx'
 import DamageNumberRenderer from '../ui/DamageNumberRenderer.jsx'
+import EliteHealthBarRenderer from '../renderers/EliteHealthBarRenderer.jsx'
 import ProjectileRenderer from '../renderers/ProjectileRenderer.jsx'
 import LaserCrossRenderer from '../renderers/LaserCrossRenderer.jsx'
 import MagneticFieldRenderer from '../renderers/MagneticFieldRenderer.jsx'
@@ -139,6 +140,9 @@ export default function GameplayScene() {
 
       {/* Damage number overlay (Story 27.1) */}
       <DamageNumberRenderer />
+
+      {/* Elite enemy world-space health bars */}
+      <EliteHealthBarRenderer />
     </>
   )
 }
