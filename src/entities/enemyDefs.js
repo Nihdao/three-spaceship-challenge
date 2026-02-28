@@ -165,7 +165,7 @@ export const ENEMIES = {
     type: 9,
     hp: 25,
     speed: 13,
-    damage: 3,
+    damage: 2,
     radius: 3.5,
     xpReward: 100,
     behavior: 'chase',
