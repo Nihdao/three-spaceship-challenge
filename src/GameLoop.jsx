@@ -1434,9 +1434,11 @@ export default function GameLoop() {
         const prevBossPhase = boss?.phase ?? 0
         const bossProjCountBefore = bossState.bossProjectiles.length
         bossState.tick(clampedDelta, playerPos)
-        const newBossPhase = bossState.boss?.phase ?? 0
+        // Re-read fresh state after tick — bossState is a stale snapshot and tick() calls set()
+        const freshBossState = useBoss.getState()
+        const newBossPhase = freshBossState.boss?.phase ?? 0
         if (newBossPhase > prevBossPhase) playSFX('boss-phase')
-        if (bossState.bossProjectiles.length > bossProjCountBefore) playSFX('boss-attack')
+        if (freshBossState.bossProjectiles.length > bossProjCountBefore) playSFX('boss-attack')
 
         // Register boss entities in collision system
         const bossIdx = idx
@@ -1446,8 +1448,8 @@ export default function GameLoop() {
           cs.registerEntity(pool[idx++])
         }
 
-        // Register boss projectiles
-        const bossProjectiles = bossState.bossProjectiles
+        // Register boss projectiles — use fresh state to include projectiles spawned this tick
+        const bossProjectiles = freshBossState.bossProjectiles
         const bossProjStartIdx = idx
         for (let i = 0; i < bossProjectiles.length; i++) {
           if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
