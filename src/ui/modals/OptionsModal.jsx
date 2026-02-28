@@ -17,15 +17,15 @@ import usePlayer from "../../stores/usePlayer.jsx";
 export function readAudioSettings() {
   try {
     const raw = localStorage.getItem("audioSettings");
-    if (!raw) return { masterVolume: 100, musicVolume: 100, sfxVolume: 100 };
+    if (!raw) return { masterVolume: 20, musicVolume: 100, sfxVolume: 100 };
     const parsed = JSON.parse(raw);
     return {
-      masterVolume: clampVolume(parsed.masterVolume ?? 100),
+      masterVolume: clampVolume(parsed.masterVolume ?? 20),
       musicVolume: clampVolume(parsed.musicVolume ?? 100),
       sfxVolume: clampVolume(parsed.sfxVolume ?? 100),
     };
   } catch {
-    return { masterVolume: 100, musicVolume: 100, sfxVolume: 100 };
+    return { masterVolume: 20, musicVolume: 100, sfxVolume: 100 };
   }
 }
 
