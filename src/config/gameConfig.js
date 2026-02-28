@@ -249,7 +249,7 @@ export const GAME_CONFIG = {
   BOSS_NAME: "TITAN CRUISER",
 
   // Boss Overhaul (Story 22.4)
-  BOSS_BASE_HP: 2500, // Base HP for boss in System 1 (scales with system difficulty)
+  BOSS_BASE_HP: 1500, // Base HP for boss in System 1 (scales with system difficulty)
   BOSS_SCALE_MULTIPLIER: 4, // Boss model size multiplier (4x regular enemy)
   BOSS_LOOT_FRAGMENTS: 150, // Guaranteed Fragment drop count on boss defeat
   BOSS_LOOT_XP_MULTIPLIER: 1, // XP reward multiplier on boss defeat
