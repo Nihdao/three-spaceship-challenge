@@ -175,8 +175,8 @@ export default function Interface() {
       {phase === 'levelUp' && <LevelUpModal />}
       {phase === 'planetReward' && <PlanetRewardModal />}
       {phase === 'revive' && <RevivePrompt />}
-      {/* Story 17.4: BossHPBar renders when boss is active, regardless of phase */}
-      {isBossActive && <BossHPBar />}
+      {/* Story 17.4: BossHPBar renders when boss is active during gameplay only */}
+      {isBossActive && phase === 'gameplay' && <BossHPBar />}
       {phase === 'gameOver' && <GameOverScreen />}
       {phase === 'victory' && <VictoryScreen />}
       {phase === 'tunnel' && <TunnelHub />}

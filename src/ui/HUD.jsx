@@ -7,6 +7,7 @@ import useWeapons from '../stores/useWeapons.jsx'
 import useBoons from '../stores/useBoons.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import useEnemies from '../stores/useEnemies.jsx'
+import useBoss from '../stores/useBoss.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
@@ -346,6 +347,7 @@ function MinimapPanel() {
   // Using a reactive Zustand selector causes infinite re-renders because
   // set() is called inside tick() for shockwave/projectile spawning.
   const [minimapEnemies, setMinimapEnemies] = useState([])
+  const [minimapBoss, setMinimapBoss] = useState(null)
   useEffect(() => {
     const id = setInterval(() => {
       const enemies = useEnemies.getState().enemies
@@ -363,6 +365,8 @@ function MinimapPanel() {
       setMinimapEnemies(prev =>
         nearby.length === 0 && prev.length === 0 ? prev : nearby
       )
+      const { boss, isActive: bossActive } = useBoss.getState()
+      setMinimapBoss(bossActive && boss && boss.hp > 0 ? { x: boss.x, z: boss.z } : null)
     }, MINIMAP.enemyPollInterval)
     return () => clearInterval(id)
   }, [])
@@ -479,6 +483,21 @@ function MinimapPanel() {
           transition: MINIMAP.dotTransition,
         }} />
       ))}
+      {/* Boss dot — pulsing red square */}
+      {minimapBoss && (
+        <div style={{
+          position: 'absolute',
+          width: '8px',
+          height: '8px',
+          backgroundColor: '#ff3333',
+          boxShadow: '0 0 8px #ff3333, 0 0 16px rgba(255,51,51,0.5)',
+          ...minimapDotPosition(minimapBoss.x, minimapBoss.z, px, pz, GAME_CONFIG.MINIMAP_VISIBLE_RADIUS),
+          transform: 'translate(-50%, -50%)',
+          animation: 'scanPulse 600ms ease-in-out infinite alternate',
+          pointerEvents: 'none',
+          zIndex: 6,
+        }} />
+      )}
       {/* Compass labels (z-10 to stay above dots) */}
       {[
         { label: 'N', pos: { top: '2px', left: '50%', transform: 'translateX(-50%)' } },
