@@ -26,8 +26,8 @@ import { Howl, Howler } from 'howler'
 // in Options (e.g. sfxVolume=0.6 → events plays at 0.9 vs sfxAction at 0.48).
 // At default sfxVolume=1.0, these values clamp to 1.0 (max).
 export const VOLUME_CATEGORIES = {
-  music: 0.35,              // down from 1.0 — gameplay music no longer drowns SFX
-  sfxWeapon: 0.21,          // weapon fire only — 40% reduction from sfxAction (0.35 × 0.6)
+  music: 0.245,             // down 30% from 0.35
+  sfxWeapon: 0.252,         // up 20% from 0.21
   sfxAction: 0.35,          // dash, boss-attack — non-weapon action SFX
   sfxFeedbackPositive: 0.6, // down from 1.0 — explosions, scan-complete
   sfxFeedbackNegative: 0.8, // down from 1.2 — damage-taken stays relatively prominent
