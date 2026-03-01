@@ -283,6 +283,7 @@ export default function GameLoop() {
     // Clear damage numbers when game over occurs (Story 28.1)
     if (phase === 'gameOver' && prevPhaseRef.current !== 'gameOver') {
       useDamageNumbers.getState().reset()
+      stopScanLoop()
     }
 
     prevPhaseRef.current = phase
@@ -1436,7 +1437,6 @@ export default function GameLoop() {
         // Re-read fresh state after tick — bossState is a stale snapshot and tick() calls set()
         const freshBossState = useBoss.getState()
         const newBossPhase = freshBossState.boss?.phase ?? 0
-        if (newBossPhase > prevBossPhase) playSFX('boss-phase')
 
         // Register boss entities in collision system
         const bossIdx = idx

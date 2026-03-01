@@ -46,9 +46,9 @@ const useBoss = create((set, get) => ({
       boss.x += (dx / dist) * GAME_CONFIG.BOSS_MOVE_SPEED * delta
       boss.z += (dz / dist) * GAME_CONFIG.BOSS_MOVE_SPEED * delta
     }
-    // Clamp to arena
-    boss.x = Math.max(-GAME_CONFIG.BOSS_ARENA_SIZE, Math.min(GAME_CONFIG.BOSS_ARENA_SIZE, boss.x))
-    boss.z = Math.max(-GAME_CONFIG.BOSS_ARENA_SIZE, Math.min(GAME_CONFIG.BOSS_ARENA_SIZE, boss.z))
+    // Clamp to play area (boss fights happen in GameplayScene, not a separate arena)
+    boss.x = Math.max(-GAME_CONFIG.PLAY_AREA_SIZE, Math.min(GAME_CONFIG.PLAY_AREA_SIZE, boss.x))
+    boss.z = Math.max(-GAME_CONFIG.PLAY_AREA_SIZE, Math.min(GAME_CONFIG.PLAY_AREA_SIZE, boss.z))
 
     // 2. Decay hit flash timer (Story 27.3)
     if (boss.hitFlashTimer > 0) {
