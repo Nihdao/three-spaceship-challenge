@@ -3,10 +3,8 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 
 const useBoss = create((set, get) => ({
   boss: null,
-  bossProjectiles: [],
   isActive: false,
   bossDefeated: false,
-  nextProjectileId: 0,
   defeatAnimationTimer: 0,
   defeatExplosionCount: 0,
   rewardGiven: false,
@@ -24,17 +22,12 @@ const useBoss = create((set, get) => ({
       hp: bossHP,
       maxHp: bossHP,
       phase: 0,
-      attackCooldown: GAME_CONFIG.BOSS_ATTACK_COOLDOWN,
-      telegraphTimer: 0,
-      attackType: null,
       lastHitTime: -Infinity,
-      damageMultiplier: scaling.damage, // Damage scaling for projectiles/contact (Story 16.4)
+      damageMultiplier: scaling.damage, // Damage scaling for contact (Story 16.4)
       hitFlashTimer: 0, // Story 27.3: hit flash timer
     },
     isActive: true,
     bossDefeated: false,
-    bossProjectiles: [],
-    nextProjectileId: 0,
   })
   },
 
@@ -44,14 +37,12 @@ const useBoss = create((set, get) => ({
 
     // Shallow copy to preserve Zustand immutability (never mutate store references)
     const boss = { ...state.boss }
-    const currentProjectiles = state.bossProjectiles
-    let newNextId = state.nextProjectileId
 
-    // 1. Move boss toward player (chase but keep min distance)
+    // 1. Move boss toward player (chase behavior, like Bruiser)
     const dx = playerPos[0] - boss.x
     const dz = playerPos[2] - boss.z
     const dist = Math.sqrt(dx * dx + dz * dz)
-    if (dist > 15) {
+    if (dist > 5) {
       boss.x += (dx / dist) * GAME_CONFIG.BOSS_MOVE_SPEED * delta
       boss.z += (dz / dist) * GAME_CONFIG.BOSS_MOVE_SPEED * delta
     }
@@ -59,72 +50,12 @@ const useBoss = create((set, get) => ({
     boss.x = Math.max(-GAME_CONFIG.BOSS_ARENA_SIZE, Math.min(GAME_CONFIG.BOSS_ARENA_SIZE, boss.x))
     boss.z = Math.max(-GAME_CONFIG.BOSS_ARENA_SIZE, Math.min(GAME_CONFIG.BOSS_ARENA_SIZE, boss.z))
 
-    // 2. Attack state machine
-    const phaseMultiplier = 1 + boss.phase * 0.3
-    const newProjectiles = []
-    if (boss.telegraphTimer > 0) {
-      boss.telegraphTimer = Math.max(0, boss.telegraphTimer - delta)
-      if (boss.telegraphTimer <= 0) {
-        // Execute attack — fire projectiles toward player
-        const aimDx = playerPos[0] - boss.x
-        const aimDz = playerPos[2] - boss.z
-        const aimDist = Math.sqrt(aimDx * aimDx + aimDz * aimDz) || 1
-        const baseAngle = Math.atan2(aimDz, aimDx)
-
-        const burstCount = GAME_CONFIG.BOSS_BURST_COUNT + boss.phase // More projectiles at higher phases
-        const spread = GAME_CONFIG.BOSS_BURST_SPREAD
-        const startAngle = baseAngle - (spread * (burstCount - 1)) / 2
-
-        for (let i = 0; i < burstCount; i++) {
-          const angle = startAngle + i * spread
-          newProjectiles.push({
-            id: `bp_${newNextId++}`,
-            x: boss.x,
-            z: boss.z,
-            vx: Math.cos(angle) * GAME_CONFIG.BOSS_PROJECTILE_SPEED,
-            vz: Math.sin(angle) * GAME_CONFIG.BOSS_PROJECTILE_SPEED,
-            damage: Math.round(GAME_CONFIG.BOSS_PROJECTILE_DAMAGE * (boss.damageMultiplier || 1)),
-            radius: GAME_CONFIG.BOSS_PROJECTILE_RADIUS,
-            lifetime: 5,
-          })
-        }
-      }
-    } else {
-      boss.attackCooldown = Math.max(0, boss.attackCooldown - delta * phaseMultiplier)
-      if (boss.attackCooldown <= 0) {
-        boss.telegraphTimer = GAME_CONFIG.BOSS_TELEGRAPH_DURATION
-        boss.attackCooldown = GAME_CONFIG.BOSS_ATTACK_COOLDOWN
-      }
-    }
-
-    // 3. Update existing projectiles (immutable — build new array)
-    const updatedProjectiles = []
-    for (let i = 0; i < currentProjectiles.length; i++) {
-      const p = currentProjectiles[i]
-      const nx = p.x + p.vx * delta
-      const nz = p.z + p.vz * delta
-      const nl = p.lifetime - delta
-      if (nl > 0 && Math.abs(nx) <= GAME_CONFIG.BOSS_ARENA_SIZE + 50 && Math.abs(nz) <= GAME_CONFIG.BOSS_ARENA_SIZE + 50) {
-        updatedProjectiles.push({ ...p, x: nx, z: nz, lifetime: nl })
-      }
-    }
-    // Apply first tick of movement to newly spawned projectiles
-    for (let i = 0; i < newProjectiles.length; i++) {
-      const p = newProjectiles[i]
-      updatedProjectiles.push({
-        ...p,
-        x: p.x + p.vx * delta,
-        z: p.z + p.vz * delta,
-        lifetime: p.lifetime - delta,
-      })
-    }
-
-    // 4. Decay hit flash timer (Story 27.3)
+    // 2. Decay hit flash timer (Story 27.3)
     if (boss.hitFlashTimer > 0) {
       boss.hitFlashTimer = Math.max(0, boss.hitFlashTimer - delta)
     }
 
-    // 5. Check phase transitions
+    // 3. Check phase transitions
     const hpFraction = boss.hp / boss.maxHp
     const thresholds = GAME_CONFIG.BOSS_PHASE_THRESHOLDS
     let newPhase = 0
@@ -135,7 +66,7 @@ const useBoss = create((set, get) => ({
       boss.phase = newPhase
     }
 
-    set({ boss, bossProjectiles: updatedProjectiles, nextProjectileId: newNextId })
+    set({ boss })
   },
 
   damageBoss: (amount) => {
@@ -150,7 +81,6 @@ const useBoss = create((set, get) => ({
     if (killed) {
       update.defeatAnimationTimer = GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY
       update.defeatExplosionCount = 0
-      update.bossProjectiles = []
     }
     set(update)
     return { killed }
@@ -190,10 +120,8 @@ const useBoss = create((set, get) => ({
 
   reset: () => set({
     boss: null,
-    bossProjectiles: [],
     isActive: false,
     bossDefeated: false,
-    nextProjectileId: 0,
     defeatAnimationTimer: 0,
     defeatExplosionCount: 0,
     rewardGiven: false,

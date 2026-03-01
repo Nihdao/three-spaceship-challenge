@@ -9,17 +9,15 @@ import { calculateFlashIntensity } from '../systems/hitFlashSystem.js'
 
 const BOSS_HIT_COLOR = new THREE.Color('#ffffff')
 const BOSS_EMISSIVE = new THREE.Color('#ff0000')
-const TELEGRAPH_COLOR = new THREE.Color('#ff6600')
 const BOSS_MODEL_SCALE = GAME_CONFIG.BOSS_SCALE_MULTIPLIER
 
 export default function BossRenderer() {
   const meshRef = useRef()
-  const telegraphRef = useRef()
   const spawnTimeRef = useRef(null)
   const spawnBurstTriggeredRef = useRef(false)
   const materialsRef = useRef([])
 
-  const { scene } = useGLTF('/models/enemies/SpaceshipBoss.glb')
+  const { scene } = useGLTF('./models/enemies/SpaceshipBoss.glb')
 
   // Clone scene and extract materials for hit-flash manipulation
   const clonedScene = useMemo(() => {
@@ -46,20 +44,6 @@ export default function BossRenderer() {
     }
   }, [])
 
-  const telegraphMaterial = useMemo(() => new THREE.MeshBasicMaterial({
-    color: TELEGRAPH_COLOR,
-    transparent: true,
-    opacity: 0,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-  }), [])
-
-  useEffect(() => {
-    return () => {
-      telegraphMaterial.dispose()
-    }
-  }, [telegraphMaterial])
-
   useFrame((state) => {
     const bossState = useBoss.getState()
     const { boss } = bossState
@@ -77,7 +61,6 @@ export default function BossRenderer() {
     if (bossState.bossDefeated) {
       if (bossState.defeatAnimationTimer <= 0) {
         meshRef.current.visible = false
-        if (telegraphRef.current) telegraphRef.current.visible = false
         return
       }
       meshRef.current.position.set(boss.x, 4, boss.z)
@@ -86,7 +69,6 @@ export default function BossRenderer() {
         m.emissive?.copy(BOSS_HIT_COLOR)
         if (m.emissiveIntensity !== undefined) m.emissiveIntensity = 2.0
       })
-      if (telegraphRef.current) telegraphRef.current.visible = false
       return
     }
 
@@ -130,20 +112,6 @@ export default function BossRenderer() {
       })
     }
 
-    // Telegraph visual
-    if (telegraphRef.current) {
-      if (boss.telegraphTimer > 0) {
-        const progress = 1 - (boss.telegraphTimer / GAME_CONFIG.BOSS_TELEGRAPH_DURATION)
-        telegraphRef.current.visible = true
-        telegraphRef.current.position.set(boss.x, 0.5, boss.z)
-        const ringScale = 5 + progress * 10
-        telegraphRef.current.scale.set(ringScale, ringScale, 1)
-        telegraphMaterial.opacity = 0.3 + progress * 0.4
-      } else {
-        telegraphRef.current.visible = false
-        telegraphMaterial.opacity = 0
-      }
-    }
   })
 
   const boss = useBoss((s) => s.boss)
@@ -166,12 +134,8 @@ export default function BossRenderer() {
         <primitive object={clonedScene} />
       </group>
 
-      {/* Telegraph ring (ground-level) */}
-      <mesh ref={telegraphRef} rotation={[-Math.PI / 2, 0, 0]} visible={false} material={telegraphMaterial}>
-        <ringGeometry args={[0.8, 1, 32]} />
-      </mesh>
     </group>
   )
 }
 
-useGLTF.preload('/models/enemies/SpaceshipBoss.glb')
+useGLTF.preload('./models/enemies/SpaceshipBoss.glb')

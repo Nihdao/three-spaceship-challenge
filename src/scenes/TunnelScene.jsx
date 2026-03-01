@@ -84,7 +84,7 @@ function TunnelShip() {
   const currentShipId = usePlayer.getState().currentShipId || 'BALANCED'
   const selectedSkinId = useShipProgression.getState().getSelectedSkin(currentShipId)
   const skinData = getSkinForShip(currentShipId, selectedSkinId)
-  const modelPath = skinData?.modelPath ?? '/models/ships/Spaceship.glb'
+  const modelPath = skinData?.modelPath ?? './models/ships/Spaceship.glb'
 
   const { scene } = useGLTF(modelPath)
   const clonedScene = useMemo(() => scene.clone(), [scene])
@@ -348,7 +348,7 @@ export default function TunnelScene() {
   )
 }
 
-useGLTF.preload('/models/ships/Spaceship.glb')
-useGLTF.preload('/models/ships/Spaceship_3.glb')
-useGLTF.preload('/models/ships/Spaceship_6.glb')
-useGLTF.preload('/models/ships/Spaceship_9.glb')
+useGLTF.preload('./models/ships/Spaceship.glb')
+useGLTF.preload('./models/ships/Spaceship_3.glb')
+useGLTF.preload('./models/ships/Spaceship_6.glb')
+useGLTF.preload('./models/ships/Spaceship_9.glb')

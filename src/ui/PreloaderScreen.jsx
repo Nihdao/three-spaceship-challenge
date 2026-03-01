@@ -14,8 +14,8 @@ const MESSAGES = [
 
 // Assets preloaded outside R3F (fills browser cache before Howler/img tags request them)
 const CUSTOM_ASSETS = [
-  '/audio/music/mainMenu.mp3',
-  '/assets/navi.png',
+  './audio/music/mainMenu.mp3',
+  './assets/navi.png',
 ]
 
 export default function PreloaderScreen() {

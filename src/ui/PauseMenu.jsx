@@ -305,9 +305,9 @@ export default function PauseMenu() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <StatLine label="HP"      value={`${Math.ceil(currentHP)} / ${maxHP}`}           icon={ShieldCrossIcon} mono />
               <StatLine label="Level"   value={String(currentLevel)}                             icon={StarIcon}        mono />
-              <StatLine label="Speed"   value={`${shipBaseSpeed} ×${speedMultiplier.toFixed(2)}`} icon={SpeedIcon}       mono />
+              <StatLine label="Speed"   value={`${shipBaseSpeed}`}                                icon={SpeedIcon}       mono />
               <StatLine label="Dmg"     value={`×${damageMultiplier.toFixed(2)}`}               icon={SwordIcon}       mono />
-              <StatLine label="CD"      value={`×${cooldownMultiplier.toFixed(2)}`}              icon={LightningIcon}   mono />
+              <StatLine label="Atk Spd" value={`×${(1 / cooldownMultiplier).toFixed(2)}`}        icon={LightningIcon}   mono />
               {critChance > 0 && <StatLine label="Crit"   value={`${Math.round(critChance * 100)}%`}     icon={LuckIcon}        mono />}
               {xpMultiplier !== 1 && <StatLine label="XP"     value={`×${xpMultiplier.toFixed(2)}`}          icon={StarIcon}        mono />}
               {fragmentMultiplier !== 1 && <StatLine label="Frags"  value={`×${fragmentMultiplier.toFixed(2)}`}  icon={FragmentIcon}    mono />}

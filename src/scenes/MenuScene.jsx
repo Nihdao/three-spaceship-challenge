@@ -29,7 +29,7 @@ const MENU_PLANETS = [
 // Task 2: MenuPlanet sub-component — each instance clones the GLB scene to avoid shared material conflicts
 function MenuPlanet({ planetConfig }) {
   const modelPath = ASSET_MANIFEST.tier2.models[planetConfig.modelKey]
-  const { scene } = useGLTF(`/${modelPath}`)
+  const { scene } = useGLTF(`./${modelPath}`)
   const clonedScene = useMemo(() => scene.clone(), [scene])
 
   const groupRef = useRef()
@@ -64,7 +64,7 @@ const PATROL_RADIUS = 15
 
 function PatrolShip() {
   const groupRef = useRef()
-  const { scene } = useGLTF('/models/ships/Spaceship.glb')
+  const { scene } = useGLTF('./models/ships/Spaceship.glb')
   const clonedScene = useMemo(() => scene.clone(), [scene])
 
   useFrame((state) => {
@@ -117,11 +117,11 @@ function MenuCamera() {
   return null
 }
 
-useGLTF.preload('/models/ships/Spaceship.glb')
+useGLTF.preload('./models/ships/Spaceship.glb')
 // Task 4: Preload the 3 planet GLBs (shares GLTF cache with PlanetRenderer.jsx)
-useGLTF.preload(`/${ASSET_MANIFEST.tier2.models.planetA}`)
-useGLTF.preload(`/${ASSET_MANIFEST.tier2.models.planetB}`)
-useGLTF.preload(`/${ASSET_MANIFEST.tier2.models.planetC}`)
+useGLTF.preload(`./${ASSET_MANIFEST.tier2.models.planetA}`)
+useGLTF.preload(`./${ASSET_MANIFEST.tier2.models.planetB}`)
+useGLTF.preload(`./${ASSET_MANIFEST.tier2.models.planetC}`)
 
 export default function MenuScene() {
   return (

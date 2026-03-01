@@ -38,7 +38,7 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.speed).toBe(17)
     expect(d.behavior).toBe('chase')
     expect(d.meshScale).toEqual([3, 3, 3])
-    expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying.glb')
+    expect(d.modelPath).toBe('./models/enemies/robot-enemy-flying.glb')
   })
 
   it('FODDER_TANK: hp=27, speed=12, behavior=chase, meshScale=[4,4,4]', () => {
@@ -47,7 +47,7 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.speed).toBe(12)
     expect(d.behavior).toBe('chase')
     expect(d.meshScale).toEqual([4, 4, 4])
-    expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying.glb')
+    expect(d.modelPath).toBe('./models/enemies/robot-enemy-flying.glb')
   })
 
   it('FODDER_SWARM: hp=6, speed=35, behavior=sweep, meshScale=[1.5,1.5,1.5]', () => {
@@ -56,7 +56,7 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.speed).toBe(35)
     expect(d.behavior).toBe('sweep')
     expect(d.meshScale).toEqual([1.5, 1.5, 1.5])
-    expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying.glb')
+    expect(d.modelPath).toBe('./models/enemies/robot-enemy-flying.glb')
   })
 
   it('SHOCKWAVE_BLOB: hp=10, speed=8, behavior=shockwave, meshScale=[2,2,2]', () => {
@@ -65,7 +65,7 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.speed).toBe(8)
     expect(d.behavior).toBe('shockwave')
     expect(d.meshScale).toEqual([2, 2, 2])
-    expect(d.modelPath).toBe('/models/enemies/enemy-blob.glb')
+    expect(d.modelPath).toBe('./models/enemies/enemy-blob.glb')
   })
 
   it('SNIPER_MOBILE: hp=17, speed=20, behavior=sniper_mobile, attackRange=40, attackCooldown=2', () => {
@@ -76,7 +76,7 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.attackRange).toBe(40)
     expect(d.attackCooldown).toBe(2)
     expect(d.meshScale).toEqual([3, 3, 3])
-    expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying-gun.glb')
+    expect(d.modelPath).toBe('./models/enemies/robot-enemy-flying-gun.glb')
   })
 
   it('SNIPER_FIXED: hp=7, speed=0, behavior=sniper_fixed, attackRange=60, attackCooldown=4, color=#ff3333', () => {
@@ -87,7 +87,7 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.attackRange).toBe(60)
     expect(d.attackCooldown).toBe(4)
     expect(d.meshScale).toEqual([3, 3, 3])
-    expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying-gun.glb')
+    expect(d.modelPath).toBe('./models/enemies/robot-enemy-flying-gun.glb')
     expect(d.color).toBe('#ff3333')
   })
 
@@ -98,13 +98,13 @@ describe('enemyDefs — AC#1: correct stats per enemy type', () => {
     expect(d.behavior).toBe('teleport')
     expect(d.teleportCooldown).toBe(5)
     expect(d.meshScale).toEqual([2.5, 2.5, 2.5])
-    expect(d.modelPath).toBe('/models/enemies/robot-enemy-flying.glb')
+    expect(d.modelPath).toBe('./models/enemies/robot-enemy-flying.glb')
   })
 })
 
 describe('enemyDefs — AC#2: correct model paths', () => {
   it('robot-enemy-flying.glb used for Types 1, 2, 3, 8', () => {
-    const robotModel = '/models/enemies/robot-enemy-flying.glb'
+    const robotModel = './models/enemies/robot-enemy-flying.glb'
     expect(ENEMIES.FODDER_BASIC.modelPath).toBe(robotModel)
     expect(ENEMIES.FODDER_TANK.modelPath).toBe(robotModel)
     expect(ENEMIES.FODDER_SWARM.modelPath).toBe(robotModel)
@@ -112,11 +112,11 @@ describe('enemyDefs — AC#2: correct model paths', () => {
   })
 
   it('enemy-blob.glb used for Type 4', () => {
-    expect(ENEMIES.SHOCKWAVE_BLOB.modelPath).toBe('/models/enemies/enemy-blob.glb')
+    expect(ENEMIES.SHOCKWAVE_BLOB.modelPath).toBe('./models/enemies/enemy-blob.glb')
   })
 
   it('robot-enemy-flying-gun.glb used for Types 6, 7', () => {
-    const gunModel = '/models/enemies/robot-enemy-flying-gun.glb'
+    const gunModel = './models/enemies/robot-enemy-flying-gun.glb'
     expect(ENEMIES.SNIPER_MOBILE.modelPath).toBe(gunModel)
     expect(ENEMIES.SNIPER_FIXED.modelPath).toBe(gunModel)
   })

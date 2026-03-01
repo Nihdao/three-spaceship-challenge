@@ -11,7 +11,7 @@ import { isPosDiscovered } from '../systems/fogSystem.js'
 function Planet({ planet }) {
   const def = PLANETS[planet.typeId]
   const modelPath = ASSET_MANIFEST.tier2.models[def.modelKey]
-  const { scene } = useGLTF(`/${modelPath}`)
+  const { scene } = useGLTF(`./${modelPath}`)
   const clonedMaterialsRef = useRef([])
   const clonedScene = useMemo(() => {
     const clonedMats = []
@@ -72,6 +72,6 @@ export default function PlanetRenderer() {
 }
 
 // Preload planet models
-useGLTF.preload(`/${ASSET_MANIFEST.tier2.models.planetA}`)
-useGLTF.preload(`/${ASSET_MANIFEST.tier2.models.planetB}`)
-useGLTF.preload(`/${ASSET_MANIFEST.tier2.models.planetC}`)
+useGLTF.preload(`./${ASSET_MANIFEST.tier2.models.planetA}`)
+useGLTF.preload(`./${ASSET_MANIFEST.tier2.models.planetB}`)
+useGLTF.preload(`./${ASSET_MANIFEST.tier2.models.planetC}`)

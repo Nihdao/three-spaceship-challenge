@@ -220,7 +220,6 @@ describe('Story 18.2 — System-Specific State Reset', () => {
 
       const state = useBoss.getState()
       expect(state.boss).toBeNull()
-      expect(state.bossProjectiles).toEqual([])
       expect(state.isActive).toBe(false)
       expect(state.bossDefeated).toBe(false)
     })
