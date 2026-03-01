@@ -112,17 +112,17 @@ export default function RareItemRenderer() {
     const sMat = shieldIconMat.current
     let magnetTex, bombTex, shieldTex
 
-    loadColoredSvgTexture('/assets/1x1/lorc/magnet.svg').then((tex) => {
+    loadColoredSvgTexture('./assets/1x1/lorc/magnet.svg').then((tex) => {
       magnetTex = tex
       mMat.map = tex
       mMat.needsUpdate = true
     })
-    loadColoredSvgTexture('/assets/1x1/lorc/sparky-bomb.svg').then((tex) => {
+    loadColoredSvgTexture('./assets/1x1/lorc/sparky-bomb.svg').then((tex) => {
       bombTex = tex
       bMat.map = tex
       bMat.needsUpdate = true
     })
-    loadColoredSvgTexture('/assets/1x1/lorc/energy-shield.svg').then((tex) => {
+    loadColoredSvgTexture('./assets/1x1/lorc/energy-shield.svg').then((tex) => {
       shieldTex = tex
       sMat.map = tex
       sMat.needsUpdate = true

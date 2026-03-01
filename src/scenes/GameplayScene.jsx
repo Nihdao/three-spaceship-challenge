@@ -23,7 +23,6 @@ import PlanetAuraRenderer from '../renderers/PlanetAuraRenderer.jsx'
 import WormholeRenderer from '../renderers/WormholeRenderer.jsx'
 import SystemEntryPortal from '../renderers/SystemEntryPortal.jsx'
 import BossRenderer from '../renderers/BossRenderer.jsx'
-import BossProjectileRenderer from '../renderers/BossProjectileRenderer.jsx'
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
@@ -49,7 +48,6 @@ function BossLayer() {
   return (
     <>
       <BossRenderer />
-      <BossProjectileRenderer />
     </>
   )
 }

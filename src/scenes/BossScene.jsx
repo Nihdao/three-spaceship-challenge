@@ -3,7 +3,7 @@ import PlayerShip from '../renderers/PlayerShip.jsx'
 import ProjectileRenderer from '../renderers/ProjectileRenderer.jsx'
 import ParticleRenderer from '../renderers/ParticleRenderer.jsx'
 import BossRenderer from '../renderers/BossRenderer.jsx'
-import BossProjectileRenderer from '../renderers/BossProjectileRenderer.jsx'
+
 import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
@@ -125,9 +125,6 @@ export default function BossScene() {
 
       {/* Boss */}
       <BossRenderer />
-
-      {/* Boss projectiles */}
-      <BossProjectileRenderer />
 
       {/* Death explosion particles */}
       <ParticleRenderer />

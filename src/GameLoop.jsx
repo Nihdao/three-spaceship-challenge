@@ -10,7 +10,7 @@ import useBoons from './stores/useBoons.jsx'
 import useBoss from './stores/useBoss.jsx'
 import useUpgrades from './stores/useUpgrades.jsx'
 import useArmory from './stores/useArmory.jsx'
-import { createCollisionSystem, segmentCircleIntersect, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_BOSS_PROJECTILE, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM, CATEGORY_FRAGMENT_GEM, CATEGORY_RARE_ITEM } from './systems/collisionSystem.js'
+import { createCollisionSystem, segmentCircleIntersect, CATEGORY_PLAYER, CATEGORY_ENEMY, CATEGORY_PROJECTILE, CATEGORY_XP_ORB, CATEGORY_BOSS, CATEGORY_SHOCKWAVE, CATEGORY_ENEMY_PROJECTILE, CATEGORY_HEAL_GEM, CATEGORY_FRAGMENT_GEM, CATEGORY_RARE_ITEM } from './systems/collisionSystem.js'
 import { createSpawnSystem } from './systems/spawnSystem.js'
 import { createProjectileSystem } from './systems/projectileSystem.js'
 import { createSeparationSystem } from './systems/separationSystem.js'
@@ -917,8 +917,8 @@ export default function GameLoop() {
             if (event.killed) {
               addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
               playSFX('explosion')
-              rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
-              _spawnEliteBonusOrbs(event.enemy.x, event.enemy.z, event.enemy.typeId)
+              if (ENEMIES[event.enemy.typeId]?.isElite) _spawnEliteDrops(event.enemy.x, event.enemy.z, event.enemy.typeId)
+              else rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
               _killsSw++
             }
           }
@@ -1041,8 +1041,8 @@ export default function GameLoop() {
             if (event.killed) {
               addExplosion(event.enemy.x, event.enemy.z, event.enemy.color)
               playSFX('explosion')
-              rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
-              _spawnEliteBonusOrbs(event.enemy.x, event.enemy.z, event.enemy.typeId)
+              if (ENEMIES[event.enemy.typeId]?.isElite) _spawnEliteDrops(event.enemy.x, event.enemy.z, event.enemy.typeId)
+              else rollDrops(event.enemy.typeId, event.enemy.x, event.enemy.z, event.enemy)
               _killsMine++
             }
           }
@@ -1432,29 +1432,17 @@ export default function GameLoop() {
       } else {
         // Boss AI tick
         const prevBossPhase = boss?.phase ?? 0
-        const bossProjCountBefore = bossState.bossProjectiles.length
         bossState.tick(clampedDelta, playerPos)
         // Re-read fresh state after tick — bossState is a stale snapshot and tick() calls set()
         const freshBossState = useBoss.getState()
         const newBossPhase = freshBossState.boss?.phase ?? 0
         if (newBossPhase > prevBossPhase) playSFX('boss-phase')
-        if (freshBossState.bossProjectiles.length > bossProjCountBefore) playSFX('boss-attack')
 
         // Register boss entities in collision system
         const bossIdx = idx
         if (boss && boss.hp > 0) {
           if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
           assignEntity(pool[idx], 'boss', boss.x, boss.z, GAME_CONFIG.BOSS_COLLISION_RADIUS, CATEGORY_BOSS)
-          cs.registerEntity(pool[idx++])
-        }
-
-        // Register boss projectiles — use fresh state to include projectiles spawned this tick
-        const bossProjectiles = freshBossState.bossProjectiles
-        const bossProjStartIdx = idx
-        for (let i = 0; i < bossProjectiles.length; i++) {
-          if (!pool[idx]) pool[idx] = { id: '', x: 0, z: 0, radius: 0, category: '' }
-          const bp = bossProjectiles[i]
-          assignEntity(pool[idx], bp.id, bp.x, bp.z, bp.radius, CATEGORY_BOSS_PROJECTILE)
           cs.registerEntity(pool[idx++])
         }
 
@@ -1497,30 +1485,9 @@ export default function GameLoop() {
           useWeapons.getState().cleanupInactive()
         }
 
-        // Boss projectiles vs player
-        const playerEntity = pool[0]
-        const bpHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS_PROJECTILE)
-        if (bpHits.length > 0) {
-          const pState = usePlayer.getState()
-          if (!pState.isInvulnerable && pState.contactDamageCooldown <= 0) {
-            let totalDamage = 0
-            const hitIds = new Set()
-            for (let i = 0; i < bpHits.length; i++) {
-              const hitBp = bossProjectiles.find(bp => bp.id === bpHits[i].id)
-              totalDamage += hitBp ? hitBp.damage : GAME_CONFIG.BOSS_PROJECTILE_DAMAGE
-              hitIds.add(bpHits[i].id)
-            }
-            if (totalDamage > 0) {
-              const armorReduced = Math.max(1, totalDamage - permanentArmor)
-              usePlayer.getState().takeDamage(armorReduced, boonModifiers.damageReduction ?? 0)
-              playSFX('damage-taken')
-            }
-            useBoss.setState({ bossProjectiles: bossProjectiles.filter(bp => !hitIds.has(bp.id)) })
-          }
-        }
-
         // Boss contact damage
         if (boss && boss.hp > 0) {
+          const playerEntity = pool[0]
           const contactHits = cs.queryCollisions(playerEntity, CATEGORY_BOSS)
           if (contactHits.length > 0) {
             const pState = usePlayer.getState()

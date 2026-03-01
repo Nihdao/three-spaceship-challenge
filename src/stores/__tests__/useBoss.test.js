@@ -13,8 +13,6 @@ describe('useBoss store', () => {
       expect(state.boss).toBeNull()
       expect(state.isActive).toBe(false)
       expect(state.bossDefeated).toBe(false)
-      expect(state.bossProjectiles).toEqual([])
-      expect(state.nextProjectileId).toBe(0)
     })
   })
 
@@ -29,14 +27,6 @@ describe('useBoss store', () => {
       expect(state.boss.hp).toBe(GAME_CONFIG.BOSS_BASE_HP)
       expect(state.boss.maxHp).toBe(GAME_CONFIG.BOSS_BASE_HP)
       expect(state.boss.phase).toBe(0)
-      expect(state.boss.attackCooldown).toBe(GAME_CONFIG.BOSS_ATTACK_COOLDOWN)
-      expect(state.boss.telegraphTimer).toBe(0)
-    })
-
-    it('clears boss projectiles on spawn', () => {
-      useBoss.getState().spawnBoss()
-      expect(useBoss.getState().bossProjectiles).toEqual([])
-      expect(useBoss.getState().bossDefeated).toBe(false)
     })
   })
 
@@ -81,37 +71,12 @@ describe('useBoss store', () => {
 
     it('does not move boss when close to player (within min distance)', () => {
       useBoss.getState().spawnBoss()
-      // Player at (5, 0, 5) — within 15 units
-      useBoss.getState().tick(1, [5, 0, 5])
+      // Player at (2, 0, 2) — within 5 units
+      useBoss.getState().tick(1, [2, 0, 2])
       const boss = useBoss.getState().boss
-      // Boss should not move toward player (dist ~7.07 < 15)
+      // Boss should not move toward player (dist ~2.83 < 5)
       expect(boss.x).toBe(0)
       expect(boss.z).toBe(0)
-    })
-
-    it('decrements attack cooldown each tick', () => {
-      useBoss.getState().spawnBoss()
-      const initialCooldown = useBoss.getState().boss.attackCooldown
-      useBoss.getState().tick(0.5, [100, 0, 100])
-      expect(useBoss.getState().boss.attackCooldown).toBeLessThan(initialCooldown)
-    })
-
-    it('starts telegraph when cooldown reaches 0', () => {
-      useBoss.getState().spawnBoss()
-      // Tick enough to exhaust cooldown
-      useBoss.getState().tick(GAME_CONFIG.BOSS_ATTACK_COOLDOWN, [100, 0, 100])
-      const boss = useBoss.getState().boss
-      expect(boss.telegraphTimer).toBe(GAME_CONFIG.BOSS_TELEGRAPH_DURATION)
-    })
-
-    it('fires projectiles when telegraph timer reaches 0', () => {
-      useBoss.getState().spawnBoss()
-      // Exhaust cooldown to start telegraph
-      useBoss.getState().tick(GAME_CONFIG.BOSS_ATTACK_COOLDOWN, [100, 0, 100])
-      expect(useBoss.getState().boss.telegraphTimer).toBeGreaterThan(0)
-      // Exhaust telegraph to fire
-      useBoss.getState().tick(GAME_CONFIG.BOSS_TELEGRAPH_DURATION, [100, 0, 100])
-      expect(useBoss.getState().bossProjectiles.length).toBeGreaterThan(0)
     })
 
     it('updates boss phase at HP thresholds', () => {
@@ -130,19 +95,6 @@ describe('useBoss store', () => {
       useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP * 0.25)
       useBoss.getState().tick(0.016, [100, 0, 100])
       expect(useBoss.getState().boss.phase).toBe(3)
-    })
-
-    it('moves boss projectiles and removes expired ones', () => {
-      useBoss.getState().spawnBoss()
-      // Exhaust cooldown + telegraph to get projectiles
-      useBoss.getState().tick(GAME_CONFIG.BOSS_ATTACK_COOLDOWN, [100, 0, 100])
-      useBoss.getState().tick(GAME_CONFIG.BOSS_TELEGRAPH_DURATION, [100, 0, 100])
-      const countBefore = useBoss.getState().bossProjectiles.length
-      expect(countBefore).toBeGreaterThan(0)
-
-      // Tick with large delta to expire projectiles (lifetime-based removal)
-      useBoss.getState().tick(20, [100, 0, 100])
-      expect(useBoss.getState().bossProjectiles.length).toBeLessThan(countBefore)
     })
 
     it('clamps boss position to arena boundaries', () => {
@@ -171,17 +123,6 @@ describe('useBoss store', () => {
       expect(state.bossDefeated).toBe(true)
       expect(state.defeatAnimationTimer).toBe(GAME_CONFIG.BOSS_DEFEAT_TRANSITION_DELAY)
       expect(state.defeatExplosionCount).toBe(0)
-    })
-
-    it('clears boss projectiles when boss is killed', () => {
-      useBoss.getState().spawnBoss()
-      // Generate some projectiles first
-      useBoss.getState().tick(GAME_CONFIG.BOSS_ATTACK_COOLDOWN, [100, 0, 100])
-      useBoss.getState().tick(GAME_CONFIG.BOSS_TELEGRAPH_DURATION, [100, 0, 100])
-      expect(useBoss.getState().bossProjectiles.length).toBeGreaterThan(0)
-      // Kill boss
-      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
-      expect(useBoss.getState().bossProjectiles).toEqual([])
     })
   })
 
@@ -298,7 +239,6 @@ describe('useBoss store', () => {
     })
 
     it('prevents duplicate boss rewards when animationComplete is true across multiple frames', () => {
-      // This test simulates the bug where animationComplete stays true after timer reaches 0
       useBoss.getState().spawnBoss()
       useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
 
@@ -323,16 +263,13 @@ describe('useBoss store', () => {
     it('clears all boss state', () => {
       useBoss.getState().spawnBoss()
       useBoss.getState().damageBoss(50)
-      useBoss.getState().tick(GAME_CONFIG.BOSS_ATTACK_COOLDOWN, [100, 0, 100])
-      useBoss.getState().tick(GAME_CONFIG.BOSS_TELEGRAPH_DURATION, [100, 0, 100])
+      useBoss.getState().tick(1, [100, 0, 100])
 
       useBoss.getState().reset()
       const state = useBoss.getState()
       expect(state.boss).toBeNull()
       expect(state.isActive).toBe(false)
       expect(state.bossDefeated).toBe(false)
-      expect(state.bossProjectiles).toEqual([])
-      expect(state.nextProjectileId).toBe(0)
     })
 
     it('clears defeat animation state', () => {

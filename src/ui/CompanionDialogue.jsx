@@ -27,7 +27,7 @@ function CompanionAvatar() {
   }
   return (
     <img
-      src="/assets/navi.png"
+      src="./assets/navi.png"
       alt={COMPANION.name}
       onError={() => setImgFailed(true)}
       style={{

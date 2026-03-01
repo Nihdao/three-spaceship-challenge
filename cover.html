@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redshift Survivor — Cover</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Rajdhani:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #060614; }
+    #canvas3d { position: fixed; inset: 0; z-index: 0; }
+
+    #overlay {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+
+    .title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 10vw, 8rem);
+      letter-spacing: 0.14em;
+      color: #f5f0e8;
+      line-height: 0.95;
+      text-align: center;
+      user-select: none;
+      text-shadow:
+        0 0 40px rgba(255, 79, 31, 0.3),
+        0 0 80px rgba(155, 93, 229, 0.15);
+    }
+
+    .accent-bar {
+      width: 48px; height: 3px;
+      background: #ff4f1f;
+      margin-top: 10px;
+      box-shadow: 0 0 12px rgba(255, 79, 31, 0.6);
+    }
+
+    .subtitle {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(0.6rem, 1.2vw, 0.85rem);
+      letter-spacing: 0.25em;
+      color: #7a6d8a;
+      margin-top: 1.2rem;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    /* Scanline overlay for gritty feel */
+    #scanlines {
+      position: fixed; inset: 0; z-index: 20;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+      );
+    }
+
+    /* Vignette */
+    #vignette {
+      position: fixed; inset: 0; z-index: 15;
+      pointer-events: none;
+      background: radial-gradient(
+        ellipse at center,
+        transparent 50%,
+        rgba(6, 6, 20, 0.7) 100%
+      );
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas3d"></canvas>
+
+  <div id="overlay">
+    <h1 class="title">REDSHIFT<br>SURVIVOR</h1>
+    <div class="accent-bar"></div>
+    <p class="subtitle">Arm up &middot; Scan planets &middot; Survive the void</p>
+  </div>
+
+  <div id="scanlines"></div>
+  <div id="vignette"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.174.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three'
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+
+    // --- Setup ---
+    const canvas = document.getElementById('canvas3d')
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setClearColor(0x060614)
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    renderer.toneMappingExposure = 1.1
+
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 500)
+    camera.position.set(0, 5, 18)
+    camera.lookAt(0, 0, 0)
+
+    // --- Lighting ---
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6))
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2)
+    dirLight.position.set(5, 10, 5)
+    scene.add(dirLight)
+
+    const purpleLight = new THREE.PointLight(0x9b5de5, 1.5, 80)
+    purpleLight.position.set(-30, 10, -30)
+    scene.add(purpleLight)
+
+    const orangeLight = new THREE.PointLight(0xff4f1f, 0.8, 60)
+    orangeLight.position.set(30, -5, 20)
+    scene.add(orangeLight)
+
+    const tealLight = new THREE.PointLight(0x00b4d8, 0.6, 50)
+    tealLight.position.set(0, 15, -10)
+    scene.add(tealLight)
+
+    // --- Starfield (3 layers) ---
+    function createStarfield(count, spread, size, color, opacity) {
+      const geo = new THREE.BufferGeometry()
+      const pos = new Float32Array(count * 3)
+      for (let i = 0; i < count; i++) {
+        pos[i * 3] = (Math.random() - 0.5) * spread
+        pos[i * 3 + 1] = (Math.random() - 0.5) * spread
+        pos[i * 3 + 2] = (Math.random() - 0.5) * spread
+      }
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+      const mat = new THREE.PointsMaterial({
+        size,
+        color,
+        transparent: true,
+        opacity,
+        sizeAttenuation: true,
+        depthWrite: false,
+      })
+      return new THREE.Points(geo, mat)
+    }
+
+    const stars1 = createStarfield(1500, 200, 0.15, 0xffffff, 0.6)
+    const stars2 = createStarfield(800, 150, 0.25, 0xaaaaff, 0.4)
+    const stars3 = createStarfield(400, 100, 0.4, 0xffdd66, 0.3)
+    scene.add(stars1, stars2, stars3)
+
+    // --- Nebula planes ---
+    function createNebula(color, position, scale, opacity) {
+      const canvas2d = document.createElement('canvas')
+      canvas2d.width = 256
+      canvas2d.height = 256
+      const ctx = canvas2d.getContext('2d')
+      const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+      gradient.addColorStop(0, `rgba(${color.join(',')}, ${opacity})`)
+      gradient.addColorStop(0.5, `rgba(${color.join(',')}, ${opacity * 0.3})`)
+      gradient.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, 256, 256)
+      const tex = new THREE.CanvasTexture(canvas2d)
+      const geo = new THREE.PlaneGeometry(scale, scale)
+      const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+      })
+      const mesh = new THREE.Mesh(geo, mat)
+      mesh.position.set(...position)
+      mesh.lookAt(camera.position)
+      return mesh
+    }
+
+    scene.add(createNebula([120, 60, 200], [-25, 8, -50], 60, 0.12))
+    scene.add(createNebula([200, 60, 80], [30, -10, -40], 45, 0.08))
+    scene.add(createNebula([40, 100, 180], [10, 15, -60], 70, 0.06))
+
+    // --- Load models ---
+    const loader = new GLTFLoader()
+    const models = {}
+
+    function loadModel(path) {
+      return new Promise((resolve) => {
+        loader.load(path, (gltf) => resolve(gltf.scene), undefined, () => resolve(null))
+      })
+    }
+
+    // Planet configs
+    const planetConfigs = [
+      { path: 'public/models/environment/PlanetA.glb', pos: [-28, -6, -35], scale: 4, rotSpeed: 0.015 },
+      { path: 'public/models/environment/PlanetB.glb', pos: [32, 10, -25], scale: 5, rotSpeed: 0.012 },
+      { path: 'public/models/environment/PlanetC.glb', pos: [8, -12, -45], scale: 3.5, rotSpeed: 0.02 },
+      { path: 'public/models/environment/PlanetA.glb', pos: [-22, 18, -50], scale: 2.5, rotSpeed: 0.018 },
+      { path: 'public/models/environment/PlanetB.glb', pos: [38, -8, -40], scale: 3, rotSpeed: 0.01 },
+    ]
+
+    const planets = []
+    const shipRef = { mesh: null }
+
+    async function init() {
+      // Load planets
+      for (const cfg of planetConfigs) {
+        const model = await loadModel(cfg.path)
+        if (model) {
+          const clone = model.clone()
+          clone.scale.setScalar(cfg.scale)
+          clone.position.set(...cfg.pos)
+          scene.add(clone)
+          planets.push({ mesh: clone, ...cfg })
+        }
+      }
+
+      // Load player ship
+      const shipModel = await loadModel('public/models/ships/Spaceship.glb')
+      if (shipModel) {
+        shipModel.scale.setScalar(1)
+        shipModel.position.set(0, -1, 5)
+        scene.add(shipModel)
+        shipRef.mesh = shipModel
+
+        // Ship point light
+        const shipLight = new THREE.PointLight(0xffffff, 1.2, 20, 2)
+        shipLight.position.set(0, 3, 0)
+        shipModel.add(shipLight)
+      }
+
+      // Start loop
+      animate()
+    }
+
+    // --- Animation ---
+    const clock = new THREE.Clock()
+
+    function animate() {
+      requestAnimationFrame(animate)
+      const t = clock.getElapsedTime()
+
+      // Camera breathing
+      const breathe = Math.sin(t * 0.08) * 1.5
+      camera.position.x = Math.sin(t * 0.03) * 3
+      camera.position.y = 5 + Math.sin(t * 0.06) * 0.8
+      camera.position.z = 18 + breathe
+      camera.lookAt(0, 0, 0)
+
+      // Rotate stars slowly
+      stars1.rotation.y = t * 0.003
+      stars2.rotation.y = -t * 0.005
+      stars3.rotation.x = t * 0.002
+
+      // Rotate planets
+      for (const p of planets) {
+        p.mesh.rotation.y += p.rotSpeed * 0.016 * 3
+        p.mesh.rotation.x += p.rotSpeed * 0.016 * 1.2
+      }
+
+      // Ship patrol (figure-8)
+      if (shipRef.mesh) {
+        const loopDuration = 50
+        const progress = (t % loopDuration) / loopDuration
+        const angle = progress * Math.PI * 2
+        const radius = 12
+
+        const x = Math.sin(angle) * radius * 0.4
+        const z = 5 + Math.cos(angle) * radius * 0.2
+        const y = -1 + Math.sin(angle * 2) * 1.5
+
+        shipRef.mesh.position.set(x, y, z)
+
+        // Face direction of travel
+        const nextAngle = angle + 0.05
+        const nextX = Math.sin(nextAngle) * radius * 0.4
+        const nextZ = 5 + Math.cos(nextAngle) * radius * 0.2
+        const nextY = -1 + Math.sin(nextAngle * 2) * 1.5
+        shipRef.mesh.lookAt(nextX, nextY, nextZ)
+
+        // Banking
+        shipRef.mesh.rotation.z = Math.cos(angle) * 0.2
+      }
+
+      renderer.render(scene, camera)
+    }
+
+    // --- Resize ---
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+    })
+
+    init()
+  </script>
+</body>
+</html>
