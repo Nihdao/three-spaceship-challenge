@@ -322,7 +322,8 @@ function TunnelCamera() {
         camera.fov = savedRef.current.fov
         camera.rotation.copy(savedRef.current.rotation)
         camera.updateProjectionMatrix()
-        scene.background = savedRef.current.background
+        // Don't restore scene.background — let the next scene's declarative
+        // <color attach="background"> take over to avoid race conditions
         gl.setClearColor(savedRef.current.clearColor, savedRef.current.clearAlpha)
       }
     }
