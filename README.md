@@ -1,76 +1,78 @@
-# 🐠 Aquarium In and Out
+# Redshift Survivor
 
-> **🏆 3rd Place Winner** of [Bruno Simon's 19th Three.js Journey Challenge](https://threejs-journey.com/challenges/019-aquarium) - Aquarium Theme
+A bullet-heaven roguelite set in space, built with React Three Fiber. Pilot your spaceship through procedurally-spawned enemy waves, collect XP, choose boons, and fight your way across a galaxy of systems and boss encounters.
 
-An immersive 3D aquarium experience where you can swim as a fish. Dive into a realistic underwater world with physics-based swimming and dynamic water effects.
+## Features
 
-## ✨ Features
+- Multiple playable ships with unique stats, starting weapons, and boon biases
+- Weapon upgrade system with per-weapon progression
+- Boon/rarity system with 40+ upgrades across 5 rarity tiers
+- Galaxy map with planet rewards, dilemmas, and warp transitions
+- Boss encounters with multi-phase behavior
+- XP curve, level-up modal, and persistent run stats
+- Companion dialogue and quest tracker systems
+- Full audio system (music + SFX) via Howler
+- Pause menu, game over, victory, and stats screens
+- Ship skins and cosmetic unlocks
 
-- 🐟 **Immersive Fish POV Camera** - Experience the aquarium from a fish's perspective
-- 🏊 **Physics-Based Swimming** - Realistic movement with React Three Rapier
-- 🤖 **NPC Fishes with Behavioral Patterns** - NPC fishes with autonomous behavior
-- 🌊 **Water Wave Post-Processing Effects** - Dynamic water surface with realistic waves
-- 📱 **Responsive Touch Controls** - Works seamlessly on desktop and mobile
-- 🎮 **Interactive Controls** - WASD/Arrow keys for movement, Space/C for vertical swimming
+## Tech Stack
 
-## 🛠️ Built With
+- **React Three Fiber / Three.js** — 3D rendering (R3F v9, Three.js r174)
+- **Zustand v5** — state management
+- **@react-three/drei** — helpers and utilities
+- **@react-three/rapier** — physics (used for select interactions)
+- **@react-three/postprocessing** — visual effects
+- **Tailwind CSS v4** — UI styling
+- **Howler** — audio engine
+- **Vite** — build tool
+- **Vitest** — unit testing
 
-- **React Three Fiber / Three.js** - 3D rendering engine
-- **React Three Drei** - Utilities and helpers
-- **React Three Rapier** - Physics simulation
-- **Zustand** - State management
-- **Leva** - Debug controls
-- **Vite** - Build tool and dev server
-
-## 🎨 3D Assets
-
-The project includes custom Blender `.glb` models:
-
-- **Fish Models** by Quaternius (ButterflyFish, Goldfish, MandarinFish)
-- **Aquarium Tank** - Custom modeled fish tank
-- **Environment Textures** - Baked lighting and materials
-
-## 🚀 Getting Started
+## Getting Started
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
+```
 
-# Build for production
+Build for production:
+
+```bash
 npm run build
 ```
 
-## 🎮 Controls
+Run tests:
 
-- **WASD / Arrow Keys** - Move forward/backward/left/right
-- **Space** - Swim up
-- **C** - Swim down
-- **Shift** - Swim faster
-- **Mouse** - Look around (when in first-person mode)
+```bash
+npm test
+```
 
-## 🐛 Debug Mode
+## Architecture
 
-Add `#debug` to the URL to access:
+The project follows a 6-layer architecture:
 
-- Performance monitoring
-- Physics collider visualization
-- Advanced controls and settings
+```
+Config/Data → Systems → Stores → GameLoop → Rendering → UI
+```
 
-## 🌊 Water Shader
+- `src/config/` — game constants and tuning values
+- `src/entities/` — data definitions (ships, enemies, weapons, boons, skins, galaxies…)
+- `src/systems/` — pure logic (spawning, projectiles, collision, XP, upgrades…)
+- `src/stores/` — Zustand stores (player, enemies, weapons, boss, boons…)
+- `src/GameLoop.jsx` — single deterministic tick driving all systems
+- `src/renderers/` — 3D visual components (ship, enemies, projectiles, VFX)
+- `src/ui/` — HTML overlay UI (HUD, menus, modals)
 
-Special thanks to [Dan Greenheck's threejs-water-shader](https://github.com/dgreenheck/threejs-water-shader) for the realistic water surface effects.
+## Controls
 
-## 👨‍💻 Author
+- **WASD / Arrow keys** — move
+- **Mouse** — aim
+- **Auto-fire** — weapons fire automatically
+- **ESC / P** — pause
 
-**Adam Alet** - [@nihdao](https://x.com/nihdao)
+## Author
 
-## 📄 License
+Adam Alet — [@nihdao](https://x.com/nihdao)
 
-This project is created for educational purposes as part of the Three.js Journey course.
+## License
 
----
-
-_Big kudos to the Three.js community for inspiration and support!_ 🎉
+MIT

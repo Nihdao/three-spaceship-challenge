@@ -1,5 +1,12 @@
 # OS files
 .DS_Store
+**/.DS_Store
+
+# Claude Code workspace
+.claude/
+
+# Build artifacts / release zips
+*.zip
 
 # Logs
 logs
