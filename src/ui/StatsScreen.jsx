@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { FragmentIcon } from './icons/index.jsx'
 import useGlobalStats from '../stores/useGlobalStats.jsx'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
@@ -154,7 +153,7 @@ export default function StatsScreen({ onClose }) {
                 <StatCard label="TOTAL RUNS" value={totalRuns.toLocaleString()} />
                 <StatCard label="ENEMIES KILLED" value={totalKills.toLocaleString()} />
                 <StatCard label="TIME SURVIVED" value={formatTime(totalTimeSurvived)} />
-                <StatCard label="FRAGMENTS EARNED" value={<><FragmentIcon size={18} color="var(--rs-violet)" style={{ verticalAlign: 'middle', marginRight: 4 }} />{totalFragments.toLocaleString()}</>} />
+                <StatCard label="FRAGMENTS EARNED" value={totalFragments.toLocaleString()} />
               </div>
             </section>
 

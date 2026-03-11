@@ -12,7 +12,7 @@ describe('SHIP_SKINS', () => {
       expect(SHIP_SKINS).toHaveProperty('TANK')
     })
 
-    it.each(SHIP_IDS)('%s has exactly 4 skins (default + ocean + specter + aurum)', (shipId) => {
+    it.each(SHIP_IDS)('%s has exactly 4 skins (default + lv3 + lv6 + lv9)', (shipId) => {
       expect(SHIP_SKINS[shipId]).toHaveLength(4)
     })
 
@@ -23,14 +23,12 @@ describe('SHIP_SKINS', () => {
       expect(first.emissiveTint).toBeNull()
     })
 
-    it.each(SHIP_IDS)('%s progression skins have correct requiredLevels (3, 6, 9)', (shipId) => {
-      const [, ocean, specter, aurum] = SHIP_SKINS[shipId]
-      expect(ocean.id).toBe('ocean')
-      expect(ocean.requiredLevel).toBe(3)
-      expect(specter.id).toBe('specter')
-      expect(specter.requiredLevel).toBe(6)
-      expect(aurum.id).toBe('aurum')
-      expect(aurum.requiredLevel).toBe(9)
+    it.each(SHIP_IDS)('%s progression skins have requiredLevels 3, 6, 9', (shipId) => {
+      const [, lv3, lv6, lv9] = SHIP_SKINS[shipId]
+      expect(lv3.requiredLevel).toBe(3)
+      expect(lv6.requiredLevel).toBe(6)
+      expect(lv9.requiredLevel).toBe(9)
+      // IDs are ship-specific, not validated here
     })
 
     it.each(SHIP_IDS)('%s progression skins each have a modelPath string', (shipId) => {
@@ -60,6 +58,66 @@ describe('SHIP_SKINS', () => {
       expect(unique.size).toBe(ids.length)
     })
   })
+
+  describe('GLASS_CANNON skin data', () => {
+    it('default skin is Ember (#cc5500)', () => {
+      const skin = SHIP_SKINS.GLASS_CANNON[0]
+      expect(skin.name).toBe('Ember')
+      expect(skin.tintColor).toBe('#cc5500')
+      expect(skin.modelPath).toBeNull()
+    })
+
+    it('lv3 skin is eclipse with SpaceshipB_3.glb', () => {
+      const skin = SHIP_SKINS.GLASS_CANNON[1]
+      expect(skin.id).toBe('eclipse')
+      expect(skin.modelPath).toBe('./models/ships/SpaceshipB_3.glb')
+      expect(skin.tintColor).toBe('#cc44bb')
+    })
+
+    it('lv6 skin is specter with SpaceshipB_6.glb', () => {
+      const skin = SHIP_SKINS.GLASS_CANNON[2]
+      expect(skin.id).toBe('specter')
+      expect(skin.modelPath).toBe('./models/ships/SpaceshipB_6.glb')
+      expect(skin.tintColor).toBe('#e0e0e0')
+    })
+
+    it('lv9 skin is aurum with SpaceshipB_9.glb', () => {
+      const skin = SHIP_SKINS.GLASS_CANNON[3]
+      expect(skin.id).toBe('aurum')
+      expect(skin.modelPath).toBe('./models/ships/SpaceshipB_9.glb')
+      expect(skin.tintColor).toBe('#ffd60a')
+    })
+  })
+
+  describe('TANK skin data', () => {
+    it('default skin is Glacial (#44aaff)', () => {
+      const skin = SHIP_SKINS.TANK[0]
+      expect(skin.name).toBe('Glacial')
+      expect(skin.tintColor).toBe('#44aaff')
+      expect(skin.modelPath).toBeNull()
+    })
+
+    it('lv3 skin is venom with SpaceshipC_3.glb', () => {
+      const skin = SHIP_SKINS.TANK[1]
+      expect(skin.id).toBe('venom')
+      expect(skin.modelPath).toBe('./models/ships/SpaceshipC_3.glb')
+      expect(skin.tintColor).toBe('#44cc44')
+    })
+
+    it('lv6 skin is specter with SpaceshipC_6.glb', () => {
+      const skin = SHIP_SKINS.TANK[2]
+      expect(skin.id).toBe('specter')
+      expect(skin.modelPath).toBe('./models/ships/SpaceshipC_6.glb')
+      expect(skin.tintColor).toBe('#e0e0e0')
+    })
+
+    it('lv9 skin is aurum with SpaceshipC_9.glb', () => {
+      const skin = SHIP_SKINS.TANK[3]
+      expect(skin.id).toBe('aurum')
+      expect(skin.modelPath).toBe('./models/ships/SpaceshipC_9.glb')
+      expect(skin.tintColor).toBe('#ffd60a')
+    })
+  })
 })
 
 describe('getSkinForShip', () => {
@@ -78,5 +136,20 @@ describe('getSkinForShip', () => {
   it('returns null for unknown ship ID', () => {
     const skin = getSkinForShip('UNKNOWN', 'default')
     expect(skin).toBeNull()
+  })
+
+  it('getSkinForShip GLASS_CANNON default returns Ember #cc5500', () => {
+    const skin = getSkinForShip('GLASS_CANNON', 'default')
+    expect(skin.id).toBe('default')
+    expect(skin.name).toBe('Ember')
+    expect(skin.tintColor).toBe('#cc5500')
+    expect(skin.modelPath).toBeNull()
+    expect(skin.emissiveTint).toBeNull()
+  })
+
+  it('getSkinForShip TANK venom returns SpaceshipC_3.glb #44cc44', () => {
+    const skin = getSkinForShip('TANK', 'venom')
+    expect(skin.modelPath).toBe('./models/ships/SpaceshipC_3.glb')
+    expect(skin.tintColor).toBe('#44cc44')
   })
 })

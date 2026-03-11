@@ -76,6 +76,7 @@ export function createSpawnSystem() {
       systemNum = 1,
       systemTimer = GAME_CONFIG.SYSTEM_TIMER,
       systemScaling = null,
+      chaosSpawnMult = 1.0, // Story 52.2: chaos galaxy spawn rate multiplier (1.0 = no-op)
     } = options
 
     elapsedTime += delta
@@ -89,7 +90,7 @@ export function createSpawnSystem() {
       const initEffectiveBase = Math.max(0, GAME_CONFIG.SPAWN_INTERVAL_BASE - GAME_CONFIG.SPAWN_RAMP_RATE * elapsedTime)
       spawnTimer = Math.max(
         GAME_CONFIG.SPAWN_INTERVAL_MIN,
-        initEffectiveBase / (initPhase.spawnRateMultiplier * (1.0 + initCurseBonus)),
+        initEffectiveBase / (initPhase.spawnRateMultiplier * (1.0 + initCurseBonus) * chaosSpawnMult),
       )
     }
 
@@ -104,8 +105,9 @@ export function createSpawnSystem() {
       const angle = Math.random() * Math.PI * 2
       const dist = GAME_CONFIG.SPAWN_DISTANCE_MIN + Math.random() * (GAME_CONFIG.SPAWN_DISTANCE_MAX - GAME_CONFIG.SPAWN_DISTANCE_MIN)
       const bound = GAME_CONFIG.PLAY_AREA_SIZE
+      const eliteTypeId = Math.random() < 0.5 ? 'ELITE_BRUISER' : 'ELITE_SHOOTER'
       instructions.push({
-        typeId: 'ELITE_BRUISER',
+        typeId: eliteTypeId,
         x: Math.max(-bound, Math.min(bound, playerX + Math.cos(angle) * dist)),
         z: Math.max(-bound, Math.min(bound, playerZ + Math.sin(angle) * dist)),
         scaling: {
@@ -133,9 +135,10 @@ export function createSpawnSystem() {
     // Story 23.1: Phase-based interval — higher spawnRateMultiplier = shorter interval = more enemies
     // Story 28.4: SPAWN_RAMP_RATE decays the effective base over elapsed time for progressively faster spawning
     const effectiveBase = Math.max(0, GAME_CONFIG.SPAWN_INTERVAL_BASE - GAME_CONFIG.SPAWN_RAMP_RATE * elapsedTime)
+    // Story 52.2: chaosSpawnMult increases spawn frequency (divides interval)
     const interval = Math.max(
       GAME_CONFIG.SPAWN_INTERVAL_MIN,
-      effectiveBase / (phase.spawnRateMultiplier * curseMultiplier),
+      effectiveBase / (phase.spawnRateMultiplier * curseMultiplier * chaosSpawnMult),
     )
     spawnTimer = interval
 

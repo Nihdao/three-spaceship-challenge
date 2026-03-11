@@ -12,6 +12,7 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
 import { PLANETS } from '../entities/planetDefs.js'
+import { getGalaxyById } from '../entities/galaxyDefs.js'
 import ProgressBar from './primitives/ProgressBar.jsx'
 import RectangularHPBar from './primitives/RectangularHPBar.jsx'
 import XPBarFullWidth from './XPBarFullWidth.jsx'
@@ -519,6 +520,31 @@ function MinimapPanel() {
   )
 }
 
+// --- SystemLabel sub-component (Story 48.1: system name + galaxy label under minimap) ---
+
+function SystemLabel() {
+  const currentSystem = useLevel((s) => s.currentSystem)
+  const currentSystemName = useLevel((s) => s.currentSystemName)
+  const selectedGalaxyId = useGame((s) => s.selectedGalaxyId)
+  const galaxy = selectedGalaxyId ? getGalaxyById(selectedGalaxyId) : null
+  const galaxyName = galaxy ? galaxy.name.toUpperCase() : null
+
+  if (!currentSystemName) return null
+
+  return (
+    <div style={{ fontFamily: "'Rajdhani', sans-serif", fontSize: 'clamp(10px, 1vw, 13px)', lineHeight: 1.3, textAlign: 'right' }}>
+      <div style={{ color: 'var(--rs-text)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+        {currentSystemName} ({currentSystem}/{GAME_CONFIG.MAX_SYSTEMS})
+      </div>
+      {galaxyName && (
+        <div style={{ color: 'var(--rs-text-muted)', fontWeight: 600 }}>
+          {galaxyName}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // --- DamageFlashOverlay sub-component (Story 41.4 fix: isolates 60Hz damageFlashTimer from parent HUD) ---
 // damageFlashTimer decrements every frame during a hit flash (~500ms). Extracted so only this tiny
 // component re-renders at high frequency, not the entire HUD.
@@ -538,6 +564,47 @@ function DamageFlashOverlay() {
         background: 'var(--rs-danger)',
       }}
     />
+  )
+}
+
+// --- ShieldGauge sub-component (Story 49.5 — isolated selector, no parent HUD re-render coupling) ---
+function ShieldGauge() {
+  const shieldTimer = usePlayer((s) => s.shieldTimer)
+  if (shieldTimer <= 0) return null
+
+  const pct = Math.min(1, shieldTimer / GAME_CONFIG.SHIELD_ITEM_DURATION)
+  const isExpiring = shieldTimer < 1.5
+
+  return (
+    <div style={{
+      width: 'clamp(120px, 12vw, 180px)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '2px',
+      animation: isExpiring ? 'shieldExpiring 300ms ease-in-out infinite alternate' : 'none',
+    }}>
+      <span style={{
+        fontFamily: "'Rajdhani', sans-serif",
+        fontSize: 'clamp(9px, 0.9vw, 11px)',
+        fontWeight: 700,
+        color: '#00aaff',
+        letterSpacing: '0.1em',
+      }}>SHIELD</span>
+      <div style={{
+        width: '100%',
+        height: 'clamp(4px, 0.5vw, 6px)',
+        backgroundColor: 'rgba(0, 170, 255, 0.15)',
+        border: '1px solid rgba(0, 170, 255, 0.4)',
+      }}>
+        <div style={{
+          width: `${pct * 100}%`,
+          height: '100%',
+          backgroundColor: '#00aaff',
+          boxShadow: '0 0 6px rgba(0, 170, 255, 0.8)',
+          transition: 'width 100ms linear',
+        }} />
+      </div>
+    </div>
   )
 }
 
@@ -636,6 +703,9 @@ export default function HUD() {
           {/* HP Bar — top-left (Story 20.8: Rectangular HP bar with text inside) */}
           <RectangularHPBar value={currentHP} max={maxHP} pulse={hpPulse} />
 
+          {/* Shield Gauge — extracted sub-component, isolated selector (Story 49.5) */}
+          <ShieldGauge />
+
           {/* Stats cluster: Kills | Fragments | Score (Story 10.2) */}
           <div className="flex items-center gap-3">
             <AnimatedStat value={kills} icon={SkullIcon} label="kills" style={{ color: 'var(--rs-danger)' }} />
@@ -681,14 +751,16 @@ export default function HUD() {
 
         {/* Right column: Level + Minimap */}
         <div className="flex items-start gap-3">
-          {/* Level display (Story 10.2) */}
-          <div className="flex items-center" aria-label="level">
+          {/* Left sub-column: LVL X + SystemLabel — ferré à droite, sous LVL X (Story 48.1) */}
+          <div className="flex flex-col items-end gap-1">
             <span
               className="font-bold tabular-nums"
+              aria-label="level"
               style={{ fontSize: 'clamp(14px, 1.5vw, 20px)', color: 'var(--rs-text)' }}
             >
               LVL {currentLevel}
             </span>
+            <SystemLabel />
           </div>
 
           {/* Minimap + QuestTracker stacked (Story 35.4) */}

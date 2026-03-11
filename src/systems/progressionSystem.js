@@ -2,10 +2,28 @@ import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
 import { rollRarity, getRarityTier } from './raritySystem.js'
 import { rollUpgrade } from './upgradeSystem.js'
+import { GAME_CONFIG } from '../config/gameConfig.js'
+
+/**
+ * Compute time bonus points from seconds remaining at victory.
+ * Each started minute awards TIME_BONUS_PER_MINUTE points (ceiling).
+ */
+export function computeTimeBonus(remainingSeconds) {
+  if (remainingSeconds <= 0) return 0
+  return Math.ceil(remainingSeconds / 60) * GAME_CONFIG.TIME_BONUS_PER_MINUTE
+}
 
 const MAX_WEAPON_SLOTS = 4
 const MAX_BOON_SLOTS = 3
 const MAX_WEAPON_LEVEL = 9
+
+// Pool of concrete stat boosts used as fallback padding when all weapons/boons are maxed (Story 48.5)
+const STAT_BOOST_POOL = [
+  { statType: 'hp_max',   statValue: 8,    name: 'Max HP +8',     description: 'Increases max HP by 8 points' },
+  { statType: 'damage',   statValue: 0.04, name: 'Damage +4%',    description: 'Increases damage output by 4%' },
+  { statType: 'speed',    statValue: 0.2,  name: 'Speed +0.2',    description: 'Increases ship speed by 0.2' },
+  { statType: 'cooldown', statValue: 0.05, name: 'Atk Speed +5%', description: 'Reduces weapon cooldown by 5%' },
+]
 
 // Fisher-Yates shuffle (in-place)
 function shuffle(arr) {
@@ -16,6 +34,21 @@ function shuffle(arr) {
     arr[j] = tmp
   }
   return arr
+}
+
+// Weighted random pick from upgrade/boon candidates — preferred boons get 2× weight (Story 50.4)
+function pickWeightedUpgrade(candidates, preferredBoonIds) {
+  const totalWeight = candidates.reduce((sum, c) => {
+    const isBoon = c.type === 'new_boon' || c.type === 'boon_upgrade'
+    return sum + (isBoon && preferredBoonIds.includes(c.id) ? 2 : 1)
+  }, 0)
+  let r = Math.random() * totalWeight
+  for (const candidate of candidates) {
+    const isBoon = candidate.type === 'new_boon' || candidate.type === 'boon_upgrade'
+    r -= (isBoon && preferredBoonIds.includes(candidate.id) ? 2 : 1)
+    if (r <= 0) return candidate
+  }
+  return candidates[candidates.length - 1]
 }
 
 // Weighted random pick from new-weapon candidates — internal helper, not exported (Story 31.3)
@@ -41,7 +74,7 @@ function pickWeightedWeapon(candidates) {
  * @param {number} [luckStat] - Combined luck stat for rarity roll (Story 22.3)
  * @returns {Array<{type: string, id: string, name: string, description: string, level: number|null, icon: string|null, statPreview: string|null, rarity: string, rarityColor: string, rarityName: string, rarityMultiplier: number}>}
  */
-export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0) {
+export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0, preferredBoonIds = []) {
   const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
 
   // P4: probability of 4th choice (Story 31.3 AC#1)
@@ -73,16 +106,18 @@ export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, 
     const wantUpgrade = Math.random() < P_upgrade
 
     if (wantUpgrade && availableUpgrades.length > 0) {
-      const idx = Math.floor(Math.random() * availableUpgrades.length)
-      choices.push(availableUpgrades.splice(idx, 1)[0])
+      const picked = pickWeightedUpgrade(availableUpgrades, preferredBoonIds)
+      availableUpgrades = availableUpgrades.filter(c => c !== picked)
+      choices.push(picked)
     } else if (!wantUpgrade && availableNewWeapons.length > 0) {
       const picked = pickWeightedWeapon(availableNewWeapons)
       availableNewWeapons = availableNewWeapons.filter(c => c !== picked)
       choices.push(picked)
     } else if (availableUpgrades.length > 0) {
       // Fallback: wanted new weapon but pool empty
-      const idx = Math.floor(Math.random() * availableUpgrades.length)
-      choices.push(availableUpgrades.splice(idx, 1)[0])
+      const picked = pickWeightedUpgrade(availableUpgrades, preferredBoonIds)
+      availableUpgrades = availableUpgrades.filter(c => c !== picked)
+      choices.push(picked)
     } else if (availableNewWeapons.length > 0) {
       // Fallback: upgradePool exhausted, pick new weapon instead
       const picked = pickWeightedWeapon(availableNewWeapons)
@@ -93,16 +128,41 @@ export function generateChoices(currentLevel, equippedWeapons, equippedBoonIds, 
     }
   }
 
-  // Pad with stat_boost only in extreme edge case (all maxed)
-  while (choices.length < Math.min(3, effectiveCount)) {
+  // Pad with named choices in extreme edge case (all maxed) — Story 48.5
+  if (choices.length < Math.min(3, effectiveCount)) {
+    const entry = STAT_BOOST_POOL[Math.floor(Math.random() * STAT_BOOST_POOL.length)]
     choices.push({
       type: 'stat_boost',
+      statType: entry.statType,
+      statValue: entry.statValue,
       id: `stat_boost_${choices.length}`,
-      name: 'Stat Boost',
-      description: 'Minor stat improvement',
+      name: entry.name,
+      description: entry.description,
+      statPreview: entry.description,
       level: null,
       icon: null,
-      statPreview: null,
+    })
+  }
+  if (choices.length < Math.min(3, effectiveCount)) {
+    choices.push({
+      type: 'fragment_bonus',
+      id: 'fragment_bonus',
+      name: 'Fragment Boost',
+      description: '+30 Fragments — permanent currency for the run',
+      statPreview: '+30 Fragments',
+      level: null,
+      icon: null,
+    })
+  }
+  if (choices.length < Math.min(3, effectiveCount)) {
+    choices.push({
+      type: 'heal_bonus',
+      id: 'heal_bonus',
+      name: 'Emergency Repair',
+      description: 'Restore 25 HP (capped at max HP)',
+      statPreview: '+25 HP',
+      level: null,
+      icon: null,
     })
   }
 
@@ -204,8 +264,8 @@ function buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banished
  */
 function applyRarityToChoices(choices, luckStat) {
   return choices.map(choice => {
-    // stat_boost choices don't get rarity (no meaningful scaling)
-    if (choice.type === 'stat_boost') {
+    // stat_boost / fragment_bonus / heal_bonus choices don't get rarity (Story 48.5)
+    if (choice.type === 'stat_boost' || choice.type === 'fragment_bonus' || choice.type === 'heal_bonus') {
       return { ...choice, rarity: 'COMMON', rarityColor: '#ffffff', rarityName: 'Common', rarityMultiplier: 1.0 }
     }
 
@@ -288,7 +348,7 @@ function applyRarityToBoonPreview(choice, rarityTier) {
  * Returns same format as generateChoices() for UI compatibility.
  * Tiers: 'standard' (silver/2 choices), 'rare' (gold/3 choices), 'legendary' (platinum/3+P4 choices).
  */
-export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0) {
+export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons = [], banishedItems = [], luckStat = 0, preferredBoonIds = []) {
   const pool = buildFullPool(equippedWeapons, equippedBoonIds, equippedBoons, banishedItems)
 
   let count, effectiveLuck
@@ -322,32 +382,65 @@ export function generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equ
 
   shuffle(filtered)
 
-  // Legendary: guarantee at least one new_weapon or new_boon if available (AC: #5)
+  // Pad if pool too small (edge case: all maxed) — Story 48.5
+  if (filtered.length < count) {
+    const entry = STAT_BOOST_POOL[Math.floor(Math.random() * STAT_BOOST_POOL.length)]
+    filtered.push({
+      type: 'stat_boost',
+      statType: entry.statType,
+      statValue: entry.statValue,
+      id: `stat_boost_${filtered.length}`,
+      name: entry.name,
+      description: entry.description,
+      statPreview: entry.description,
+      level: null,
+      icon: null,
+    })
+  }
+  if (filtered.length < count) {
+    filtered.push({
+      type: 'fragment_bonus',
+      id: 'fragment_bonus',
+      name: 'Fragment Boost',
+      description: '+30 Fragments — permanent currency for the run',
+      statPreview: '+30 Fragments',
+      level: null,
+      icon: null,
+    })
+  }
+  if (filtered.length < count) {
+    filtered.push({
+      type: 'heal_bonus',
+      id: 'heal_bonus',
+      name: 'Emergency Repair',
+      description: 'Restore 25 HP (capped at max HP)',
+      statPreview: '+25 HP',
+      level: null,
+      icon: null,
+    })
+  }
+
+  // Weighted slot-by-slot pick (Story 50.4: preferred boons get 2× weight)
+  const picks = []
+  let remaining = [...filtered]
+  for (let i = 0; i < count && remaining.length > 0; i++) {
+    const picked = pickWeightedUpgrade(remaining, preferredBoonIds)
+    picks.push(picked)
+    remaining = remaining.filter(c => c !== picked)
+  }
+
+  // Legendary: guarantee at least one new_weapon or new_boon if available — post-pick check (MEDIUM-2 fix)
   if (tier === 'legendary') {
-    const topSlice = filtered.slice(0, count)
-    const hasNew = topSlice.some(c => c.type === 'new_weapon' || c.type === 'new_boon')
+    const hasNew = picks.some(c => c.type === 'new_weapon' || c.type === 'new_boon')
     if (!hasNew) {
-      const newItem = filtered.find(c => c.type === 'new_weapon' || c.type === 'new_boon')
+      const newItem = remaining.find(c => c.type === 'new_weapon' || c.type === 'new_boon')
       if (newItem) {
-        filtered = [newItem, ...filtered.filter(c => c !== newItem)]
+        picks[picks.length - 1] = newItem
       }
     }
   }
 
-  // Pad if pool too small (edge case: all maxed)
-  while (filtered.length < count) {
-    filtered.push({
-      type: 'stat_boost',
-      id: `stat_boost_${filtered.length}`,
-      name: 'Stat Boost',
-      description: 'Minor stat improvement',
-      level: null,
-      icon: null,
-      statPreview: null,
-    })
-  }
-
-  const result = applyRarityToChoices(filtered.slice(0, count), effectiveLuck)
+  const result = applyRarityToChoices(picks, effectiveLuck)
 
   // Legendary (platinum): guaranteed RARE+ enforcement (AC: #4)
   if (tier === 'legendary') {

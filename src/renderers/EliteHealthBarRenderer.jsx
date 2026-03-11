@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import useEnemies from '../stores/useEnemies.jsx'
+import { ENEMIES } from '../entities/enemyDefs.js'
 import useGame from '../stores/useGame.jsx'
 import { project3DToScreen } from '../systems/damageNumberSystem.js'
 
@@ -82,7 +83,7 @@ export default function EliteHealthBarRenderer() {
       wrapper.appendChild(label)
       wrapper.appendChild(track)
       container.appendChild(wrapper)
-      barsRef.current[i] = { wrapper, fill }
+      barsRef.current[i] = { wrapper, fill, label, track }
     }
 
     return () => {
@@ -109,7 +110,7 @@ export default function EliteHealthBarRenderer() {
     let barIdx = 0
     for (let i = 0; i < enemies.length && barIdx < MAX_BARS; i++) {
       const e = enemies[i]
-      if (e.typeId !== 'ELITE_BRUISER') continue
+      if (!ENEMIES[e.typeId]?.isElite) continue
 
       const bar = bars[barIdx]
       if (!bar) { barIdx++; continue }
@@ -118,11 +119,19 @@ export default function EliteHealthBarRenderer() {
       const { x: sx, y: sy } = project3DToScreen(_tmpV, camera, canvas)
 
       const hpFrac = Math.max(0, e.hp / e.maxHp)
+      const def = ENEMIES[e.typeId]
+      const eliteColor = def?.color ?? '#ff2200'
 
       bar.wrapper.style.display = 'flex'
       bar.wrapper.style.left = `${sx}px`
       bar.wrapper.style.top = `${sy}px`
       bar.fill.style.width = `${hpFrac * 100}%`
+      bar.fill.style.background = eliteColor
+      bar.fill.style.boxShadow = `0 0 4px ${eliteColor}99`
+      bar.label.textContent = def?.name?.toUpperCase() ?? 'ELITE'
+      bar.label.style.color = eliteColor
+      bar.label.style.textShadow = `0 0 6px ${eliteColor}cc`
+      bar.track.style.borderColor = `${eliteColor}66`
 
       barIdx++
     }

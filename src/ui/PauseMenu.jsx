@@ -12,6 +12,17 @@ import StatLine from './primitives/StatLine.jsx'
 import { ShieldCrossIcon, ClockIcon, SkullIcon, StarIcon, FragmentIcon, SpeedIcon, SwordIcon, RerollIcon, SkipIcon, BanishIcon, LightningIcon, LuckIcon, MagnetIcon } from './icons/index.jsx'
 import OptionsModal from './modals/OptionsModal.jsx'
 
+// --- Colored icon wrappers (module-scope to avoid re-creation on render) ---
+const HPStatIcon      = () => <ShieldCrossIcon size={14} color="var(--rs-hp)" />
+const LvlStatIcon     = () => <StarIcon        size={14} color="var(--rs-gold)" />
+const SpdStatIcon     = () => <SpeedIcon       size={14} color="var(--rs-teal)" />
+const DmgStatIcon     = () => <SwordIcon       size={14} color="var(--rs-orange)" />
+const AtkSpdStatIcon  = () => <LightningIcon   size={14} color="var(--rs-orange)" />
+const CritStatIcon    = () => <LuckIcon        size={14} color="var(--rs-gold)" />
+const XPStatIcon      = () => <StarIcon        size={14} color="var(--rs-gold)" />
+const FragStatIcon    = () => <FragmentIcon    size={14} color="var(--rs-violet)" />
+const MagnetStatIcon  = () => <MagnetIcon      size={14} color="var(--rs-violet)" />
+
 // --- Exported logic helpers (testable without DOM) ---
 
 export function shouldShowPauseMenu(phase, isPaused) {
@@ -55,11 +66,15 @@ export function getPlayerStats() {
   }
 }
 
+export function computeRunTime(totalElapsedTime, systemTimer) {
+  return totalElapsedTime + systemTimer
+}
+
 export function getRunStats() {
   const game = useGame.getState()
   const player = usePlayer.getState()
   return {
-    totalElapsedTime: game.totalElapsedTime,
+    totalElapsedTime: computeRunTime(game.totalElapsedTime, game.systemTimer),
     kills: game.kills,
     score: game.score,
     currentLevel: player.currentLevel,
@@ -87,6 +102,7 @@ export default function PauseMenu() {
   const kills = useGame((s) => s.kills)
   const score = useGame((s) => s.score)
   const totalElapsedTime = useGame((s) => s.totalElapsedTime)
+  const systemTimer = useGame((s) => s.systemTimer)
 
   const activeWeapons = useWeapons((s) => s.activeWeapons)
   const activeBoons = useBoons((s) => s.activeBoons)
@@ -292,7 +308,7 @@ export default function PauseMenu() {
             {/* RUN STATS */}
             <p style={sectionTitleStyle}>RUN STATS</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-              <StatLine label="Time"      value={formatTimer(totalElapsedTime)} icon={ClockIcon}     mono />
+              <StatLine label="Time"      value={formatTimer(computeRunTime(totalElapsedTime, systemTimer))} icon={ClockIcon}     mono />
               <StatLine label="Kills"     value={kills.toLocaleString('en-US')}  icon={SkullIcon}    mono />
               <StatLine label="Score"     value={score.toLocaleString('en-US')}  icon={StarIcon}     mono />
               <StatLine label="Fragments" value={fragments.toLocaleString('en-US')} icon={FragmentIcon} mono />
@@ -303,15 +319,15 @@ export default function PauseMenu() {
             {/* PLAYER STATS */}
             <p style={sectionTitleStyle}>PLAYER STATS</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <StatLine label="HP"      value={`${Math.ceil(currentHP)} / ${maxHP}`}           icon={ShieldCrossIcon} mono />
-              <StatLine label="Level"   value={String(currentLevel)}                             icon={StarIcon}        mono />
-              <StatLine label="Speed"   value={`${shipBaseSpeed}`}                                icon={SpeedIcon}       mono />
-              <StatLine label="Dmg"     value={`×${damageMultiplier.toFixed(2)}`}               icon={SwordIcon}       mono />
-              <StatLine label="Atk Spd" value={`×${(1 / cooldownMultiplier).toFixed(2)}`}        icon={LightningIcon}   mono />
-              {critChance > 0 && <StatLine label="Crit"   value={`${Math.round(critChance * 100)}%`}     icon={LuckIcon}        mono />}
-              {xpMultiplier !== 1 && <StatLine label="XP"     value={`×${xpMultiplier.toFixed(2)}`}          icon={StarIcon}        mono />}
-              {fragmentMultiplier !== 1 && <StatLine label="Frags"  value={`×${fragmentMultiplier.toFixed(2)}`}  icon={FragmentIcon}    mono />}
-              {pickupRadiusMultiplier !== 1 && <StatLine label="Magnet" value={`×${pickupRadiusMultiplier.toFixed(2)}`} icon={MagnetIcon}      mono />}
+              <StatLine label="HP"      value={`${Math.ceil(currentHP)} / ${maxHP}`}                                                                   icon={HPStatIcon}     mono />
+              <StatLine label="Level"   value={String(currentLevel)}                                                                                         icon={LvlStatIcon}    mono />
+              <StatLine label="Speed"   value={`${shipBaseSpeed}`}                                                                                           icon={SpdStatIcon}    mono />
+              <StatLine label="Dmg"     value={damageMultiplier >= 1.0 ? `+${((damageMultiplier - 1.0) * 100).toFixed(0)}%` : '+0%'}                        icon={DmgStatIcon}    mono />
+              <StatLine label="Atk Spd" value={cooldownMultiplier < 1.0 ? `+${((1.0 - cooldownMultiplier) * 100).toFixed(0)}%` : '+0%'}                    icon={AtkSpdStatIcon} mono />
+              {critChance > 0 && <StatLine label="Crit"   value={`+${Math.round(critChance * 100)}%`}                                                       icon={CritStatIcon}   mono />}
+              {xpMultiplier > 1 && <StatLine label="XP"   value={`+${((xpMultiplier - 1.0) * 100).toFixed(0)}%`}                                           icon={XPStatIcon}     mono />}
+              {fragmentMultiplier > 1 && <StatLine label="Frags" value={`+${((fragmentMultiplier - 1.0) * 100).toFixed(0)}%`}                               icon={FragStatIcon}   mono />}
+              {pickupRadiusMultiplier > 1 && <StatLine label="Magnet" value={`+${((pickupRadiusMultiplier - 1.0) * 100).toFixed(0)}%`}                      icon={MagnetStatIcon} mono />}
               {rerollCharges > 0 && <StatLine label="Rerolls"  value={String(rerollCharges)}  icon={RerollIcon} mono />}
               {skipCharges   > 0 && <StatLine label="Skips"    value={String(skipCharges)}    icon={SkipIcon}   mono />}
               {banishCharges > 0 && <StatLine label="Banishes" value={String(banishCharges)}  icon={BanishIcon} mono />}

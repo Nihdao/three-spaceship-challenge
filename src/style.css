@@ -100,6 +100,11 @@
   to { opacity: 0; }
 }
 
+@keyframes shieldExpiring {
+  from { opacity: 1; }
+  to   { opacity: 0.3; }
+}
+
 .hp-float-text {
   animation: hpFloatUp 800ms ease-out forwards;
   pointer-events: none;
@@ -261,6 +266,14 @@ body,
 
 .animate-companion-fade-out {
   animation: companionFadeOut 0.25s ease-in forwards;
+}
+
+/* Utilities */
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Edge, Safari */
 }
 
 .system-name-banner-subtitle {

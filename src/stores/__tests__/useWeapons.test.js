@@ -18,7 +18,7 @@ describe('useWeapons store', () => {
   })
 
   it('should initialize with LASER_FRONT in slot 0', () => {
-    useWeapons.getState().initializeWeapons()
+    useWeapons.getState().initializeWeapons('BALANCED')
     const state = useWeapons.getState()
 
     expect(state.activeWeapons.length).toBe(1)
@@ -26,6 +26,22 @@ describe('useWeapons store', () => {
     expect(state.activeWeapons[0].level).toBe(1)
     expect(state.activeWeapons[0].cooldownTimer).toBe(0)
     expect(state.projectiles).toEqual([])
+  })
+
+  it('should initialize with BEAM for GLASS_CANNON', () => {
+    useWeapons.getState().initializeWeapons('GLASS_CANNON')
+    const state = useWeapons.getState()
+
+    expect(state.activeWeapons.length).toBe(1)
+    expect(state.activeWeapons[0].weaponId).toBe('BEAM')
+  })
+
+  it('should initialize with AURA for TANK', () => {
+    useWeapons.getState().initializeWeapons('TANK')
+    const state = useWeapons.getState()
+
+    expect(state.activeWeapons.length).toBe(1)
+    expect(state.activeWeapons[0].weaponId).toBe('AURA')
   })
 
   it('should fire projectile when cooldown expires (timer starts at 0)', () => {

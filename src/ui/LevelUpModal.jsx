@@ -6,7 +6,16 @@ import useBoons from '../stores/useBoons.jsx'
 import useArmory from '../stores/useArmory.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { generateChoices } from '../systems/progressionSystem.js'
+import { SHIPS } from '../entities/shipDefs.js'
 import { playSFX } from '../audio/audioManager.js'
+import StatLine from './primitives/StatLine.jsx'
+import { ShieldCrossIcon, SwordIcon, SpeedIcon, StarIcon, LightningIcon } from './icons/index.jsx'
+
+const HPIconColor     = () => <ShieldCrossIcon size={14} color="var(--rs-hp)" />
+const DmgIconColor    = () => <SwordIcon       size={14} color="var(--rs-orange)" />
+const SpdIconColor    = () => <SpeedIcon       size={14} color="var(--rs-teal)" />
+const LvlIconColor    = () => <StarIcon        size={14} color="var(--rs-gold)" />
+const AtkSpdIconColor = () => <LightningIcon   size={14} color="var(--rs-orange)" />
 
 function getChoiceAccentColor(type) {
   if (type === 'new_weapon' || type === 'weapon_upgrade') return 'var(--rs-teal)'
@@ -28,7 +37,8 @@ export default function LevelUpModal() {
   const shipBaseSpeed = usePlayer(s => s.shipBaseSpeed)
   const activeWeaponsCount = useWeapons(s => s.activeWeapons.length)
   const activeBoonsCount = useBoons(s => s.activeBoons.length)
-  const damageMultiplier = useBoons(s => s.modifiers.damageMultiplier ?? 1)
+  const damageMultiplier = useBoons(s => s.modifiers?.damageMultiplier ?? 1)
+  const cooldownMultiplier = useBoons(s => s.modifiers?.cooldownMultiplier ?? 1)
 
   // Shared helper: get current equipped state and generate choices
   const buildChoices = useCallback((banishedItems) => {
@@ -60,7 +70,8 @@ export default function LevelUpModal() {
     const equippedBoons = useBoons.getState().getEquippedBoons()
     // Story 22.3: Include luck stat for rarity roll (boon luckBonus + ship + permanent)
     const luckStat = (usePlayer.getState().getLuckStat?.() ?? 0) + (boonModifiers.luckBonus ?? 0)
-    return generateChoices(level, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat)
+    const preferredBoonIds = SHIPS[playerState.currentShipId]?.preferredBoonIds ?? []
+    return generateChoices(level, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat, preferredBoonIds)
   }, [])
 
   // Generate choices on mount
@@ -84,6 +95,12 @@ export default function LevelUpModal() {
     } else if (choice.type === 'boon_upgrade') {
       useBoons.getState().upgradeBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
+    } else if (choice.type === 'stat_boost') {
+      usePlayer.getState().applyStatBoost(choice.statType, choice.statValue)
+    } else if (choice.type === 'fragment_bonus') {
+      usePlayer.getState().addFragments(30)
+    } else if (choice.type === 'heal_bonus') {
+      usePlayer.getState().healFromGem(25)
     }
     useGame.getState().resumeGameplay()
   }, [])
@@ -141,7 +158,7 @@ export default function LevelUpModal() {
 
   const handleCardClick = useCallback((choice, index) => {
     if (banishMode) {
-      if (choice.type === 'stat_boost') return // stat boosts can't be banished
+      if (choice.type === 'stat_boost' || choice.type === 'fragment_bonus' || choice.type === 'heal_bonus') return
       setBanishMode(false)
       handleBanish(choice, index)
     } else {
@@ -178,21 +195,15 @@ export default function LevelUpModal() {
             Current Build
           </p>
 
-          {[
-            ['HP',    `${Math.round(currentHP)} / ${Math.round(maxHP)}`],
-            ['Level', currentLevel],
-            ['Speed', shipBaseSpeed.toFixed(2)],
-            ['Damage Mult', `×${damageMultiplier.toFixed(2)}`],
-          ].map(([label, value]) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 14, color: 'var(--rs-text-muted)', fontFamily: "'Rajdhani', sans-serif", fontWeight: 600 }}>
-                {label}
-              </span>
-              <span style={{ fontSize: 14, fontFamily: "'Space Mono', monospace", color: '#e8e8f0' }}>
-                {value}
-              </span>
-            </div>
-          ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <StatLine compact label="HP"     value={`${Math.round(currentHP)} / ${Math.round(maxHP)}`} icon={HPIconColor} />
+            <StatLine compact label="LEVEL"  value={String(currentLevel)} icon={LvlIconColor} />
+            <StatLine compact label="SPEED"  value={shipBaseSpeed.toFixed(1)} icon={SpdIconColor} />
+            <StatLine compact label="DAMAGE" value={damageMultiplier >= 1.0 ? `+${((damageMultiplier - 1.0) * 100).toFixed(0)}%` : '+0%'} icon={DmgIconColor} />
+            {cooldownMultiplier < 1.0 && (
+              <StatLine compact label="ATK SPD" value={`+${((1.0 - cooldownMultiplier) * 100).toFixed(0)}%`} icon={AtkSpdIconColor} />
+            )}
+          </div>
 
           <p style={{ fontSize: 13, color: 'var(--rs-text-dim)', marginTop: 6, fontFamily: "'Space Mono', monospace" }}>
             Weapons: {activeWeaponsCount} · Boons: {activeBoonsCount}
@@ -272,7 +283,7 @@ export default function LevelUpModal() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {choices.map((choice, i) => {
               const accentColor = getChoiceAccentColor(choice.type)
-              const isBanishable = choice.type !== 'stat_boost'
+              const isBanishable = choice.type !== 'stat_boost' && choice.type !== 'fragment_bonus' && choice.type !== 'heal_bonus'
               const cardBorderColor = banishMode
                 ? (isBanishable ? 'var(--rs-danger)' : 'var(--rs-border)')
                 : accentColor
@@ -301,11 +312,23 @@ export default function LevelUpModal() {
                   }}
                   onClick={() => handleCardClick(choice, i)}
                 >
-                  {/* Top row: level/NEW + shortcut or BANISH label */}
+                  {/* Top row: level/NEW + rarity badge or BANISH label */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                     <span className="text-sm" style={{ color: choice.level ? 'var(--rs-text-muted)' : accentColor, fontWeight: choice.level ? undefined : 700 }}>
                       {choice.level ? `Lv${choice.level}` : 'NEW'}
                     </span>
+                    {!banishMode && isBanishable && choice.rarity !== 'COMMON' && (
+                      <span style={{
+                        marginLeft: 'auto',
+                        fontFamily: "'Space Mono', monospace",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: choice.rarityColor,
+                        letterSpacing: '0.08em',
+                      }}>
+                        {choice.rarityName}
+                      </span>
+                    )}
                     {banishMode && isBanishable && (
                       <span style={{
                         marginLeft: 'auto',
@@ -320,9 +343,22 @@ export default function LevelUpModal() {
                   </div>
 
                   <h3 className="font-semibold text-sm" style={{ color: 'var(--rs-text)' }}>{choice.name}</h3>
-                  <p className="text-sm mt-0.5" style={{ color: 'var(--rs-text-muted)' }}>
-                    {choice.statPreview ?? choice.description}
-                  </p>
+                  {choice.type === 'new_weapon' ? (
+                    <>
+                      <p className="text-sm mt-0.5" style={{ color: 'var(--rs-text-muted)' }}>
+                        {choice.description || choice.name}
+                      </p>
+                      {choice.statPreview && (
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--rs-text-dim)', fontFamily: "'Space Mono', monospace" }}>
+                          {choice.statPreview}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--rs-text-muted)' }}>
+                      {choice.statPreview ?? choice.description}
+                    </p>
+                  )}
                 </div>
               )
             })}

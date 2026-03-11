@@ -1,10 +1,11 @@
 export const GAME_CONFIG = {
   // Debug (Story 11.5, Story 18.4)
-  DEBUG_CONSOLE_ENABLED: window.location.hash.includes('debug'),
+  DEBUG_CONSOLE_ENABLED: typeof window !== 'undefined' && window.location.hash.includes('debug'),
   DEBUG_TRANSITIONS: false, // Story 18.4: Enable detailed system transition logging
 
   // System
   SYSTEM_TIMER: 600, // 10 minutes in seconds
+  TIME_BONUS_PER_MINUTE: 10000, // points awarded per full (or partial) minute remaining at victory
 
   // Player
   PLAYER_BASE_HP: 100,
@@ -93,9 +94,9 @@ export const GAME_CONFIG = {
   BOMB_ITEM_BOSS_DAMAGE_PERCENT: 0.25,
 
   // Progression — Story 11.2: Rebalanced for faster early-mid game progression
-  // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~30% growth per level from level 6+
-  // Early levels (1-5): -20-30% from original, Mid/Late levels (6+): ~30% growth rate
-  XP_GROWTH_RATE: 1.02, // Per-level XP growth rate for levels beyond XP_LEVEL_CURVE (Story 14.3)
+  // Design goals: Level 5 in 2-3 min, level 7-8 in 5-7 min, ~18-20% growth per level from level 8+
+  // Early levels (1-5): -20-30% from original, Mid levels (6-7): ~30% growth, High levels (8+): ~18-20% growth (Story 48.4)
+  XP_GROWTH_RATE: 1.02, // Per-level XP growth rate for levels beyond XP_LEVEL_CURVE (Story 14.3) — intentionally near-flat (2%/level) for very high levels (15+), aspirational design
   XP_LEVEL_CURVE: [
     75, // Level 1 → 2 (-25% from 100)
     110, // Level 2 → 3 (-27% from 150)
@@ -104,13 +105,13 @@ export const GAME_CONFIG = {
     375, // Level 5 → 6 (-26% from 510)
     525, // Level 6 → 7 (~30% growth)
     700, // Level 7 → 8 (~30% growth)
-    910, // Level 8 → 9 (~30% growth)
-    1180, // Level 9 → 10 (~30% growth)
-    1535, // Level 10 → 11 (~30% growth)
-    2000, // Level 11 → 12 (~30% growth)
-    2600, // Level 12 → 13 (~30% growth)
-    3380, // Level 13 → 14 (~30% growth)
-    4400, // Level 14 → 15 (~30% growth, aspirational)
+    850, // Level 8 → 9 (~18-20% growth, Story 48.4)
+    1000, // Level 9 → 10 (~17.6% growth, Story 48.4)
+    1200, // Level 10 → 11 (~18-20% growth, Story 48.4)
+    1450, // Level 11 → 12 (~18-20% growth, Story 48.4)
+    1750, // Level 12 → 13 (~18-20% growth, Story 48.4)
+    2150, // Level 13 → 14 (~18-20% growth, Story 48.4)
+    2650, // Level 14 → 15 (~18-20% growth, Story 48.4)
   ],
 
   // Player movement (Story 1.2, tuned Story 14.2 for organic feel, re-tuned Story 21.3 for dual-stick)
@@ -234,7 +235,7 @@ export const GAME_CONFIG = {
 
   // Boss (Story 6.2, Story 22.4: HP Sponge Overhaul)
   BOSS_HP: 500, // DEPRECATED: Legacy boss HP (Story 6.2), replaced by BOSS_BASE_HP
-  BOSS_ARENA_SIZE: 400,
+  BOSS_ARENA_SIZE: 650,
   BOSS_MOVE_SPEED: 30,
   BOSS_COLLISION_RADIUS: 5,
   BOSS_CONTACT_DAMAGE: 20,
@@ -249,7 +250,7 @@ export const GAME_CONFIG = {
   BOSS_NAME: "TITAN CRUISER",
 
   // Boss Overhaul (Story 22.4)
-  BOSS_BASE_HP: 1500, // Base HP for boss in System 1 (scales with system difficulty)
+  BOSS_BASE_HP: 7500, // Base HP for boss in System 1 (scales with system difficulty)
   BOSS_SCALE_MULTIPLIER: 4, // Boss model size multiplier (4x regular enemy)
   BOSS_LOOT_FRAGMENTS: 150, // Guaranteed Fragment drop count on boss defeat
   BOSS_LOOT_XP_MULTIPLIER: 1, // XP reward multiplier on boss defeat
@@ -266,7 +267,7 @@ export const GAME_CONFIG = {
   BOSS_SPAWN: {
     SPAWN_SCALE_DURATION: 0.6, // Story 17.6: Reduced from 1.2 for faster boss appearance
     SPAWN_OFFSET_FROM_WORMHOLE: 0, // spawn at wormhole position
-    BOSS_PLAY_AREA_SIZE: 400, // constrain boss movement within smaller zone centered on origin
+    BOSS_PLAY_AREA_SIZE: 400, // dead relic from old BossScene (epic 17) — not referenced in active code
   },
 
   // Wormhole inactive state (Story 17.4)
@@ -455,6 +456,7 @@ export const GAME_CONFIG = {
   REVIVAL_ENEMY_PUSHBACK_RADIUS: 5, // world units
   REVIVAL_ENEMY_PUSHBACK_FORCE: 3, // impulse strength
   REVIVAL_FLASH_RATE: 8, // flashes per second for visual feedback
+  SHIELD_FLASH_RATE: 4, // flashes per second for shield visual feedback (slower than REVIVAL_FLASH_RATE=8)
 
   // Damage Numbers (Story 27.1 + 27.5)
   DAMAGE_NUMBERS: {

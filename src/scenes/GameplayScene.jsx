@@ -27,6 +27,8 @@ import { usePlayerCamera } from '../hooks/usePlayerCamera.jsx'
 import { useHybridControls } from '../hooks/useHybridControls.jsx'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 import useBoss from '../stores/useBoss.jsx'
+import useGame from '../stores/useGame.jsx'
+import { getGalaxyById } from '../entities/galaxyDefs.js'
 
 function CameraRig() {
   usePlayerCamera()
@@ -53,16 +55,21 @@ function BossLayer() {
 }
 
 export default function GameplayScene() {
+  const selectedGalaxyId = useGame((s) => s.selectedGalaxyId)
+  const isChaos = getGalaxyById(selectedGalaxyId)?.backgroundTheme === 'chaos'
+  const bgColor = isChaos ? '#1c0008' : _bgColor
+  const fogColor = isChaos ? '#2a000e' : _fog.color
+
   return (
     <>
       <Controls />
       <CameraRig />
 
       {/* Scene background color (Story 24.2) */}
-      <color attach="background" args={[_bgColor]} />
+      <color attach="background" args={[bgColor]} />
 
       {/* Ambient fog for atmospheric depth (Story 15.3) */}
-      {_fog.enabled && <fogExp2 attach="fog" args={[_fog.color, _fog.density]} />}
+      {_fog.enabled && <fogExp2 attach="fog" args={[fogColor, _fog.density]} />}
 
       {/* Lighting */}
       <ambientLight intensity={0.35} />

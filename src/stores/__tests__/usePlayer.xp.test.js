@@ -94,15 +94,15 @@ describe('usePlayer — XP & level system', () => {
       usePlayer.getState().addXP(xpToLevel14)
       expect(usePlayer.getState().currentLevel).toBe(14)
 
-      // Level 14→15 requires curve[13] = 4400
-      usePlayer.getState().addXP(4400)
+      // Level 14→15 requires curve[13] = 2650 (Story 48.4: new value)
+      usePlayer.getState().addXP(2650)
       expect(usePlayer.getState().currentLevel).toBe(15)
-      expect(usePlayer.getState().xpToNextLevel).toBe(4488) // 4400 * 1.02
+      expect(usePlayer.getState().xpToNextLevel).toBe(2703) // 2650 * 1.02
 
-      // Level 15→16 requires 4488
-      usePlayer.getState().addXP(4488)
+      // Level 15→16 requires 2703
+      usePlayer.getState().addXP(2703)
       expect(usePlayer.getState().currentLevel).toBe(16)
-      expect(usePlayer.getState().xpToNextLevel).toBe(4577) // 4400 * 1.02^2
+      expect(usePlayer.getState().xpToNextLevel).toBe(2757) // 2650 * 1.02^2
     })
 
     it('handles massive XP gain skipping many levels', () => {
@@ -206,6 +206,45 @@ describe('usePlayer — XP & level system', () => {
       usePlayer.getState().addXP(GAME_CONFIG.XP_LEVEL_CURVE[3])
       expect(usePlayer.getState().levelsGainedThisBatch).toBe(1) // fresh batch
       expect(usePlayer.getState().pendingLevelUps).toBe(1)
+    })
+  })
+
+  describe('galaxy xpMultiplier', () => {
+    // GameLoop applies galaxyXpMult before calling addXP:
+    //   addXP(Math.floor(totalXP * xpMult)) where xpMult includes galaxyXpMult: 2.0
+    // These tests simulate that by passing doubled values directly to addXP.
+
+    it('level-up triggers at doubled XP threshold', () => {
+      const threshold = GAME_CONFIG.XP_LEVEL_CURVE[0] // e.g. 100
+      const doubledThreshold = Math.floor(threshold * 2.0) // 200
+      usePlayer.getState().addXP(doubledThreshold)
+      const state = usePlayer.getState()
+      expect(state.currentLevel).toBe(2)
+      expect(state.pendingLevelUps).toBe(1)
+    })
+
+    it('overflow XP is correctly carried over when using doubled values', () => {
+      const threshold = GAME_CONFIG.XP_LEVEL_CURVE[0] // e.g. 100
+      // Simulate: raw orb = 60 XP, galaxyXpMult = 2.0 → GameLoop calls addXP(120)
+      // 120 crosses level 2 threshold (100), leaving 20 overflow — well below level 3 threshold
+      const doubled = Math.floor(60 * 2.0) // 120
+      usePlayer.getState().addXP(doubled)
+      const state = usePlayer.getState()
+      expect(state.currentLevel).toBe(2)
+      expect(state.currentXP).toBe(doubled - threshold) // 120 - 100 = 20
+    })
+
+    it('multi-level skip works correctly with doubled values', () => {
+      const totalToLevel3 = GAME_CONFIG.XP_LEVEL_CURVE[0] + GAME_CONFIG.XP_LEVEL_CURVE[1]
+      // Simulate: orb XP doubled by galaxyXpMult=2.0 in GameLoop before addXP call
+      // 2× the XP needed for level 3 pushes past level 3 into level 4
+      const doubled = Math.floor(totalToLevel3 * 2.0)
+      usePlayer.getState().addXP(doubled)
+      const state = usePlayer.getState()
+      const totalToLevel4 = GAME_CONFIG.XP_LEVEL_CURVE[0] + GAME_CONFIG.XP_LEVEL_CURVE[1] + GAME_CONFIG.XP_LEVEL_CURVE[2]
+      expect(state.currentLevel).toBe(4) // crosses thresholds for levels 2, 3, 4
+      expect(state.currentXP).toBe(doubled - totalToLevel4) // overflow after level 4
+      expect(state.pendingLevelUps).toBe(3)
     })
   })
 

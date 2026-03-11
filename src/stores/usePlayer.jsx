@@ -413,6 +413,24 @@ const usePlayer = create((set, get) => ({
     return actualHealed
   },
 
+  applyStatBoost: (statType, value) => {
+    set(state => {
+      if (statType === 'hp_max') {
+        return { maxHP: state.maxHP + value, currentHP: state.currentHP + value }
+      }
+      if (statType === 'damage') {
+        return { upgradeStats: { ...state.upgradeStats, damageMult: state.upgradeStats.damageMult * (1 + value) } }
+      }
+      if (statType === 'speed') {
+        return { shipBaseSpeed: state.shipBaseSpeed + value }
+      }
+      if (statType === 'cooldown') {
+        return { upgradeStats: { ...state.upgradeStats, cooldownMult: state.upgradeStats.cooldownMult * (1 - value) } }
+      }
+      return {}
+    })
+  },
+
   applyPermanentUpgrade: (upgradeId) => {
     const upgrade = UPGRADES[upgradeId]
     if (!upgrade) return false

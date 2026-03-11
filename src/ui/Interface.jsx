@@ -29,6 +29,7 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 export default function Interface() {
   const phase = useGame((s) => s.phase)
   const isBossActive = useBoss((s) => s.isActive)
+
   useAudio()
 
   // Story 30.3: Contextual event subscriptions

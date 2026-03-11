@@ -2,7 +2,8 @@
 // Skins lv3/6/9 use dedicated GLB files (colours baked into mesh materials).
 // modelPath: null = use the ship's default modelPath from shipDefs.js
 // tintColor: used only for the swatch button display colour in the UI.
-// Skin structure: { id, name, requiredLevel, modelPath, tintColor, emissiveTint, unlockMessage }
+// Skin structure: { id, name, requiredLevel, modelPath, tintColor, unlockMessage, emissiveTint? }
+// emissiveTint is only present on default skins (null). Progression skins (lv3/6/9) omit this field.
 
 const PROGRESSION_SKINS = [
   {
@@ -47,26 +48,72 @@ export const SHIP_SKINS = {
   GLASS_CANNON: [
     {
       id: 'default',
-      name: 'Standard',
+      name: 'Ember',
       requiredLevel: 1,
       modelPath: null,
-      tintColor: '#9b4dca',
+      tintColor: '#cc5500',
       emissiveTint: null,
       unlockMessage: 'Default appearance',
     },
-    ...PROGRESSION_SKINS,
+    {
+      id: 'eclipse',
+      name: 'Eclipse',
+      requiredLevel: 3,
+      modelPath: './models/ships/SpaceshipB_3.glb',
+      tintColor: '#cc44bb',
+      unlockMessage: 'Unlocked at Level 3',
+    },
+    {
+      id: 'specter',
+      name: 'Specter',
+      requiredLevel: 6,
+      modelPath: './models/ships/SpaceshipB_6.glb',
+      tintColor: '#e0e0e0',
+      unlockMessage: 'Unlocked at Level 6',
+    },
+    {
+      id: 'aurum',
+      name: 'Aurum',
+      requiredLevel: 9,
+      modelPath: './models/ships/SpaceshipB_9.glb',
+      tintColor: '#ffd60a',
+      unlockMessage: 'Unlocked at Level 9',
+    },
   ],
   TANK: [
     {
       id: 'default',
-      name: 'Standard',
+      name: 'Glacial',
       requiredLevel: 1,
       modelPath: null,
-      tintColor: '#9b4dca',
+      tintColor: '#44aaff',
       emissiveTint: null,
       unlockMessage: 'Default appearance',
     },
-    ...PROGRESSION_SKINS,
+    {
+      id: 'venom',
+      name: 'Venom',
+      requiredLevel: 3,
+      modelPath: './models/ships/SpaceshipC_3.glb',
+      tintColor: '#44cc44',
+      unlockMessage: 'Unlocked at Level 3',
+    },
+    {
+      id: 'specter',
+      name: 'Specter',
+      requiredLevel: 6,
+      modelPath: './models/ships/SpaceshipC_6.glb',
+      tintColor: '#e0e0e0',
+      unlockMessage: 'Unlocked at Level 6',
+    },
+    {
+      id: 'aurum',
+      name: 'Aurum',
+      requiredLevel: 9,
+      modelPath: './models/ships/SpaceshipC_9.glb',
+      tintColor: '#ffd60a',
+      unlockMessage: 'Unlocked at Level 9',
+    },
   ],
 }
 

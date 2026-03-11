@@ -63,6 +63,16 @@ const S = {
     display: 'flex',
     flexDirection: 'column',
   },
+  leftPanel: {
+    width: '288px',
+    flexShrink: 0,
+    background: 'var(--rs-bg-surface)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
   galaxyNameLabel: {
     fontSize: '1.5rem',
     fontFamily: 'Bebas Neue, sans-serif',
@@ -157,7 +167,7 @@ export default function GalaxyChoice() {
       <div className="flex gap-6 w-full h-full max-w-5xl p-8 pt-20">
 
         {/* LEFT: Galaxy List */}
-        <div className="w-72 flex flex-col">
+        <div style={S.leftPanel}>
           <div style={{ marginBottom: '16px' }}>
             <h2 style={S.title}>SELECT GALAXY</h2>
             <div style={S.titleAccent} />
@@ -173,7 +183,7 @@ export default function GalaxyChoice() {
                   style={{
                     ...S.galaxyCard,
                     ...(isSelected ? S.galaxyCardSelected : {}),
-                    borderLeft: `3px solid ${galaxy.colorTheme}`,
+                    borderLeft: '3px solid var(--rs-orange)',
                   }}
                   onMouseEnter={(e) => {
                     playSFX('button-hover')
@@ -193,13 +203,31 @@ export default function GalaxyChoice() {
                   <div className="flex-1 min-w-0">
                     <p
                       className="text-sm font-bold tracking-wide"
-                      style={{ color: isSelected ? galaxy.colorTheme : 'var(--rs-text)' }}
+                      style={{ color: isSelected ? 'var(--rs-orange)' : 'var(--rs-text)' }}
                     >
                       {galaxy.name}
                     </p>
                     <p className="text-[11px] mt-0.5 leading-snug" style={{ color: 'var(--rs-text-muted)' }}>
                       {galaxy.description}
                     </p>
+                    {galaxy.difficulty != null && (
+                      <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              display: 'inline-block',
+                              width: '6px',
+                              height: '6px',
+                              borderRadius: '1px',
+                              backgroundColor: i < galaxy.difficulty
+                                ? galaxy.colorTheme
+                                : 'rgba(255,255,255,0.12)',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </button>
               )
@@ -211,20 +239,45 @@ export default function GalaxyChoice() {
         <div style={S.detailPanel} className="flex-1 flex flex-col">
           {/* Galaxy Name */}
           <div className="flex items-baseline justify-between mb-2">
-            <h3 style={{ ...S.galaxyNameLabel, color: selectedGalaxy.colorTheme }}>
+            <h3 style={{ ...S.galaxyNameLabel, color: 'var(--rs-orange)' }}>
               {selectedGalaxy.name.toUpperCase()}
             </h3>
             <span
               style={{
                 ...S.systemsBadge,
-                color: selectedGalaxy.colorTheme,
-                border: `1px solid ${selectedGalaxy.colorTheme}50`,
-                backgroundColor: `${selectedGalaxy.colorTheme}15`,
+                color: 'var(--rs-orange)',
+                border: '1px solid rgba(255,79,31,0.3)',
+                backgroundColor: 'rgba(255,79,31,0.08)',
               }}
             >
               {selectedGalaxy.systemCount} SYSTEMS
             </span>
           </div>
+
+          {/* Difficulty pips */}
+          {selectedGalaxy.difficulty != null && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.58rem', color: 'var(--rs-text-muted)', fontFamily: "'Space Mono', monospace", letterSpacing: '0.1em' }}>
+                DIFFICULTY
+              </span>
+              <div style={{ display: 'flex', gap: '3px' }}>
+                {Array.from({ length: 5 }, (_, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      display: 'inline-block',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '1px',
+                      backgroundColor: i < selectedGalaxy.difficulty
+                        ? selectedGalaxy.colorTheme
+                        : 'rgba(255,255,255,0.12)',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Description */}
           <p className="text-sm mb-4 leading-relaxed" style={{ color: 'var(--rs-text-muted)' }}>
@@ -250,6 +303,7 @@ export default function GalaxyChoice() {
               `Scan ${Math.ceil(selectedGalaxy.planetCount * selectedGalaxy.wormholeThreshold)} planets to open the wormhole`,
               'Fly through the wormhole tunnel',
               'Defeat the system guardian',
+              ...(selectedGalaxy.timePerSystem ? [`${selectedGalaxy.timePerSystem} / system`] : []),
             ].map((text) => (
               <div key={text} style={{
                 display: 'flex',
@@ -257,7 +311,7 @@ export default function GalaxyChoice() {
                 gap: '8px',
                 marginBottom: '5px',
               }}>
-                <span style={{ color: selectedGalaxy.colorTheme, fontSize: '0.78rem', lineHeight: '1.4', flexShrink: 0 }}>-</span>
+                <span style={{ color: 'var(--rs-orange)', fontSize: '0.78rem', lineHeight: '1.4', flexShrink: 0 }}>-</span>
                 <span style={{ fontSize: '0.78rem', color: 'var(--rs-text)', lineHeight: '1.4', fontFamily: "'Rajdhani', sans-serif" }}>{text}</span>
               </div>
             ))}
@@ -280,18 +334,18 @@ export default function GalaxyChoice() {
             onClick={handleStart}
             style={{
               ...S.travelBtn,
-              color: selectedGalaxy.colorTheme,
-              border: `1px solid ${selectedGalaxy.colorTheme}`,
-              backgroundColor: `${selectedGalaxy.colorTheme}15`,
+              color: 'var(--rs-orange)',
+              border: '1px solid var(--rs-orange)',
+              backgroundColor: 'rgba(255,79,31,0.08)',
             }}
             onMouseEnter={(e) => {
               playSFX('button-hover')
               e.currentTarget.style.transform = 'translateX(4px)'
-              e.currentTarget.style.backgroundColor = `${selectedGalaxy.colorTheme}25`
+              e.currentTarget.style.backgroundColor = 'rgba(255,79,31,0.15)'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateX(0)'
-              e.currentTarget.style.backgroundColor = `${selectedGalaxy.colorTheme}15`
+              e.currentTarget.style.backgroundColor = 'rgba(255,79,31,0.08)'
             }}
           >
             TRAVEL

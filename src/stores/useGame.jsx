@@ -66,7 +66,7 @@ const useGame = create(
     resumeFromRevive: () => set({ phase: 'gameplay', isPaused: false }),
     triggerGameOver: () => set({ phase: 'gameOver', isPaused: true }),
     triggerVictory: () => set({ phase: 'victory', isPaused: true }),
-    startSystemEntry: () => set({ phase: 'systemEntry', isPaused: false }),
+    startSystemEntry: () => set({ phase: 'systemEntry', isPaused: false, wormholeFirstTouch: false }), // Story 51.3
     completeSystemEntry: () => set({ phase: 'gameplay' }),
     // Store resets happen in GameLoop on gameplay transition, not here
     returnToMenu: () => set({

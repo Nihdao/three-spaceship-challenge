@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { generateChoices, generatePlanetReward } from '../progressionSystem.js'
+import { generateChoices, generatePlanetReward, computeTimeBonus } from '../progressionSystem.js'
 import { WEAPONS } from '../../entities/weaponDefs.js'
 import { BOONS } from '../../entities/boonDefs.js'
 
@@ -567,9 +567,14 @@ describe('progressionSystem', () => {
 
     it('banish list applies across weapon and boon pools independently', () => {
       // Banning a weapon doesn't affect boons, and vice versa
+      // Loop 10× to avoid flakiness — P_upgrade≈70% so ~3% chance a single run
+      // fills all slots with new_weapon instead of boons
       const banishedItems = [{ itemId: 'LASER_FRONT', type: 'weapon' }]
-      const choices = generateChoices(2, [], [], [], banishedItems)
-      const hasBoons = choices.some(c => c.type === 'new_boon')
+      let hasBoons = false
+      for (let i = 0; i < 10; i++) {
+        const choices = generateChoices(2, [], [], [], banishedItems)
+        if (choices.some(c => c.type === 'new_boon')) { hasBoons = true; break }
+      }
       expect(hasBoons).toBe(true) // Boons should still be available
     })
 
@@ -583,9 +588,10 @@ describe('progressionSystem', () => {
       ]
       const choices = generateChoices(2, [], [], [], banishedItems)
       expect(choices.length).toBeGreaterThanOrEqual(3)
-      // With everything banished and nothing equipped, only stat_boost fallbacks remain
-      const statBoosts = choices.filter(c => c.type === 'stat_boost')
-      expect(statBoosts.length).toBe(choices.length)
+      // With everything banished and nothing equipped, only fallback padding remains (stat_boost / fragment_bonus / heal_bonus)
+      const FALLBACK_TYPES = ['stat_boost', 'fragment_bonus', 'heal_bonus']
+      const allFallbacks = choices.every(c => FALLBACK_TYPES.includes(c.type))
+      expect(allFallbacks).toBe(true)
     })
 
     it('reroll produces valid choices after banish (simulated sequence)', () => {
@@ -599,6 +605,79 @@ describe('progressionSystem', () => {
       expect(choices2.length).toBeGreaterThanOrEqual(3)
       const hasSpread = choices2.some(c => c.type === 'new_weapon' && c.id === 'SPREAD_SHOT')
       expect(hasSpread).toBe(false)
+    })
+  })
+
+  // --- Story 50.4: Per-ship boon bias ---
+
+  describe('per-ship boon bias (Story 50.4)', () => {
+    it('Striker: preferred boons appear ≥1.4× more often per boon than non-preferred (AC #4)', () => {
+      const preferredIds = ['SPEED_BOOST', 'COOLDOWN_REDUCTION']
+      const allBoonIds = Object.keys(BOONS)
+      const nonPreferredIds = allBoonIds.filter(id => !preferredIds.includes(id))
+
+      let preferredCount = 0
+      let nonPreferredCount = 0
+
+      for (let i = 0; i < 200; i++) {
+        const choices = generateChoices(3, [{ weaponId: 'LASER_FRONT', level: 1 }], [], [], [], 0, preferredIds)
+        for (const c of choices) {
+          if (c.type === 'new_boon' || c.type === 'boon_upgrade') {
+            if (preferredIds.includes(c.id)) preferredCount++
+            else nonPreferredCount++
+          }
+        }
+      }
+
+      // Per-boon average: preferred should appear ≥1.4× more than non-preferred
+      const avgPreferred = preferredCount / preferredIds.length
+      const avgNonPreferred = nonPreferredCount / nonPreferredIds.length
+      expect(avgPreferred).toBeGreaterThan(avgNonPreferred * 1.4)
+    })
+
+    it('Vanguard: preferredBoonIds=[] produces no crash and valid choices (AC #5)', () => {
+      expect(() => {
+        generateChoices(3, [{ weaponId: 'LASER_FRONT', level: 1 }], [], [], [], 0, [])
+      }).not.toThrow()
+    })
+
+    it('invalid boonId in preferredBoonIds is silently ignored — no crash (AC #6)', () => {
+      expect(() => {
+        generateChoices(3, [{ weaponId: 'LASER_FRONT', level: 1 }], [], [], [], 0, ['NONEXISTENT_BOON_XYZ', 'FAKE_BOON'])
+      }).not.toThrow()
+    })
+
+    it('generatePlanetReward accepts preferredBoonIds param without crash (AC #8)', () => {
+      expect(() => {
+        generatePlanetReward('rare', [{ weaponId: 'LASER_FRONT', level: 1 }], [], [], [], 0, ['SPEED_BOOST'])
+      }).not.toThrow()
+    })
+
+    it('backward compat: omitting preferredBoonIds defaults to [] and works (AC #7)', () => {
+      expect(() => {
+        generateChoices(3, [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      }).not.toThrow()
+      expect(() => {
+        generatePlanetReward('standard', [{ weaponId: 'LASER_FRONT', level: 1 }], [])
+      }).not.toThrow()
+    })
+  })
+
+  describe('computeTimeBonus', () => {
+    it('returns 0 when remaining is 0', () => {
+      expect(computeTimeBonus(0)).toBe(0)
+    })
+    it('returns 0 when remaining is negative', () => {
+      expect(computeTimeBonus(-10)).toBe(0)
+    })
+    it('returns 10000 for exactly 60 seconds remaining', () => {
+      expect(computeTimeBonus(60)).toBe(10000)
+    })
+    it('returns 10000 for 1 second remaining (ceil to 1 minute)', () => {
+      expect(computeTimeBonus(1)).toBe(10000)
+    })
+    it('returns 120000 for 694 seconds remaining (11:34)', () => {
+      expect(computeTimeBonus(694)).toBe(120000)  // Math.ceil(694/60) = 12
     })
   })
 })

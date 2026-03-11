@@ -5,7 +5,7 @@ import useWeapons from '../../stores/useWeapons.jsx'
 import useBoons from '../../stores/useBoons.jsx'
 import useEnemies from '../../stores/useEnemies.jsx'
 import useLevel from '../../stores/useLevel.jsx'
-import { getWeaponDisplayInfo, getBoonDisplayInfo, getPlayerStats, getRunStats, shouldShowPauseMenu } from '../PauseMenu.jsx'
+import { getWeaponDisplayInfo, getBoonDisplayInfo, getPlayerStats, getRunStats, shouldShowPauseMenu, computeRunTime } from '../PauseMenu.jsx'
 import { WEAPONS } from '../../entities/weaponDefs.js'
 import { BOONS } from '../../entities/boonDefs.js'
 
@@ -124,12 +124,36 @@ describe('PauseMenu logic', () => {
     })
   })
 
+  describe('computeRunTime', () => {
+    it('returns sum of totalElapsedTime and systemTimer', () => {
+      expect(computeRunTime(100, 25)).toBe(125)
+    })
+
+    it('returns systemTimer alone when totalElapsedTime is 0 — system 1 bug scenario', () => {
+      // The original bug: system 1 has no accumulated time yet, only systemTimer is non-zero
+      expect(computeRunTime(0, 47)).toBe(47)
+    })
+
+    it('returns totalElapsedTime alone when systemTimer is 0', () => {
+      expect(computeRunTime(120, 0)).toBe(120)
+    })
+
+    it('returns 0 on fresh start', () => {
+      expect(computeRunTime(0, 0)).toBe(0)
+    })
+
+    it('accumulates across systems — AC2 scenario', () => {
+      // System 1 completed: 120s accumulated. System 2 in progress: 45s elapsed.
+      expect(computeRunTime(120, 45)).toBe(165)
+    })
+  })
+
   describe('getRunStats', () => {
-    it('returns run stats from stores', () => {
-      useGame.setState({ totalElapsedTime: 125, kills: 42, score: 1500 })
+    it('returns run stats from stores — composite time includes systemTimer', () => {
+      useGame.setState({ totalElapsedTime: 100, systemTimer: 25, kills: 42, score: 1500 })
       usePlayer.setState({ currentLevel: 5, fragments: 10 })
       const stats = getRunStats()
-      expect(stats.totalElapsedTime).toBe(125)
+      expect(stats.totalElapsedTime).toBe(125) // 100 + 25
       expect(stats.kills).toBe(42)
       expect(stats.score).toBe(1500)
       expect(stats.currentLevel).toBe(5)

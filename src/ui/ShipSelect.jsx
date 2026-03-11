@@ -3,7 +3,8 @@ import useGame from '../stores/useGame.jsx'
 import usePlayer from '../stores/usePlayer.jsx'
 import useUpgrades from '../stores/useUpgrades.jsx'
 import useShipProgression from '../stores/useShipProgression.jsx'
-import { SHIPS, TRAIT_INFO, getDefaultShipId } from '../entities/shipDefs.js'
+import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
+import { WEAPONS } from '../entities/weaponDefs.js'
 import { SHIP_LEVEL_SCALING, MAX_SHIP_LEVEL } from '../entities/shipProgressionDefs.js'
 import { getSkinForShip } from '../entities/shipSkinDefs.js'
 import { playSFX } from '../audio/audioManager.js'
@@ -26,11 +27,6 @@ import {
   LuckIcon,
   FragmentIcon,
 } from './icons/index.jsx'
-
-const TRAIT_ICON_MAP = {
-  highRisk: SwordIcon,
-  tanky: ShieldCrossIcon,
-}
 
 // Module-level icon wrappers with semantic colors — defined at module scope to avoid
 // creating new function instances on every render (which would break React reconciliation).
@@ -140,6 +136,16 @@ const S = {
     display: 'flex',
     flexDirection: 'column',
   },
+  leftPanel: {
+    flex: 1,
+    background: 'var(--rs-bg-surface)',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%)',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    overflowY: 'auto',
+  },
   previewContainer: {
     aspectRatio: '4/3',
     marginBottom: '12px',
@@ -238,6 +244,13 @@ const S = {
     outline: 'none',
     userSelect: 'none',
   },
+  startingWeaponBlock: {
+    padding: '8px 10px',
+    marginBottom: '12px',
+    border: '1px solid var(--rs-border)',
+    clipPath: 'polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%)',
+    background: 'rgba(255,255,255,0.02)',
+  },
 }
 
 export default function ShipSelect() {
@@ -245,7 +258,14 @@ export default function ShipSelect() {
   const [focusIndex, setFocusIndex] = useState(0)
   const [hoveredSkinId, setHoveredSkinId] = useState(null)
 
+  // Reset skin hover when switching ships (keyboard nav doesn't trigger swatch onMouseLeave)
+  useEffect(() => { setHoveredSkinId(null) }, [selectedShipId])
+
   const selectedShip = SHIPS[selectedShipId]
+
+  const DEFAULT_WEAPON_ID = 'LASER_FRONT'
+  const startWeaponId = selectedShip.defaultWeaponId || DEFAULT_WEAPON_ID
+  const startWeapon = WEAPONS[startWeaponId] || WEAPONS[DEFAULT_WEAPON_ID]
 
   // Subscribe to ship progression and player fragments for level-up UI reactivity
   const shipLevels = useShipProgression(state => state.shipLevels)
@@ -264,7 +284,8 @@ export default function ShipSelect() {
     [selectedShipId, shipLevels, selectedSkins],
   )
   const selectedSkinId = selectedSkins[selectedShipId] || 'default'
-  const selectedSkinData = getSkinForShip(selectedShipId, selectedSkinId)
+  const displaySkinId = hoveredSkinId ?? selectedSkinId
+  const displaySkinData = getSkinForShip(selectedShipId, displaySkinId)
 
   // Compute effective stats by combining ship base stats + permanent upgrade bonuses
   // Subscribe to upgradeLevels to trigger recomputation when upgrades change
@@ -445,7 +466,7 @@ export default function ShipSelect() {
 
       <div className="flex gap-8 w-full h-full max-w-5xl p-8 pt-20">
         {/* LEFT: Ship Grid */}
-        <div className="flex-1 overflow-y-auto">
+        <div style={S.leftPanel}>
           <div style={{ marginBottom: '24px' }}>
             <h2 style={S.title}>SELECT YOUR SHIP</h2>
             <div style={S.titleAccent} />
@@ -459,8 +480,6 @@ export default function ShipSelect() {
                 onMouseEnter={(e) => {
                   if (!ship.locked) {
                     playSFX('button-hover')
-                    setSelectedShipId(ship.id)
-                    setFocusIndex(i)
                     e.currentTarget.style.borderColor = 'var(--rs-orange)'
                     e.currentTarget.style.transform = 'translateX(4px)'
                   }
@@ -500,9 +519,9 @@ export default function ShipSelect() {
         <div style={S.detailPanel}>
           {/* Ship 3D Preview */}
           <div
-            style={{ ...S.previewContainer, backgroundColor: `${selectedShip.colorTheme}10` }}
+            style={{ ...S.previewContainer, backgroundColor: `${displaySkinData?.tintColor ?? selectedShip.colorTheme}18` }}
           >
-            <ShipModelPreview modelPath={selectedSkinData?.modelPath ?? selectedShip.modelPath} rotate />
+            <ShipModelPreview modelPath={displaySkinData?.modelPath ?? selectedShip.modelPath} rotate />
           </div>
 
           {/* Ship Name, Level Badge & Description */}
@@ -517,11 +536,25 @@ export default function ShipSelect() {
             {selectedShip.description}
           </p>
 
+          {/* Starting Weapon */}
+          <div style={S.startingWeaponBlock}>
+            <div style={{ fontSize: '0.65rem', letterSpacing: '0.12em', color: 'var(--rs-text-muted)', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <SwordIcon size={10} color="var(--rs-text-muted)" /> Starting Weapon
+            </div>
+            <p style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '0.9rem', letterSpacing: '0.08em', color: 'var(--rs-text)', marginBottom: '2px', lineHeight: 1 }}>
+              {startWeapon.name}
+            </p>
+            <p style={{ fontSize: '0.7rem', color: 'var(--rs-text-muted)', lineHeight: 1.3 }}>
+              {startWeapon.description}
+            </p>
+          </div>
+
           {/* Separator */}
           <div style={{ borderTop: '1px solid var(--rs-border)', marginBottom: '16px' }} />
 
           {/* Stats — Enriched with all 15 stats + permanent upgrade bonuses */}
-          <div className="space-y-0.5 mb-3 max-h-52 overflow-y-auto">
+          <div className="relative mb-3">
+          <div className="space-y-0.5 max-h-52 overflow-y-auto scrollbar-hidden">
             {/* Flat value stats — value = total effective stat, bonusValue = perm contribution only */}
             <StatLine compact
               label="HP"
@@ -615,36 +648,11 @@ export default function ShipSelect() {
               icon={BanishColorIcon}
             />
           </div>
-
-          {/* Unique Traits */}
-          {selectedShip.traits && selectedShip.traits.length > 0 && (
-            <>
-              <div style={{ borderTop: '1px solid var(--rs-border)', marginBottom: '12px' }} />
-              <p className="text-[10px] tracking-widest uppercase mb-2" style={{ color: 'var(--rs-text-muted)' }}>Traits</p>
-              <div className="space-y-1.5 mb-4">
-                {selectedShip.traits.map(traitId => {
-                  const info = TRAIT_INFO[traitId]
-                  if (!info) return null
-                  const TraitIcon = TRAIT_ICON_MAP[traitId]
-                  return (
-                    <div key={traitId} className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--rs-text)' }} title={info.description}>
-                      <span className="flex-shrink-0">
-                        {TraitIcon
-                          ? <TraitIcon size={14} color="currentColor" />
-                          : '·'
-                        }
-                      </span>
-                      <span>{info.label}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6" style={{ background: 'linear-gradient(to bottom, transparent, var(--rs-bg-surface))' }} />
+          </div>
 
           {/* Skin selector (Story 25.2) */}
           {(() => {
-            const displaySkinId = hoveredSkinId ?? selectedSkinId
             const displaySkin = availableSkins.find(s => s.id === displaySkinId)
             return (
               <>

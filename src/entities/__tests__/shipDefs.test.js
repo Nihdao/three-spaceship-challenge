@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { SHIPS, TRAIT_INFO, getDefaultShipId } from '../shipDefs.js'
+import { WEAPONS } from '../weaponDefs.js'
+import { BOONS } from '../boonDefs.js'
 
 describe('shipDefs', () => {
   it('exports a SHIPS object with at least one ship', () => {
@@ -83,6 +85,70 @@ describe('shipDefs', () => {
       expect(SHIPS[defaultId]).toBeDefined()
       expect(SHIPS[defaultId].locked).toBe(false)
     })
+
+    it('returns BALANCED specifically (AC4)', () => {
+      expect(getDefaultShipId()).toBe('BALANCED')
+    })
+  })
+
+  describe('GLASS_CANNON (Striker) stats — AC1', () => {
+    it('has correct stat values', () => {
+      expect(SHIPS.GLASS_CANNON.baseHP).toBe(50)
+      expect(SHIPS.GLASS_CANNON.baseSpeed).toBe(65)
+      expect(SHIPS.GLASS_CANNON.baseDamageMultiplier).toBe(1.1)
+      expect(SHIPS.GLASS_CANNON.levelScaling).toBe(0.10)
+      expect(SHIPS.GLASS_CANNON.locked).toBe(false)
+      expect(SHIPS.GLASS_CANNON.defaultWeaponId).toBe('BEAM')
+      expect(SHIPS.GLASS_CANNON.modelPath).toBe('./models/ships/SpaceshipB.glb')
+      expect(SHIPS.GLASS_CANNON.colorTheme).toBe('#cc5500')
+    })
+    it('preferredBoonIds equals [SPEED_BOOST, COOLDOWN_REDUCTION] (Story 50.4 AC#1)', () => {
+      expect(SHIPS.GLASS_CANNON.preferredBoonIds).toEqual(['SPEED_BOOST', 'COOLDOWN_REDUCTION'])
+    })
+  })
+
+  describe('TANK (Fortress) stats — AC2', () => {
+    it('has correct stat values', () => {
+      expect(SHIPS.TANK.baseHP).toBe(180)
+      expect(SHIPS.TANK.baseSpeed).toBe(35)
+      expect(SHIPS.TANK.baseDamageMultiplier).toBe(0.85)
+      expect(SHIPS.TANK.baseZone).toBe(20)
+      expect(SHIPS.TANK.levelScaling).toBe(0.10)
+      expect(SHIPS.TANK.locked).toBe(false)
+      expect(SHIPS.TANK.defaultWeaponId).toBe('AURA')
+      expect(SHIPS.TANK.modelPath).toBe('./models/ships/SpaceshipC.glb')
+      expect(SHIPS.TANK.colorTheme).toBe('#44aaff')
+    })
+    it('preferredBoonIds equals [HP_REGEN, MAX_HP_UP, DAMAGE_REDUCTION] (Story 50.4 AC#2)', () => {
+      expect(SHIPS.TANK.preferredBoonIds).toEqual(['HP_REGEN', 'MAX_HP_UP', 'DAMAGE_REDUCTION'])
+    })
+  })
+
+  describe('BALANCED stats — AC3', () => {
+    it('has defaultWeaponId LASER_FRONT', () => {
+      expect(SHIPS.BALANCED.defaultWeaponId).toBe('LASER_FRONT')
+    })
+    it('preferredBoonIds equals [] — no bias (Story 50.4 AC#3)', () => {
+      expect(SHIPS.BALANCED.preferredBoonIds).toEqual([])
+    })
+  })
+
+  it('every ship defaultWeaponId references an existing weapon (M1)', () => {
+    for (const ship of Object.values(SHIPS)) {
+      if (ship.defaultWeaponId !== undefined) {
+        expect(WEAPONS[ship.defaultWeaponId]).toBeDefined()
+      }
+    }
+  })
+
+  it('every preferredBoonId references an existing boon (M2)', () => {
+    for (const ship of Object.values(SHIPS)) {
+      if (Array.isArray(ship.preferredBoonIds)) {
+        for (const boonId of ship.preferredBoonIds) {
+          expect(BOONS[boonId]).toBeDefined()
+        }
+      }
+    }
   })
 
 })

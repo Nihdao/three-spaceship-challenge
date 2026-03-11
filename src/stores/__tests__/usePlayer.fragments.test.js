@@ -28,6 +28,33 @@ describe('usePlayer — Fragments (Story 7.1)', () => {
     })
   })
 
+  describe('galaxy fragmentMultiplier', () => {
+    // GameLoop applies galaxyFragMult before calling addFragments:
+    //   addFragments(Math.round(fragmentValue * fragMult)) where fragMult includes galaxyFragMult: 3.0
+    // These tests simulate that by passing pre-scaled values directly to addFragments.
+
+    it('gem pickup accumulates at 3× galaxy multiplier', () => {
+      // FRAGMENT_DROP_AMOUNT=5, galaxyFragMult=3.0 → Math.round(5 * 3.0) = 15
+      const scaledGemValue = Math.round(GAME_CONFIG.FRAGMENT_DROP_AMOUNT * 3.0)
+      usePlayer.getState().addFragments(scaledGemValue)
+      expect(usePlayer.getState().fragments).toBe(15)
+      expect(usePlayer.getState().fragmentsEarnedThisRun).toBe(15)
+    })
+
+    it('boss loot accumulates at 3× galaxy multiplier', () => {
+      // BOSS_LOOT_FRAGMENTS=150, galaxyFragMult=3.0 → Math.round(150 * 3.0) = 450
+      const scaledBossLoot = Math.round(GAME_CONFIG.BOSS_LOOT_FRAGMENTS * 3.0)
+      usePlayer.getState().addFragments(scaledBossLoot)
+      expect(usePlayer.getState().fragments).toBe(450)
+      expect(usePlayer.getState().fragmentsEarnedThisRun).toBe(450)
+    })
+
+    it('retrocompat: 1× multiplier (andromeda_reach) preserves original gem value', () => {
+      usePlayer.getState().addFragments(Math.round(GAME_CONFIG.FRAGMENT_DROP_AMOUNT * 1.0))
+      expect(usePlayer.getState().fragments).toBe(GAME_CONFIG.FRAGMENT_DROP_AMOUNT)
+    })
+  })
+
   describe('reset', () => {
     it('preserves fragments across run resets (permanent cross-run currency)', () => {
       usePlayer.getState().addFragments(200)

@@ -156,3 +156,126 @@ describe('galaxyDefs — Andromeda Reach gameplay profile (Story 34.1)', () => {
     }
   })
 })
+
+// --- Story 52.1: planetRarity sum invariant (H1) ---
+describe('galaxyDefs — planetRarity integrity (Story 52.1)', () => {
+  it('each galaxy has planetRarity sum equal to planetCount', () => {
+    for (const galaxy of GALAXIES) {
+      if (galaxy.planetRarity == null || galaxy.planetCount == null) continue
+      const sum = galaxy.planetRarity.standard + galaxy.planetRarity.rare + galaxy.planetRarity.legendary
+      expect(sum).toBe(galaxy.planetCount)
+    }
+  })
+})
+
+// --- Story 52.1: Andromeda Inferno galaxy profile ---
+describe('galaxyDefs — Andromeda Inferno (Story 52.1)', () => {
+  const inferno = getGalaxyById('andromeda_inferno')
+
+  it('exists and has correct id/name/description', () => {
+    expect(inferno).toBeDefined()
+    expect(inferno.id).toBe('andromeda_inferno')
+    expect(inferno.name).toBe('Andromeda Inferno')
+    expect(inferno.description).toBe("The beating heart of Andromeda — where every fleet is a death sentence.")
+  })
+
+  it('has systemCount 3, locked false, colorTheme #ff2244', () => {
+    expect(inferno.systemCount).toBe(3)
+    expect(inferno.locked).toBe(false)
+    expect(inferno.colorTheme).toBe('#ff2244')
+  })
+
+  it('has planetCount 7 and wormholeThreshold 0.7', () => {
+    expect(inferno.planetCount).toBe(7)
+    expect(inferno.wormholeThreshold).toBe(0.7)
+  })
+
+  it('has correct chaosEnemyMult', () => {
+    expect(inferno.chaosEnemyMult).toEqual({ hp: 1.30, damage: 1.30, speed: 1.30, spawnRate: 1.30 })
+  })
+
+  it('has bossTier1Hp 15000', () => {
+    expect(inferno.bossTier1Hp).toBe(15000)
+  })
+
+  it('has systemTimerBase 300 and systemTimerIncrement 300', () => {
+    expect(inferno.systemTimerBase).toBe(300)
+    expect(inferno.systemTimerIncrement).toBe(300)
+  })
+
+  it('has fragmentMultiplier 3.0 and xpMultiplier 2.0', () => {
+    expect(inferno.fragmentMultiplier).toBe(3.0)
+    expect(inferno.xpMultiplier).toBe(2.0)
+  })
+
+  it('has galaxyRarityBias 0.0', () => {
+    expect(inferno.galaxyRarityBias).toBe(0.0)
+  })
+
+  it('has backgroundTheme chaos', () => {
+    expect(inferno.backgroundTheme).toBe('chaos')
+  })
+
+  it('systemNamePool has 16 unique non-empty strings', () => {
+    expect(Array.isArray(inferno.systemNamePool)).toBe(true)
+    expect(inferno.systemNamePool).toHaveLength(16)
+    expect(new Set(inferno.systemNamePool).size).toBe(16)
+    for (const name of inferno.systemNamePool) {
+      expect(typeof name).toBe('string')
+      expect(name.length).toBeGreaterThan(0)
+    }
+  })
+
+  // [M1] Structural compatibility fields required by spawnSystem and difficulty systems
+  it('has required structural fields for system compatibility', () => {
+    expect(inferno.enemySpeedMult).toBe(1.5)
+    expect(inferno.difficultyScalingPerSystem).toEqual({ hp: 1.25, damage: 1.20, speed: 1.10, xpReward: 1.15 })
+    expect(inferno.planetRarity).toEqual({ standard: 3, rare: 3, legendary: 1 })
+    expect(inferno.luckRarityBias).toEqual({ standard: -0.15, rare: 0.10, legendary: 0.05 })
+  })
+
+  it('is at index 1 in GALAXIES[]', () => {
+    expect(GALAXIES[1].id).toBe('andromeda_inferno')
+  })
+
+  it('is returned at index 1 by getAvailableGalaxies()', () => {
+    expect(getAvailableGalaxies()[1].id).toBe('andromeda_inferno')
+  })
+
+  // Story 52.8: score multiplier
+  it('has scoreMultiplier 2.0', () => {
+    expect(inferno.scoreMultiplier).toBe(2.0)
+  })
+
+  // Regression: andromeda_reach unchanged
+  it('andromeda_reach remains at GALAXIES[0] unchanged', () => {
+    expect(GALAXIES[0].id).toBe('andromeda_reach')
+    expect(GALAXIES[0].fragmentMultiplier).toBe(1.0)
+  })
+
+  it('getDefaultGalaxy() still returns andromeda_reach', () => {
+    expect(getDefaultGalaxy().id).toBe('andromeda_reach')
+  })
+})
+
+// --- Story 52.7: difficulty and estimatedDuration fields ---
+describe('galaxyDefs — difficulty and estimatedDuration (Story 52.7)', () => {
+  const reach = getGalaxyById('andromeda_reach')
+  const inferno = getGalaxyById('andromeda_inferno')
+
+  it('andromeda_reach has difficulty 2', () => {
+    expect(reach.difficulty).toBe(2)
+  })
+
+  it("andromeda_reach has estimatedDuration '~20 min'", () => {
+    expect(reach.estimatedDuration).toBe('~20 min')
+  })
+
+  it('andromeda_inferno has difficulty 4', () => {
+    expect(inferno.difficulty).toBe(4)
+  })
+
+  it("andromeda_inferno has estimatedDuration '~45 min'", () => {
+    expect(inferno.estimatedDuration).toBe('~45 min')
+  })
+})

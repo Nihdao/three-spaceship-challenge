@@ -25,11 +25,14 @@ import { rollDrops, resetAll as resetLoot } from './systems/lootSystem.js'
 import { resetFogGrid, markDiscovered as markFogDiscovered } from './systems/fogSystem.js'
 import { addExplosionRing, tickRings, resetRings } from './systems/explosiveRoundVfx.js'
 import { ENEMIES } from './entities/enemyDefs.js'
+import { SHIPS } from './entities/shipDefs.js'
 import { WEAPONS } from './entities/weaponDefs.js'
 import useDamageNumbers from './stores/useDamageNumbers.jsx'
 import useCompanion from './stores/useCompanion.jsx'
 import { applyKnockbackImpulse } from './systems/knockbackSystem.js'
 import { getGalaxyById } from './entities/galaxyDefs.js'
+import { buildSystemScaling } from './systems/systemScaling.js'
+import { computeTimeBonus } from './systems/progressionSystem.js'
 
 // Story 32.1: LASER_CROSS collision helper — segment-vs-point test in XZ plane
 // armAngle: world-space angle of the arm's axis; armLength: half-length from center; armHalfWidth: hit zone radius
@@ -187,6 +190,7 @@ export default function GameLoop() {
   // Story 34.5: Cache system scaling — recompute only on system transition, not every frame
   const systemScalingCacheKeyRef = useRef(-1) // -1 = invalid sentinel
   const systemScalingCachedRef = useRef(null)
+  const chaosSpawnMultCachedRef = useRef(1.0) // Story 52.2: chaos spawn rate multiplier (1.0 = no-op)
   const fogFrameCountRef = useRef(0)   // Story 35.1: frame throttle for fog update
   const timerWarningFiredRef = useRef(false) // Per-system flag — reset on each system entry
   const scanReminderTimerRef = useRef(120)   // Counts down only when companion is fully idle
@@ -236,10 +240,14 @@ export default function GameLoop() {
       // Note: useGame.systemTimer is the authoritative game timer (not useLevel.systemTimer)
       // kills/score intentionally persist across systems (run-total for roguelite scoring)
       useGame.getState().setSystemTimer(0)
-      // Story 23.3: Initialize actual system duration (base + carried time from previous system)
-      useLevel.getState().initializeSystemDuration()
-      // Initialize planets for the new system (advanceSystem clears them, GameLoop re-populates)
+      // Story 23.3 + 52.4: Initialize actual system duration (chaos base + carried time from previous system)
       const galaxyConfigForTransition = getGalaxyById(useGame.getState().selectedGalaxyId)
+      const currentSystemForTimer = useLevel.getState().currentSystem // already advanced via advanceSystem()
+      const chaosTimerBase = galaxyConfigForTransition?.systemTimerBase != null
+        ? galaxyConfigForTransition.systemTimerBase + (galaxyConfigForTransition.systemTimerIncrement ?? 0) * (currentSystemForTimer - 1)
+        : null
+      useLevel.getState().initializeSystemDuration(chaosTimerBase)
+      // Initialize planets for the new system (advanceSystem clears them, GameLoop re-populates)
       if (!galaxyConfigForTransition) {
         console.warn('[GameLoop] No galaxyConfig available — skipping initializePlanets')
       } else {
@@ -252,8 +260,10 @@ export default function GameLoop() {
     if ((phase === 'gameplay' || phase === 'systemEntry') && prevPhaseRef.current !== 'gameplay' && prevPhaseRef.current !== 'levelUp' && prevPhaseRef.current !== 'planetReward' && prevPhaseRef.current !== 'tunnel' && prevPhaseRef.current !== 'systemEntry' && prevPhaseRef.current !== 'revive') {
       spawnSystemRef.current.reset()
       projectileSystemRef.current.reset()
-      useWeapons.getState().initializeWeapons()
-      useArmory.getState().markDiscovered('weapons', 'LASER_FRONT') // Story 25.4: mark starter weapon discovered
+      const currentShipId = usePlayer.getState().currentShipId
+      useWeapons.getState().initializeWeapons(currentShipId)
+      const startWeaponId = SHIPS[currentShipId]?.defaultWeaponId || 'LASER_FRONT'
+      useArmory.getState().markDiscovered('weapons', startWeaponId) // Story 25.4: mark starter weapon discovered
       useBoons.getState().reset()
       resetParticles()
       resetRings() // Story 32.7
@@ -268,8 +278,13 @@ export default function GameLoop() {
       usePlayer.getState().initializeRunStats(useUpgrades.getState().getComputedBonuses())
       useEnemies.getState().reset()
       useLevel.getState().reset()
-      useLevel.getState().initializeSystemDuration() // Story 23.3: Mirrors tunnel→gameplay init; makes system 1 duration explicit
       const galaxyConfigForNewGame = getGalaxyById(useGame.getState().selectedGalaxyId)
+      // Story 52.4: Compute chaos timer base using same formula as tunnel→gameplay (system 1 after reset: index=0, increment×0=0)
+      const currentSystemForNewGame = useLevel.getState().currentSystem // = 1 after reset()
+      const newGameTimerBase = galaxyConfigForNewGame?.systemTimerBase != null
+        ? galaxyConfigForNewGame.systemTimerBase + (galaxyConfigForNewGame.systemTimerIncrement ?? 0) * (currentSystemForNewGame - 1)
+        : null
+      useLevel.getState().initializeSystemDuration(newGameTimerBase) // Story 23.3 + 52.4
       if (!galaxyConfigForNewGame) {
         console.warn('[GameLoop] No galaxyConfig available — skipping initializePlanets')
       } else {
@@ -278,6 +293,7 @@ export default function GameLoop() {
       }
       useBoss.getState().reset()
       systemScalingCacheKeyRef.current = -1 // Story 34.5: invalidate scaling cache (galaxy may change between runs)
+      chaosSpawnMultCachedRef.current = 1.0 // Story 52.2: reset chaos spawn mult
     }
 
     // Clear damage numbers when game over occurs (Story 28.1)
@@ -405,18 +421,10 @@ export default function GameLoop() {
       // Story 34.5: Compute system difficulty from galaxy profile — cached per system (not per frame)
       if (currentSystem !== systemScalingCacheKeyRef.current) {
         const _gc = getGalaxyById(useGame.getState().selectedGalaxyId)
-        if (_gc?.difficultyScalingPerSystem) {
-          const _si = currentSystem - 1 // 0-based system index
-          const _s = _gc.difficultyScalingPerSystem
-          systemScalingCachedRef.current = {
-            hp:       Math.pow(_s.hp,       _si),
-            damage:   Math.pow(_s.damage,   _si),
-            speed:    Math.pow(_s.speed,    _si) * (_gc.enemySpeedMult ?? 1.0),
-            xpReward: Math.pow(_s.xpReward, _si),
-          }
-        } else {
-          systemScalingCachedRef.current = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[1]
-        }
+        // Story 52.2: buildSystemScaling applies chaosEnemyMult in both branches (pure, testable)
+        const { scaling: _scaling, chaosSpawnMult: _chaosSpawnMult } = buildSystemScaling(_gc, currentSystem - 1)
+        systemScalingCachedRef.current = _scaling
+        chaosSpawnMultCachedRef.current = _chaosSpawnMult
         systemScalingCacheKeyRef.current = currentSystem
       }
       const systemScaling = systemScalingCachedRef.current
@@ -426,6 +434,7 @@ export default function GameLoop() {
         systemNum: currentSystem,
         systemTimer: useLevel.getState().actualSystemDuration,
         systemScaling,
+        chaosSpawnMult: chaosSpawnMultCachedRef.current, // Story 52.2
       })
       if (spawnInstructions.length > 0) {
         // Cap projectile-shooting enemies at 8 on screen simultaneously
@@ -668,7 +677,7 @@ export default function GameLoop() {
                 _killsLc++
               }
             }
-            if (_killsLc > 0) useGame.setState(s => ({ kills: s.kills + _killsLc, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsLc }))
+            if (_killsLc > 0) useGame.setState(s => ({ kills: s.kills + _killsLc, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsLc * (systemScalingCachedRef.current.galaxyScoreMult ?? 1.0) }))
           }
           // Boss arm hit check
           if (_bossForWeapons && _bossForWeapons.hp > 0) {
@@ -733,7 +742,7 @@ export default function GameLoop() {
                 _killsMag++
               }
             }
-            if (_killsMag > 0) useGame.setState(s => ({ kills: s.kills + _killsMag, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsMag }))
+            if (_killsMag > 0) useGame.setState(s => ({ kills: s.kills + _killsMag, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsMag * (systemScalingCachedRef.current.galaxyScoreMult ?? 1.0) }))
           }
           // Boss aura hit check
           if (_bossForWeapons && _bossForWeapons.hp > 0) {
@@ -923,7 +932,7 @@ export default function GameLoop() {
               _killsSw++
             }
           }
-          if (_killsSw > 0) useGame.setState(s => ({ kills: s.kills + _killsSw, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsSw }))
+          if (_killsSw > 0) useGame.setState(s => ({ kills: s.kills + _killsSw, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsSw * (systemScalingCachedRef.current.galaxyScoreMult ?? 1.0) }))
         }
       }
     }
@@ -1047,7 +1056,7 @@ export default function GameLoop() {
               _killsMine++
             }
           }
-          if (_killsMine > 0) useGame.setState(s => ({ kills: s.kills + _killsMine, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsMine }))
+          if (_killsMine > 0) useGame.setState(s => ({ kills: s.kills + _killsMine, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsMine * (systemScalingCachedRef.current.galaxyScoreMult ?? 1.0) }))
         }
       }
     }
@@ -1153,7 +1162,7 @@ export default function GameLoop() {
                 _killsTact++
               }
             }
-            if (_killsTact > 0) useGame.setState(s => ({ kills: s.kills + _killsTact, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsTact }))
+            if (_killsTact > 0) useGame.setState(s => ({ kills: s.kills + _killsTact, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _killsTact * (systemScalingCachedRef.current.galaxyScoreMult ?? 1.0) }))
 
             // Spawn VFX effect at strike position (up to poolLimit simultaneous effects)
             if (tactWeapon.tacticalStrikes.length < (tactDef.poolLimit ?? 4)) {
@@ -1224,7 +1233,7 @@ export default function GameLoop() {
         }
       }
       // Single setState — kills + score in one Zustand notification instead of 2×N
-      if (_kills7c > 0) useGame.setState(s => ({ kills: s.kills + _kills7c, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _kills7c }))
+      if (_kills7c > 0) useGame.setState(s => ({ kills: s.kills + _kills7c, score: s.score + GAME_CONFIG.SCORE_PER_KILL * _kills7c * (systemScalingCachedRef.current.galaxyScoreMult ?? 1.0) }))
     }
 
     // Single DN flush — all weapon systems accumulated into _dnEntries across the entire frame (Story 43.2)
@@ -1317,27 +1326,28 @@ export default function GameLoop() {
       return // Stop processing after death/revive prompt
     }
 
-    // 7f. System timer — increment and check timeout (pause during boss fight — Story 17.4)
+    // 7f. System timer — always ticks; game-over skipped during boss or post-boss wormhole (Story 52.9)
     const gameState = useGame.getState()
-    let newTimer = gameState.systemTimer // Initialize with current timer
-    if (!bossActive) {
-      newTimer = gameState.systemTimer + clampedDelta
-      gameState.setSystemTimer(newTimer)
-      const actualDuration = useLevel.getState().actualSystemDuration
-      const timeLeft = actualDuration - newTimer
-      if (timeLeft <= 60 && !timerWarningFiredRef.current) {
-        timerWarningFiredRef.current = true
-        useCompanion.getState().trigger('timer-warning', 'high')
-      }
-      if (newTimer >= actualDuration) { // Story 23.3: use actual duration
-        // Don't trigger game over if wormhole is activating/active (player found it)
-        if (wormholeStatePre !== 'activating' && wormholeStatePre !== 'active') {
-          playSFX('game-over-impact')
-          gameState.updateHighScore()
-          gameState.triggerGameOver()
-          useWeapons.getState().cleanupInactive()
-          return // Stop processing — timer expired
-        }
+    const newTimer = gameState.systemTimer + clampedDelta
+    gameState.setSystemTimer(newTimer)
+    const actualDuration = useLevel.getState().actualSystemDuration
+    const timeLeft = actualDuration - newTimer
+    if (timeLeft <= 60 && !timerWarningFiredRef.current) {
+      timerWarningFiredRef.current = true
+      useCompanion.getState().trigger('timer-warning', 'high')
+    }
+    if (newTimer >= actualDuration) { // Story 23.3: use actual duration
+      // Don't trigger game over if boss is active, wormhole is activating/active, or post-boss wormhole ready
+      const timerCanKill = !bossActive
+        && wormholeStatePre !== 'activating'
+        && wormholeStatePre !== 'active'
+        && wormholeStatePre !== 'reactivated'
+      if (timerCanKill) {
+        playSFX('game-over-impact')
+        gameState.updateHighScore()
+        gameState.triggerGameOver()
+        useWeapons.getState().cleanupInactive()
+        return // Stop processing — timer expired
       }
     }
 
@@ -1364,7 +1374,9 @@ export default function GameLoop() {
         // Story 17.4: Spawn boss in-place instead of transitioning to BossScene
         // Guarantee spawn at wormhole position; fall back to player position if wormhole ref is stale
         const bossSpawnPos = levelState.wormhole ?? { x: playerPos[0], z: playerPos[2] }
-        useBoss.getState().spawnBoss(levelState.currentSystem, bossSpawnPos)
+        const _bossGalaxyId = useGame.getState().selectedGalaxyId
+        const _bossGalaxyConfig = getGalaxyById(_bossGalaxyId)
+        useBoss.getState().spawnBoss(levelState.currentSystem, bossSpawnPos, _bossGalaxyConfig?.bossTier1Hp)
         useLevel.getState().setWormholeInactive()
       }
     } else if (levelState.wormholeState === 'reactivated') {
@@ -1386,6 +1398,9 @@ export default function GameLoop() {
             useGame.getState().setPhase('tunnel')
           }, transitionDelay)
         } else {
+          const remaining = Math.max(0, levelState.actualSystemDuration - wormholeGameState.systemTimer)
+          const timeBonus = computeTimeBonus(remaining)
+          if (timeBonus > 0) wormholeGameState.addScore(timeBonus)
           wormholeGameState.updateHighScore()
           wormholeGameState.triggerVictory()
         }
@@ -1408,7 +1423,8 @@ export default function GameLoop() {
         }
         if (defeatResult.animationComplete && !bossState.rewardGiven) {
           playSFX('boss-defeat')
-          const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult
+          // Story 52.6: × galaxyFragMult (e.g. 3.0 in Andromeda Inferno)
+          const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult * (systemScalingCachedRef.current.galaxyFragMult ?? 1.0)
           usePlayer.getState().addFragments(Math.round(GAME_CONFIG.BOSS_LOOT_FRAGMENTS * fragMult))
           // Story 22.4: Drop large XP reward on boss defeat
           const bossXpReward = 5000 * GAME_CONFIG.BOSS_LOOT_XP_MULTIPLIER
@@ -1429,6 +1445,7 @@ export default function GameLoop() {
           useLevel.getState().setCarriedTime(Math.max(0, actualDurationAtDefeat - currentTimerAtDefeat))
           useLevel.getState().reactivateWormhole()
           useBoss.getState().setRewardGiven(true)
+          useBoss.getState().deactivate()  // isActive: false → timer resumes next frame
         }
       } else {
         // Boss AI tick
@@ -1609,7 +1626,8 @@ export default function GameLoop() {
       indices.sort((a, b) => b - a)
       // Story 20.4: Combine boon XP multiplier with permanent expBonus (multiplicative stacking)
       // Stacking: boon xpMult × permanent expBonus → e.g., 1.5 × 1.25 = 1.875
-      const xpMult = (boonModifiers.xpMultiplier ?? 1.0) * permanentUpgradeBonuses.expBonus
+      // Story 52.6: × galaxyXpMult (e.g. 2.0 in Andromeda Inferno)
+      const xpMult = (boonModifiers.xpMultiplier ?? 1.0) * permanentUpgradeBonuses.expBonus * (systemScalingCachedRef.current.galaxyXpMult ?? 1.0)
       let totalXP = 0
       for (let i = 0; i < indices.length; i++) {
         const orbIndex = indices[i]
@@ -1651,7 +1669,8 @@ export default function GameLoop() {
         if (gemIndex < getFragmentGemCount()) indices.push(gemIndex)
       }
       indices.sort((a, b) => b - a)
-      const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult
+      // Story 52.6: × galaxyFragMult (e.g. 3.0 in Andromeda Inferno)
+      const fragMult = (boonModifiers.fragmentMultiplier ?? 1.0) * playerState.upgradeStats.fragmentMult * (systemScalingCachedRef.current.galaxyFragMult ?? 1.0)
       for (let i = 0; i < indices.length; i++) {
         const gemIndex = indices[i]
         const fragmentValue = collectGem(gemIndex)

@@ -56,11 +56,11 @@ describe('useBoons — Story 11.4 new boons', () => {
 
   it('CRIT_MULTIPLIER — sets critMultiplier at each tier', () => {
     useBoons.getState().addBoon('CRIT_MULTIPLIER')
-    expect(useBoons.getState().modifiers.critMultiplier).toBe(2.2)
+    expect(useBoons.getState().modifiers.critMultiplier).toBe(2.5)
     useBoons.getState().upgradeBoon('CRIT_MULTIPLIER')
-    expect(useBoons.getState().modifiers.critMultiplier).toBe(2.4)
+    expect(useBoons.getState().modifiers.critMultiplier).toBe(3.0)
     useBoons.getState().upgradeBoon('CRIT_MULTIPLIER')
-    expect(useBoons.getState().modifiers.critMultiplier).toBe(2.7)
+    expect(useBoons.getState().modifiers.critMultiplier).toBe(3.8)
   })
 
   // --- PROJECTILE_SPEED ---
@@ -100,11 +100,11 @@ describe('useBoons — Story 11.4 new boons', () => {
 
   it('DAMAGE_REDUCTION — sets damageReduction at each tier', () => {
     useBoons.getState().addBoon('DAMAGE_REDUCTION')
-    expect(useBoons.getState().modifiers.damageReduction).toBeCloseTo(0.10)
+    expect(useBoons.getState().modifiers.damageReduction).toBeCloseTo(0.05)
     useBoons.getState().upgradeBoon('DAMAGE_REDUCTION')
-    expect(useBoons.getState().modifiers.damageReduction).toBeCloseTo(0.18)
+    expect(useBoons.getState().modifiers.damageReduction).toBeCloseTo(0.08)
     useBoons.getState().upgradeBoon('DAMAGE_REDUCTION')
-    expect(useBoons.getState().modifiers.damageReduction).toBeCloseTo(0.25)
+    expect(useBoons.getState().modifiers.damageReduction).toBeCloseTo(0.12)
   })
 
   // --- XP_GAIN ---
@@ -148,7 +148,7 @@ describe('useBoons — Story 11.4 new boons', () => {
     useBoons.getState().addBoon('HP_REGEN')
     const m = useBoons.getState().modifiers
     expect(m.damageMultiplier).toBe(BOONS.DAMAGE_AMP.tiers[0].effect.damageMultiplier)
-    expect(m.critMultiplier).toBe(2.2)
+    expect(m.critMultiplier).toBe(2.5)
     expect(m.hpRegenRate).toBe(1.0)
     // Unaffected modifiers stay at defaults
     expect(m.speedMultiplier).toBe(1)
@@ -160,10 +160,10 @@ describe('useBoons — Story 11.4 new boons', () => {
 
   it('tier upgrade replaces previous tier value for critMultiplier', () => {
     useBoons.getState().addBoon('CRIT_MULTIPLIER')
-    expect(useBoons.getState().modifiers.critMultiplier).toBe(2.2)
+    expect(useBoons.getState().modifiers.critMultiplier).toBe(2.5)
     useBoons.getState().upgradeBoon('CRIT_MULTIPLIER')
-    // Should be 2.4, not 2.2 + 2.4
-    expect(useBoons.getState().modifiers.critMultiplier).toBe(2.4)
+    // Should be 3.0, not 2.5 + 3.0
+    expect(useBoons.getState().modifiers.critMultiplier).toBe(3.0)
   })
 
   it('tier upgrade replaces previous tier value for maxHPBonus', () => {

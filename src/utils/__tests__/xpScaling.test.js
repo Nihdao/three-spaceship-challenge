@@ -11,10 +11,10 @@ describe('getXPForLevel', () => {
   })
 
   it('calculates scaled values for levels 15+', () => {
-    // Level 15: 4400 * 1.02^1 = 4488
-    expect(getXPForLevel(15)).toBe(4488)
-    // Level 16: 4400 * 1.02^2 = 4577
-    expect(getXPForLevel(16)).toBe(4577)
+    // Level 15: 2650 * 1.02^1 = 2703 (Story 48.4: new baseXP = 2650)
+    expect(getXPForLevel(15)).toBe(2703)
+    // Level 16: 2650 * 1.02^2 = 2757
+    expect(getXPForLevel(16)).toBe(2757)
   })
 
   it('maintains ~2% growth rate between consecutive levels', () => {

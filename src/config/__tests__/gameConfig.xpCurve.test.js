@@ -18,12 +18,18 @@ describe('gameConfig — XP curve rebalancing (Story 11.2)', () => {
     expect(curve[4]).toBeLessThanOrEqual(408)  // was 510, target ~375
   })
 
-  it('mid and late levels (6+) grow at ~30% per level for frequent leveling', () => {
-    // From level 6 onwards, each level should cost ~30% more than the previous
-    for (let i = 6; i < curve.length; i++) {
+  it('levels 6-7 grow at ~30% per level, levels 8+ grow at ~18-20% per level (Story 48.4)', () => {
+    // Levels 6-7 (indices 5-6): ~30% growth
+    for (let i = 5; i <= 6; i++) {
       const growth = curve[i] / curve[i - 1]
       expect(growth).toBeGreaterThanOrEqual(1.2)
       expect(growth).toBeLessThanOrEqual(1.45)
+    }
+    // Levels 8-14 (indices 7-13): ~18-25% growth (Story 48.4 rebalance)
+    for (let i = 7; i < curve.length; i++) {
+      const growth = curve[i] / curve[i - 1]
+      expect(growth).toBeGreaterThanOrEqual(1.15)
+      expect(growth).toBeLessThanOrEqual(1.30)
     }
   })
 

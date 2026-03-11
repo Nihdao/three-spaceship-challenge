@@ -53,7 +53,7 @@ export const UPGRADES = {
   COOLDOWN_REDUCTION_1: {
     id: 'COOLDOWN_REDUCTION_1',
     name: 'Faster Fire I',
-    description: '-10% weapon cooldown',
+    description: '+10% Atk Spd',
     fragmentCost: 60,
     effect: { type: 'COOLDOWN_MULT', value: 0.9 },
     prerequisite: null,
@@ -61,7 +61,7 @@ export const UPGRADES = {
   COOLDOWN_REDUCTION_2: {
     id: 'COOLDOWN_REDUCTION_2',
     name: 'Faster Fire II',
-    description: '-20% weapon cooldown',
+    description: '+20% Atk Spd',
     fragmentCost: 120,
     effect: { type: 'COOLDOWN_MULT', value: 0.8 },
     prerequisite: 'COOLDOWN_REDUCTION_1',

@@ -9,10 +9,11 @@ const useBoss = create((set, get) => ({
   defeatExplosionCount: 0,
   rewardGiven: false,
 
-  spawnBoss: (currentSystem = 1, wormholePos = null) => {
+  spawnBoss: (currentSystem = 1, wormholePos = null, bossTier1Hp = null) => {
     // Story 16.4: Use per-stat scaling from ENEMY_SCALING_PER_SYSTEM
     const scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[currentSystem] || { hp: 1, damage: 1, speed: 1, xpReward: 1 }
-    const bossHP = Math.round(GAME_CONFIG.BOSS_BASE_HP * scaling.hp)
+    const baseHp = bossTier1Hp ?? GAME_CONFIG.BOSS_BASE_HP
+    const bossHP = Math.round(baseHp * scaling.hp)
     // Story 17.4: Spawn at wormhole position if provided, otherwise at origin
     const spawnX = wormholePos?.x ?? 0
     const spawnZ = wormholePos?.z ?? 0
@@ -46,9 +47,9 @@ const useBoss = create((set, get) => ({
       boss.x += (dx / dist) * GAME_CONFIG.BOSS_MOVE_SPEED * delta
       boss.z += (dz / dist) * GAME_CONFIG.BOSS_MOVE_SPEED * delta
     }
-    // Clamp to play area (boss fights happen in GameplayScene, not a separate arena)
-    boss.x = Math.max(-GAME_CONFIG.PLAY_AREA_SIZE, Math.min(GAME_CONFIG.PLAY_AREA_SIZE, boss.x))
-    boss.z = Math.max(-GAME_CONFIG.PLAY_AREA_SIZE, Math.min(GAME_CONFIG.PLAY_AREA_SIZE, boss.z))
+    // Clamp to boss arena bounds
+    boss.x = Math.max(-GAME_CONFIG.BOSS_ARENA_SIZE, Math.min(GAME_CONFIG.BOSS_ARENA_SIZE, boss.x))
+    boss.z = Math.max(-GAME_CONFIG.BOSS_ARENA_SIZE, Math.min(GAME_CONFIG.BOSS_ARENA_SIZE, boss.z))
 
     // 2. Decay hit flash timer (Story 27.3)
     if (boss.hitFlashTimer > 0) {
@@ -117,6 +118,8 @@ const useBoss = create((set, get) => ({
   },
 
   setRewardGiven: (value) => set({ rewardGiven: value }),
+
+  deactivate: () => set({ isActive: false }),
 
   reset: () => set({
     boss: null,

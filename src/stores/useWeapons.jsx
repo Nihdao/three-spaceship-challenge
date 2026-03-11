@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
+import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 
 let nextProjectileId = 0
 
@@ -17,10 +18,12 @@ const useWeapons = create((set, get) => ({
 
   // --- Actions ---
 
-  initializeWeapons: () => {
+  initializeWeapons: (shipId = null) => {
+    const ship = SHIPS[shipId] || SHIPS[getDefaultShipId()]
+    const startWeaponId = ship.defaultWeaponId || 'LASER_FRONT'
     nextProjectileId = 0
     set({
-      activeWeapons: [{ weaponId: 'LASER_FRONT', level: 1, cooldownTimer: 0, multipliers: { damageMultiplier: 1.0, areaMultiplier: 1.0, cooldownMultiplier: 1.0, knockbackMultiplier: 1.0, critBonus: 0 } }],
+      activeWeapons: [{ weaponId: startWeaponId, level: 1, cooldownTimer: 0, multipliers: { damageMultiplier: 1.0, areaMultiplier: 1.0, cooldownMultiplier: 1.0, knockbackMultiplier: 1.0, critBonus: 0 } }],
       projectiles: [],
     })
   },

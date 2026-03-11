@@ -2,13 +2,13 @@
 import { rollRarity, getRarityTier } from './raritySystem.js'
 
 const UPGRADE_MAGNITUDE_TABLE = {
-  COMMON:    { damage: 8,  area: 6,  cooldown: -6,  knockback: 10, crit: 1.5 },
-  RARE:      { damage: 15, area: 12, cooldown: -12, knockback: 20, crit: 2.5 },
-  EPIC:      { damage: 25, area: 20, cooldown: -20, knockback: 35, crit: 4   },
-  LEGENDARY: { damage: 40, area: 32, cooldown: -30, knockback: 55, crit: 7   },
+  COMMON:    { damage: 10, area:  8, cooldown:  -8, knockback: 12 },
+  RARE:      { damage: 18, area: 14, cooldown: -12, knockback: 22 },
+  EPIC:      { damage: 28, area: 22, cooldown: -18, knockback: 35 },
+  LEGENDARY: { damage: 45, area: 32, cooldown: -22, knockback: 50 },
 }
 
-const UPGRADE_STATS = ['damage', 'area', 'cooldown', 'knockback', 'crit']
+const UPGRADE_STATS = ['damage', 'area', 'cooldown', 'knockback']
 
 // Build a contextual "current → new" preview using the weapon's actual current state.
 // globalDamageMult and globalCooldownMult include perm upgrades, ship level, boons, dilemmas.
@@ -17,8 +17,6 @@ function buildStatPreview(stat, finalMagnitude, weaponDef, weaponMultipliers, gl
   const cooldownMult = weaponMultipliers.cooldownMultiplier ?? 1.0
   const areaMult     = weaponMultipliers.areaMultiplier    ?? 1.0
   const kbMult       = weaponMultipliers.knockbackMultiplier ?? 1.0
-  const critBonus    = weaponMultipliers.critBonus          ?? 0
-
   switch (stat) {
     case 'damage': {
       const cur = weaponDef.baseDamage * dmgMult * globalDamageMult
@@ -39,13 +37,6 @@ function buildStatPreview(stat, finalMagnitude, weaponDef, weaponMultipliers, gl
     case 'knockback': {
       const nxt = kbMult * (1 + finalMagnitude / 100)
       return `Knockback  ${kbMult.toFixed(2)}× → ${nxt.toFixed(2)}×`
-    }
-    case 'crit': {
-      const baseCrit  = weaponDef.critChance ?? 0
-      const newBonus  = Math.min(1.0 - baseCrit, critBonus + finalMagnitude / 100)
-      const cur = (baseCrit + critBonus) * 100
-      const nxt = (baseCrit + newBonus) * 100
-      return `Crit  ${cur.toFixed(1)}% → ${nxt.toFixed(1)}%`
     }
     default: {
       const sign = finalMagnitude >= 0 ? '+' : ''
@@ -69,7 +60,12 @@ function buildStatPreview(stat, finalMagnitude, weaponDef, weaponMultipliers, gl
  * @returns {{ stat, baseMagnitude, finalMagnitude, rarity, statPreview }}
  */
 export function rollUpgrade(weaponId, luckStat = 0, weaponDef = null, weaponMult = null, globalDamageMult = 1, globalCooldownMult = 1) {
-  const stat = UPGRADE_STATS[Math.floor(Math.random() * UPGRADE_STATS.length)]
+  const eligible = UPGRADE_STATS.filter(s => {
+    if (s === 'cooldown' && weaponDef && !(weaponDef.baseCooldown > 0)) return false
+    return true
+  })
+  const effectiveStats = eligible.length > 0 ? eligible : UPGRADE_STATS
+  const stat = effectiveStats[Math.floor(Math.random() * effectiveStats.length)]
   const rarity = rollRarity(luckStat)
   const baseMagnitude = UPGRADE_MAGNITUDE_TABLE[rarity][stat]
 
@@ -78,13 +74,7 @@ export function rollUpgrade(weaponId, luckStat = 0, weaponDef = null, weaponMult
   const pow = Math.max(0.1, 1 - luckStat * 0.06)
   const roll = Math.pow(u, pow) * 6 - 3
 
-  let finalMagnitude
-  if (stat === 'crit') {
-    // Crit never rolls below base magnitude
-    finalMagnitude = Math.max(baseMagnitude, baseMagnitude + roll)
-  } else {
-    finalMagnitude = baseMagnitude + roll
-  }
+  const finalMagnitude = baseMagnitude + roll
 
   const statPreview = (weaponDef && weaponMult)
     ? buildStatPreview(stat, finalMagnitude, weaponDef, weaponMult, globalDamageMult, globalCooldownMult)

@@ -6,6 +6,7 @@ import useBoons from '../stores/useBoons.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import useGlobalStats from '../stores/useGlobalStats.jsx'
 import { playSFX } from '../audio/audioManager.js'
+import { computeTimeBonus } from '../systems/progressionSystem.js'
 import { WEAPONS } from '../entities/weaponDefs.js'
 import { BOONS } from '../entities/boonDefs.js'
 import { formatTimer } from './HUD.jsx'
@@ -82,6 +83,7 @@ export default function VictoryScreen() {
   const statsRef = useRef(null)
   if (!statsRef.current) {
     const totalTime = useGame.getState().totalElapsedTime + useGame.getState().systemTimer
+    const remaining = Math.max(0, useLevel.getState().actualSystemDuration - useGame.getState().systemTimer)
     statsRef.current = {
       systemTimer: totalTime,
       kills: useGame.getState().kills,
@@ -93,6 +95,7 @@ export default function VictoryScreen() {
       fragmentsEarned: usePlayer.getState().fragmentsEarnedThisRun,
       activeWeapons: [...useWeapons.getState().activeWeapons],
       activeBoons: [...useBoons.getState().activeBoons],
+      timeBonus: computeTimeBonus(remaining),
     }
   }
 
@@ -208,6 +211,7 @@ export default function VictoryScreen() {
             <div className="w-full animate-slide-up">
               <div className="flex flex-col gap-2">
                 <StatLine label="SCORE" value={stats.score.toLocaleString()} />
+                <StatLine label="TIME BONUS" value={stats.timeBonus > 0 ? `+${stats.timeBonus.toLocaleString()}` : '—'} />
                 <StatLine label="SYSTEMS CLEARED" value={stats.currentSystem} />
                 <StatLine label="TIME SURVIVED" value={timeSurvived} />
                 <StatLine label="ENEMIES KILLED" value={stats.kills} />

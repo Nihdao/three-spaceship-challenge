@@ -105,9 +105,12 @@ const useLevel = create((set, get) => ({
 
   // Consumes carriedTime to initialize actualSystemDuration for the new system.
   // Called on system entry from tunnel. Clears carriedTime after consuming it.
-  initializeSystemDuration: () => {
+  // Story 52.4: optional timerBase allows per-galaxy chaos timers (andromeda_inferno: 300/600/900s).
+  // Falls back to GAME_CONFIG.SYSTEM_TIMER (600s) when timerBase is null/undefined.
+  initializeSystemDuration: (timerBase) => {
     const carried = get().carriedTime
-    set({ actualSystemDuration: GAME_CONFIG.SYSTEM_TIMER + carried, carriedTime: 0 })
+    const base = timerBase ?? GAME_CONFIG.SYSTEM_TIMER
+    set({ actualSystemDuration: base + carried, carriedTime: 0 })
   },
 
   initializeSystemName: (pool) => {

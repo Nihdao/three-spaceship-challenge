@@ -330,6 +330,33 @@ describe('useGame — isNewHighScore flag (Story 8.4, Task 3)', () => {
   })
 })
 
+describe('useGame — time bonus ordering and high score (Story 51.5, AC #5)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('addScore before updateHighScore includes time bonus in high score', () => {
+    // Mirrors the exact GameLoop victory sequence: addScore → updateHighScore → triggerVictory
+    useGame.setState({ score: 80000, highScore: 50000 })
+    useGame.getState().addScore(120000)         // time bonus applied first
+    useGame.getState().updateHighScore()         // high score computed WITH bonus
+
+    expect(useGame.getState().score).toBe(200000)
+    expect(useGame.getState().highScore).toBe(200000)  // bonus included ✓
+    expect(useGame.getState().isNewHighScore).toBe(true)
+  })
+
+  it('updateHighScore before addScore would exclude time bonus from high score', () => {
+    // Documents why ordering matters: wrong order → bonus missing from high score
+    useGame.setState({ score: 80000, highScore: 50000 })
+    useGame.getState().updateHighScore()         // called BEFORE bonus — wrong order
+    useGame.getState().addScore(120000)          // bonus arrives too late
+
+    expect(useGame.getState().score).toBe(200000)       // score is correct
+    expect(useGame.getState().highScore).toBe(80000)    // bonus NOT in high score ← wrong behavior
+  })
+})
+
 describe('useGame — high score clear save integration (Story 8.4, Task 4)', () => {
   beforeEach(() => {
     useGame.getState().reset()
@@ -414,5 +441,57 @@ describe('useGame — galaxy selection (Story 25.3)', () => {
     useGame.getState().setSelectedGalaxy('andromeda_reach')
     useGame.getState().returnToMenu()
     expect(useGame.getState().selectedGalaxyId).toBeNull()
+  })
+})
+
+describe('useGame — wormhole flash reset on system transition (Story 51.3)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('startSystemEntry() resets wormholeFirstTouch to false when it was true', () => {
+    useGame.getState().triggerWormholeFirstTouch()
+    expect(useGame.getState().wormholeFirstTouch).toBe(true)
+
+    useGame.getState().startSystemEntry()
+    expect(useGame.getState().wormholeFirstTouch).toBe(false)
+  })
+
+  it('startSystemEntry() sets phase to systemEntry and isPaused to false', () => {
+    useGame.getState().startSystemEntry()
+    const state = useGame.getState()
+    expect(state.phase).toBe('systemEntry')
+    expect(state.isPaused).toBe(false)
+  })
+
+  it('wormholeFirstTouch can transition false→true again after startSystemEntry()', () => {
+    useGame.getState().triggerWormholeFirstTouch()
+    useGame.getState().startSystemEntry()
+    expect(useGame.getState().wormholeFirstTouch).toBe(false)
+
+    useGame.getState().triggerWormholeFirstTouch()
+    expect(useGame.getState().wormholeFirstTouch).toBe(true)
+  })
+})
+
+describe('useGame — galaxy scoreMultiplier × 2 (Story 52.8)', () => {
+  beforeEach(() => {
+    useGame.getState().reset()
+  })
+
+  it('multiplying SCORE_PER_KILL by 2 yields 200 per kill', () => {
+    const SCORE_PER_KILL = 100
+    const galaxyScoreMult = 2.0
+    const kills = 5
+    useGame.getState().addScore(SCORE_PER_KILL * kills * galaxyScoreMult)
+    expect(useGame.getState().score).toBe(1000) // 100 × 5 × 2
+  })
+
+  it('retro-compat: scoreMultiplier fallback 1.0 gives normal score', () => {
+    const SCORE_PER_KILL = 100
+    const galaxyScoreMult = 1.0
+    const kills = 5
+    useGame.getState().addScore(SCORE_PER_KILL * kills * galaxyScoreMult)
+    expect(useGame.getState().score).toBe(500) // 100 × 5 × 1
   })
 })

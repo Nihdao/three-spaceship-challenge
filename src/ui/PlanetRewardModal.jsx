@@ -6,7 +6,10 @@ import useBoons from '../stores/useBoons.jsx'
 import useArmory from '../stores/useArmory.jsx'
 import useLevel from '../stores/useLevel.jsx'
 import { generatePlanetReward } from '../systems/progressionSystem.js'
+import { SHIPS } from '../entities/shipDefs.js'
 import { playSFX } from '../audio/audioManager.js'
+import StatLine from './primitives/StatLine.jsx'
+import { ShieldCrossIcon, SwordIcon, StarIcon } from './icons/index.jsx'
 
 function getChoiceAccentColor(type) {
   if (type === 'new_weapon' || type === 'weapon_upgrade') return 'var(--rs-teal)'
@@ -128,6 +131,12 @@ const S = {
   },
 }
 
+// Icon wrappers hardcode size/color intentionally — StatLine passes props but they're ignored
+// to maintain semantic colors regardless of StatLine's own color prop (currentColor).
+const HPPlanetIcon  = () => <ShieldCrossIcon size={14} color="var(--rs-hp)" />
+const DmgPlanetIcon = () => <SwordIcon       size={14} color="var(--rs-orange)" />
+const LvlPlanetIcon = () => <StarIcon        size={14} color="var(--rs-gold)" />
+
 export default function PlanetRewardModal() {
   const [choices, setChoices] = useState([])
   const [banishMode, setBanishMode] = useState(false)
@@ -137,6 +146,12 @@ export default function PlanetRewardModal() {
   const rerollCharges = usePlayer(s => s.rerollCharges)
   const skipCharges = usePlayer(s => s.skipCharges)
   const banishCharges = usePlayer(s => s.banishCharges)
+  const currentHP = usePlayer(s => s.currentHP)
+  const maxHP = usePlayer(s => s.maxHP)
+  const currentLevel = usePlayer(s => s.currentLevel)
+  const activeWeaponsCount = useWeapons(s => s.activeWeapons.length)
+  const activeBoonsCount = useBoons(s => s.activeBoons.length)
+  const damageMultiplier = useBoons(s => s.modifiers?.damageMultiplier ?? 1)
   const tierColor = TIER_COLORS[rewardTier] || '#ffffff'
   const tierLabel = TIER_LABELS[rewardTier] || rewardTier
 
@@ -167,7 +182,8 @@ export default function PlanetRewardModal() {
     const equippedBoonIds = useBoons.getState().activeBoons.map(b => b.boonId)
     const equippedBoons = useBoons.getState().getEquippedBoons()
     const luckStat = (playerState.getLuckStat?.() ?? 0) + (boonModifiers.luckBonus ?? 0)
-    return generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat)
+    const preferredBoonIds = SHIPS[playerState.currentShipId]?.preferredBoonIds ?? []
+    return generatePlanetReward(tier, equippedWeapons, equippedBoonIds, equippedBoons, banishedItems, luckStat, preferredBoonIds)
   }, [])
 
   // Generate choices on mount
@@ -233,14 +249,19 @@ export default function PlanetRewardModal() {
     } else if (choice.type === 'boon_upgrade') {
       useBoons.getState().upgradeBoon(choice.id, rarity)
       usePlayer.getState().applyMaxHPBonus(useBoons.getState().modifiers.maxHPBonus)
+    } else if (choice.type === 'stat_boost') {
+      usePlayer.getState().applyStatBoost(choice.statType, choice.statValue)
+    } else if (choice.type === 'fragment_bonus') {
+      usePlayer.getState().addFragments(30)
+    } else if (choice.type === 'heal_bonus') {
+      usePlayer.getState().healFromGem(25)
     }
-    // stat_boost: intentional no-op fallback (all slots maxed edge case)
     useGame.getState().resumeGameplay()
   }, [])
 
   const handleCardClick = useCallback((choice, index) => {
     if (banishMode) {
-      if (choice.type === 'stat_boost') return
+      if (choice.type === 'stat_boost' || choice.type === 'fragment_bonus' || choice.type === 'heal_bonus') return
       setBanishMode(false)
       handleBanish(choice, index)
     } else {
@@ -277,6 +298,18 @@ export default function PlanetRewardModal() {
           {/* Flavor text selon tier */}
           <p style={S.flavorText}>
             {TIER_FLAVOR[rewardTier] || TIER_FLAVOR.standard}
+          </p>
+
+          {/* ── Player Stats ── */}
+          <div style={S.separator} />
+          <p style={{ ...S.sectionLabel, marginBottom: 4 }}>Player Stats</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <StatLine compact label="HP"    value={`${Math.ceil(currentHP)} / ${Math.ceil(maxHP)}`} icon={HPPlanetIcon}  />
+            <StatLine compact label="LEVEL" value={String(currentLevel)}                  icon={LvlPlanetIcon} />
+            <StatLine compact label="DMG"   value={damageMultiplier >= 1.0 ? `+${((damageMultiplier - 1.0) * 100).toFixed(0)}%` : '+0%'} icon={DmgPlanetIcon} />
+          </div>
+          <p style={{ ...S.flavorText, marginTop: 6 }}>
+            {activeWeaponsCount} weapon{activeWeaponsCount !== 1 ? 's' : ''} · {activeBoonsCount} boon{activeBoonsCount !== 1 ? 's' : ''}
           </p>
 
           {(rerollCharges > 0 || skipCharges > 0 || banishCharges > 0) && (
@@ -373,7 +406,8 @@ export default function PlanetRewardModal() {
           <div style={S.cardsContainer}>
             {choices.map((choice, i) => {
               const accentColor = getChoiceAccentColor(choice.type)
-              const isBanishable = choice.type !== 'stat_boost'
+              const isBanishable = choice.type !== 'stat_boost' && choice.type !== 'fragment_bonus' && choice.type !== 'heal_bonus'
+              const showRarityBadge = isBanishable && choice.rarity !== 'COMMON'
               const cardBorderColor = banishMode
                 ? (isBanishable ? 'var(--rs-danger)' : 'var(--rs-border)')
                 : accentColor
@@ -407,7 +441,7 @@ export default function PlanetRewardModal() {
                     e.currentTarget.style.borderLeftColor = cardBorderColor
                   }}
                 >
-                  {/* Top row: level/NEW + shortcut ou BANISH label */}
+                  {/* Top row: level/NEW + rarity badge or BANISH label + shortcut */}
                   <div style={S.topRow}>
                     <span style={{
                       fontSize: '0.75rem',
@@ -421,15 +455,48 @@ export default function PlanetRewardModal() {
                       <span style={{ marginLeft: 'auto', fontFamily: "'Space Mono', monospace", fontSize: 10, color: 'var(--rs-danger)', letterSpacing: '0.08em' }}>
                         BANISH
                       </span>
-                    ) : i < 3 ? (
-                      <span style={S.shortcutKey}>[{i + 1}]</span>
-                    ) : null}
+                    ) : (
+                      <>
+                        {showRarityBadge && (
+                          <span style={{
+                            marginLeft: 'auto',
+                            fontFamily: "'Space Mono', monospace",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: choice.rarityColor,
+                            letterSpacing: '0.08em',
+                          }}>
+                            {choice.rarityName}
+                          </span>
+                        )}
+                        {i < 3 && (
+                          <span style={showRarityBadge ? { ...S.shortcutKey, marginLeft: 0 } : S.shortcutKey}>
+                            [{i + 1}]
+                          </span>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   <h3 style={S.cardTitle}>{choice.name}</h3>
-                  <p style={S.cardDesc}>
-                    {choice.statPreview ?? choice.description}
-                  </p>
+                  {choice.type === 'new_weapon' ? (
+                    <>
+                      <p style={S.cardDesc}>{choice.description || choice.name}</p>
+                      {choice.statPreview && (
+                        <p style={{
+                          ...S.cardDesc,
+                          fontFamily: "'Space Mono', monospace",
+                          fontSize: '0.72rem',
+                          color: 'var(--rs-text-dim)',
+                          marginTop: 2,
+                        }}>
+                          {choice.statPreview}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p style={S.cardDesc}>{choice.statPreview ?? choice.description}</p>
+                  )}
                 </div>
               )
             })}

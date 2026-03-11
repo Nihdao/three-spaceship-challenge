@@ -34,7 +34,7 @@ export const DILEMMAS = {
   TRIGGER_HAPPY: {
     id: 'TRIGGER_HAPPY',
     name: 'Trigger Happy',
-    description: '-30% Cooldown / -15% DMG',
+    description: '+30% Atk Spd / -15% DMG',
     bonus: { type: 'COOLDOWN_MULT', value: 0.7 },
     malus: { type: 'DAMAGE_MULT', value: 0.85 },
   },

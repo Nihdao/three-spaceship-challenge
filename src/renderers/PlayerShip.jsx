@@ -5,6 +5,7 @@ import { useGLTF } from '@react-three/drei'
 import usePlayer from '../stores/usePlayer.jsx'
 import useShipProgression from '../stores/useShipProgression.jsx'
 import { getSkinForShip } from '../entities/shipSkinDefs.js'
+import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 import { GAME_CONFIG } from '../config/gameConfig.js'
 
 // Shared ref — allows other renderers (e.g. LaserCrossRenderer) to read the ship's
@@ -15,6 +16,7 @@ export const playerShipGroupRef = { current: null }
 const _lighting = GAME_CONFIG.PLAYER_SHIP_LIGHTING
 const _dashEmissive = new THREE.Color(GAME_CONFIG.DASH_TRAIL_COLOR)
 const _engineEmissive = new THREE.Color(_lighting.ENGINE_EMISSIVE_COLOR)
+const _shieldEmissive = new THREE.Color('#0088ff')
 
 export default function PlayerShip() {
   const groupRef = useRef()
@@ -25,7 +27,8 @@ export default function PlayerShip() {
   const currentShipId = usePlayer.getState().currentShipId || 'BALANCED'
   const selectedSkinId = useShipProgression.getState().getSelectedSkin(currentShipId)
   const skinData = getSkinForShip(currentShipId, selectedSkinId)
-  const modelPath = skinData?.modelPath ?? './models/ships/Spaceship.glb'
+  const shipDef = SHIPS[currentShipId] || SHIPS[getDefaultShipId()]
+  const modelPath = skinData?.modelPath ?? shipDef.modelPath
 
   const { scene } = useGLTF(modelPath)
 
@@ -77,6 +80,7 @@ export default function PlayerShip() {
       for (let i = 0; i < allMaterials.length; i++) {
         allMaterials[i].emissive.setScalar(0)
         allMaterials[i].emissiveIntensity = 1.0
+        allMaterials[i].transparent = true // AC2: force transparent so opacity < 1 works for all GLB materials
       }
       for (let i = 0; i < engineMaterials.length; i++) {
         engineMaterials[i].emissive.copy(_engineEmissive)
@@ -116,22 +120,46 @@ export default function PlayerShip() {
     }
     wasDashingRef.current = isDashing
 
-    // Invincibility visual feedback (Story 22.1) — flashing effect
-    // Shield active: use shieldTimer for phase so the blink is always animated
+    // Invincibility visual feedback — differentiated by shield vs i-frames (Story 49.5)
     if (isInvulnerable && !isDashing) {
-      const flashFrequency = GAME_CONFIG.REVIVAL_FLASH_RATE * Math.PI * 2
-      const timerForPhase = shieldTimer > 0 ? shieldTimer : invulnerabilityTimer
-      const flashPhase = timerForPhase * flashFrequency
-      const flashOpacity = 0.3 + 0.7 * ((Math.sin(flashPhase) + 1) / 2)
+      const isShield = shieldTimer > 0
+      const flashRate = isShield ? GAME_CONFIG.SHIELD_FLASH_RATE : GAME_CONFIG.REVIVAL_FLASH_RATE
+      const timerForPhase = isShield ? shieldTimer : invulnerabilityTimer
+      const flashPhase = timerForPhase * flashRate * Math.PI * 2
+      const sinVal = (Math.sin(flashPhase) + 1) / 2
+      const flashOpacity = isShield
+        ? 0.15 + 0.85 * sinVal  // AC1: shield — min 0.15 (quasi-ghost), 4 Hz
+        : 0.3  + 0.7  * sinVal  // AC3: i-frames — min 0.3, 8 Hz (original behaviour)
 
       for (let i = 0; i < allMaterials.length; i++) {
         allMaterials[i].opacity = flashOpacity
-        allMaterials[i].transparent = true
+        if (isShield) {
+          allMaterials[i].emissive.copy(_shieldEmissive)
+          allMaterials[i].emissiveIntensity = 0.4
+        } else {
+          // AC3: i-frames only — clear any residual shield emissive (e.g. shield→revival overlap)
+          allMaterials[i].emissive.setScalar(0)
+          allMaterials[i].emissiveIntensity = 1.0
+        }
+      }
+      // Restore engine glow wiped by the emissive reset above (i-frames path)
+      if (!isShield) {
+        for (let i = 0; i < engineMaterials.length; i++) {
+          engineMaterials[i].emissive.copy(_engineEmissive)
+          engineMaterials[i].emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
+        }
       }
     } else if (!isDashing) {
       for (let i = 0; i < allMaterials.length; i++) {
         allMaterials[i].opacity = 1.0
-        allMaterials[i].transparent = false
+        allMaterials[i].emissive.setScalar(0)
+        allMaterials[i].emissiveIntensity = 1.0
+        // transparent stays true (innocuous at opacity=1.0, set permanently at init)
+      }
+      // Restore engine glow (wiped by emissive reset above, same pattern as post-dash restoration)
+      for (let i = 0; i < engineMaterials.length; i++) {
+        engineMaterials[i].emissive.copy(_engineEmissive)
+        engineMaterials[i].emissiveIntensity = _lighting.ENGINE_EMISSIVE_INTENSITY
       }
     }
 
@@ -151,12 +179,13 @@ export default function PlayerShip() {
         <primitive object={clonedScene} />
       </group>
       {/* Local point light for ship illumination (Story 12.1) */}
+      {/* Striker (GLASS_CANNON): intensity halved + light raised to soften diffuse peak on flat hull */}
       <pointLight
-        intensity={_lighting.POINT_LIGHT_INTENSITY}
+        intensity={currentShipId === 'GLASS_CANNON' ? _lighting.POINT_LIGHT_INTENSITY * 0.5 : _lighting.POINT_LIGHT_INTENSITY}
         distance={_lighting.POINT_LIGHT_DISTANCE}
         decay={2}
         color="#ffffff"
-        position={[0, _lighting.POINT_LIGHT_Y, 0]}
+        position={[0, currentShipId === 'GLASS_CANNON' ? _lighting.POINT_LIGHT_Y + 4 : _lighting.POINT_LIGHT_Y, 0]}
       />
       {/* Magenta trail — outside bankRef so it stays horizontal during barrel roll */}
       <mesh ref={trailRef} position={[0, 0, 4]} visible={false}>
@@ -177,3 +206,11 @@ useGLTF.preload('./models/ships/Spaceship.glb')
 useGLTF.preload('./models/ships/Spaceship_3.glb')
 useGLTF.preload('./models/ships/Spaceship_6.glb')
 useGLTF.preload('./models/ships/Spaceship_9.glb')
+useGLTF.preload('./models/ships/SpaceshipB.glb')
+useGLTF.preload('./models/ships/SpaceshipB_3.glb')
+useGLTF.preload('./models/ships/SpaceshipB_6.glb')
+useGLTF.preload('./models/ships/SpaceshipB_9.glb')
+useGLTF.preload('./models/ships/SpaceshipC.glb')
+useGLTF.preload('./models/ships/SpaceshipC_3.glb')
+useGLTF.preload('./models/ships/SpaceshipC_6.glb')
+useGLTF.preload('./models/ships/SpaceshipC_9.glb')

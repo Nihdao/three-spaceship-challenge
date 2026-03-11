@@ -99,7 +99,7 @@ describe('useBoons store', () => {
     })
     useBoons.getState().computeModifiers()
     const m = useBoons.getState().modifiers
-    // 4 × 0.30 = 1.20, should be capped at 1.0
+    // 4 × 0.45 = 1.80, should be capped at 1.0
     expect(m.critChance).toBe(1.0)
   })
 

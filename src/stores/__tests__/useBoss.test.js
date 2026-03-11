@@ -7,6 +7,12 @@ describe('useBoss store', () => {
     useBoss.getState().reset()
   })
 
+  describe('config values (Story 49.3)', () => {
+    it('BOSS_BASE_HP is 7500', () => {
+      expect(GAME_CONFIG.BOSS_BASE_HP).toBe(7500)
+    })
+  })
+
   describe('initial state', () => {
     it('starts with no boss and inactive', () => {
       const state = useBoss.getState()
@@ -27,6 +33,47 @@ describe('useBoss store', () => {
       expect(state.boss.hp).toBe(GAME_CONFIG.BOSS_BASE_HP)
       expect(state.boss.maxHp).toBe(GAME_CONFIG.BOSS_BASE_HP)
       expect(state.boss.phase).toBe(0)
+    })
+
+    it('spawns at wormhole position when wormholePos is provided (Story 17.4)', () => {
+      useBoss.getState().spawnBoss(1, { x: 500, z: 200 })
+      const state = useBoss.getState()
+      expect(state.boss.x).toBe(500)
+      expect(state.boss.z).toBe(200)
+    })
+
+    it('chaos: spawnBoss(1, null, 15000) → boss HP = 15000 (AC #1)', () => {
+      useBoss.getState().spawnBoss(1, null, 15000)
+      const state = useBoss.getState()
+      expect(state.boss.hp).toBe(15000)
+      expect(state.boss.maxHp).toBe(15000)
+    })
+
+    it('fallback: spawnBoss() with no bossTier1Hp → boss HP = BOSS_BASE_HP (AC #2)', () => {
+      useBoss.getState().spawnBoss()
+      const state = useBoss.getState()
+      expect(state.boss.hp).toBe(GAME_CONFIG.BOSS_BASE_HP)
+      expect(state.boss.maxHp).toBe(GAME_CONFIG.BOSS_BASE_HP)
+    })
+
+    it('inter-system scaling on chaos base: spawnBoss(2, null, 15000) → HP = 15000 × system2 scaling (AC #3)', () => {
+      const system2Scaling = GAME_CONFIG.ENEMY_SCALING_PER_SYSTEM[2]?.hp ?? 1
+      useBoss.getState().spawnBoss(2, null, 15000)
+      const state = useBoss.getState()
+      expect(state.boss.hp).toBe(Math.round(15000 * system2Scaling))
+      expect(state.boss.maxHp).toBe(Math.round(15000 * system2Scaling))
+    })
+
+    it('boss spawned at wormhole position is not displaced after first tick (Story 51.2 regression)', () => {
+      // Bug: BOSS_ARENA_SIZE=400 < PLAY_AREA_SIZE=650 caused boss to clamp from (500,200) to (400,200) on tick 1
+      const wormholeX = 500
+      const wormholeZ = 200
+      useBoss.getState().spawnBoss(1, { x: wormholeX, z: wormholeZ })
+      // Player at same position — boss should not move, not be clamped
+      useBoss.getState().tick(0.016, [wormholeX, 0, wormholeZ])
+      const boss = useBoss.getState().boss
+      expect(boss.x).toBe(wormholeX)
+      expect(boss.z).toBe(wormholeZ)
     })
   })
 
@@ -256,6 +303,42 @@ describe('useBoss store', () => {
 
       // But rewardGiven flag should prevent duplicate rewards in GameLoop
       expect(useBoss.getState().rewardGiven).toBe(true)
+    })
+  })
+
+  describe('deactivate() (Story 49.4)', () => {
+    it('sets isActive to false without affecting other boss state', () => {
+      useBoss.getState().spawnBoss()
+      expect(useBoss.getState().isActive).toBe(true)
+
+      useBoss.getState().deactivate()
+      const state = useBoss.getState()
+      expect(state.isActive).toBe(false)
+      expect(state.boss).not.toBeNull()                // boss data preserved
+      expect(state.bossDefeated).toBe(false)           // defeat state unchanged
+      expect(state.rewardGiven).toBe(false)            // reward flag unchanged
+      expect(state.defeatAnimationTimer).toBe(0)       // animation timer unchanged
+      expect(state.defeatExplosionCount).toBe(0)       // explosion count unchanged
+    })
+
+    it('preserves bossDefeated: true when called after boss kill', () => {
+      useBoss.getState().spawnBoss()
+      useBoss.getState().damageBoss(GAME_CONFIG.BOSS_BASE_HP)
+      expect(useBoss.getState().bossDefeated).toBe(true)
+
+      useBoss.getState().deactivate()
+      const state = useBoss.getState()
+      expect(state.isActive).toBe(false)
+      expect(state.bossDefeated).toBe(true)   // not reset by deactivate
+      expect(state.boss).not.toBeNull()       // boss data preserved for renderers
+    })
+
+    it('does not interfere with reset()', () => {
+      useBoss.getState().spawnBoss()
+      useBoss.getState().deactivate()
+      useBoss.getState().reset()
+      expect(useBoss.getState().isActive).toBe(false)
+      expect(useBoss.getState().boss).toBeNull()
     })
   })
 
