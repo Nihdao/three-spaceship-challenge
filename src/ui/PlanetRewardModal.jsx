@@ -407,40 +407,53 @@ export default function PlanetRewardModal() {
             {choices.map((choice, i) => {
               const accentColor = getChoiceAccentColor(choice.type)
               const isBanishable = choice.type !== 'stat_boost' && choice.type !== 'fragment_bonus' && choice.type !== 'heal_bonus'
-              const showRarityBadge = isBanishable && choice.rarity !== 'COMMON'
+              const showRarityBadge = !banishMode && isBanishable && choice.rarity !== 'COMMON'
+              const hasRarityVisuals = !banishMode && isBanishable && choice.rarity && choice.rarity !== 'COMMON'
               const cardBorderColor = banishMode
                 ? (isBanishable ? 'var(--rs-danger)' : 'var(--rs-border)')
-                : accentColor
+                : 'rgba(255, 255, 255, 0.18)'
               const cardOpacity = banishingIndex === i
                 ? 0.2
                 : (banishMode && !isBanishable ? 0.35 : 1)
+              const rarityBg = hasRarityVisuals
+                ? ({ RARE: 'rgba(51,153,255,0.04)', EPIC: 'rgba(153,51,255,0.05)', LEGENDARY: 'rgba(255,204,0,0.05)' }[choice.rarity] ?? 'var(--rs-bg-raised)')
+                : (banishMode && isBanishable ? 'rgba(239,35,60,0.06)' : 'var(--rs-bg-raised)')
+              const cardClassName = [
+                'animate-fade-in',
+                hasRarityVisuals && choice.rarity === 'EPIC' ? 'rarity-glow-epic' : '',
+                hasRarityVisuals && choice.rarity === 'LEGENDARY' ? 'rarity-glow-legendary' : '',
+              ].filter(Boolean).join(' ')
 
               return (
                 <div
                   key={`${choice.type}_${choice.id}`}
                   style={{
                     ...S.card(accentColor, i * 50),
-                    borderLeft: `3px solid ${cardBorderColor}`,
+                    ...(hasRarityVisuals
+                      ? { border: `3px solid ${choice.rarityColor}`, ...(choice.rarity === 'RARE' ? { boxShadow: '0 0 6px rgba(51,153,255,0.25)' } : {}) }
+                      : { borderLeft: `3px solid ${cardBorderColor}` }
+                    ),
                     opacity: cardOpacity,
                     transform: banishingIndex === i ? 'scale(0.95)' : undefined,
                     transition: 'opacity 200ms ease-out, transform 200ms ease-out, border-left-color 150ms, background 150ms',
-                    backgroundColor: banishMode && isBanishable
-                      ? 'rgba(239,35,60,0.06)'
-                      : 'var(--rs-bg-raised)',
+                    backgroundColor: rarityBg,
                     cursor: banishMode
                       ? (isBanishable ? 'crosshair' : 'not-allowed')
                       : 'pointer',
                   }}
-                  className="animate-fade-in"
+                  className={cardClassName}
                   onClick={() => handleCardClick(choice, i)}
                   onMouseEnter={(e) => {
                     playSFX('button-hover')
-                    if (!banishMode) e.currentTarget.style.borderLeftColor = 'var(--rs-border-hot)'
+                    if (!banishMode && !hasRarityVisuals) e.currentTarget.style.borderLeftColor = 'var(--rs-border-hot)'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderLeftColor = cardBorderColor
+                    if (!hasRarityVisuals) e.currentTarget.style.borderLeftColor = cardBorderColor
                   }}
                 >
+                  {hasRarityVisuals && (choice.rarity === 'EPIC' || choice.rarity === 'LEGENDARY') && (
+                    <div className={`rarity-shimmer ${choice.rarity === 'LEGENDARY' ? 'rarity-shimmer-legendary' : 'rarity-shimmer-epic'}`} />
+                  )}
                   {/* Top row: level/NEW + rarity badge or BANISH label + shortcut */}
                   <div style={S.topRow}>
                     <span style={{
@@ -461,17 +474,16 @@ export default function PlanetRewardModal() {
                           <span style={{
                             marginLeft: 'auto',
                             fontFamily: "'Space Mono', monospace",
-                            fontSize: 11,
+                            fontSize: 10,
                             fontWeight: 700,
                             color: choice.rarityColor,
                             letterSpacing: '0.08em',
+                            padding: '1px 6px',
+                            borderRadius: 2,
+                            background: choice.rarityColor + '20',
+                            border: `1px solid ${choice.rarityColor}80`,
                           }}>
                             {choice.rarityName}
-                          </span>
-                        )}
-                        {i < 3 && (
-                          <span style={showRarityBadge ? { ...S.shortcutKey, marginLeft: 0 } : S.shortcutKey}>
-                            [{i + 1}]
                           </span>
                         )}
                       </>
