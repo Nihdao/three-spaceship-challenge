@@ -6,6 +6,7 @@ import { GAME_CONFIG } from '../config/gameConfig.js'
 import usePlayer from '../stores/usePlayer.jsx'
 import useShipProgression from '../stores/useShipProgression.jsx'
 import { getSkinForShip } from '../entities/shipSkinDefs.js'
+import { SHIPS, getDefaultShipId } from '../entities/shipDefs.js'
 
 const TUNNEL_RADIUS = 8
 const TUNNEL_LENGTH = 200
@@ -84,7 +85,8 @@ function TunnelShip() {
   const currentShipId = usePlayer.getState().currentShipId || 'BALANCED'
   const selectedSkinId = useShipProgression.getState().getSelectedSkin(currentShipId)
   const skinData = getSkinForShip(currentShipId, selectedSkinId)
-  const modelPath = skinData?.modelPath ?? './models/ships/Spaceship.glb'
+  const shipDef = SHIPS[currentShipId] || SHIPS[getDefaultShipId()]
+  const modelPath = skinData?.modelPath ?? shipDef.modelPath
 
   const { scene } = useGLTF(modelPath)
   const clonedScene = useMemo(() => scene.clone(), [scene])

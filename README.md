@@ -71,7 +71,7 @@ Config/Data → Systems → Stores → GameLoop → Rendering → UI
 
 ## Author
 
-Adam Alet — [@nihdao](https://x.com/nihdao)
+[@nihdao](https://x.com/nihdao)
 
 ## License
 
