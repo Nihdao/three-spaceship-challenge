@@ -149,8 +149,12 @@ const S = {
 // ─── component ───────────────────────────────────────────────────────────────
 
 export default function OptionsModal({ onClose }) {
-  const [masterVol, setMasterVol] = useState(() => readAudioSettings().masterVolume);
-  const [musicVol, setMusicVol] = useState(() => readAudioSettings().musicVolume);
+  const [masterVol, setMasterVol] = useState(
+    () => readAudioSettings().masterVolume,
+  );
+  const [musicVol, setMusicVol] = useState(
+    () => readAudioSettings().musicVolume,
+  );
   const [sfxVol, setSfxVol] = useState(() => readAudioSettings().sfxVolume);
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
   const modalRef = useRef(null);
@@ -158,7 +162,11 @@ export default function OptionsModal({ onClose }) {
 
   // Auto-save to localStorage when any volume changes
   useEffect(() => {
-    saveAudioSettings({ masterVolume: masterVol, musicVolume: musicVol, sfxVolume: sfxVol });
+    saveAudioSettings({
+      masterVolume: masterVol,
+      musicVolume: musicVol,
+      sfxVolume: sfxVol,
+    });
   }, [masterVol, musicVol, sfxVol]);
 
   // ESC key to close (only when confirmation dialog is NOT open)
@@ -207,22 +215,19 @@ export default function OptionsModal({ onClose }) {
     return () => modal.removeEventListener("keydown", handleTab);
   }, [isClearConfirmOpen]);
 
-  const updateVolume = useCallback(
-    (type, rawValue) => {
-      const val = clampVolume(rawValue);
-      if (type === "master") {
-        setMasterVol(val);
-        setMasterVolume(val / 100);
-      } else if (type === "music") {
-        setMusicVol(val);
-        setMusicVolume(val / 100);
-      } else if (type === "sfx") {
-        setSfxVol(val);
-        setSFXVolume(val / 100);
-      }
-    },
-    [],
-  );
+  const updateVolume = useCallback((type, rawValue) => {
+    const val = clampVolume(rawValue);
+    if (type === "master") {
+      setMasterVol(val);
+      setMasterVolume(val / 100);
+    } else if (type === "music") {
+      setMusicVol(val);
+      setMusicVolume(val / 100);
+    } else if (type === "sfx") {
+      setSfxVol(val);
+      setSFXVolume(val / 100);
+    }
+  }, []);
 
   const handleClearSave = useCallback(() => {
     try {
@@ -313,8 +318,19 @@ export default function OptionsModal({ onClose }) {
         </button>
 
         {/* Version */}
-        <div style={{ textAlign: 'right', marginBottom: '10px' }}>
-          <span style={{ fontFamily: "'Space Mono', monospace", fontSize: '0.55rem', letterSpacing: '0.1em', color: 'var(--rs-text-dim)', textTransform: 'uppercase', userSelect: 'none' }}>v1</span>
+        <div style={{ textAlign: "right", marginBottom: "10px" }}>
+          <span
+            style={{
+              fontFamily: "'Space Mono', monospace",
+              fontSize: "0.55rem",
+              letterSpacing: "0.1em",
+              color: "var(--rs-text-dim)",
+              textTransform: "uppercase",
+              userSelect: "none",
+            }}
+          >
+            v1.1.0
+          </span>
         </div>
 
         {/* BACK button */}
@@ -349,9 +365,23 @@ export default function OptionsModal({ onClose }) {
           aria-modal="true"
           aria-label="Confirm clear save data"
         >
-          <div style={{ position: "absolute", inset: 0, background: "rgba(13,11,20,0.92)" }} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(13,11,20,0.92)",
+            }}
+          />
           <div className="relative max-w-sm" style={S.confirmCard}>
-            <p style={{ color: 'var(--rs-text)', fontSize: '0.85rem', marginBottom: '24px', textAlign: 'center', userSelect: 'none' }}>
+            <p
+              style={{
+                color: "var(--rs-text)",
+                fontSize: "0.85rem",
+                marginBottom: "24px",
+                textAlign: "center",
+                userSelect: "none",
+              }}
+            >
               Are you sure? This will erase all progress, high scores, and
               settings. This cannot be undone.
             </p>
@@ -401,7 +431,18 @@ export default function OptionsModal({ onClose }) {
 function VolumeSlider({ label, value, onChange, onRelease }) {
   return (
     <div>
-      <label style={{ display: "block", fontFamily: "'Space Mono', monospace", fontSize: "0.65rem", letterSpacing: "0.1em", color: "var(--rs-text-muted)", textTransform: "uppercase", marginBottom: "6px", userSelect: "none" }}>
+      <label
+        style={{
+          display: "block",
+          fontFamily: "'Space Mono', monospace",
+          fontSize: "0.65rem",
+          letterSpacing: "0.1em",
+          color: "var(--rs-text-muted)",
+          textTransform: "uppercase",
+          marginBottom: "6px",
+          userSelect: "none",
+        }}
+      >
         {label}
       </label>
       <div className="flex items-center gap-3">
@@ -414,9 +455,18 @@ function VolumeSlider({ label, value, onChange, onRelease }) {
           onMouseUp={onRelease}
           onTouchEnd={onRelease}
           className="flex-1 h-2 cursor-pointer"
-          style={{ accentColor: 'var(--rs-orange)' }}
+          style={{ accentColor: "var(--rs-orange)" }}
         />
-        <span style={{ fontFamily: "Rajdhani, sans-serif", fontSize: "0.9rem", color: "var(--rs-text-muted)", minWidth: "40px", textAlign: "right", userSelect: "none" }}>
+        <span
+          style={{
+            fontFamily: "Rajdhani, sans-serif",
+            fontSize: "0.9rem",
+            color: "var(--rs-text-muted)",
+            minWidth: "40px",
+            textAlign: "right",
+            userSelect: "none",
+          }}
+        >
           {value}%
         </span>
       </div>

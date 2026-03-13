@@ -14,8 +14,7 @@ export const MENU_ITEMS = [
   { id: "upgrades", label: "UPGRADES" },
   { id: "armory", label: "ARMORY" },
   { id: "options", label: "OPTIONS" },
-]
-
+];
 
 const S = {
   menuBtn: {
@@ -70,7 +69,7 @@ const S = {
 };
 
 export default function MainMenu() {
-const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [fading, setFading] = useState(false);
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
@@ -102,7 +101,7 @@ const [selectedIndex, setSelectedIndex] = useState(0);
     playSFX("button-click");
     setFading(true);
     setTimeout(() => {
-      useGame.getState().setPhase('shipSelect');
+      useGame.getState().setPhase("shipSelect");
     }, 300);
   }, [fading]);
 
@@ -134,7 +133,14 @@ const [selectedIndex, setSelectedIndex] = useState(0);
       if (fading) return;
 
       // Don't navigate menu while any modal is open
-      if (isCreditsOpen || isOptionsOpen || isUpgradesOpen || isArmoryOpen || isStatsOpen) return;
+      if (
+        isCreditsOpen ||
+        isOptionsOpen ||
+        isUpgradesOpen ||
+        isArmoryOpen ||
+        isStatsOpen
+      )
+        return;
 
       if (e.code === "ArrowUp") {
         e.preventDefault();
@@ -153,7 +159,16 @@ const [selectedIndex, setSelectedIndex] = useState(0);
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [fading, selectedIndex, isCreditsOpen, isOptionsOpen, isUpgradesOpen, isArmoryOpen, isStatsOpen, handleMenuSelect]);
+  }, [
+    fading,
+    selectedIndex,
+    isCreditsOpen,
+    isOptionsOpen,
+    isUpgradesOpen,
+    isArmoryOpen,
+    isStatsOpen,
+    handleMenuSelect,
+  ]);
 
   return (
     <>
@@ -164,161 +179,203 @@ const [selectedIndex, setSelectedIndex] = useState(0);
       />
 
       {/* Menu overlay — hidden when upgrades, armory, or stats screen is open */}
-      {!isUpgradesOpen && !isArmoryOpen && !isStatsOpen && <div
-        className="fixed inset-0 z-50 flex flex-col items-center justify-center animate-fade-in"
-        inert={isCreditsOpen || isOptionsOpen ? true : undefined}
-      >
-        {/* High score & Fragment display */}
-        <div className="absolute top-8 right-8 text-right select-none space-y-6">
-          <div>
-            <p style={{
-              fontFamily: "Space Mono, monospace",
-              fontSize: "0.72rem",
-              letterSpacing: "0.1em",
-              color: "var(--rs-text-muted)",
-              textTransform: "uppercase",
-            }}>
-              BEST RUN
-            </p>
-            <p style={{
-              fontFamily: "Rajdhani, sans-serif",
-              fontWeight: 700,
-              fontSize: "1.75rem",
-              color: "var(--rs-text)",
-              fontVariantNumeric: "tabular-nums",
-            }}>
-              {highScore > 0 ? highScore.toLocaleString() : "---"}
-            </p>
+      {!isUpgradesOpen && !isArmoryOpen && !isStatsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center animate-fade-in"
+          inert={isCreditsOpen || isOptionsOpen ? true : undefined}
+        >
+          {/* High score & Fragment display */}
+          <div className="absolute top-8 right-8 text-right select-none space-y-6">
+            <div>
+              <p
+                style={{
+                  fontFamily: "Space Mono, monospace",
+                  fontSize: "0.72rem",
+                  letterSpacing: "0.1em",
+                  color: "var(--rs-text-muted)",
+                  textTransform: "uppercase",
+                }}
+              >
+                BEST RUN
+              </p>
+              <p
+                style={{
+                  fontFamily: "Rajdhani, sans-serif",
+                  fontWeight: 700,
+                  fontSize: "1.75rem",
+                  color: "var(--rs-text)",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {highScore > 0 ? highScore.toLocaleString() : "---"}
+              </p>
+            </div>
+            <div>
+              <p
+                style={{
+                  fontFamily: "Space Mono, monospace",
+                  fontSize: "0.72rem",
+                  letterSpacing: "0.1em",
+                  color: "var(--rs-text-muted)",
+                  textTransform: "uppercase",
+                }}
+              >
+                FRAGMENTS
+              </p>
+              <p
+                style={{
+                  fontFamily: "Rajdhani, sans-serif",
+                  fontWeight: 700,
+                  fontSize: "1.75rem",
+                  color: "var(--rs-violet)",
+                  fontVariantNumeric: "tabular-nums",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <FragmentIcon size={14} color="var(--rs-violet)" />
+                {fragments.toLocaleString()}
+              </p>
+            </div>
           </div>
+
+          {/* Title */}
           <div>
-            <p style={{
-              fontFamily: "Space Mono, monospace",
-              fontSize: "0.72rem",
-              letterSpacing: "0.1em",
-              color: "var(--rs-text-muted)",
-              textTransform: "uppercase",
-            }}>
-              FRAGMENTS
-            </p>
-            <p style={{
-              fontFamily: "Rajdhani, sans-serif",
-              fontWeight: 700,
-              fontSize: "1.75rem",
-              color: "var(--rs-violet)",
-              fontVariantNumeric: "tabular-nums",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-            }}>
-              <FragmentIcon size={14} color="var(--rs-violet)" />
-              {fragments.toLocaleString()}
-            </p>
+            <h1
+              style={{
+                fontFamily: "Bebas Neue, sans-serif",
+                fontSize: "clamp(3rem, 8vw, 6rem)",
+                letterSpacing: "0.12em",
+                color: "var(--rs-text)",
+                lineHeight: 1,
+                margin: 0,
+                userSelect: "none",
+              }}
+            >
+              REDSHIFT SURVIVOR
+            </h1>
+            <div
+              style={{
+                width: "32px",
+                height: "2px",
+                background: "var(--rs-orange)",
+                marginTop: "6px",
+                marginBottom: "3rem",
+              }}
+            />
           </div>
-        </div>
 
-        {/* Title */}
-        <div>
-          <h1 style={{
-            fontFamily: "Bebas Neue, sans-serif",
-            fontSize: "clamp(3rem, 8vw, 6rem)",
-            letterSpacing: "0.12em",
-            color: "var(--rs-text)",
-            lineHeight: 1,
-            margin: 0,
-            userSelect: "none",
-          }}>
-            REDSHIFT SURVIVOR
-          </h1>
-          <div style={{ width: "32px", height: "2px", background: "var(--rs-orange)", marginTop: "6px", marginBottom: "3rem" }} />
-        </div>
+          {/* Menu items */}
+          <div className="flex flex-col items-center gap-4">
+            {MENU_ITEMS.map((item, i) => (
+              <button
+                key={item.id}
+                ref={
+                  item.id === "play"
+                    ? playButtonRef
+                    : item.id === "options"
+                      ? optionsButtonRef
+                      : undefined
+                }
+                style={selectedIndex === i ? S.menuBtnSelected : S.menuBtn}
+                onClick={() => handleMenuSelect(item)}
+                onMouseEnter={(e) => {
+                  setSelectedIndex(i);
+                  playSFX("button-hover");
+                  e.currentTarget.style.borderTopColor = "var(--rs-orange)";
+                  e.currentTarget.style.borderRightColor = "var(--rs-orange)";
+                  e.currentTarget.style.borderBottomColor = "var(--rs-orange)";
+                  e.currentTarget.style.color = "var(--rs-text)";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }}
+                onMouseLeave={(e) => {
+                  const isSelected = selectedIndex === i;
+                  e.currentTarget.style.borderTopColor = isSelected
+                    ? "var(--rs-orange)"
+                    : "var(--rs-border)";
+                  e.currentTarget.style.borderRightColor = isSelected
+                    ? "var(--rs-orange)"
+                    : "var(--rs-border)";
+                  e.currentTarget.style.borderBottomColor = isSelected
+                    ? "var(--rs-orange)"
+                    : "var(--rs-border)";
+                  e.currentTarget.style.color = isSelected
+                    ? "var(--rs-text)"
+                    : "var(--rs-text-muted)";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
 
-        {/* Menu items */}
-        <div className="flex flex-col items-center gap-4">
-          {MENU_ITEMS.map((item, i) => (
+          {/* Bottom-right: version */}
+          <span
+            style={{
+              position: "absolute",
+              bottom: "2rem",
+              right: "2rem",
+              fontFamily: "Space Mono, monospace",
+              fontSize: "0.55rem",
+              letterSpacing: "0.1em",
+              color: "var(--rs-text-dim)",
+              textTransform: "uppercase",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+          >
+            v1.1.0
+          </span>
+
+          {/* Bottom-left: Stats & Credits */}
+          <div className="absolute bottom-8 left-8 flex flex-col gap-2 select-none">
             <button
-              key={item.id}
-              ref={item.id === "play" ? playButtonRef : item.id === "options" ? optionsButtonRef : undefined}
-              style={selectedIndex === i ? S.menuBtnSelected : S.menuBtn}
-              onClick={() => handleMenuSelect(item)}
+              ref={statsButtonRef}
+              style={S.cornerBtn}
+              onClick={() => {
+                playSFX("button-click");
+                setIsStatsOpen(true);
+              }}
               onMouseEnter={(e) => {
-                setSelectedIndex(i);
                 playSFX("button-hover");
-                e.currentTarget.style.borderTopColor = "var(--rs-orange)";
-                e.currentTarget.style.borderRightColor = "var(--rs-orange)";
-                e.currentTarget.style.borderBottomColor = "var(--rs-orange)";
+                e.currentTarget.style.borderColor = "var(--rs-orange)";
                 e.currentTarget.style.color = "var(--rs-text)";
                 e.currentTarget.style.transform = "translateX(4px)";
               }}
               onMouseLeave={(e) => {
-                const isSelected = selectedIndex === i;
-                e.currentTarget.style.borderTopColor = isSelected ? "var(--rs-orange)" : "var(--rs-border)";
-                e.currentTarget.style.borderRightColor = isSelected ? "var(--rs-orange)" : "var(--rs-border)";
-                e.currentTarget.style.borderBottomColor = isSelected ? "var(--rs-orange)" : "var(--rs-border)";
-                e.currentTarget.style.color = isSelected ? "var(--rs-text)" : "var(--rs-text-muted)";
+                e.currentTarget.style.borderColor = "var(--rs-border-hot)";
+                e.currentTarget.style.color = "var(--rs-text)";
                 e.currentTarget.style.transform = "translateX(0)";
               }}
             >
-              {item.label}
+              STATS
             </button>
-          ))}
+            <button
+              ref={creditsButtonRef}
+              style={S.cornerBtn}
+              onClick={() => {
+                playSFX("button-click");
+                setIsCreditsOpen(true);
+              }}
+              onMouseEnter={(e) => {
+                playSFX("button-hover");
+                e.currentTarget.style.borderColor = "var(--rs-orange)";
+                e.currentTarget.style.color = "var(--rs-text)";
+                e.currentTarget.style.transform = "translateX(4px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--rs-border-hot)";
+                e.currentTarget.style.color = "var(--rs-text)";
+                e.currentTarget.style.transform = "translateX(0)";
+              }}
+            >
+              CREDITS
+            </button>
+          </div>
         </div>
-
-        {/* Bottom-right: version */}
-        <span style={{
-          position: 'absolute',
-          bottom: '2rem',
-          right: '2rem',
-          fontFamily: 'Space Mono, monospace',
-          fontSize: '0.55rem',
-          letterSpacing: '0.1em',
-          color: 'var(--rs-text-dim)',
-          textTransform: 'uppercase',
-          userSelect: 'none',
-          pointerEvents: 'none',
-        }}>
-          v1
-        </span>
-
-        {/* Bottom-left: Stats & Credits */}
-        <div className="absolute bottom-8 left-8 flex flex-col gap-2 select-none">
-          <button
-            ref={statsButtonRef}
-            style={S.cornerBtn}
-            onClick={() => { playSFX("button-click"); setIsStatsOpen(true); }}
-            onMouseEnter={(e) => {
-              playSFX("button-hover");
-              e.currentTarget.style.borderColor = "var(--rs-orange)";
-              e.currentTarget.style.color = "var(--rs-text)";
-              e.currentTarget.style.transform = "translateX(4px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--rs-border-hot)";
-              e.currentTarget.style.color = "var(--rs-text)";
-              e.currentTarget.style.transform = "translateX(0)";
-            }}
-          >
-            STATS
-          </button>
-          <button
-            ref={creditsButtonRef}
-            style={S.cornerBtn}
-            onClick={() => { playSFX("button-click"); setIsCreditsOpen(true); }}
-            onMouseEnter={(e) => {
-              playSFX("button-hover");
-              e.currentTarget.style.borderColor = "var(--rs-orange)";
-              e.currentTarget.style.color = "var(--rs-text)";
-              e.currentTarget.style.transform = "translateX(4px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "var(--rs-border-hot)";
-              e.currentTarget.style.color = "var(--rs-text)";
-              e.currentTarget.style.transform = "translateX(0)";
-            }}
-          >
-            CREDITS
-          </button>
-        </div>
-      </div>}
+      )}
 
       {/* Options modal */}
       {isOptionsOpen && (
@@ -334,10 +391,12 @@ const [selectedIndex, setSelectedIndex] = useState(0);
 
       {/* Credits modal */}
       {isCreditsOpen && (
-        <CreditsModal onClose={() => {
-          setIsCreditsOpen(false);
-          setTimeout(() => creditsButtonRef.current?.focus(), 0);
-        }} />
+        <CreditsModal
+          onClose={() => {
+            setIsCreditsOpen(false);
+            setTimeout(() => creditsButtonRef.current?.focus(), 0);
+          }}
+        />
       )}
 
       {/* Upgrades screen overlay */}
@@ -346,16 +405,16 @@ const [selectedIndex, setSelectedIndex] = useState(0);
       )}
 
       {/* Armory screen overlay */}
-      {isArmoryOpen && (
-        <Armory onClose={() => setIsArmoryOpen(false)} />
-      )}
+      {isArmoryOpen && <Armory onClose={() => setIsArmoryOpen(false)} />}
 
       {/* Stats screen overlay */}
       {isStatsOpen && (
-        <StatsScreen onClose={() => {
-          setIsStatsOpen(false);
-          setTimeout(() => statsButtonRef.current?.focus(), 0);
-        }} />
+        <StatsScreen
+          onClose={() => {
+            setIsStatsOpen(false);
+            setTimeout(() => statsButtonRef.current?.focus(), 0);
+          }}
+        />
       )}
     </>
   );
