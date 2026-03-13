@@ -65,6 +65,12 @@ export default function useAudio() {
     // Preload all SFX on mount
     preloadSounds(SFX_MAP)
 
+    // If AudioContext is already running on mount (some desktop browsers skip suspension),
+    // the phase subscription won't fire for the initial 'menu' state — play directly.
+    if (isUnlocked() && useGame.getState().phase === 'menu') {
+      playMusic(ASSET_MANIFEST.critical.audio.menuMusic)
+    }
+
     // Unlock AudioContext on first user interaction (browser autoplay policy)
     const handleInteraction = () => {
       // Capture lock state BEFORE unlocking — prevents race condition where the
