@@ -4,11 +4,10 @@ A bullet-heaven roguelite set in space, built with React Three Fiber. Pilot your
 
 ## What's inside
 
-- Multiple playable ships with their own stats, starting weapons, and boon affinities — from armored tank to glass cannon that melts at the first hit
+- Multiple playable ships with their own stats, starting weapons, and boon affinities
 - A modular weapon upgrade system that evolves with each run
-- 40+ boons spread across 5 rarity tiers, from Common to Mythic
+- Many boons spread across 5 rarity tiers, from Common to Legendary
 - A galaxy map with planets to scan, moral dilemmas, and warp transitions
-- Multi-phase boss encounters that won't go easy on you
 - XP curve, level-up modal, and persistent run stats
 - Companion dialogue and quest tracker systems
 - Full audio (music + SFX) powered by Howler.js
