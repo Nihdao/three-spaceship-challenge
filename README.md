@@ -1,17 +1,17 @@
 # Redshift Survivor
 
-A bullet-heaven roguelite set in space, built with React Three Fiber. Pilot your spaceship through procedurally-spawned enemy waves, collect XP, choose boons, and fight your way across a galaxy of systems and boss encounters.
+A bullet-heaven roguelite set in space, built with React Three Fiber. Pilot your spaceship through endless enemy waves, stack XP, chain boons, and fight your way across galaxy after galaxy — all the way to the final boss. If you make it that far.
 
-## Features
+## What's inside
 
-- Multiple playable ships with unique stats, starting weapons, and boon biases
-- Weapon upgrade system with per-weapon progression
-- Boon/rarity system with 40+ upgrades across 5 rarity tiers
-- Galaxy map with planet rewards, dilemmas, and warp transitions
-- Boss encounters with multi-phase behavior
+- Multiple playable ships with their own stats, starting weapons, and boon affinities — from armored tank to glass cannon that melts at the first hit
+- A modular weapon upgrade system that evolves with each run
+- 40+ boons spread across 5 rarity tiers, from Common to Mythic
+- A galaxy map with planets to scan, moral dilemmas, and warp transitions
+- Multi-phase boss encounters that won't go easy on you
 - XP curve, level-up modal, and persistent run stats
 - Companion dialogue and quest tracker systems
-- Full audio system (music + SFX) via Howler
+- Full audio (music + SFX) powered by Howler.js
 - Pause menu, game over, victory, and stats screens
 - Ship skins and cosmetic unlocks
 
@@ -48,7 +48,7 @@ npm test
 
 ## Architecture
 
-The project follows a 6-layer architecture:
+The project follows a 6-layer architecture, from static to dynamic:
 
 ```
 Config/Data → Systems → Stores → GameLoop → Rendering → UI
