@@ -5,6 +5,10 @@
 # Claude Code workspace
 .claude/
 
+# BMad workflow artifacts
+_bmad/
+_bmad-output/
+
 # Build artifacts / release zips
 *.zip
 
